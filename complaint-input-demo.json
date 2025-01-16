@@ -1,0 +1,36 @@
+{
+    "complaint": {
+        "user": {
+            "first_name": "Mark",
+            "last_name": "Zuckerberg"
+        },
+        "problem_categories": ["emergency_services", "negligence", "fire_safety"],
+        "description": "During the wildfire incident in January 2025, firefighters failed to respond in a timely manner to calls regarding our neighborhood. Despite multiple requests, the fire department's delayed response led to the complete destruction of my house.",
+        "location": {
+            "details": "Los Angeles"
+        },
+        "time": {
+            "type": "date",
+            "value": "2025-01-11"
+        },
+        "severity": "High",
+        "impact_estimation": "Personal",
+        "problem_status": "Ongoing",
+        "media_files": [
+            {
+                "type": "image",
+                "url": "https://example.com/image.jpg"
+            },
+            {
+                "type": "video",
+                "url": "https://example.com/video.mp4"
+            }
+        ],
+        "related_events": ["#Wildfire2025", "#LAResponseDelays"],
+        "metadata": {
+            "source": "GPT-system",
+            "tokenized": true
+        }
+    }
+  }
+  
