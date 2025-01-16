@@ -1,5 +1,5 @@
 from opencage.geocoder import OpenCageGeocode
-from app import supabase
+from app.db import supabase
 import requests
 
 NOMINATUM_URL = "https://nominatim.openstreetmap.org/search"

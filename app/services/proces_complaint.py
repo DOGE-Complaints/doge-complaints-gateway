@@ -1,14 +1,14 @@
 #process complaint
 
+from app.db import supabase
 from flask import Blueprint, request, jsonify
-from app import supabase
-from ..utils.ai_helper import vectorize_text
-from ..utils.geocoding import get_coordinates
-from ..utils.enumerators import ComplaintTimeType
+from app.utils.ai_helper import vectorize_text
+from app.utils.geocoding import get_coordinates
+from app.utils.enumerators import ComplaintTimeType
 
-bp = Blueprint('process_complaint', __name__)
+proces_complaint_bp = Blueprint('process_complaint', __name__)
 
-@bp.route('/submit-complaint', methods=['POST'])
+@proces_complaint_bp.route('/submit-complaint', methods=['POST'])
 def submit_complaint():
     print("Submitting complaint...")
     # Get JSON from request

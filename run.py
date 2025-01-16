@@ -10,4 +10,4 @@ if __name__ == '__main__':
     # Run the application with the specified host and port
     
     print("Starting the application...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
