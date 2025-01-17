@@ -1,10 +1,10 @@
 from opencage.geocoder import OpenCageGeocode
 from app.db import supabase
 import requests
-
+import os
 NOMINATUM_URL = "https://nominatim.openstreetmap.org/search"
 
-OPENCAGE_API_KEY = "24157cbea4534cba954c14a715392e47"
+
 
 DEFAULT_CITY = "Tallinn"
 DEFAULT_COUNTRY = "Estonia"
@@ -12,7 +12,10 @@ DEFAULT_COUNTRY = "Estonia"
 def get_coordinates(location_details):
 
     # Check if address is already registered in dictionary and return coordinates
+    
+    print("location_details:", location_details)
     dictionary_response = supabase.table("location_directory").select("*").eq("location_details", location_details).execute()
+    print("dictionary_response:", dictionary_response)
     if dictionary_response.data:
         # print address retrieved from dictionary with all parameters printed one by one
         print(f"location_details {location_details} already registered in dictionary table location_directory")
@@ -26,7 +29,7 @@ def get_coordinates(location_details):
     return getOpenCageCoordinates(location_details)
 
 def getOpenCageCoordinates(location_details):
-    geocoder = OpenCageGeocode(key=OPENCAGE_API_KEY)
+    geocoder = OpenCageGeocode(key=os.getenv('OPENCAGE_API_KEY'))
     results = geocoder.geocode(location_details)
     if results:
         return results[0]['geometry']['lat'], results[0]['geometry']['lng']

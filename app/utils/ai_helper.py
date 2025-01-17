@@ -41,6 +41,7 @@ def vectorize_text(text: str):
     print(f"Payload: {payload}")
 
     try:
+        print(f"Sending request to {os.getenv('SUPABASE_FUNCTION_URL')}")
         response = requests.post(os.getenv('SUPABASE_FUNCTION_URL'), json=payload, headers=headers)
         
         # Validate response
