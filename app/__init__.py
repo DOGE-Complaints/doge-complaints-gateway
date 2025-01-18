@@ -1,5 +1,5 @@
 from flask import Flask
-from .services.proces_complaint import proces_complaint_bp
+from .services.submit_complaint import submit_complaint_bp
 
 
 def create_app():
@@ -7,6 +7,6 @@ def create_app():
     app = Flask(__name__)
     print("App created successfully")
     #register blueprints
-    app.register_blueprint(proces_complaint_bp, url_prefix='/api/v1/')
+    app.register_blueprint(submit_complaint_bp, url_prefix='/api/v1/')
     print("Blueprint registered successfully")
     return app
