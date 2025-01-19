@@ -1,10 +1,15 @@
+from dotenv import load_dotenv
 import requests
 import jwt
 import datetime
 import os
 
-SUPABASE_SERVICE_ROLE = os.getenv('SUPABASE_SERVICE_ROLE')
+load_dotenv()
+
+SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
+print(f"SUPABASE_JWT_SECRET: {SUPABASE_JWT_SECRET}")
 SUPABASE_FUNCTION_URL = os.getenv('SUPABASE_FUNCTION_URL')
+print(f"SUPABASE_FUNCTION_URL: {SUPABASE_FUNCTION_URL}")
 
 cached_token = None
 cached_token_expiration = None
@@ -25,7 +30,7 @@ def get_cached_jwt():
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),  # Время жизни токена
         "aud": "authenticated",  # Аудитория
     }
-    cached_token = jwt.encode(payload, SUPABASE_SERVICE_ROLE, algorithm="HS256")
+    cached_token = jwt.encode(payload, SUPABASE_JWT_SECRET, algorithm="HS256")
     cached_token_expiration = payload["exp"]
 
     print(f"New token created: {cached_token}")
@@ -35,6 +40,7 @@ def get_cached_jwt():
 
 def vectorize_text(text: str):
     print(f"Vectorizing text: {text}")
+    print(f"SUPABASE_SERVICE_ROLE: get_cached_jwt()")
     headers = {
         "Authorization": f"Bearer {get_cached_jwt()}",
         "Content-Type": "application/json",

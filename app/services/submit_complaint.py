@@ -73,16 +73,20 @@ def submit_complaint():
 
     print(f"Complaint time data: {complaint_time_data}")
     supabase.table("complaint_time").insert(complaint_time_data).execute()
-
+    
     # Inserting categories in 'complaint_problem_categories' table
+    print("Inserting categories...")
     for complaint_category in complaint["problem_categories"]:
+        print(f"Complaint category: {complaint_category}")
         # validating if category exists in 'dictionary_problem_categories' table
         dictionary_response = supabase.table("dictionary_problem_categories").select("id").eq("category", complaint_category).execute()
-
+        print(f"Dictionary response: {dictionary_response}")
         if dictionary_response.data:
             # if category exists, use its id
             category_id = dictionary_response.data[0]["id"]
+            print(f"Category ID: {category_id}")
         else:
+            print(f"Category does not exist, creating it...")
             # if category does not exist, create it in 'dictionary_problem_categories' table
             new_category = supabase.table("dictionary_problem_categories").insert({
                 "category": complaint_category
@@ -94,7 +98,7 @@ def submit_complaint():
                 raise Exception(f"Failed to insert category '{complaint_category}' into dictionary.")
 
             category_id = new_category.data[0]["id"]
-
+            print(f"New category ID: {category_id}")
             # get embedding for category
             category_embedding = vectorize_text(complaint_category)
             print(f"Category embedding: {category_embedding}")
@@ -117,14 +121,18 @@ def submit_complaint():
         print(f"Complaint category relation inserted: {complaint_id} - {category_id}")
     
     # Inserting related events in 'complaint_related_events' table
+    print("Inserting related events...")    
     for related_event in complaint["related_events"]:
+        print(f"Related event: {related_event}")
         # validating if event exists in 'dictionary_related_events' table
         dictionary_response = supabase.table("dictionary_related_events").select("id").eq("event_name", related_event).execute()
-
+        print(f"Dictionary response: {dictionary_response}")
         if dictionary_response.data:
             # if event exists, use its id
             event_id = dictionary_response.data[0]["id"]
+            print(f"Event ID: {event_id}")
         else:
+            print(f"Event does not exist, creating it...")
             # if event does not exist, create it in 'dictionary_related_events' table
             new_event = supabase.table("dictionary_related_events").insert({
                 "event_name": related_event
@@ -136,7 +144,7 @@ def submit_complaint():
                 raise Exception(f"Failed to insert event '{related_event}' into dictionary.")
 
             event_id = new_event.data[0]["id"]
-
+            print(f"New event ID: {event_id}")
             #get embedding for event
             event_embedding = vectorize_text(related_event)
             print(f"Event embedding: {event_embedding}")

@@ -4,8 +4,6 @@ import requests
 import os
 NOMINATUM_URL = "https://nominatim.openstreetmap.org/search"
 
-
-
 DEFAULT_CITY = "Tallinn"
 DEFAULT_COUNTRY = "Estonia"
 

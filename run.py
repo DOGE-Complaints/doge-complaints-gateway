@@ -1,6 +1,10 @@
 from app import create_app
 
 print("Starting the application...")
+import os
+print(f"Current working directory: {os.getcwd()}")
+from dotenv import find_dotenv
+print(f"Loading .env from: {find_dotenv()}")
 
 # Create an instance of the application
 app = create_app()
