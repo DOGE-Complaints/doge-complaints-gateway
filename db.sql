@@ -1,3 +1,13 @@
+CREATE TABLE oauth_users (
+    id SERIAL PRIMARY KEY,                       -- Внутренний уникальный идентификатор пользователя
+    oauth_provider_user_id TEXT NOT NULL,       -- ID пользователя из OAuth провайдера
+    oauth_provider TEXT NOT NULL,              -- Название провайдера (facebook, twitter, tiktok)
+    created_at TIMESTAMP DEFAULT NOW()         -- Время создания записи
+);
+
+-- Индекс для быстрого поиска по паре oauth_provider_user_id + oauth_provider
+CREATE UNIQUE INDEX idx_oauth_user_provider ON oauth_users(oauth_provider_user_id, oauth_provider);
+
 -- Таблица для хранения жалоб
 CREATE TABLE complaints (
     id SERIAL PRIMARY KEY,                   -- Уникальный идентификатор жалобы
@@ -18,6 +28,19 @@ CREATE INDEX idx_complaints_severity ON complaints(severity);
 CREATE INDEX idx_complaints_impact_estimation ON complaints(impact_estimation);
 CREATE INDEX idx_complaints_problem_status ON complaints(problem_status);
 CREATE INDEX idx_complaints_location_id ON complaints(location_id);
+
+CREATE TABLE session_complaints (
+    id SERIAL PRIMARY KEY,                   -- Уникальный идентификатор записи
+    session_id TEXT NOT NULL,                -- ID сессии GPT
+    user_id INT NOT NULL REFERENCES oauth_users(id) ON DELETE CASCADE,
+    complaint_id INT NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW()       -- Время создания записи
+);
+
+-- Индексы для оптимизации
+CREATE INDEX idx_session_id ON session_complaints(session_id);
+CREATE INDEX idx_user_id ON session_complaints(user_id);
+CREATE INDEX idx_complaint_id ON session_complaints(complaint_id);
 
 -- Таблица для хранения гибких данных о времени
 CREATE TABLE complaint_time (
