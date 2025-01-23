@@ -22,11 +22,6 @@ This project includes:
 
 ---
 
-## **Directory Structure**
-├── proces_complaint.py # Main module for processing complaints ├── ai_helper.py # AI-related utilities (e.g., text embeddings) ├── enumerators.py # Enumerations for categories, statuses, and other constants ├── geocoding.py # Handles geolocation using external APIs ├── db.sql # SQL schema for the database ├── complaint-input-demo.json # Example JSON input for testing ├── README.md # Documentation for developers
-
----
-
 ## **Setup Instructions**
 
 ### **1. Requirements**
@@ -132,7 +127,7 @@ Complaints are submitted to the Flask endpoint /submit-complaint via a POST requ
 2. Text Vectorization
 The system automatically calls the Supabase Edge Function to generate embeddings for complaint descriptions and categories.
 
-### *Testing*
+### **Testing**
 1. Testing Edge Function
 Use a tool like curl to send a test request to the Supabase Edge Function:
 
@@ -145,6 +140,10 @@ curl -X POST "<SUPABASE_FUNCTION_URL>" \
 2. Unit Tests
 Run tests for the vectorization function and other modules:
 
+# **GPT**
+Entry to the application is implemented through a custom GPT on OpenAI.
+It uses two main instructions. One is about complaints data processing — https://docs.google.com/document/d/15C5lhSwEkPslWJXDQ6b0_5Z4w3awT18Y1C2KgeX1cQM/edit?usp=sharing. The other one is responsible for the legal advice — https://docs.google.com/document/d/1Bv8KsfA2VzKvUGNq1U4h6sUI4qFXCy67Rxvsvx0QT9s/edit?usp=sharing. GPT also has a set of constitutional laws for USA and Estonia. Everyone is welcome to bring original legal documents in PDF touching country-level and international law.
+List of needed documents is listed in this post: https://x.com/LiaZeya888/status/1879854339725893883
 
 # **Contributing**
 Fork the repository and create a feature branch.
@@ -155,4 +154,4 @@ Create a pull request with detailed information about your changes.
 This project is licensed under the MIT License. See LICENSE for details.
 
 ## **Support**
-For issues, contact the project team at zeya.metsapuu@gmail.com or create an issue in the repository.
+For issues, contact the project starter on Telegram: @zeya888 or create an issue in the repository.
