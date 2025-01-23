@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: DogeComplaints API
+  description: API for submitting and managing complaints related to public and governmental services.
+  version: 1.0.0
+servers:
+  - url: https://doge-complaints-gateway-production.up.railway.app/api/v1
+paths:
+  /submit-complaint:
+    post:
+      operationId: submitComplaint
+      summary: Submit a complaint
+      description: Allows users to submit complaints with detailed information for analysis and action.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - complaint
+              properties:
+                complaint:
+                  type: object
+                  required:
+                    - session_id
+                    - user
+                    - description
+                    - severity
+                    - impact_estimation
+                    - problem_status
+                  properties:
+                    session_id:
+                      type: string
+                      format: uuid
+                      description: A unique identifier representing the user's session.
+                      example: "67878b40-ae0c-8000-ae10-3f588db710f1"
+                    user:
+                      type: object
+                      required:
+                        - first_name
+                        - last_name
+                      properties:
+                        first_name:
+                          type: string
+                          example: "John"
+                        last_name:
+                          type: string
+                          example: "Doe"
+                    problem_categories:
+                      type: array
+                      items:
+                        type: string
+                      example: ["infrastructure", "roadDamage", "safety"]
+                    description:
+                      type: string
+                      example: "Roads in the city center have been severely damaged after the recent storm."
+                    location:
+                      type: object
+                      properties:
+                        details:
+                          type: string
+                          example: "Los Angeles"
+                        place:
+                          type: string
+                          example: "LA Town Hall"
+
+                    media_files:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum: ["image", "video"]
+                            example: "image"
+                          url:
+                            type: string
+                            format: uri
+                            example: "https://example.com/image1.jpg"
+                    time:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: ["exact", "date", "date_range", "datetime_range", "approx_period"]
+                          example: "date_range"
+                        value:
+                          oneOf:
+                            - type: string
+                              format: date
+                              example: "2025-01-15"
+                            - type: object
+                              properties:
+                                start_date:
+                                  type: string
+                                  format: date
+                                  example: "2025-01-10"
+                                end_date:
+                                  type: string
+                                  format: date
+                                  example: "2025-01-15"
+                    severity:
+                      type: string
+                      enum: ["low", "medium", "high", "critical"]
+                      example: "high"
+                    impact_estimation:
+                      type: string
+                      enum: ["personal", "city/town", "state", "country", "Earth"]
+                      example: "city/town"
+                    problem_status:
+                      type: string
+                      enum: ["ongoing", "resolved", "worsened", "pending_review"]

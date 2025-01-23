@@ -32,7 +32,7 @@ CREATE INDEX idx_complaints_location_id ON complaints(location_id);
 CREATE TABLE session_complaints (
     id SERIAL PRIMARY KEY,                   -- Уникальный идентификатор записи
     session_id TEXT NOT NULL,                -- ID сессии GPT
-    user_id INT NOT NULL REFERENCES oauth_users(id) ON DELETE CASCADE,
+    user_id INT REFERENCES oauth_users(id) ON DELETE CASCADE,
     complaint_id INT NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()       -- Время создания записи
 );
