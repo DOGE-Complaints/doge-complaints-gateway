@@ -10,6 +10,25 @@ from app.utils.enumerators import ComplaintTimeType
 
 submit_complaint_bp = Blueprint('submit_complaint', __name__)
 
+@submit_complaint_bp.route('/generate-session', methods=['POST'])
+def generate_session():
+    
+    session_id = uuid.uuid4()
+
+    # validate uniqueness of session_id
+    session_complaints = supabase.table('session_complaints').select('*').eq('session_id', session_id).execute()
+
+    while session_complaints.data:
+        session_id = uuid.uuid4()
+        session_complaints = supabase.table('session_complaints').select('*').eq('session_id', session_id).execute()
+    
+    # create session in supabase
+    supabase.table("session_complaints").insert({
+        "session_id": session_id
+    }).execute()
+
+    return jsonify({"session_id": session_id}), 200
+
 @submit_complaint_bp.route('/submit-complaint', methods=['POST'])
 def submit_complaint():
     print("Submitting complaint...")
@@ -88,6 +107,7 @@ def submit_complaint():
         session_complaints = supabase.table("session_complaints").select("*").eq("session_id", session_id).execute()
         if not session_complaints.data:
             connect_complaint_to_session(session_id, complaint_id)
+            
     except Exception as e:
         print(f"Error: {e}")
         # Delete complaint if error occurs
