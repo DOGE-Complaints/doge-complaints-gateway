@@ -2,18 +2,18 @@ from github import Github
 import base64
 import os
 import json
-# Ваш личный токен доступа к GitHub
+# Your personal access token to GitHub
 GITHUB_ACCESS_TOKEN = os.getenv('GITHUB_ACCESS_TOKEN')
 
-# Имя пользователя и репозитория
+# Username and repository name
 GITHUB_JSON_REPO_NAME = os.getenv('GITHUB_JSON_REPO_NAME')
-FILE_PATH = os.getenv('FILE_PATH')  # Путь к файлу в репозитории
+FILE_PATH = os.getenv('FILE_PATH')  # Path to the file in the repository
 
 # Connect to GitHub using the token
-g = Github(GITHUB_ACCESS_TOKEN)
+#g = Github(GITHUB_ACCESS_TOKEN)
 
 # Get the repository
-repo = g.get_repo(GITHUB_JSON_REPO_NAME)
+# repo = g.get_repo(GITHUB_JSON_REPO_NAME)
 
 def upload_json(complaint):
     """
@@ -25,14 +25,18 @@ def upload_json(complaint):
     """
 
     complaint_id = complaint['id']
-    file_name = f"{complaint_id}.json"
+    file_name = f"C-{complaint_id}.json"
     file_content = json.dumps(complaint)
+    print(f"File content: {file_content}")
+    print(f"File name: {file_name}")
+    print(f"Repo name: {GITHUB_JSON_REPO_NAME}")
 
     try:
 
         # Check if the file exists
         try:
             contents = repo.get_contents(file_name)
+            print(f"Contents: {contents}")
             # If the file exists, update it
             repo.update_file(contents.path, "Update file via API", file_content, file_content.sha)
             print(f"File updated: {file_name}")

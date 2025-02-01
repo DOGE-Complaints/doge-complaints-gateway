@@ -3,8 +3,16 @@ import requests
 import jwt
 import datetime
 import os
-
+import openai
+import anthropic
 load_dotenv()
+
+# Setting up OpenAI API
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# Setting up Anthropic API (Claude)
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
 print(f"SUPABASE_JWT_SECRET: {SUPABASE_JWT_SECRET}")
@@ -62,6 +70,21 @@ def vectorize_text(text: str):
             print(f"Response: {response.text}")
             print(f"Response headers: {response.headers}")
             return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    
+def sumamrise_text(text: str):
+    print(f"Sumamrising text: {text}")
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            messages=[
+                {"role": "user", "content": "Summarise the complaint: " + text}
+            ]
+        )
+        return response.content[0].text
     except Exception as e:
         print(f"Error: {e}")
         return None

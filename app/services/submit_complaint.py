@@ -7,8 +7,19 @@ from app.utils.ai_helper import vectorize_text
 from app.utils.geocoding import get_coordinates
 from app.services.oauth_processers import connect_complaint_to_session
 from app.utils.enumerators import ComplaintTimeType
+from app.utils.githubuploader import upload_json
+from app.services.dogeparty import createComplaintToken
+from app.utils.pinatauploader import upload_to_pinata
 
 submit_complaint_bp = Blueprint('submit_complaint', __name__)
+
+@submit_complaint_bp.route('/upload-to-pinata', methods=['POST'])
+def upload_to_pinata_route():
+    data = request.get_json()
+    json_data = data.get("complaint")
+    url = upload_to_pinata(json_data)
+    print(f"Uploaded to Pinata: {url}")
+    return jsonify({"url": url}), 200
 
 @submit_complaint_bp.route('/generate-session', methods=['POST'])
 def generate_session():
@@ -34,7 +45,7 @@ def submit_complaint():
     print("Submitting complaint...")
     # Get JSON from request
     data = request.get_json()
-    session_id = data.get("session_id")
+    session_id = data.get("complaint").get("session_id")
     
     if (session_id is None):
         #generate randomg session_id with UUID
@@ -113,6 +124,13 @@ def submit_complaint():
         # Delete complaint if error occurs
         supabase.table("complaints").delete().eq("id", complaint_id).execute()
         return jsonify({"error": str(e)}), 500
+
+    # Upload complaint to Pinata
+    json_url = upload_to_pinata(complaint)
+    print(f"JSON URL: {json_url}")
+
+    # Create complaint token
+    createComplaintToken(complaint, json_url)
 
     return jsonify({"message": "Complaint added successfully"}), 201
 
