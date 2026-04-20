@@ -4,7 +4,7 @@
 - Key: `STORY-M2-04-01`
 - Parent Epic: [`EPIC-M2-04-dynamic-cluster-views.md`](../../EPIC-M2-04-dynamic-cluster-views.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Clustering
 - Skill declared: `python-pro` (for runtime implementation phase)
 

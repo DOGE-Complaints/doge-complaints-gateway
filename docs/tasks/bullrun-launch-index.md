@@ -34,3 +34,12 @@
 | 🟢 | M2-03-03 | [Profile versioning and audit trail repository](./epics/EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-03-profile-versioning-and-audit-trail-repository.md) | implement | Done (Committed) | Version history per story profile and audit-friendly retrieval. |
 | 🟢 | M2-03-04 | [Profile quality validation and consistency tests](./epics/EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-04-profile-quality-validation-and-consistency-tests.md) | implement | Done (Committed) | Validation rules and test suite for minimum profile consistency. |
 
+## EPIC-M2-04 — Dynamic Cluster Views
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🟢 | M2-04-01 | [Cluster lens framework and deterministic clustering](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-01-cluster-lens-framework-and-deterministic-clustering.md) | implement | Done (Committed) | Six canonical lenses + deterministic clustering engine baseline. |
+| 🟢 | M2-04-02 | [Multi-membership story-to-cluster mapping](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-02-multi-membership-story-to-cluster-mapping.md) | implement | Done (Committed) | Story membership across multiple cluster views and lenses. |
+| 🟢 | M2-04-03 | [Cluster narrative generator baseline](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-03-cluster-narrative-generator-baseline.md) | implement | Done (Committed) | Explainable cluster narrative summaries from dominant patterns. |
+| 🟢 | M2-04-04 | [Cluster readiness scoring baseline](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-04-cluster-readiness-scoring-baseline.md) | implement | Done (Committed) | Issue-readiness scoring for clusters with explainable factors. |
+

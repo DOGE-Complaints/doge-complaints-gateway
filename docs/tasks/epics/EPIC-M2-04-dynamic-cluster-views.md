@@ -1,7 +1,7 @@
 # EPIC-M2-04: Dynamic Cluster Views
 
 ## Epic Meta
-- Status: Draft
+- Status: Done (Committed)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 2-3
@@ -50,8 +50,11 @@
 - cluster engine выдает стабильные и объяснимые представления;
 - есть API/read-model для дальнейшей промоции в issue.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-04-01: implement cluster lens framework
-- STORY-M2-04-02: implement multi-membership mapping
-- STORY-M2-04-03: implement cluster narrative generator
-- STORY-M2-04-04: implement readiness scoring
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-04-01 | [Cluster lens framework and deterministic clustering](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-01-cluster-lens-framework-and-deterministic-clustering.md) | Done (Committed) |
+| STORY-M2-04-02 | [Multi-membership story-to-cluster mapping](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-02-multi-membership-story-to-cluster-mapping.md) | Done (Committed) |
+| STORY-M2-04-03 | [Cluster narrative generator baseline](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-03-cluster-narrative-generator-baseline.md) | Done (Committed) |
+| STORY-M2-04-04 | [Cluster readiness scoring baseline](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-04-cluster-readiness-scoring-baseline.md) | Done (Committed) |
