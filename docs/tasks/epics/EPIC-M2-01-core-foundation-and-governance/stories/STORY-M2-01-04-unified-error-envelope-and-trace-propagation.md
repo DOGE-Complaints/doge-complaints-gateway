@@ -4,7 +4,7 @@
 - Key: `STORY-M2-01-04`
 - Parent Epic: [`EPIC-M2-01-core-foundation-and-governance.md`](../../EPIC-M2-01-core-foundation-and-governance.md)
 - Type: Technical Story
-- Status: Todo
+- Status: Done (Committed)
 - Stream: M2 Foundation
 
 ## Story Goal

@@ -62,4 +62,4 @@
 | STORY-M2-01-01 | [Layered module bootstrap](./EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-01-layered-module-bootstrap.md) | Done (Committed) |
 | STORY-M2-01-02 | [DI providers and service factory baseline](./EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-02-di-providers-and-service-factory-baseline.md) | Done (Committed) |
 | STORY-M2-01-03 | [Config schema and feature flags baseline](./EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-03-config-schema-and-feature-flags-baseline.md) | Done (Committed) |
-| STORY-M2-01-04 | [Unified error envelope and trace propagation](./EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-04-unified-error-envelope-and-trace-propagation.md) | Todo |
+| STORY-M2-01-04 | [Unified error envelope and trace propagation](./EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-04-unified-error-envelope-and-trace-propagation.md) | Done (Committed) |
