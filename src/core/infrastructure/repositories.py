@@ -3,7 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict
 
-from core.domain import HealthReport, IdempotencyRecord, StoryRecord
+from core.domain import (
+    HealthReport,
+    IdempotencyRecord,
+    SignalProfileRecord,
+    StoryRecord,
+)
 
 
 @dataclass(frozen=True)
@@ -44,4 +49,27 @@ class InMemoryIdempotencyRepository:
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
         self._records[record.key] = record
         return record
+
+
+@dataclass
+class InMemorySignalProfileRepository:
+    _versions: Dict[str, list[SignalProfileRecord]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._versions is None:
+            self._versions = {}
+
+    def save_version(self, profile: SignalProfileRecord) -> SignalProfileRecord:
+        versions = self._versions.setdefault(profile.story_id, [])
+        versions.append(profile)
+        return profile
+
+    def get_latest(self, story_id: str) -> SignalProfileRecord | None:
+        versions = self._versions.get(story_id, [])
+        if not versions:
+            return None
+        return versions[-1]
+
+    def get_versions(self, story_id: str) -> list[SignalProfileRecord]:
+        return list(self._versions.get(story_id, []))
 

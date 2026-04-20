@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Protocol
+from typing import Mapping, Protocol
 
 
 @dataclass(frozen=True)
@@ -55,4 +55,33 @@ class IdempotencyRepository(Protocol):
 
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
         """Persist idempotency record."""
+
+
+class SignalDimension(StrEnum):
+    TOPIC = "topic"
+    SYSTEM_FAILURE = "system_failure"
+    NEED = "need"
+    DESIRED_STATE = "desired_state"
+    REPEATABILITY = "repeatability"
+    RELEVANCE = "relevance"
+
+
+@dataclass(frozen=True)
+class SignalProfileRecord:
+    story_id: str
+    version: int
+    user_asserted: Mapping[str, str]
+    system_inferred: Mapping[str, str]
+    created_at: datetime
+
+
+class SignalProfileRepository(Protocol):
+    def save_version(self, profile: SignalProfileRecord) -> SignalProfileRecord:
+        """Persist profile version."""
+
+    def get_latest(self, story_id: str) -> SignalProfileRecord | None:
+        """Get latest profile version by story id."""
+
+    def get_versions(self, story_id: str) -> list[SignalProfileRecord]:
+        """Get all profile versions for a story."""
 

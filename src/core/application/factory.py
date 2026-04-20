@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from core.application.services import HealthService, StoryIntakeService
+from core.application.services import HealthService, SignalProfileService, StoryIntakeService
 
 
 class ServiceFactory(Protocol):
@@ -13,4 +13,7 @@ class ServiceFactory(Protocol):
 
     def get_story_intake_service(self) -> StoryIntakeService:
         """Build and return story intake service instance."""
+
+    def get_signal_profile_service(self) -> SignalProfileService:
+        """Build and return signal profile service instance."""
 
