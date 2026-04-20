@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.application import HealthService, SignalProfileService, StoryIntakeService
+from core.cluster import ClusteringEngine
 from core.domain import (
     HealthRepository,
     IdempotencyRepository,
@@ -31,4 +32,7 @@ class DefaultServiceFactory:
 
     def get_signal_profile_service(self) -> SignalProfileService:
         return SignalProfileService(repository=self.signal_profile_repository)
+
+    def get_clustering_engine(self) -> ClusteringEngine:
+        return ClusteringEngine()
 

@@ -40,3 +40,14 @@ def test_default_service_factory_resolves_signal_profile_service() -> None:
     service = factory.get_signal_profile_service()
     assert service.repository is not None
 
+
+def test_default_service_factory_resolves_clustering_engine() -> None:
+    factory = DefaultServiceFactory(
+        health_repository=InMemoryHealthRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        signal_profile_repository=InMemorySignalProfileRepository(),
+        story_repository=InMemoryStoryRepository(),
+    )
+    engine = factory.get_clustering_engine()
+    assert engine is not None
+

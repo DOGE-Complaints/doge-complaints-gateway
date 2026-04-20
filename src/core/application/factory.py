@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
+from core.cluster import ClusteringEngine
 
 
 class ServiceFactory(Protocol):
@@ -16,4 +17,7 @@ class ServiceFactory(Protocol):
 
     def get_signal_profile_service(self) -> SignalProfileService:
         """Build and return signal profile service instance."""
+
+    def get_clustering_engine(self) -> ClusteringEngine:
+        """Build and return clustering engine instance."""
 
