@@ -5,4 +5,4 @@
 | 1. Анализ | Done | requirements/19 |
 | 5. Реализация (включая тесты) | Done | `core.api.security` |
 | 6. Квалификация тестов | Done | 86 passed |
-| 10. Коммит/ретроспектива | Done | impl `1516103`; tracker `PLACEHOLDER` |
+| 10. Коммит/ретроспектива | Done | impl `1516103`; tracker `0ed995f` |
