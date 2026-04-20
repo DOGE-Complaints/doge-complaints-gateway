@@ -53,7 +53,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-07-evidence-pack-and-lineage.md` — декомпозирован в stories: `epics/EPIC-M2-07-evidence-pack-and-lineage/stories/`
 - `EPIC-M2-08-geo-intelligence-module.md` — декомпозирован в stories: `epics/EPIC-M2-08-geo-intelligence-module/stories/`
 - `EPIC-M2-09-security-config-observability.md` — декомпозирован в stories: `epics/EPIC-M2-09-security-config-observability/stories/`
-- `EPIC-M2-10` — декомпозиция stories по мере запуска (см. файл эпика).
+- `EPIC-M2-10-demo-to-pilot-adapters.md` — декомпозирован в stories: `epics/EPIC-M2-10-demo-to-pilot-adapters/stories/`
 - `EPIC-M2-11`, `EPIC-M2-12` — post-demo; stories в черновиках внутри файлов эпиков.
 
 ## Порядок реализации (рекомендуемый)

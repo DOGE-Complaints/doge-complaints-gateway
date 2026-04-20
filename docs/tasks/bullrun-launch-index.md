@@ -93,7 +93,11 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| ⚪ | M2-10 | [EPIC-M2-10 Demo-to-Pilot Adapters](./epics/EPIC-M2-10-demo-to-pilot-adapters.md) | epic | Draft | Декомпозиция stories — см. файл эпика; story-level токенизация — см. EPIC-M2-12. |
+| 🟢 | M2-10-01 | [Adapter interfaces (wallet push / sign / tx)](./epics/EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-01-define-adapter-interfaces-wallet-push-sign-tx.md) | implement | Done (Committed) | `core.adapters` protocols + `TxReceipt`. |
+| 🟢 | M2-10-02 | [Demo stub adapters](./epics/EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-02-demo-stub-adapters.md) | implement | Done (Committed) | `Demo*` in-memory, детерминированные id. |
+| 🟢 | M2-10-03 | [Feature-flag snapshot and adapter bundle](./epics/EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-03-feature-flag-registry-and-bundle.md) | implement | Done (Committed) | `build_adapter_bundle`, `adapter_runtime_flags`. |
+| 🟢 | M2-10-04 | [Pilot activation playbook](./epics/EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-04-pilot-activation-playbook.md) | doc | Done (Committed) | [`pilot-activation-playbook.md`](./task-m2-10-04-pilot-activation-playbook/pilot-activation-playbook.md). |
+| 🟢 | M2-10 | [EPIC-M2-10 Demo-to-Pilot Adapters](./epics/EPIC-M2-10-demo-to-pilot-adapters.md) | epic | Done (Committed) | Story-level токенизация — EPIC-M2-12. |
 
 ## EPIC-M2-11 — Post-demo: Orchestration and Scheduled Automation
 

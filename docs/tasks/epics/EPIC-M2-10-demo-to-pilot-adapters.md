@@ -1,7 +1,7 @@
 # EPIC-M2-10: Demo-to-Pilot Adapters (Tokenization-Ready Foundations)
 
 ## Epic Meta
-- Status: Draft
+- Status: Implemented (stories committed; приёмка на стороне продукта — по pipeline)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 4
@@ -52,8 +52,11 @@
 
 - Продуктовые сценарии **токенизации на уровне story** и **уведомлений авторам** не входят в обязательный deliverable этого эпика; ведутся в **EPIC-M2-12** и `docs/requirements/21-post-demo-story-tokenization-and-contributor-notifications.md` (дисклеймер post-demo).
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-10-01: define adapter interfaces (wallet/push/sign/tx)
-- STORY-M2-10-02: implement demo stub adapters
-- STORY-M2-10-03: implement feature-flag switching logic
-- STORY-M2-10-04: prepare pilot activation playbook
+## Stories (декомпозиция)
+
+| Key | Документ |
+|-----|----------|
+| M2-10-01 | [`stories/STORY-M2-10-01-define-adapter-interfaces-wallet-push-sign-tx.md`](./EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-01-define-adapter-interfaces-wallet-push-sign-tx.md) |
+| M2-10-02 | [`stories/STORY-M2-10-02-demo-stub-adapters.md`](./EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-02-demo-stub-adapters.md) |
+| M2-10-03 | [`stories/STORY-M2-10-03-feature-flag-registry-and-bundle.md`](./EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-03-feature-flag-registry-and-bundle.md) |
+| M2-10-04 | [`stories/STORY-M2-10-04-pilot-activation-playbook.md`](./EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-04-pilot-activation-playbook.md) |
