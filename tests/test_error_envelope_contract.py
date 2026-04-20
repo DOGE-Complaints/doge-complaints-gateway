@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from core.api import build_error_envelope, build_success_envelope
+from core.api.security import UnauthorizedError
 from core.config import ConfigError
 
 
@@ -17,6 +18,16 @@ def test_validation_error_envelope_contract_shape() -> None:
         },
         "trace_id": trace_id,
     }
+
+
+def test_unauthorized_error_mapping() -> None:
+    envelope = build_error_envelope(
+        UnauthorizedError("bad token"), trace_id="trace-auth"
+    )
+    assert envelope.error.code == "UNAUTHORIZED"
+    assert envelope.error.type == "auth"
+    assert envelope.error.message == "bad token"
+    assert envelope.trace_id == "trace-auth"
 
 
 def test_domain_error_mapping() -> None:

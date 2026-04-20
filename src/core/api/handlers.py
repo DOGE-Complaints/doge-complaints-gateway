@@ -1,28 +1,27 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Protocol
+import logging
+from typing import Any, Mapping
 
+from core.api.dependencies import ApiDependencies
 from core.api.envelope import build_error_envelope, build_success_envelope, ensure_trace_id
-from core.api.logging import log_error
-
-
-class HealthServiceLike(Protocol):
-    def get_status(self) -> str:
-        """Return current runtime status."""
-
-
-@dataclass(frozen=True)
-class HandlerDependencies:
-    health_service: HealthServiceLike
+from core.api.logging import log_api_event, log_error
+from core.api.security import UnauthorizedError
 
 
 def handle_health(
-    dependencies: HandlerDependencies, trace_id: str | None = None
+    dependencies: ApiDependencies, trace_id: str | None = None
 ) -> dict[str, Any]:
     resolved_trace_id = ensure_trace_id(trace_id)
+    dependencies.metrics.record_health()
     try:
         status = dependencies.health_service.get_status()
+        log_api_event(
+            logging.INFO,
+            "health_check_ok",
+            trace_id=resolved_trace_id,
+            outcome="success",
+        )
         return build_success_envelope(
             data={"status": status}, trace_id=resolved_trace_id
         ).as_dict()
@@ -31,3 +30,58 @@ def handle_health(
         log_error(envelope)
         return envelope.as_dict()
 
+
+def handle_readiness(
+    dependencies: ApiDependencies, trace_id: str | None = None
+) -> dict[str, Any]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    dependencies.metrics.record_readiness()
+    log_api_event(
+        logging.INFO,
+        "readiness_check",
+        trace_id=resolved_trace_id,
+        outcome="success",
+    )
+    return build_success_envelope(
+        data={"status": "ready"}, trace_id=resolved_trace_id
+    ).as_dict()
+
+
+def handle_protected_status(
+    dependencies: ApiDependencies,
+    headers: Mapping[str, str] | None,
+    trace_id: str | None = None,
+) -> dict[str, Any]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        dependencies.service_auth.require(headers or {})
+        dependencies.metrics.record_protected()
+        log_api_event(
+            logging.INFO,
+            "protected_status_ok",
+            trace_id=resolved_trace_id,
+            outcome="success",
+        )
+        return build_success_envelope(
+            data={"service": "authenticated"}, trace_id=resolved_trace_id
+        ).as_dict()
+    except UnauthorizedError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict()
+
+
+def handle_metrics(
+    dependencies: ApiDependencies, trace_id: str | None = None
+) -> dict[str, Any]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    dependencies.metrics.record_metrics_endpoint()
+    log_api_event(
+        logging.INFO,
+        "metrics_scrape",
+        trace_id=resolved_trace_id,
+        outcome="success",
+    )
+    return build_success_envelope(
+        data=dependencies.metrics.as_dict(), trace_id=resolved_trace_id
+    ).as_dict()

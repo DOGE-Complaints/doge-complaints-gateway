@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 from uuid import uuid4
 
+from core.api.security import UnauthorizedError
 from core.config import ConfigError
 
 
@@ -59,6 +60,17 @@ def build_error_envelope(
             error=ErrorBody(
                 code="VALIDATION_ERROR",
                 type="validation",
+                message=str(exc),
+                details=payload,
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, UnauthorizedError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="UNAUTHORIZED",
+                type="auth",
                 message=str(exc),
                 details=payload,
             ),
