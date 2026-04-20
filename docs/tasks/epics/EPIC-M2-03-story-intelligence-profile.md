@@ -1,7 +1,7 @@
 # EPIC-M2-03: Story Intelligence Profile
 
 ## Epic Meta
-- Status: Draft
+- Status: Done (Committed)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 2
@@ -49,8 +49,11 @@
 - intelligence pipeline стабилен;
 - данные пригодны для multi-lens clustering.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-03-01: design signal profile schema
-- STORY-M2-03-02: implement enrichment service
-- STORY-M2-03-03: profile versioning and audit trail
-- STORY-M2-03-04: profile quality validation tests
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-03-01 | [Signal profile schema and contract baseline](./EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-01-signal-profile-schema-and-contract-baseline.md) | Done (Committed) |
+| STORY-M2-03-02 | [Profile enrichment service baseline](./EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-02-profile-enrichment-service-baseline.md) | Done (Committed) |
+| STORY-M2-03-03 | [Profile versioning and audit trail repository](./EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-03-profile-versioning-and-audit-trail-repository.md) | Done (Committed) |
+| STORY-M2-03-04 | [Profile quality validation and consistency tests](./EPIC-M2-03-story-intelligence-profile/stories/STORY-M2-03-04-profile-quality-validation-and-consistency-tests.md) | Done (Committed) |

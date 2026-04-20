@@ -4,7 +4,7 @@
 - Key: `STORY-M2-03-04`
 - Parent Epic: [`EPIC-M2-03-story-intelligence-profile.md`](../../EPIC-M2-03-story-intelligence-profile.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Intelligence
 - Skill declared: `python-pro` (for runtime implementation phase)
 
