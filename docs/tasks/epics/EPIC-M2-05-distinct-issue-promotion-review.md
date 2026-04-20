@@ -1,7 +1,7 @@
 # EPIC-M2-05: Distinct Issue Promotion and Reviewability
 
 ## Epic Meta
-- Status: Draft
+- Status: Implemented (Waiting Commits)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 3
@@ -49,8 +49,11 @@
 - distinct issue pipeline стабилен и объясним;
 - готов вход для SPA projection layer.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-05-01: define issue-candidate state machine
-- STORY-M2-05-02: implement promotion gate evaluator
-- STORY-M2-05-03: implement split/merge/reframe commands
-- STORY-M2-05-04: implement review audit log
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-05-01 | [Issue candidate state machine and lifecycle](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | Implemented (Waiting Commits) |
+| STORY-M2-05-02 | [Promotion gate evaluator baseline](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | Implemented (Waiting Commits) |
+| STORY-M2-05-03 | [Split merge reframe command handlers](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | Implemented (Waiting Commits) |
+| STORY-M2-05-04 | [Review audit log repository](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | Implemented (Waiting Commits) |

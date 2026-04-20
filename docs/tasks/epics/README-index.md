@@ -46,6 +46,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-02-story-intake-and-store.md` — декомпозирован в stories: `epics/EPIC-M2-02-story-intake-and-store/stories/`
 - `EPIC-M2-03-story-intelligence-profile.md` — декомпозирован в stories: `epics/EPIC-M2-03-story-intelligence-profile/stories/`
 - `EPIC-M2-04-dynamic-cluster-views.md` — декомпозирован в stories: `epics/EPIC-M2-04-dynamic-cluster-views/stories/`
+- `EPIC-M2-05-distinct-issue-promotion-review.md` — декомпозирован в stories: `epics/EPIC-M2-05-distinct-issue-promotion-review/stories/`
 
 ## Порядок реализации (рекомендуемый)
 

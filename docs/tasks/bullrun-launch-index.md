@@ -43,3 +43,12 @@
 | 🟢 | M2-04-03 | [Cluster narrative generator baseline](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-03-cluster-narrative-generator-baseline.md) | implement | Done (Committed) | Explainable cluster narrative summaries from dominant patterns. |
 | 🟢 | M2-04-04 | [Cluster readiness scoring baseline](./epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-04-cluster-readiness-scoring-baseline.md) | implement | Done (Committed) | Issue-readiness scoring for clusters with explainable factors. |
 
+## EPIC-M2-05 — Distinct Issue Promotion and Reviewability
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🔵 | M2-05-01 | [Issue candidate state machine and lifecycle](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | implement | Implemented (Waiting Commits) | `core.promotion` lifecycle orchestration + transition validation + tests. |
+| 🔵 | M2-05-02 | [Promotion gate evaluator baseline](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | implement | Implemented (Waiting Commits) | Explainable gate evaluation integrated into submit step + tests. |
+| 🔵 | M2-05-03 | [Split merge reframe command handlers](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | implement | Implemented (Waiting Commits) | Draft-only split/merge/reframe with audit trail provenance + tests. |
+| 🔵 | M2-05-04 | [Review audit log repository](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | implement | Implemented (Waiting Commits) | In-memory audit repository + deterministic ordered reads + DI wiring. |
+

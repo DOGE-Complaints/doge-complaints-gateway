@@ -6,6 +6,7 @@ from core.infrastructure.repositories import (
     InMemorySignalProfileRepository,
     InMemoryStoryRepository,
 )
+from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryReviewAuditLogRepository
 
 
 def test_default_service_factory_resolves_health_service() -> None:
@@ -14,6 +15,8 @@ def test_default_service_factory_resolves_health_service() -> None:
         idempotency_repository=InMemoryIdempotencyRepository(),
         signal_profile_repository=InMemorySignalProfileRepository(),
         story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
     )
     service = factory.get_health_service()
     assert service.get_status() == "ok"
@@ -25,6 +28,8 @@ def test_default_service_factory_resolves_story_intake_service() -> None:
         idempotency_repository=InMemoryIdempotencyRepository(),
         signal_profile_repository=InMemorySignalProfileRepository(),
         story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
     )
     service = factory.get_story_intake_service()
     assert service.repository is not None
@@ -36,6 +41,8 @@ def test_default_service_factory_resolves_signal_profile_service() -> None:
         idempotency_repository=InMemoryIdempotencyRepository(),
         signal_profile_repository=InMemorySignalProfileRepository(),
         story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
     )
     service = factory.get_signal_profile_service()
     assert service.repository is not None
@@ -47,7 +54,23 @@ def test_default_service_factory_resolves_clustering_engine() -> None:
         idempotency_repository=InMemoryIdempotencyRepository(),
         signal_profile_repository=InMemorySignalProfileRepository(),
         story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
     )
     engine = factory.get_clustering_engine()
     assert engine is not None
+
+
+def test_default_service_factory_resolves_issue_promotion_service() -> None:
+    factory = DefaultServiceFactory(
+        health_repository=InMemoryHealthRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        signal_profile_repository=InMemorySignalProfileRepository(),
+        story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
+    )
+    promotion = factory.get_issue_promotion_service()
+    assert promotion.candidates is not None
+    assert promotion.audit_log is not None
 
