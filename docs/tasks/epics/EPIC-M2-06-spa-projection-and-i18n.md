@@ -1,7 +1,7 @@
 # EPIC-M2-06: SPA Projection and i18n Contract
 
 ## Epic Meta
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Priority: Critical
 - Owner: TBD
 - Target: Sprint 3
@@ -54,7 +54,7 @@
 
 | Key | Story | Status |
 |---|---|---|
-| STORY-M2-06-01 | [SPA projection DTO and mapper](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-01-spa-projection-dto-and-mapper.md) | Implemented (Waiting Commits) |
-| STORY-M2-06-02 | [i18n projection policy](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-02-i18n-projection-policy.md) | Implemented (Waiting Commits) |
-| STORY-M2-06-03 | [SPA projection contract test suite](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-03-spa-projection-contract-tests.md) | Implemented (Waiting Commits) |
-| STORY-M2-06-04 | [SPA enum governance checks](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-04-spa-enum-governance.md) | Implemented (Waiting Commits) |
+| STORY-M2-06-01 | [SPA projection DTO and mapper](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-01-spa-projection-dto-and-mapper.md) | Done (Committed) |
+| STORY-M2-06-02 | [i18n projection policy](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-02-i18n-projection-policy.md) | Done (Committed) |
+| STORY-M2-06-03 | [SPA projection contract test suite](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-03-spa-projection-contract-tests.md) | Done (Committed) |
+| STORY-M2-06-04 | [SPA enum governance checks](./EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-04-spa-enum-governance.md) | Done (Committed) |

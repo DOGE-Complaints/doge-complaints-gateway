@@ -4,7 +4,7 @@
 - Key: `STORY-M2-06-03`
 - Parent Epic: [`EPIC-M2-06-spa-projection-and-i18n.md`](../../EPIC-M2-06-spa-projection-and-i18n.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Projection
 - Skill declared: `python-pro` (for runtime implementation phase)
 
