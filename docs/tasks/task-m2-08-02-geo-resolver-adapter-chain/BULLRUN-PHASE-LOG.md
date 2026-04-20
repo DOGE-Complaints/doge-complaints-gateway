@@ -11,4 +11,4 @@
 | 7. Верификация AC | Done | acceptance file |
 | 8. Документация | Done | task artifacts |
 | 9. Подготовка коммита | Done | Done (Committed) |
-| 10. Коммит/ретроспектива | Done | impl `e841f57` |
+| 10. Коммит/ретроспектива | Done | impl `e841f57`; tracker `f7dc2fe` |
