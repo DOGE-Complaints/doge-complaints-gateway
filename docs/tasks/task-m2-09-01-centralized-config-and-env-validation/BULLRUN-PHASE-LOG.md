@@ -2,13 +2,13 @@
 
 | Phase | Status | Notes |
 |---|---|---|
-| 1. Анализ | Todo | |
-| 2. Решение | Todo | |
-| 3. Архитектура | Todo | `core.config` |
-| 4. План реализации | Todo | python-pro |
-| 5. Реализация (включая тесты) | Todo | |
-| 6. Квалификация тестов | Todo | pending |
-| 7. Верификация AC | Todo | |
-| 8. Документация | Todo | task artifacts |
-| 9. Подготовка коммита | Todo | |
-| 10. Коммит/ретроспектива | Todo | см. `docs/methodology/git-commit.md` |
+| 1. Анализ | Done | gaps URL / log level |
+| 2. Решение | Done | validate in load_config |
+| 3. Архитектура | Done | `core.config.schema` |
+| 4. План реализации | Done | python-pro |
+| 5. Реализация (включая тесты) | Done | AppConfig.log_level, ENV_SCHEMA |
+| 6. Квалификация тестов | Done | 77 passed |
+| 7. Верификация AC | Done | acceptance file |
+| 8. Документация | Done | story + bullrun |
+| 9. Подготовка коммита | Done | Done (Committed) |
+| 10. Коммит/ретроспектива | Done | impl `2e7451b`; tracker `PLACEHOLDER` |

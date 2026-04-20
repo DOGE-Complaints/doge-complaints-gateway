@@ -4,7 +4,7 @@
 - Key: `STORY-M2-09-01`
 - Parent Epic: [`../../EPIC-M2-09-security-config-observability.md`](../../EPIC-M2-09-security-config-observability.md)
 - Type: Technical Story
-- Status: Todo
+- Status: Done (Committed)
 - Stream: M2 Security/Ops
 - Skill declared: `python-pro`
 
@@ -12,9 +12,9 @@
 Единая схема конфигурации и строгая валидация env при старте (fail-fast на критичных переменных).
 
 ## AC / DoD
-- [ ] Расширение или укрепление `core.config` / `ENV_SCHEMA` под ops baseline эпика.
-- [ ] Явная валидация при загрузке; понятные `ConfigError` сообщения.
-- [ ] Тесты на валидный / невалидный env.
+- [x] Расширение или укрепление `core.config` / `ENV_SCHEMA` под ops baseline эпика.
+- [x] Явная валидация при загрузке; понятные `ConfigError` сообщения.
+- [x] Тесты на валидный / невалидный env.
 
 ## Task Artifacts
 - Task workspace: [`../../../task-m2-09-01-centralized-config-and-env-validation/README.md`](../../../task-m2-09-01-centralized-config-and-env-validation/README.md)

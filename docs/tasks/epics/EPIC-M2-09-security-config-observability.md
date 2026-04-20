@@ -58,7 +58,7 @@
 
 | Key | Story | Status |
 |---|---|---|
-| STORY-M2-09-01 | [Centralized config and env validation](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-01-centralized-config-and-env-validation.md) | Todo |
+| STORY-M2-09-01 | [Centralized config and env validation](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-01-centralized-config-and-env-validation.md) | Done (Committed) |
 | STORY-M2-09-02 | [Security middleware baseline](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-02-security-middleware-baseline.md) | Todo |
 | STORY-M2-09-03 | [Structured logging and tracing](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-03-structured-logging-and-tracing.md) | Todo |
 | STORY-M2-09-04 | [Health checks and metrics](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-04-health-checks-and-metrics.md) | Todo |
