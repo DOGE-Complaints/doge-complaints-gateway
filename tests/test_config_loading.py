@@ -18,6 +18,7 @@ def test_load_config_demo_defaults() -> None:
     assert config.flags.wallet_adapter is False
     assert config.flags.blockchain_adapter is False
     assert config.flags.tokenization_pipeline is False
+    assert config.log_level == "INFO"
 
 
 def test_load_config_pilot_defaults() -> None:
@@ -74,6 +75,38 @@ def test_invalid_timeout_raises() -> None:
         )
 
 
+def test_api_base_url_must_be_http_or_https() -> None:
+    with pytest.raises(ConfigError, match="must start with http:// or https://"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "ftp://example/api",
+            }
+        )
+
+
+def test_log_level_override() -> None:
+    config = load_config_from_env(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+            "LOG_LEVEL": "warning",
+        }
+    )
+    assert config.log_level == "WARNING"
+
+
+def test_invalid_log_level_raises() -> None:
+    with pytest.raises(ConfigError, match="Invalid LOG_LEVEL"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "LOG_LEVEL": "verbose",
+            }
+        )
+
+
 def test_env_schema_contains_required_fields() -> None:
     names = {field.name for field in ENV_SCHEMA}
     assert "APP_PROFILE" in names
@@ -82,4 +115,5 @@ def test_env_schema_contains_required_fields() -> None:
     assert "FF_WALLET_ADAPTER" in names
     assert "FF_BLOCKCHAIN_ADAPTER" in names
     assert "FF_TOKENIZATION_PIPELINE" in names
+    assert "LOG_LEVEL" in names
 

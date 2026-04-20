@@ -36,6 +36,7 @@ class AppConfig:
     api_base_url: str
     request_timeout_s: int
     flags: FeatureFlags
+    log_level: str
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -75,6 +76,12 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         default=None,
         description="Feature flag override for tokenization pipeline.",
     ),
+    EnvSpec(
+        name="LOG_LEVEL",
+        required=False,
+        default="INFO",
+        description="Application log level: DEBUG, INFO, WARNING, ERROR, CRITICAL.",
+    ),
 )
 
 
@@ -95,6 +102,32 @@ def _parse_profile(value: str | None) -> DeploymentProfile:
         raise ConfigError(
             f"Unsupported APP_PROFILE={raw_value!r}. Expected one of: demo, pilot."
         ) from exc
+
+
+_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
+
+
+def _validate_http_url(url: str, *, env_name: str) -> str:
+    trimmed = url.strip()
+    if not trimmed:
+        raise ConfigError(f"{env_name} must be a non-empty URL.")
+    lower = trimmed.lower()
+    if not (lower.startswith("http://") or lower.startswith("https://")):
+        raise ConfigError(
+            f"{env_name} must start with http:// or https://, got {url!r}."
+        )
+    return trimmed
+
+
+def _parse_log_level(raw: str | None) -> str:
+    if raw is None:
+        return "INFO"
+    normalized = raw.strip().upper()
+    if normalized not in _LOG_LEVELS:
+        raise ConfigError(
+            f"Invalid LOG_LEVEL={raw!r}. Expected one of: {sorted(_LOG_LEVELS)}."
+        )
+    return normalized
 
 
 def _parse_bool(value: str, *, env_name: str) -> bool:
@@ -146,7 +179,8 @@ def _profile_defaults(profile: DeploymentProfile) -> FeatureFlags:
 def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     source = env or environ
     profile = _parse_profile(_get_value(source, "APP_PROFILE"))
-    api_base_url = _require_value(source, name="API_BASE_URL")
+    api_base_url_raw = _require_value(source, name="API_BASE_URL")
+    api_base_url = _validate_http_url(api_base_url_raw, env_name="API_BASE_URL")
 
     timeout_raw = _require_value(source, name="REQUEST_TIMEOUT_S")
     try:
@@ -178,10 +212,13 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         else _parse_bool(tokenization_raw, env_name="FF_TOKENIZATION_PIPELINE"),
     )
 
+    log_level = _parse_log_level(_get_value(source, "LOG_LEVEL"))
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
         request_timeout_s=request_timeout_s,
         flags=flags,
+        log_level=log_level,
     )
 
