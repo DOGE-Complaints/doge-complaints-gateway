@@ -4,6 +4,7 @@ from typing import Protocol
 
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
 from core.cluster import ClusteringEngine
+from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 
 
@@ -24,4 +25,7 @@ class ServiceFactory(Protocol):
 
     def get_issue_promotion_service(self) -> IssuePromotionService:
         """Build and return issue promotion orchestration service."""
+
+    def get_issue_projection_service(self) -> IssueProjectionService:
+        """Build and return SPA issue projection service."""
 

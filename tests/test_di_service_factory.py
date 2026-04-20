@@ -61,6 +61,19 @@ def test_default_service_factory_resolves_clustering_engine() -> None:
     assert engine is not None
 
 
+def test_default_service_factory_resolves_issue_projection_service() -> None:
+    factory = DefaultServiceFactory(
+        health_repository=InMemoryHealthRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        signal_profile_repository=InMemorySignalProfileRepository(),
+        story_repository=InMemoryStoryRepository(),
+        issue_candidate_store=InMemoryIssueCandidateStore(),
+        review_audit_log_repository=InMemoryReviewAuditLogRepository(),
+    )
+    proj = factory.get_issue_projection_service()
+    assert proj.policy_version
+
+
 def test_default_service_factory_resolves_issue_promotion_service() -> None:
     factory = DefaultServiceFactory(
         health_repository=InMemoryHealthRepository(),

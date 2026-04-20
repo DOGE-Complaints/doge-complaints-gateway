@@ -10,6 +10,7 @@ from core.domain import (
     SignalProfileRepository,
     StoryRepository,
 )
+from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import IssueCandidateStore, ReviewAuditLogRepository
@@ -47,4 +48,7 @@ class DefaultServiceFactory:
             audit_log=self.review_audit_log_repository,
             gate_policy=PromotionGatePolicy(),
         )
+
+    def get_issue_projection_service(self) -> IssueProjectionService:
+        return IssueProjectionService()
 

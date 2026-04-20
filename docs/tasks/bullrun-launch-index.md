@@ -56,7 +56,10 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| ⚪ | M2-06 | [EPIC-M2-06 SPA Projection and i18n](./epics/EPIC-M2-06-spa-projection-and-i18n.md) | epic | Draft | Декомпозиция stories — см. файл эпика. |
+| 🔵 | M2-06-01 | [SPA projection DTO and mapper](./epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-01-spa-projection-dto-and-mapper.md) | implement | Implemented (Waiting Commits) | `core.projection` DTO, input, mapper, `IssueProjectionService`. |
+| 🔵 | M2-06-02 | [i18n projection policy](./epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-02-i18n-projection-policy.md) | implement | Implemented (Waiting Commits) | `I18nText`, summary fallback, `PROJECTION_POLICY_VERSION`. |
+| 🔵 | M2-06-03 | [SPA projection contract test suite](./epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-03-spa-projection-contract-tests.md) | implement | Implemented (Waiting Commits) | Required keys + DI `get_issue_projection_service`. |
+| 🔵 | M2-06-04 | [SPA enum governance checks](./epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-04-spa-enum-governance.md) | implement | Implemented (Waiting Commits) | Governed status/type/labels; placeholder tx rejection. |
 
 ## EPIC-M2-07 — Evidence Pack and Lineage
 
