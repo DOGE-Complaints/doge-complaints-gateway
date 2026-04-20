@@ -5,7 +5,8 @@
 **Коды статусов (S):** ⚪ Todo, 🟡 In Progress, 🔵 Implemented (Waiting Acceptance), 🟢 Done (Committed).
 
 **Pipeline (SSOT):** [`docs/tasks/m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md)  
-**User Manual (Cursor):** [`docs/tasks/m2-pipeline-user-manual-cursor.md`](./m2-pipeline-user-manual-cursor.md)
+**User Manual (Cursor):** [`docs/tasks/m2-pipeline-user-manual-cursor.md`](./m2-pipeline-user-manual-cursor.md)  
+**Git / коммиты (методика репозитория, в т.ч. task-доки):** [`docs/methodology/git-commit.md`](../../../docs/methodology/git-commit.md) · [`docs/methodology/git-commit-prompt.md`](../../../docs/methodology/git-commit-prompt.md)
 
 ## EPIC-M2-01 — Core Foundation and Governance
 
