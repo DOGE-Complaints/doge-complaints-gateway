@@ -2,7 +2,9 @@
 
 Этот каталог содержит детализированную декомпозицию PDF `DOGEstonia — Module 2 Canvas: Web2 Core / Story Intelligence Layer`.
 
-Каждый файл соответствует отдельному пункту исходного документа (разделы 1-18) и включает:
+Дополнительно добавлены контрактные спецификации, выходящие за рамки нумерации PDF (например inbound API для GPT).
+
+Каждый файл, привязанный к PDF, соответствует отдельному пункту исходного документа (разделы 1-18) и включает:
 - продуктовую цель и ценность;
 - операционную и техническую модель реализации;
 - NFR/риски/метрики;
@@ -28,3 +30,7 @@
 - `16-working-assumptions-v1.md`
 - `17-open-decisions-and-decision-log.md`
 - `18-module-formula-and-strategy.md`
+
+### Контракты интеграции (GPT / API)
+
+- `19-inbound-api-gpt-preprocessing-and-spa-issue-contracts.md` — inbound JSON для Story Intake, препроцессинг GPT, «живая» история, черновик SPA-issue (i18n), задел gov-interop.

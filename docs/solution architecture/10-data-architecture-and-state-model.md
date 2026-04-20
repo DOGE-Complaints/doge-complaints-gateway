@@ -23,7 +23,8 @@
 - migration-first schema governance;
 - immutable core + mutable derived layers;
 - explicit version columns for profile/lens/projection policies;
-- idempotency keys for command handlers.
+- idempotency keys for command handlers;
+- **авторство:** при приёме intake сохранять связь story с внешним субъектом (`submitter.external_user_id`, `identity_issuer`) из OAuth-потока GPT/IdP — opaque string, без обязательной нормализации формата; поле не теряется на пути к evidence (см. `requirements/19-inbound-api-gpt-preprocessing-and-spa-issue-contracts.md` §5).
 
 ## Read models
 - board read model (SPA fields only);

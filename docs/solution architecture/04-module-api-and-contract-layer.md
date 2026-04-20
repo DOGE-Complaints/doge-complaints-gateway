@@ -12,7 +12,7 @@
 - routes тонкие, orchestration в application service.
 
 ## Required interfaces
-- `StoryIntakeRequest` (versioned).
+- `StoryIntakeRequest` (versioned), включая **`submitter`** — opaque `external_user_id` и опционально `identity_issuer` для авторства (OAuth на стороне GPT; формат id не фиксируется; см. `requirements/19-inbound-api-gpt-preprocessing-and-spa-issue-contracts.md`).
 - `StoryIntakeResponse`.
 - `IssueProjectionResponse` (SPA shape).
 - `ErrorEnvelope` (unified).
