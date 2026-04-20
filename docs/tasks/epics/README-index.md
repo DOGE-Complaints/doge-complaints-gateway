@@ -39,6 +39,8 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-08-geo-intelligence-module.md`
 - `EPIC-M2-09-security-config-observability.md`
 - `EPIC-M2-10-demo-to-pilot-adapters.md`
+- `EPIC-M2-11-post-demo-orchestration-and-scheduled-automation.md` (post-demo)
+- `EPIC-M2-12-post-demo-story-tokenization-and-contributor-notifications.md` (post-demo)
 
 ## Статус декомпозиции в stories
 
@@ -47,6 +49,8 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-03-story-intelligence-profile.md` — декомпозирован в stories: `epics/EPIC-M2-03-story-intelligence-profile/stories/`
 - `EPIC-M2-04-dynamic-cluster-views.md` — декомпозирован в stories: `epics/EPIC-M2-04-dynamic-cluster-views/stories/`
 - `EPIC-M2-05-distinct-issue-promotion-review.md` — декомпозирован в stories: `epics/EPIC-M2-05-distinct-issue-promotion-review/stories/`
+- `EPIC-M2-06` … `EPIC-M2-10` — декомпозиция stories по мере запуска (см. файлы эпиков).
+- `EPIC-M2-11`, `EPIC-M2-12` — post-demo; stories в черновиках внутри файлов эпиков.
 
 ## Порядок реализации (рекомендуемый)
 
@@ -59,4 +63,6 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 7. EPIC-M2-07  
 8. EPIC-M2-08  
 9. EPIC-M2-09  
-10. EPIC-M2-10
+10. EPIC-M2-10  
+11. EPIC-M2-11 (post-demo, после продуктового решения)  
+12. EPIC-M2-12 (post-demo, после продуктового решения)

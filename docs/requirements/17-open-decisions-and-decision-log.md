@@ -26,3 +26,8 @@
 - еженедельный architecture/product review;
 - decision freeze перед каждым релиз-кандидатом;
 - пересмотр спорных решений по данным метрик и обратной связи.
+
+## Post-demo decision backlog (не блокирует demo)
+
+- **Оркестрация и cron:** зафиксировать выбор паттерна job runner и инфраструктуры планировщика после стабилизации use-case — см. `20-post-demo-orchestration-and-scheduled-jobs.md`, архитектура `solution architecture/16-automation-orchestration-and-scheduled-jobs.md`, эпик EPIC-M2-11.
+- **Токенизация на уровне story и уведомления авторам:** продуктовые и юридические границы, сроки — **не зафиксированы**; см. `21-post-demo-story-tokenization-and-contributor-notifications.md`, эпик EPIC-M2-12.

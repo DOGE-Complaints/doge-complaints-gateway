@@ -27,9 +27,13 @@
 - `13-testing-and-quality-architecture.md`
 - `14-adr-log.md`
 - `15-phased-implementation-plan.md`
+- `16-automation-orchestration-and-scheduled-jobs.md` (post-demo: cron/queue vs единый use-case слой)
+- `17-post-demo-story-tokenization-context.md` (указатель на post-demo токенизацию/уведомления; детали в `requirements/21`)
 
 ## Принцип чтения
 
 1. Сначала `01` + `03` (контекст и общая схема).  
 2. Затем модульные документы `04-09`.  
-3. Потом cross-cutting и delivery `10-15`.
+3. Потом cross-cutting и delivery `10-15`.  
+4. Для post-demo оркестрации — `16` и требования `docs/requirements/20-*.md`.  
+5. Для post-demo токенизации/уведомлений — `17` + `docs/requirements/21-*.md`.

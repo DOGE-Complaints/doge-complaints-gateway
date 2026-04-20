@@ -48,6 +48,10 @@
 ## Definition of Done
 - архитектура готова к pilot включению адаптеров без пересборки core.
 
+## Связанная post-demo область (отдельный эпик)
+
+- Продуктовые сценарии **токенизации на уровне story** и **уведомлений авторам** не входят в обязательный deliverable этого эпика; ведутся в **EPIC-M2-12** и `docs/requirements/21-post-demo-story-tokenization-and-contributor-notifications.md` (дисклеймер post-demo).
+
 ## Initial Story Decomposition (Draft)
 - STORY-M2-10-01: define adapter interfaces (wallet/push/sign/tx)
 - STORY-M2-10-02: implement demo stub adapters

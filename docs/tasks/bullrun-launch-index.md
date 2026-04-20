@@ -52,3 +52,45 @@
 | 🟢 | M2-05-03 | [Split merge reframe command handlers](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | implement | Done (Committed) | Draft-only split/merge/reframe with audit trail provenance + tests. |
 | 🟢 | M2-05-04 | [Review audit log repository](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | implement | Done (Committed) | In-memory audit repository + deterministic ordered reads + DI wiring. |
 
+## EPIC-M2-06 — SPA Projection and i18n Contract
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-06 | [EPIC-M2-06 SPA Projection and i18n](./epics/EPIC-M2-06-spa-projection-and-i18n.md) | epic | Draft | Декомпозиция stories — см. файл эпика. |
+
+## EPIC-M2-07 — Evidence Pack and Lineage
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-07 | [EPIC-M2-07 Evidence Pack](./epics/EPIC-M2-07-evidence-pack-and-lineage.md) | epic | Draft | Декомпозиция stories — см. файл эпика. |
+
+## EPIC-M2-08 — Geo Intelligence
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-08 | [EPIC-M2-08 Geo Intelligence](./epics/EPIC-M2-08-geo-intelligence-module.md) | epic | Draft | Декомпозиция stories — см. файл эпика. |
+
+## EPIC-M2-09 — Security, Config, Observability
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-09 | [EPIC-M2-09 Security Config Observability](./epics/EPIC-M2-09-security-config-observability.md) | epic | Draft | Декомпозиция stories — см. файл эпика; метрики job runs — см. EPIC-M2-11. |
+
+## EPIC-M2-10 — Demo-to-Pilot Adapters
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-10 | [EPIC-M2-10 Demo-to-Pilot Adapters](./epics/EPIC-M2-10-demo-to-pilot-adapters.md) | epic | Draft | Декомпозиция stories — см. файл эпика; story-level токенизация — см. EPIC-M2-12. |
+
+## EPIC-M2-11 — Post-demo: Orchestration and Scheduled Automation
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-11 | [EPIC-M2-11 Post-demo orchestration](./epics/EPIC-M2-11-post-demo-orchestration-and-scheduled-automation.md) | epic | Draft | `solution architecture/16`, `requirements/20`; не блокирует demo. |
+
+## EPIC-M2-12 — Post-demo: Story Tokenization and Contributor Notifications
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| ⚪ | M2-12 | [EPIC-M2-12 Post-demo tokenization](./epics/EPIC-M2-12-post-demo-story-tokenization-and-contributor-notifications.md) | epic | Draft | `requirements/21` (дисклеймер); срок не зафиксирован. |
+

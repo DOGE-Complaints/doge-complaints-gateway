@@ -20,6 +20,7 @@
   - clustering latency
   - issue promotion success rate
   - projection contract violations
+  - (post-demo) scheduled job / automation runs: success rate, duration, last error (см. `16-automation-orchestration-and-scheduled-jobs.md`, EPIC-M2-11)
 
 ## Failure strategy
 - fail-closed for unsafe operations;

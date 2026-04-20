@@ -35,3 +35,8 @@
 - end-to-end pilot qualification.
 
 **Exit criteria:** controlled pilot with observable and reversible flow.
+
+## Phase 6+ — Post-demo (не часть обязательного demo closure)
+
+- **Операционная автоматизация:** единый automation plane для cron/queue и ручного replay поверх use-case (`16`, требования `20`, эпик EPIC-M2-11).
+- **Исследование токенизации/уведомлений на уровне story:** только после отдельного решения о сроках (требования `21`, эпик EPIC-M2-12); не смешивать с обязательным MVP в `requirements/03-scope-and-boundaries.md`.

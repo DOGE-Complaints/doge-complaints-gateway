@@ -26,3 +26,7 @@
 - `PrepareResolveService` (domain orchestration).
 - `UploadService` (infra state flow).
 - `PayloadCache`, `SignRequestStore`, `StubPushSender` abstraction.
+
+## Post-demo (не обязательный scope demo)
+
+Продуктовые сценарии **story-level токенизации** и уведомлений авторам используют те же адаптерные границы, но описаны отдельно с дисклеймером: `docs/requirements/21-post-demo-story-tokenization-and-contributor-notifications.md`, эпик EPIC-M2-12.

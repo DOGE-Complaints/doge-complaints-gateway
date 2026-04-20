@@ -15,6 +15,10 @@
 - on-chain токенизация/голосование;
 - финальный гос-статус и внешняя Smart City интеграция.
 
+## Post-demo backlog (документировано отдельно, без расширения MVP)
+
+Исследования и требования после demo (оркестрация/cron, сценарии токенизации/уведомлений на уровне story) ведутся в `20-post-demo-orchestration-and-scheduled-jobs.md` и `21-post-demo-story-tokenization-and-contributor-notifications.md` и **не меняют** границы текущего MVP до отдельного решения.
+
 ## Границы ответственности
 - **Upstream:** GPT поставляет narrative + (опц.) структурные сигналы.
 - **Current module:** operational truth и подготовка производных объектов.

@@ -50,6 +50,10 @@
 ## Definition of Done
 - baseline security/ops practices enforced across all active modules.
 
+## Связанная post-demo доработка (не часть обязательного scope эпика)
+
+- Метрики и алерты для **scheduled / automation** job runs закладываются в **EPIC-M2-11** и архитектуру `docs/solution architecture/16-automation-orchestration-and-scheduled-jobs.md` (расширение раздела metrics в этом эпике при внедрении M2-11).
+
 ## Initial Story Decomposition (Draft)
 - STORY-M2-09-01: implement centralized config and env validation
 - STORY-M2-09-02: implement security middleware baseline

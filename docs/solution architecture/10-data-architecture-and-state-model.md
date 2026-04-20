@@ -30,3 +30,7 @@
 - board read model (SPA fields only);
 - issue details read model (enriched but contract-safe);
 - evidence drill-down read model (internal).
+
+## Automation / scheduled execution (post-demo)
+
+Фоновые и cron-задачи **не** являются отдельным источником доменной истины: они должны вызывать те же application use-case, что и API. Детали — `16-automation-orchestration-and-scheduled-jobs.md` и требования `requirements/20-post-demo-orchestration-and-scheduled-jobs.md`.

@@ -34,3 +34,8 @@
 ### Контракты интеграции (GPT / API)
 
 - `19-inbound-api-gpt-preprocessing-and-spa-issue-contracts.md` — inbound JSON для Story Intake, препроцессинг GPT, «живая» история, черновик SPA-issue (i18n), задел gov-interop.
+
+### Post-demo (вне обязательного MVP, сроки не зафиксированы)
+
+- `20-post-demo-orchestration-and-scheduled-jobs.md` — оркестрация, cron/queue, единый use-case слой.
+- `21-post-demo-story-tokenization-and-contributor-notifications.md` — токенизация на уровне историй и уведомления авторам; **дисклеймер post-demo**.

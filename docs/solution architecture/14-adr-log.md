@@ -29,3 +29,9 @@
 - **Status:** Accepted
 - **Decision:** Reuse только geo logic intent + часть доменной семантики; остальное greenfield.
 - **Trade-off:** больше initial design work, но ниже техдолг.
+
+## ADR-M2-007: Single entry for domain transitions (API and automation)
+- **Status:** Proposed (для post-demo внедрения)
+- **Decision:** HTTP API и scheduled/worker выполнения вызывают одни и те же application use-case через DI; инфраструктура cron/queue не содержит дублирующей доменной семантики.
+- **Trade-off:** чуть больше дисциплины при написании фоновых задач; зато нет расхождения «ручной vs cron» путь.
+- **См. также:** `16-automation-orchestration-and-scheduled-jobs.md`, `requirements/20-post-demo-orchestration-and-scheduled-jobs.md`.
