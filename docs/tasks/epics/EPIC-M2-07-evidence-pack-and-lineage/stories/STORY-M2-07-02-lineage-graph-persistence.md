@@ -4,7 +4,7 @@
 - Key: `STORY-M2-07-02`
 - Parent Epic: [`EPIC-M2-07-evidence-pack-and-lineage.md`](../../EPIC-M2-07-evidence-pack-and-lineage.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Evidence
 - Skill declared: `python-pro` (for runtime implementation phase)
 

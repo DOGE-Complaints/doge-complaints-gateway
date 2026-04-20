@@ -1,7 +1,7 @@
 # EPIC-M2-07: Evidence Pack and Lineage
 
 ## Epic Meta
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 3-4
@@ -53,7 +53,7 @@ Issue без provenance и evidence разрушает доверие и не г
 
 | Key | Story | Status |
 |---|---|---|
-| STORY-M2-07-01 | [Evidence pack schema](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-01-evidence-pack-schema.md) | Implemented (Waiting Commits) |
-| STORY-M2-07-02 | [Lineage graph persistence](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-02-lineage-graph-persistence.md) | Implemented (Waiting Commits) |
-| STORY-M2-07-03 | [Visibility tiers and redaction](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-03-visibility-tiers-and-redaction.md) | Implemented (Waiting Commits) |
-| STORY-M2-07-04 | [Evidence export metadata](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-04-evidence-export-metadata.md) | Implemented (Waiting Commits) |
+| STORY-M2-07-01 | [Evidence pack schema](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-01-evidence-pack-schema.md) | Done (Committed) |
+| STORY-M2-07-02 | [Lineage graph persistence](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-02-lineage-graph-persistence.md) | Done (Committed) |
+| STORY-M2-07-03 | [Visibility tiers and redaction](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-03-visibility-tiers-and-redaction.md) | Done (Committed) |
+| STORY-M2-07-04 | [Evidence export metadata](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-04-evidence-export-metadata.md) | Done (Committed) |

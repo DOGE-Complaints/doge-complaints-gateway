@@ -65,10 +65,10 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| 🔵 | M2-07-01 | [Evidence pack schema](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-01-evidence-pack-schema.md) | implement | Implemented (Waiting Commits) | `core.evidence.types`, EvidencePackRecord, snapshot refs. |
-| 🔵 | M2-07-02 | [Lineage graph persistence](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-02-lineage-graph-persistence.md) | implement | Implemented (Waiting Commits) | In-memory repo, reverse lineage по story_id, reindex на upsert. |
-| 🔵 | M2-07-03 | [Visibility tiers and redaction](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-03-visibility-tiers-and-redaction.md) | implement | Implemented (Waiting Commits) | `VisibilityTier`, `redact_evidence_pack`, public без artifact refs. |
-| 🔵 | M2-07-04 | [Evidence export metadata](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-04-evidence-export-metadata.md) | implement | Implemented (Waiting Commits) | `EvidenceExportMetadata`, `BUNDLE_FORMAT`, `export_metadata` на сервисе. |
+| 🟢 | M2-07-01 | [Evidence pack schema](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-01-evidence-pack-schema.md) | implement | Done (Committed) | `core.evidence.types`, EvidencePackRecord, snapshot refs. |
+| 🟢 | M2-07-02 | [Lineage graph persistence](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-02-lineage-graph-persistence.md) | implement | Done (Committed) | In-memory repo, reverse lineage по story_id, reindex на upsert. |
+| 🟢 | M2-07-03 | [Visibility tiers and redaction](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-03-visibility-tiers-and-redaction.md) | implement | Done (Committed) | `VisibilityTier`, `redact_evidence_pack`, public без artifact refs. |
+| 🟢 | M2-07-04 | [Evidence export metadata](./epics/EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-04-evidence-export-metadata.md) | implement | Done (Committed) | `EvidenceExportMetadata`, `BUNDLE_FORMAT`, `export_metadata` на сервисе. |
 
 ## EPIC-M2-08 — Geo Intelligence
 
