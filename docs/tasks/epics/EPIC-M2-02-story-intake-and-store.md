@@ -1,7 +1,7 @@
 # EPIC-M2-02: Story Intake and Story Store
 
 ## Epic Meta
-- Status: Draft
+- Status: Done (Committed)
 - Priority: Critical
 - Owner: TBD
 - Target: Sprint 1-2
@@ -55,8 +55,11 @@ Legacy intake ориентирован на complaint-flow и не обеспе�
 - данные готовы для profile enrichment;
 - документация по контракту опубликована.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-02-01: define StoryIntakeRequest and response
-- STORY-M2-02-02: implement story repository and lifecycle fields (включая поля авторства / external subject)
-- STORY-M2-02-03: add idempotency key support
-- STORY-M2-02-04: add intake observability and error taxonomy
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-02-01 | [Story intake request/response contract](./EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-01-story-intake-request-response-contract.md) | Done (Committed) |
+| STORY-M2-02-02 | [Story repository lifecycle and authorship linkage](./EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-02-story-repository-lifecycle-and-authorship-linkage.md) | Done (Committed) |
+| STORY-M2-02-03 | [Intake idempotency key handling](./EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-03-intake-idempotency-key-handling.md) | Done (Committed) |
+| STORY-M2-02-04 | [Intake observability and error taxonomy](./EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-04-intake-observability-and-error-taxonomy.md) | Done (Committed) |

@@ -4,7 +4,7 @@
 - Key: `STORY-M2-02-04`
 - Parent Epic: [`EPIC-M2-02-story-intake-and-store.md`](../../EPIC-M2-02-story-intake-and-store.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Intake
 - Skill declared: `python-pro` (for runtime implementation phase)
 

@@ -11,4 +11,4 @@
 | 7. Верификация AC | Done | acceptance-verification-STORY-M2-02-03.md |
 | 8. Документация | Done | changelog + retrospective added |
 | 9. Подготовка коммита | Done | Implemented (Waiting Commits) |
-| 10. Коммит/ретроспектива | Todo | |
+| 10. Коммит/ретроспектива | Done | committed |

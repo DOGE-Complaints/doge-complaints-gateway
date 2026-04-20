@@ -8,6 +8,11 @@
 
 Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 
+## Pipeline Docs
+
+- Канонический pipeline: `docs/tasks/m2-epic-story-execution-pipeline.md`
+- Простой user manual (Cursor): `docs/tasks/m2-pipeline-user-manual-cursor.md`
+
 ## Стандарт эпика (Scrum)
 
 Каждый epic описан по единому шаблону:
@@ -38,6 +43,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 ## Статус декомпозиции в stories
 
 - `EPIC-M2-01-core-foundation-and-governance.md` — декомпозирован в stories: `epics/EPIC-M2-01-core-foundation-and-governance/stories/`
+- `EPIC-M2-02-story-intake-and-store.md` — декомпозирован в stories: `epics/EPIC-M2-02-story-intake-and-store/stories/`
 
 ## Порядок реализации (рекомендуемый)
 
