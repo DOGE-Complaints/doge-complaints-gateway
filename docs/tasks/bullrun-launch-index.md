@@ -74,10 +74,10 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| 🔵 | M2-08-01 | [Canonical geo cache schema](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-01-canonical-geo-cache-schema.md) | implement | Implemented (Waiting Commits) | `normalize_location_query`, `InMemoryGeoCacheRepository`, `StoryGeoSnapshot`. |
-| 🔵 | M2-08-02 | [GeoResolver adapter chain](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-02-geo-resolver-adapter-chain.md) | implement | Implemented (Waiting Commits) | `GeoResolverChain`, стабы OpenCage/Nominatim, fallback Narva. |
-| 🔵 | M2-08-03 | [GeoService in intake](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-03-geo-service-intake-integration.md) | implement | Implemented (Waiting Commits) | `narrative.location_query`, `StoryRecord.geo`, DI `get_geo_service`. |
-| 🔵 | M2-08-04 | [Geo resilience and metrics](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-04-geo-resilience-and-metrics-tests.md) | implement | Implemented (Waiting Commits) | `InMemoryGeoMetrics`, degraded intake при unknown place. |
+| 🟢 | M2-08-01 | [Canonical geo cache schema](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-01-canonical-geo-cache-schema.md) | implement | Done (Committed) | `normalize_location_query`, `InMemoryGeoCacheRepository`, `StoryGeoSnapshot`. |
+| 🟢 | M2-08-02 | [GeoResolver adapter chain](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-02-geo-resolver-adapter-chain.md) | implement | Done (Committed) | `GeoResolverChain`, стабы OpenCage/Nominatim, fallback Narva. |
+| 🟢 | M2-08-03 | [GeoService in intake](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-03-geo-service-intake-integration.md) | implement | Done (Committed) | `narrative.location_query`, `StoryRecord.geo`, DI `get_geo_service`. |
+| 🟢 | M2-08-04 | [Geo resilience and metrics](./epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-04-geo-resilience-and-metrics-tests.md) | implement | Done (Committed) | `InMemoryGeoMetrics`, degraded intake при unknown place. |
 
 ## EPIC-M2-09 — Security, Config, Observability
 

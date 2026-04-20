@@ -4,7 +4,7 @@
 - Key: `STORY-M2-08-02`
 - Parent Epic: [`../../EPIC-M2-08-geo-intelligence-module.md`](../../EPIC-M2-08-geo-intelligence-module.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Geo
 - Skill declared: `python-pro`
 
