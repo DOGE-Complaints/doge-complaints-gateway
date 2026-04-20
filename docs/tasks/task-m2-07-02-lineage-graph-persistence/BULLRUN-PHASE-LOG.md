@@ -10,5 +10,5 @@
 | 6. Квалификация тестов | Done | 68 passed |
 | 7. Верификация AC | Done | acceptance file |
 | 8. Документация | Done | task artifacts |
-| 9. Подготовка коммита | Done | Implemented (Waiting Commits) |
-| 10. Коммит/ретроспектива | Done | impl `e2177f1`; tracker `PLACEHOLDER` |
+| 9. Подготовка коммита | Done | Done (Committed) |
+| 10. Коммит/ретроспектива | Done | impl `e2177f1`; tracker `366aa86` |
