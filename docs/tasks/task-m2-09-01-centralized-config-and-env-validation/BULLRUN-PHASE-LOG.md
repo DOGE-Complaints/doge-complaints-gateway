@@ -11,4 +11,4 @@
 | 7. Верификация AC | Done | acceptance file |
 | 8. Документация | Done | story + bullrun |
 | 9. Подготовка коммита | Done | Done (Committed) |
-| 10. Коммит/ретроспектива | Done | impl `2e7451b`; tracker `PLACEHOLDER` |
+| 10. Коммит/ретроспектива | Done | impl `2e7451b`; tracker `4213b60` |
