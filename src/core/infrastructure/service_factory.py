@@ -10,6 +10,7 @@ from core.domain import (
     SignalProfileRepository,
     StoryRepository,
 )
+from core.evidence import EvidencePackRepository, EvidencePackService
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
@@ -26,6 +27,7 @@ class DefaultServiceFactory:
     signal_profile_repository: SignalProfileRepository
     issue_candidate_store: IssueCandidateStore
     review_audit_log_repository: ReviewAuditLogRepository
+    evidence_pack_repository: EvidencePackRepository
 
     def get_health_service(self) -> HealthService:
         return HealthService(repository=self.health_repository)
@@ -51,4 +53,7 @@ class DefaultServiceFactory:
 
     def get_issue_projection_service(self) -> IssueProjectionService:
         return IssueProjectionService()
+
+    def get_evidence_pack_service(self) -> EvidencePackService:
+        return EvidencePackService(repository=self.evidence_pack_repository)
 

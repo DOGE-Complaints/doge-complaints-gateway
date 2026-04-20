@@ -1,7 +1,7 @@
 # EPIC-M2-07: Evidence Pack and Lineage
 
 ## Epic Meta
-- Status: Draft
+- Status: Implemented (Waiting Commits)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 3-4
@@ -49,8 +49,11 @@ Issue без provenance и evidence разрушает доверие и не г
 - evidence и lineage работают как независимый модуль;
 - готовность к pilot tokenization prep подтверждена.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-07-01: design evidence pack schema
-- STORY-M2-07-02: implement lineage graph persistence
-- STORY-M2-07-03: implement visibility tiers and redaction
-- STORY-M2-07-04: implement evidence export metadata
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-07-01 | [Evidence pack schema](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-01-evidence-pack-schema.md) | Implemented (Waiting Commits) |
+| STORY-M2-07-02 | [Lineage graph persistence](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-02-lineage-graph-persistence.md) | Implemented (Waiting Commits) |
+| STORY-M2-07-03 | [Visibility tiers and redaction](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-03-visibility-tiers-and-redaction.md) | Implemented (Waiting Commits) |
+| STORY-M2-07-04 | [Evidence export metadata](./EPIC-M2-07-evidence-pack-and-lineage/stories/STORY-M2-07-04-evidence-export-metadata.md) | Implemented (Waiting Commits) |

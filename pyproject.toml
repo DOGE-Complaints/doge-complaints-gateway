@@ -15,7 +15,21 @@ dev = [
   "pytest>=8.0.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
+
+# Pylance/Pyright/Basedpyright: resolve `core.*` imports (package root is `src/`, same as pytest).
+[tool.pyright]
+include = ["src", "tests"]
+extraPaths = ["src"]
+pythonVersion = "3.11"
+
+[tool.basedpyright]
+include = ["src", "tests"]
+extraPaths = ["src"]
+pythonVersion = "3.11"
