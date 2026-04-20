@@ -10,7 +10,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 
 ## Pipeline Docs
 
-- Канонический pipeline: `docs/tasks/m2-epic-story-execution-pipeline.md`
+- Канонический pipeline: `docs/tasks/m2-epic-story-execution-pipeline.md` (в т.ч. **оркестрация batch-run** по `bullrun-launch-index.md`)
 - Простой user manual (Cursor): `docs/tasks/m2-pipeline-user-manual-cursor.md`
 
 ## Стандарт эпика (Scrum)
@@ -52,7 +52,8 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-06-spa-projection-and-i18n.md` — декомпозирован в stories: `epics/EPIC-M2-06-spa-projection-and-i18n/stories/`
 - `EPIC-M2-07-evidence-pack-and-lineage.md` — декомпозирован в stories: `epics/EPIC-M2-07-evidence-pack-and-lineage/stories/`
 - `EPIC-M2-08-geo-intelligence-module.md` — декомпозирован в stories: `epics/EPIC-M2-08-geo-intelligence-module/stories/`
-- `EPIC-M2-09` … `EPIC-M2-10` — декомпозиция stories по мере запуска (см. файлы эпиков).
+- `EPIC-M2-09-security-config-observability.md` — декомпозирован в stories: `epics/EPIC-M2-09-security-config-observability/stories/`
+- `EPIC-M2-10` — декомпозиция stories по мере запуска (см. файл эпика).
 - `EPIC-M2-11`, `EPIC-M2-12` — post-demo; stories в черновиках внутри файлов эпиков.
 
 ## Порядок реализации (рекомендуемый)

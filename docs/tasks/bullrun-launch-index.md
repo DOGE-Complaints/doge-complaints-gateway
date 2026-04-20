@@ -84,7 +84,10 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| ⚪ | M2-09 | [EPIC-M2-09 Security Config Observability](./epics/EPIC-M2-09-security-config-observability.md) | epic | Draft | Декомпозиция stories — см. файл эпика; метрики job runs — см. EPIC-M2-11. |
+| ⚪ | M2-09-01 | [Centralized config and env validation](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-01-centralized-config-and-env-validation.md) | implement | Todo | `core.config`, строгая env validation, тесты. |
+| ⚪ | M2-09-02 | [Security middleware baseline](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-02-security-middleware-baseline.md) | implement | Todo | Сервисная граница API, guard для защищённых маршрутов. |
+| ⚪ | M2-09-03 | [Structured logging and tracing](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-03-structured-logging-and-tracing.md) | implement | Todo | `trace_id`, secret-safe логирование. |
+| ⚪ | M2-09-04 | [Health checks and metrics](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-04-health-checks-and-metrics.md) | implement | Todo | Liveness/readiness, базовые метрики. |
 
 ## EPIC-M2-10 — Demo-to-Pilot Adapters
 

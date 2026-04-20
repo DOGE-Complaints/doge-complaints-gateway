@@ -1,7 +1,7 @@
 # EPIC-M2-09: Security, Config, Observability
 
 ## Epic Meta
-- Status: Draft
+- Status: In Progress
 - Priority: Critical
 - Owner: TBD
 - Target: Cross-sprint (starts Sprint 1)
@@ -54,8 +54,11 @@
 
 - Метрики и алерты для **scheduled / automation** job runs закладываются в **EPIC-M2-11** и архитектуру `docs/solution architecture/16-automation-orchestration-and-scheduled-jobs.md` (расширение раздела metrics в этом эпике при внедрении M2-11).
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-09-01: implement centralized config and env validation
-- STORY-M2-09-02: implement security middleware baseline
-- STORY-M2-09-03: implement structured logging and tracing
-- STORY-M2-09-04: implement health checks and metrics
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-09-01 | [Centralized config and env validation](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-01-centralized-config-and-env-validation.md) | Todo |
+| STORY-M2-09-02 | [Security middleware baseline](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-02-security-middleware-baseline.md) | Todo |
+| STORY-M2-09-03 | [Structured logging and tracing](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-03-structured-logging-and-tracing.md) | Todo |
+| STORY-M2-09-04 | [Health checks and metrics](./EPIC-M2-09-security-config-observability/stories/STORY-M2-09-04-health-checks-and-metrics.md) | Todo |

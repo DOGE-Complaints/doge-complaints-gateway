@@ -5,6 +5,7 @@
 `Epic -> Story -> Execution` с правильной связкой процесса, мышления и skill.
 
 ## 1) Быстрый старт (практически)
+0. Откройте [`docs/tasks/bullrun-launch-index.md`](./bullrun-launch-index.md) и по правилам **«Оркестрация batch-run»** в [`m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md) определите стартовый эпик/story (не ведите отдельный «текущий эпик»-файл).
 1. Откройте Epic в `docs/tasks/epics/`.
 2. Если сторис еще не созданы — запустите декомпозицию:
    - процесс: `@.cursor/commands/bullrun-epic-decompose.md`
