@@ -11,4 +11,4 @@
 | 7. Верификация AC | Done | acceptance file |
 | 8. Документация | Done | task artifacts |
 | 9. Подготовка коммита | Done | Implemented (Waiting Commits) |
-| 10. Коммит/ретроспектива | Done | pending closure commits |
+| 10. Коммит/ретроспектива | Done | committed (a0f9ac6, tracker a3871d1) |

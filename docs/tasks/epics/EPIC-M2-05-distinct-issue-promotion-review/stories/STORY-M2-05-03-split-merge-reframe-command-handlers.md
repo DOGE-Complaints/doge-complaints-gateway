@@ -4,7 +4,7 @@
 - Key: `STORY-M2-05-03`
 - Parent Epic: [`EPIC-M2-05-distinct-issue-promotion-review.md`](../../EPIC-M2-05-distinct-issue-promotion-review.md)
 - Type: Technical Story
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Stream: M2 Promotion
 - Skill declared: `python-pro` (for runtime implementation phase)
 

@@ -47,8 +47,8 @@
 
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
-| 🔵 | M2-05-01 | [Issue candidate state machine and lifecycle](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | implement | Implemented (Waiting Commits) | `core.promotion` lifecycle orchestration + transition validation + tests. |
-| 🔵 | M2-05-02 | [Promotion gate evaluator baseline](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | implement | Implemented (Waiting Commits) | Explainable gate evaluation integrated into submit step + tests. |
-| 🔵 | M2-05-03 | [Split merge reframe command handlers](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | implement | Implemented (Waiting Commits) | Draft-only split/merge/reframe with audit trail provenance + tests. |
-| 🔵 | M2-05-04 | [Review audit log repository](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | implement | Implemented (Waiting Commits) | In-memory audit repository + deterministic ordered reads + DI wiring. |
+| 🟢 | M2-05-01 | [Issue candidate state machine and lifecycle](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | implement | Done (Committed) | `core.promotion` lifecycle orchestration + transition validation + tests. |
+| 🟢 | M2-05-02 | [Promotion gate evaluator baseline](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | implement | Done (Committed) | Explainable gate evaluation integrated into submit step + tests. |
+| 🟢 | M2-05-03 | [Split merge reframe command handlers](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | implement | Done (Committed) | Draft-only split/merge/reframe with audit trail provenance + tests. |
+| 🟢 | M2-05-04 | [Review audit log repository](./epics/EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | implement | Done (Committed) | In-memory audit repository + deterministic ordered reads + DI wiring. |
 

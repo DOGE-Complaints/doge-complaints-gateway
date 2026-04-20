@@ -1,7 +1,7 @@
 # EPIC-M2-05: Distinct Issue Promotion and Reviewability
 
 ## Epic Meta
-- Status: Implemented (Waiting Commits)
+- Status: Done (Committed)
 - Priority: High
 - Owner: TBD
 - Target: Sprint 3
@@ -53,7 +53,7 @@
 
 | Key | Story | Status |
 |---|---|---|
-| STORY-M2-05-01 | [Issue candidate state machine and lifecycle](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | Implemented (Waiting Commits) |
-| STORY-M2-05-02 | [Promotion gate evaluator baseline](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | Implemented (Waiting Commits) |
-| STORY-M2-05-03 | [Split merge reframe command handlers](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | Implemented (Waiting Commits) |
-| STORY-M2-05-04 | [Review audit log repository](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | Implemented (Waiting Commits) |
+| STORY-M2-05-01 | [Issue candidate state machine and lifecycle](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-01-issue-candidate-state-machine-and-lifecycle.md) | Done (Committed) |
+| STORY-M2-05-02 | [Promotion gate evaluator baseline](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-02-promotion-gate-evaluator-baseline.md) | Done (Committed) |
+| STORY-M2-05-03 | [Split merge reframe command handlers](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-03-split-merge-reframe-command-handlers.md) | Done (Committed) |
+| STORY-M2-05-04 | [Review audit log repository](./EPIC-M2-05-distinct-issue-promotion-review/stories/STORY-M2-05-04-review-audit-log-repository.md) | Done (Committed) |
