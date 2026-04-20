@@ -1,7 +1,7 @@
 # EPIC-M2-08: Geo Intelligence Module
 
 ## Epic Meta
-- Status: Draft
+- Status: Implemented (Waiting Commits)
 - Priority: Medium-High
 - Owner: TBD
 - Target: Sprint 2-4 (parallel track)
@@ -50,8 +50,11 @@
 ## Definition of Done
 - geo модуль стабилен, наблюдаем и интегрирован в story intelligence.
 
-## Initial Story Decomposition (Draft)
-- STORY-M2-08-01: implement canonical geo cache schema
-- STORY-M2-08-02: implement GeoResolver adapter chain
-- STORY-M2-08-03: integrate GeoService in intake pipeline
-- STORY-M2-08-04: add geo resilience and metrics tests
+## Stories (decomposed)
+
+| Key | Story | Status |
+|---|---|---|
+| STORY-M2-08-01 | [Canonical geo cache schema](./EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-01-canonical-geo-cache-schema.md) | Implemented (Waiting Commits) |
+| STORY-M2-08-02 | [GeoResolver adapter chain](./EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-02-geo-resolver-adapter-chain.md) | Implemented (Waiting Commits) |
+| STORY-M2-08-03 | [GeoService in intake pipeline](./EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-03-geo-service-intake-integration.md) | Implemented (Waiting Commits) |
+| STORY-M2-08-04 | [Geo resilience and metrics tests](./EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-04-geo-resilience-and-metrics-tests.md) | Implemented (Waiting Commits) |

@@ -5,6 +5,7 @@ from typing import Protocol
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
 from core.cluster import ClusteringEngine
 from core.evidence import EvidencePackService
+from core.geo import GeoService
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 
@@ -32,4 +33,7 @@ class ServiceFactory(Protocol):
 
     def get_evidence_pack_service(self) -> EvidencePackService:
         """Build and return evidence pack / lineage service."""
+
+    def get_geo_service(self) -> GeoService:
+        """Build and return geo intelligence service."""
 

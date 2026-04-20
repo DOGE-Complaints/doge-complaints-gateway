@@ -15,6 +15,7 @@ from core.domain import (
     StoryRecord,
     StoryRepository,
 )
+from core.geo import GeoService
 from core.intake import StoryIntakeRequest
 from core.profile import (
     infer_signals_from_narrative,
@@ -36,6 +37,7 @@ class HealthService:
 class StoryIntakeService:
     repository: StoryRepository
     idempotency_repository: IdempotencyRepository
+    geo_service: GeoService | None = None
 
     def create_story(
         self, request: StoryIntakeRequest, *, idempotency_key: str | None = None
@@ -48,6 +50,11 @@ class StoryIntakeService:
                     return existing_story
 
         now = datetime.now(UTC)
+        geo = (
+            self.geo_service.resolve_for_story(request.narrative.location_query)
+            if self.geo_service is not None
+            else None
+        )
         record = StoryRecord(
             story_id=str(uuid4()),
             schema_version=request.schema_version,
@@ -57,6 +64,7 @@ class StoryIntakeService:
             lifecycle_status=StoryLifecycleStatus.ACCEPTED,
             created_at=now,
             updated_at=now,
+            geo=geo,
         )
         saved = self.repository.save_story(record)
         if idempotency_key:

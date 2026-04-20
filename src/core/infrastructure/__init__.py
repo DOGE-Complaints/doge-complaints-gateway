@@ -5,6 +5,7 @@ from core.infrastructure.repositories import (
     InMemoryStoryRepository,
 )
 from core.infrastructure.providers import (
+    provide_geo_service,
     provide_health_repository,
     provide_idempotency_repository,
     provide_signal_profile_repository,
@@ -23,6 +24,7 @@ __all__ = [
     "provide_idempotency_repository",
     "provide_signal_profile_repository",
     "provide_story_repository",
+    "provide_geo_service",
     "provide_service_factory",
 ]
 

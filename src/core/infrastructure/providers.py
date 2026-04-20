@@ -15,6 +15,14 @@ from core.infrastructure.repositories import (
 )
 from core.infrastructure.service_factory import DefaultServiceFactory
 from core.evidence import EvidencePackRepository, InMemoryEvidencePackRepository
+from core.geo import (
+    GeoResolverChain,
+    GeoResolverPolicy,
+    GeoService,
+    InMemoryGeoCacheRepository,
+    InMemoryGeoMetrics,
+    default_provider_chain,
+)
 from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryReviewAuditLogRepository
 
 
@@ -46,6 +54,17 @@ def provide_evidence_pack_repository() -> EvidencePackRepository:
     return InMemoryEvidencePackRepository()
 
 
+def provide_geo_service() -> GeoService:
+    metrics = InMemoryGeoMetrics()
+    cache = InMemoryGeoCacheRepository()
+    chain = GeoResolverChain(
+        providers=default_provider_chain(),
+        policy=GeoResolverPolicy(max_attempts_per_provider=2),
+        metrics=metrics,
+    )
+    return GeoService(cache=cache, resolver=chain, metrics=metrics)
+
+
 def provide_service_factory() -> ServiceFactory:
     return DefaultServiceFactory(
         health_repository=provide_health_repository(),
@@ -55,5 +74,6 @@ def provide_service_factory() -> ServiceFactory:
         issue_candidate_store=provide_issue_candidate_store(),
         review_audit_log_repository=provide_review_audit_log_repository(),
         evidence_pack_repository=provide_evidence_pack_repository(),
+        geo_service=provide_geo_service(),
     )
 

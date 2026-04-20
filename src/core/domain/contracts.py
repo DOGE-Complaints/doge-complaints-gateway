@@ -23,6 +23,18 @@ class StoryLifecycleStatus(StrEnum):
 
 
 @dataclass(frozen=True)
+class StoryGeoSnapshot:
+    """Normalized geo result attached to a story (cluster lenses, audit)."""
+
+    normalized_label: str
+    latitude: float
+    longitude: float
+    confidence: float
+    provider: str
+    cluster_tags: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class StoryRecord:
     story_id: str
     schema_version: str
@@ -32,6 +44,7 @@ class StoryRecord:
     lifecycle_status: StoryLifecycleStatus
     created_at: datetime
     updated_at: datetime
+    geo: StoryGeoSnapshot | None = None
 
 
 class StoryRepository(Protocol):

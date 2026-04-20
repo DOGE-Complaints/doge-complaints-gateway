@@ -25,6 +25,7 @@ class Narrative:
     original_text: str
     language: str | None = None
     title_hint: str | None = None
+    location_query: str | None = None
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,12 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         if isinstance(title_hint_raw, str) and title_hint_raw.strip()
         else None
     )
+    location_query_raw = narrative_payload.get("location_query")
+    location_query = (
+        location_query_raw.strip()
+        if isinstance(location_query_raw, str) and location_query_raw.strip()
+        else None
+    )
 
     return StoryIntakeRequest(
         schema_version=schema_version,
@@ -98,7 +105,10 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
             external_user_id=external_user_id, identity_issuer=identity_issuer
         ),
         narrative=Narrative(
-            original_text=original_text, language=language, title_hint=title_hint
+            original_text=original_text,
+            language=language,
+            title_hint=title_hint,
+            location_query=location_query,
         ),
     )
 
