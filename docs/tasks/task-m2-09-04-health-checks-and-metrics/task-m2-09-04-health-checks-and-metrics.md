@@ -1,5 +1,5 @@
 ## Task: implement — health checks and metrics
 
 ### AC/DoD
-- [ ] Health/readiness.
-- [ ] Минимальные метрики.
+- [x] Health/readiness.
+- [x] Минимальные метрики.

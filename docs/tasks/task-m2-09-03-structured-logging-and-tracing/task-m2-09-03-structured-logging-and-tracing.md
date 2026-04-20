@@ -1,5 +1,5 @@
 ## Task: implement — structured logging and tracing
 
 ### AC/DoD
-- [ ] trace_id в логах.
-- [ ] Тесты/контракты.
+- [x] trace_id в логах.
+- [x] Тесты.

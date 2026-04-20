@@ -2,6 +2,6 @@
 
 | Phase | Status | Notes |
 |---|---|---|
-| 5. Реализация (включая тесты) | Todo | |
-| 6. Квалификация тестов | Todo | pending |
-| 10. Коммит/ретроспектива | Todo | см. `docs/methodology/git-commit.md` |
+| 5. Реализация (включая тесты) | Done | readiness + metrics handlers |
+| 6. Квалификация тестов | Done | 86 passed |
+| 10. Коммит/ретроспектива | Done | impl `1516103`; tracker `PLACEHOLDER` |

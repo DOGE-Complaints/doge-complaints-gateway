@@ -1,5 +1,5 @@
 ## Task: implement — security middleware baseline
 
 ### AC/DoD
-- [ ] Guard/middleware для API.
-- [ ] Тесты.
+- [x] Guard и токен.
+- [x] Тесты.

@@ -85,9 +85,9 @@
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
 | 🟢 | M2-09-01 | [Centralized config and env validation](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-01-centralized-config-and-env-validation.md) | implement | Done (Committed) | `ENV_SCHEMA` + `LOG_LEVEL`, валидация `API_BASE_URL` (http/https), тесты. |
-| ⚪ | M2-09-02 | [Security middleware baseline](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-02-security-middleware-baseline.md) | implement | Todo | Сервисная граница API, guard для защищённых маршрутов. |
-| ⚪ | M2-09-03 | [Structured logging and tracing](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-03-structured-logging-and-tracing.md) | implement | Todo | `trace_id`, secret-safe логирование. |
-| ⚪ | M2-09-04 | [Health checks and metrics](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-04-health-checks-and-metrics.md) | implement | Todo | Liveness/readiness, базовые метрики. |
+| 🟢 | M2-09-02 | [Security middleware baseline](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-02-security-middleware-baseline.md) | implement | Done (Committed) | `ServiceTokenAuth`, `SERVICE_API_TOKEN`, `handle_protected_status`, UNAUTHORIZED envelope. |
+| 🟢 | M2-09-03 | [Structured logging and tracing](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-03-structured-logging-and-tracing.md) | implement | Done (Committed) | `log_api_event`, `trace_id` в extra логов handlers. |
+| 🟢 | M2-09-04 | [Health checks and metrics](./epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-04-health-checks-and-metrics.md) | implement | Done (Committed) | `handle_readiness`, `handle_metrics`, `ApiMetrics`. |
 
 ## EPIC-M2-10 — Demo-to-Pilot Adapters
 

@@ -1,4 +1,4 @@
 # Acceptance Verification — STORY-M2-09-02
 
-- [ ] Защищённые маршруты отклоняют запрос без сервисных креденшелов.
-- [ ] Валидный токен (stub) проходит.
+- [x] `handle_protected_status` + `UNAUTHORIZED` envelope.
+- [x] Bearer / `X-Service-Token`, `secrets.compare_digest`.

@@ -4,7 +4,7 @@
 - Key: `STORY-M2-09-03`
 - Parent Epic: [`../../EPIC-M2-09-security-config-observability.md`](../../EPIC-M2-09-security-config-observability.md)
 - Type: Technical Story
-- Status: Todo
+- Status: Done (Committed)
 - Stream: M2 Security/Ops
 - Skill declared: `python-pro`
 
@@ -12,9 +12,9 @@
 Структурированные логи с `trace_id` (и secret-safe политика: не логировать тела с PII по умолчанию).
 
 ## AC / DoD
-- [ ] Единая точка настройки логирования для API/handlers.
-- [ ] `trace_id` в контексте запроса и в лог-записях.
-- [ ] Тесты или контрактные проверки на наличие trace в успешном/ошибочном пути.
+- [x] Единая точка настройки логирования для API/handlers.
+- [x] `trace_id` в контексте запроса и в лог-записях.
+- [x] Тесты или контрактные проверки на наличие trace в успешном/ошибочном пути.
 
 ## Task Artifacts
 - Task workspace: [`../../../task-m2-09-03-structured-logging-and-tracing/README.md`](../../../task-m2-09-03-structured-logging-and-tracing/README.md)
