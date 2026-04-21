@@ -99,6 +99,19 @@
 | 🟢 | M2-10-04 | [Pilot activation playbook](./epics/EPIC-M2-10-demo-to-pilot-adapters/stories/STORY-M2-10-04-pilot-activation-playbook.md) | doc | Done (Committed) | [`pilot-activation-playbook.md`](./task-m2-10-04-pilot-activation-playbook/pilot-activation-playbook.md). |
 | 🟢 | M2-10 | [EPIC-M2-10 Demo-to-Pilot Adapters](./epics/EPIC-M2-10-demo-to-pilot-adapters.md) | epic | Done (Committed) | Story-level токенизация — EPIC-M2-12. |
 
+## EPIC-M2-13 — Demo Polishing (Gap Closure)
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🔵 | M2-13-01 | [Story lifecycle readiness transitions](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-01-story-lifecycle-readiness-transitions.md) | implement | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-001`. |
+| 🔵 | M2-13-02 | [Intake envelope parity with requirements 19](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-02-intake-envelope-parity-requirements-19.md) | implement | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-002`. |
+| 🔵 | M2-13-03 | [Author lineage proof tests](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-03-author-lineage-proof-tests.md) | test | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-003`. |
+| 🔵 | M2-13-04 | [Centralized config injection consistency](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-04-centralized-config-injection-consistency.md) | implement | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-004`. |
+| 🔵 | M2-13-05 | [Geo timeout/retry policy hardening](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-05-geo-timeout-retry-policy-hardening.md) | implement | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-005`. |
+| 🔵 | M2-13-06 | [Ops alert metrics contract](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-06-ops-alert-metrics-contract.md) | doc+test | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-006`. |
+| 🔵 | M2-13-07 | [Privacy minimization runtime enforcement](./epics/EPIC-M2-13-demo-polishing/stories/STORY-M2-13-07-privacy-minimization-runtime-enforcement.md) | implement | Implemented (Waiting Acceptance/Commits) | Закрытие `GAP-007`. |
+| 🔵 | M2-13 | [EPIC-M2-13 Demo Polishing](./epics/EPIC-M2-13-demo-polishing.md) | epic | In Progress | Consolidated gap-closure wave по non-post-demo scope. |
+
 ## EPIC-M2-11 — Post-demo: Orchestration and Scheduled Automation
 
 | S | Key | Story | Type | Status | Scope / Notes |

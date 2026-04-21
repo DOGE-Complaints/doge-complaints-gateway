@@ -39,6 +39,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-08-geo-intelligence-module.md`
 - `EPIC-M2-09-security-config-observability.md`
 - `EPIC-M2-10-demo-to-pilot-adapters.md`
+- `EPIC-M2-13-demo-polishing.md`
 - `EPIC-M2-11-post-demo-orchestration-and-scheduled-automation.md` (post-demo)
 - `EPIC-M2-12-post-demo-story-tokenization-and-contributor-notifications.md` (post-demo)
 
@@ -54,6 +55,7 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 - `EPIC-M2-08-geo-intelligence-module.md` — декомпозирован в stories: `epics/EPIC-M2-08-geo-intelligence-module/stories/`
 - `EPIC-M2-09-security-config-observability.md` — декомпозирован в stories: `epics/EPIC-M2-09-security-config-observability/stories/`
 - `EPIC-M2-10-demo-to-pilot-adapters.md` — декомпозирован в stories: `epics/EPIC-M2-10-demo-to-pilot-adapters/stories/`
+- `EPIC-M2-13-demo-polishing.md` — декомпозирован в stories: `epics/EPIC-M2-13-demo-polishing/stories/` (gap-closure wave после валидации non-post-demo scope)
 - `EPIC-M2-11`, `EPIC-M2-12` — post-demo; stories в черновиках внутри файлов эпиков.
 
 ## Порядок реализации (рекомендуемый)
@@ -68,5 +70,6 @@ Bullrun tracker по этой зоне: `docs/tasks/bullrun-launch-index.md`.
 8. EPIC-M2-08  
 9. EPIC-M2-09  
 10. EPIC-M2-10  
-11. EPIC-M2-11 (post-demo, после продуктового решения)  
-12. EPIC-M2-12 (post-demo, после продуктового решения)
+11. EPIC-M2-13  
+12. EPIC-M2-11 (post-demo, после продуктового решения)  
+13. EPIC-M2-12 (post-demo, после продуктового решения)
