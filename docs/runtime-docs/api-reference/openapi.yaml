@@ -1,0 +1,366 @@
+openapi: 3.1.0
+info:
+  title: DOGE Complaints Gateway Runtime API
+  version: 0.1.0
+  summary: Runtime reference for the current handler-level API surface
+  description: |
+    This specification is split into two states:
+    - as-is: behavior implemented in `src/core/api/handlers.py` and related contracts;
+    - planned: HTTP transport bindings and higher-level endpoints not yet wired in runtime.
+
+    Important:
+    The current runtime is handler-driven and does not include a framework router entrypoint in `src/core`.
+servers:
+  - url: https://runtime.example
+    description: Illustrative server URL for reference only
+tags:
+  - name: Ops
+    description: Operational endpoints mapped to existing handlers
+  - name: Intake
+    description: Intake contract surface (planned HTTP binding)
+  - name: Projection
+    description: SPA projection contract surface (planned HTTP binding)
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: ServiceToken
+    ServiceTokenHeader:
+      type: apiKey
+      in: header
+      name: X-Service-Token
+  schemas:
+    ErrorBody:
+      type: object
+      required: [code, type, message, details]
+      properties:
+        code:
+          type: string
+          examples: [UNAUTHORIZED, VALIDATION_ERROR, DOMAIN_ERROR, INFRASTRUCTURE_ERROR, INTERNAL_ERROR]
+        type:
+          type: string
+          examples: [auth, validation, domain, infrastructure, internal]
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    ErrorEnvelope:
+      type: object
+      required: [error, trace_id]
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+        trace_id:
+          type: string
+    HealthData:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+    ReadinessData:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ready
+    ProtectedStatusData:
+      type: object
+      required: [service]
+      properties:
+        service:
+          type: string
+          example: authenticated
+    MetricsData:
+      type: object
+      required:
+        [health_requests, readiness_requests, protected_requests, metrics_requests, auth_failures]
+      properties:
+        health_requests:
+          type: integer
+          minimum: 0
+        readiness_requests:
+          type: integer
+          minimum: 0
+        protected_requests:
+          type: integer
+          minimum: 0
+        metrics_requests:
+          type: integer
+          minimum: 0
+        auth_failures:
+          type: integer
+          minimum: 0
+    SuccessEnvelope_Health:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/HealthData'
+        trace_id:
+          type: string
+    SuccessEnvelope_Readiness:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/ReadinessData'
+        trace_id:
+          type: string
+    SuccessEnvelope_Protected:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProtectedStatusData'
+        trace_id:
+          type: string
+    SuccessEnvelope_Metrics:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricsData'
+        trace_id:
+          type: string
+    Submitter:
+      type: object
+      required: [external_user_id]
+      properties:
+        external_user_id:
+          type: string
+        identity_issuer:
+          type: string
+          nullable: true
+    Narrative:
+      type: object
+      required: [original_text]
+      properties:
+        original_text:
+          type: string
+        language:
+          type: string
+          nullable: true
+        title_hint:
+          type: string
+          nullable: true
+        location_query:
+          type: string
+          nullable: true
+    Origin:
+      type: object
+      properties:
+        source:
+          type: string
+          nullable: true
+        conversation_id:
+          type: string
+          nullable: true
+        tool_call_id:
+          type: string
+          nullable: true
+    Privacy:
+      type: object
+      properties:
+        contains_pii:
+          type: boolean
+          default: false
+        redaction_requested:
+          type: boolean
+          default: false
+    LiveStoryContext:
+      type: object
+      properties:
+        consistency_notes:
+          type: string
+          nullable: true
+    StoryIntakeRequest:
+      type: object
+      required: [schema_version, submitter, narrative]
+      properties:
+        schema_version:
+          type: string
+          enum: [m2.story_intake_envelope.v1]
+        submitter:
+          $ref: '#/components/schemas/Submitter'
+        narrative:
+          $ref: '#/components/schemas/Narrative'
+        origin:
+          $ref: '#/components/schemas/Origin'
+        privacy:
+          $ref: '#/components/schemas/Privacy'
+        live_story_context:
+          $ref: '#/components/schemas/LiveStoryContext'
+    StoryIntakeResponseData:
+      type: object
+      required: [schema_version, story_id, status]
+      properties:
+        schema_version:
+          type: string
+          enum: [m2.story_intake_response.v1]
+        story_id:
+          type: string
+        status:
+          type: string
+    SuccessEnvelope_StoryIntake:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/StoryIntakeResponseData'
+        trace_id:
+          type: string
+paths:
+  /health:
+    get:
+      tags: [Ops]
+      summary: Return liveness status
+      description: |
+        Runtime state:
+        - as-is behavior is implemented in `handle_health`;
+        - HTTP route binding is a planned transport adapter.
+      operationId: getHealth
+      x-runtime-state: as-is-handler-with-planned-route-binding
+      responses:
+        '200':
+          description: Health envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_Health'
+              examples:
+                ok:
+                  value:
+                    data:
+                      status: ok
+                    trace_id: trace-health-1
+        '500':
+          description: Unexpected or infrastructure error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /ready:
+    get:
+      tags: [Ops]
+      summary: Return readiness status
+      description: |
+        Runtime state:
+        - as-is behavior is implemented in `handle_readiness`;
+        - HTTP route binding is planned.
+      operationId: getReadiness
+      x-runtime-state: as-is-handler-with-planned-route-binding
+      responses:
+        '200':
+          description: Readiness envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_Readiness'
+              examples:
+                ready:
+                  value:
+                    data:
+                      status: ready
+                    trace_id: trace-ready-1
+  /protected/status:
+    get:
+      tags: [Ops]
+      summary: Validate service authentication gate
+      description: |
+        Runtime state:
+        - as-is behavior is implemented in `handle_protected_status`;
+        - HTTP route binding is planned.
+      operationId: getProtectedStatus
+      x-runtime-state: as-is-handler-with-planned-route-binding
+      security:
+        - BearerAuth: []
+        - ServiceTokenHeader: []
+      responses:
+        '200':
+          description: Authenticated service envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_Protected'
+              examples:
+                authenticated:
+                  value:
+                    data:
+                      service: authenticated
+                    trace_id: trace-protected-1
+        '401':
+          description: Missing or invalid service token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                unauthorized:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      type: auth
+                      message: Missing service API token.
+                      details: {}
+                    trace_id: trace-protected-err-1
+  /metrics:
+    get:
+      tags: [Ops]
+      summary: Return in-process API counters
+      description: |
+        Runtime state:
+        - as-is behavior is implemented in `handle_metrics`;
+        - HTTP route binding is planned.
+      operationId: getMetrics
+      x-runtime-state: as-is-handler-with-planned-route-binding
+      responses:
+        '200':
+          description: Metrics envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_Metrics'
+              examples:
+                counters:
+                  value:
+                    data:
+                      health_requests: 2
+                      readiness_requests: 1
+                      protected_requests: 1
+                      metrics_requests: 3
+                      auth_failures: 1
+                    trace_id: trace-metrics-1
+  /intake/stories:
+    post:
+      tags: [Intake]
+      summary: Submit story intake payload
+      description: |
+        Runtime state:
+        - intake contract exists in `src/core/intake/contracts.py`;
+        - direct HTTP handler binding is planned (not implemented in current API handlers).
+      operationId: postStoryIntake
+      x-runtime-state: planned-http-binding-existing-contract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoryIntakeRequest'
+      responses:
+        '200':
+          description: Story intake success envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryIntake'
+        '400':
+          description: Intake validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'

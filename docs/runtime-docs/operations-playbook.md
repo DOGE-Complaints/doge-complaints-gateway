@@ -1,0 +1,106 @@
+# Operations Playbook (deploy + env + keys)
+
+## Контекст и управленческий вопрос
+
+Ключевой вопрос:  
+**как запускать текущий runtime предсказуемо и безопасно, и какие решения принимать при инцидентах до появления real DB/chain интеграций?**
+
+## Run now (current runtime)
+
+### 1) Bootstrap environment (обязательный минимум)
+
+Для текущего `src/core` baseline используются:
+
+- `API_BASE_URL` (required)
+- `APP_PROFILE` (`demo`/`pilot`, default `demo`)
+- `REQUEST_TIMEOUT_S` (default `15`)
+- `LOG_LEVEL` (default `INFO`)
+- `FF_WALLET_ADAPTER`
+- `FF_BLOCKCHAIN_ADAPTER`
+- `FF_TOKENIZATION_PIPELINE`
+- `SERVICE_API_TOKEN` (обязателен для strict-protected режима)
+
+Источники: `src/core/config/schema.py`, `src/core/api/security.py`, `src/core/infrastructure/providers.py`.
+
+### 2) Current secrets posture
+
+- `SERVICE_API_TOKEN` хранить в secret storage/CI variables, не в репозитории.
+- Запуск auth-disabled режима допустим только в контролируемом demo/non-production контуре.
+- В rollout checklist явно фиксировать факт `auth enabled/disabled`.
+
+### 3) Как включить strict Bearer gate
+
+1. Выставить `SERVICE_API_TOKEN=<strong-secret>`.
+2. Передавать token через:
+   - `Authorization: Bearer <strong-secret>`
+   - или `X-Service-Token: <strong-secret>`
+3. Подтвердить проверкой:
+   - `python3 -m pytest tests/test_api_security_and_ops.py tests/test_error_envelope_contract.py -q`
+
+### 4) Smoke checks для регрессионного контроля
+
+Текущие operation handlers:
+
+- `handle_health`
+- `handle_readiness`
+- `handle_protected_status`
+- `handle_metrics`
+
+Рекомендуемый smoke/regression набор:
+
+- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_trace_propagation.py -q`
+
+### 5) Incident classes и тактика реакции
+
+#### A) Auth incidents
+
+- Симптомы: `UNAUTHORIZED`, рост `auth_failures`.
+- Первые проверки:
+  - задан ли `SERVICE_API_TOKEN`,
+  - совпадает ли значение с вызывающей стороной,
+  - корректен ли заголовок Bearer/X-Service-Token.
+
+#### B) Adapter incidents (demo/pilot stubs)
+
+- Симптомы: непредсказуемость интеграционных вызовов на adapter surfaces.
+- Действия:
+  - сверить `adapter_runtime_flags(config)` в `src/core/adapters/registry.py`,
+  - при необходимости вернуть `APP_PROFILE=demo`.
+
+#### C) Geo degradation
+
+- Симптомы: рост `resolve_misses` / `intake_degraded_geo`.
+- Действия:
+  - проверить retry/callback behavior (`src/core/geo/chain.py`),
+  - оценить cache/provider counters (`src/core/geo/metrics.py`).
+
+### 6) Rollback decision baseline (current)
+
+- Если проблема в auth конфигурации — rollback через восстановление корректного секрета и повтор smoke checks.
+- Если проблема в profile/flags — rollback до ранее стабильного профиля (`demo`) и базовых defaults.
+- Если проблема в geo/adapters — переход в degraded runtime mode с документированным ограничением функционала.
+
+## After DB/Arweave integration (future extensions)
+
+### DB extension runbook (planned)
+
+- Ввести DB connection contract в `AppConfig`.
+- Добавить preflight checks:
+  - connectivity,
+  - migration version compatibility.
+- Ввести rollback для migration wave (backup/restore или controlled down migrations).
+
+### Arweave extension runbook (planned)
+
+- Ввести chain-specific env/secrets и key lifecycle policy.
+- Добавить lifecycle monitoring:
+  - sign,
+  - broadcast,
+  - finality reconciliation.
+- Подготовить emergency switch обратно на stub adapters.
+
+## Gaps / risks
+
+- Текущий playbook опирается на in-process handlers/tests, не на полноценный HTTP deployment runtime.
+- Нет formalized escalation matrix (SRE/on-call ownership).
+- Secret rotation и key audit trails не оформлены как отдельный operational standard.
