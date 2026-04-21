@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from core.application import StoryIntakeService
 from core.evidence import (
     BUNDLE_FORMAT,
     ClusterSnapshotRef,
@@ -7,6 +8,8 @@ from core.evidence import (
     InMemoryEvidencePackRepository,
     VisibilityTier,
 )
+from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
+from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
 
 
 def _snapshot() -> ClusterSnapshotRef:
@@ -86,3 +89,56 @@ def test_lineage_snapshot_version_increments() -> None:
     )
     assert b.lineage_snapshot_version == a.lineage_snapshot_version + 1
     assert a.pack_id == b.pack_id
+
+
+def test_public_view_for_sensitive_pack_is_more_restricted() -> None:
+    repo = InMemoryEvidencePackRepository()
+    svc = EvidencePackService(repository=repo)
+    svc.upsert_pack(
+        issue_id="issue-2",
+        cluster_snapshot=_snapshot(),
+        story_ids=("s1",),
+        privacy_classification="restricted",
+        tokenization_readiness=False,
+        supporting_artifact_refs=("secret-ref",),
+    )
+    public = svc.view("issue-2", VisibilityTier.PUBLIC)
+    assert public is not None
+    assert "pack_id" not in public
+    assert "cluster_id" not in public
+    assert public["privacy_classification"] == "restricted"
+
+
+def test_lineage_story_ids_allow_fetching_submitter_identity() -> None:
+    story_repo = InMemoryStoryRepository()
+    intake_service = StoryIntakeService(
+        repository=story_repo,
+        idempotency_repository=InMemoryIdempotencyRepository(),
+    )
+    req = parse_story_intake_request(
+        {
+            "schema_version": INTAKE_SCHEMA_VERSION,
+            "submitter": {
+                "external_user_id": "author-1",
+                "identity_issuer": "idp://partner",
+            },
+            "narrative": {"original_text": "Story for lineage proof."},
+        }
+    )
+    story = intake_service.create_story(req)
+
+    repo = InMemoryEvidencePackRepository()
+    svc = EvidencePackService(repository=repo)
+    svc.upsert_pack(
+        issue_id="issue-lineage",
+        cluster_snapshot=_snapshot(),
+        story_ids=(story.story_id,),
+        privacy_classification="pii_min",
+        tokenization_readiness=True,
+    )
+    linked_story_ids = svc.lineage_stories("issue-lineage")
+    assert linked_story_ids == (story.story_id,)
+
+    linked_story = story_repo.get_story(linked_story_ids[0])
+    assert linked_story is not None
+    assert linked_story.submitter_external_user_id == "author-1"

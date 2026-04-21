@@ -10,6 +10,14 @@ def redact_evidence_pack(pack: EvidencePackRecord, tier: VisibilityTier) -> Mapp
     if tier == VisibilityTier.INTERNAL:
         return _full_dict(pack)
     if tier == VisibilityTier.PUBLIC:
+        if _is_sensitive(pack.privacy_classification):
+            return {
+                "issue_id": pack.issue_id,
+                "story_count": len(pack.story_ids),
+                "tokenization_readiness": pack.tokenization_readiness,
+                "schema_version": pack.schema_version,
+                "privacy_classification": pack.privacy_classification,
+            }
         return {
             "issue_id": pack.issue_id,
             "pack_id": pack.pack_id,
@@ -36,6 +44,11 @@ def redact_evidence_pack(pack: EvidencePackRecord, tier: VisibilityTier) -> Mapp
         "schema_version": pack.schema_version,
         "lineage_snapshot_version": pack.lineage_snapshot_version,
     }
+
+
+def _is_sensitive(privacy_classification: str) -> bool:
+    value = privacy_classification.strip().lower()
+    return value in {"restricted", "pii", "pii_high", "internal_only"}
 
 
 def _full_dict(pack: EvidencePackRecord) -> dict[str, Any]:

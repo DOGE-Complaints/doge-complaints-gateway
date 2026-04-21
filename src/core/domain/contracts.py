@@ -45,6 +45,11 @@ class StoryRecord:
     created_at: datetime
     updated_at: datetime
     geo: StoryGeoSnapshot | None = None
+    origin_source: str | None = None
+    origin_conversation_id: str | None = None
+    origin_tool_call_id: str | None = None
+    privacy_contains_pii: bool = False
+    privacy_redaction_requested: bool = False
 
 
 class StoryRepository(Protocol):

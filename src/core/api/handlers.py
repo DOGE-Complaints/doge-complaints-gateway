@@ -66,6 +66,7 @@ def handle_protected_status(
             data={"service": "authenticated"}, trace_id=resolved_trace_id
         ).as_dict()
     except UnauthorizedError as exc:
+        dependencies.metrics.record_auth_failure()
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
         return envelope.as_dict()

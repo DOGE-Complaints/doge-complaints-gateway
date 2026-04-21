@@ -65,6 +65,21 @@ class StoryIntakeService:
             created_at=now,
             updated_at=now,
             geo=geo,
+            origin_source=request.origin.source if request.origin is not None else None,
+            origin_conversation_id=(
+                request.origin.conversation_id if request.origin is not None else None
+            ),
+            origin_tool_call_id=(
+                request.origin.tool_call_id if request.origin is not None else None
+            ),
+            privacy_contains_pii=(
+                request.privacy.contains_pii if request.privacy is not None else False
+            ),
+            privacy_redaction_requested=(
+                request.privacy.redaction_requested
+                if request.privacy is not None
+                else False
+            ),
         )
         saved = self.repository.save_story(record)
         if idempotency_key:
@@ -73,7 +88,60 @@ class StoryIntakeService:
                     key=idempotency_key, story_id=saved.story_id, created_at=now
                 )
             )
-        return saved
+        return self.advance_story_readiness(
+            story_id=saved.story_id,
+            narrative_complete=bool(
+                saved.narrative_original_text.strip()
+                and request.narrative.language
+                and request.narrative.title_hint
+            ),
+        )
+
+    def advance_story_readiness(
+        self, *, story_id: str, narrative_complete: bool
+    ) -> StoryRecord:
+        current = self.repository.get_story(story_id)
+        if current is None:
+            raise ValueError(f"Unknown story_id: {story_id}.")
+
+        next_status = current.lifecycle_status
+        if current.lifecycle_status is StoryLifecycleStatus.ACCEPTED:
+            next_status = (
+                StoryLifecycleStatus.READY_FOR_PROFILE
+                if narrative_complete
+                else StoryLifecycleStatus.PARTIAL_READY
+            )
+        elif (
+            current.lifecycle_status is StoryLifecycleStatus.PARTIAL_READY
+            and narrative_complete
+        ):
+            next_status = StoryLifecycleStatus.READY_FOR_PROFILE
+        elif (
+            current.lifecycle_status is StoryLifecycleStatus.READY_FOR_PROFILE
+            and not narrative_complete
+        ):
+            raise ValueError("Cannot regress story lifecycle from READY_FOR_PROFILE.")
+
+        if next_status is current.lifecycle_status:
+            return current
+
+        updated = StoryRecord(
+            story_id=current.story_id,
+            schema_version=current.schema_version,
+            narrative_original_text=current.narrative_original_text,
+            submitter_external_user_id=current.submitter_external_user_id,
+            submitter_identity_issuer=current.submitter_identity_issuer,
+            lifecycle_status=next_status,
+            created_at=current.created_at,
+            updated_at=datetime.now(UTC),
+            geo=current.geo,
+            origin_source=current.origin_source,
+            origin_conversation_id=current.origin_conversation_id,
+            origin_tool_call_id=current.origin_tool_call_id,
+            privacy_contains_pii=current.privacy_contains_pii,
+            privacy_redaction_requested=current.privacy_redaction_requested,
+        )
+        return self.repository.save_story(updated)
 
 
 @dataclass(frozen=True)

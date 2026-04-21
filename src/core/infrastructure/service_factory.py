@@ -16,6 +16,7 @@ from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import IssueCandidateStore, ReviewAuditLogRepository
+from core.config import AppConfig
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class DefaultServiceFactory:
     review_audit_log_repository: ReviewAuditLogRepository
     evidence_pack_repository: EvidencePackRepository
     geo_service: GeoService
+    config: AppConfig
 
     def get_health_service(self) -> HealthService:
         return HealthService(repository=self.health_repository)

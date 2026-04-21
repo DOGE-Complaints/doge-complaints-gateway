@@ -24,12 +24,30 @@ def test_parse_story_intake_request_valid_payload() -> None:
                 "language": "en",
                 "title_hint": "Blocked road",
             },
+            "origin": {
+                "source": "openai_gpt_action",
+                "conversation_id": "conv-1",
+                "tool_call_id": "call-1",
+            },
+            "privacy": {
+                "contains_pii": False,
+                "redaction_requested": True,
+            },
+            "live_story_context": {
+                "consistency_notes": "User clarified scope.",
+            },
         }
     )
     assert request.schema_version == INTAKE_SCHEMA_VERSION
     assert request.submitter.external_user_id == "opaque-user-123"
     assert request.submitter.identity_issuer == "https://idp.example.com"
     assert request.narrative.original_text.startswith("Road is blocked")
+    assert request.origin is not None
+    assert request.origin.source == "openai_gpt_action"
+    assert request.privacy is not None
+    assert request.privacy.redaction_requested is True
+    assert request.live_story_context is not None
+    assert request.live_story_context.consistency_notes == "User clarified scope."
 
 
 def test_parse_story_intake_request_requires_schema_version() -> None:
@@ -89,4 +107,16 @@ def test_build_story_intake_response_contract_shape() -> None:
         },
         "trace_id": "trace-001",
     }
+
+
+def test_parse_story_intake_request_rejects_non_boolean_privacy_fields() -> None:
+    with pytest.raises(IntakeValidationError, match="privacy.contains_pii"):
+        parse_story_intake_request(
+            {
+                "schema_version": INTAKE_SCHEMA_VERSION,
+                "submitter": {"external_user_id": "opaque-user-123"},
+                "narrative": {"original_text": "text"},
+                "privacy": {"contains_pii": "yes"},
+            }
+        )
 

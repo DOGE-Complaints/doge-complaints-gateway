@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from core.application import StoryIntakeService
 from core.domain import StoryGeoSnapshot
 from core.geo import (
@@ -84,3 +86,42 @@ def test_story_geo_snapshot_is_frozen_value_object() -> None:
         cluster_tags=("a",),
     )
     assert g.cluster_tags == ("a",)
+
+
+@dataclass
+class _FlakyProvider:
+    provider_id: str = "flaky"
+    attempts: int = 0
+
+    def resolve(
+        self, original_query: str, *, canonical_key: str
+    ) -> StoryGeoSnapshot | None:
+        self.attempts += 1
+        if self.attempts == 1:
+            raise TimeoutError("simulated timeout")
+        return StoryGeoSnapshot(
+            normalized_label="Recovered",
+            latitude=0.0,
+            longitude=0.0,
+            confidence=0.5,
+            provider=self.provider_id,
+            cluster_tags=("recovered",),
+        )
+
+
+def test_geo_resolver_retries_after_timeout_with_backoff_callback() -> None:
+    metrics = InMemoryGeoMetrics()
+    sleeper_calls: list[float] = []
+    flaky = _FlakyProvider()
+    chain = GeoResolverChain(
+        providers=(flaky,),
+        policy=GeoResolverPolicy(max_attempts_per_provider=2, base_backoff_ms=10),
+        metrics=metrics,
+        sleep=lambda seconds: sleeper_calls.append(seconds),
+    )
+    snap = chain.resolve(canonical_key="x", original_query="x")
+    assert snap is not None
+    assert snap.provider == "flaky"
+    assert metrics.provider_failures.get("flaky") == 1
+    assert metrics.provider_successes.get("flaky") == 1
+    assert sleeper_calls == [0.01]

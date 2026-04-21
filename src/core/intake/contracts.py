@@ -29,10 +29,31 @@ class Narrative:
 
 
 @dataclass(frozen=True)
+class Origin:
+    source: str | None = None
+    conversation_id: str | None = None
+    tool_call_id: str | None = None
+
+
+@dataclass(frozen=True)
+class Privacy:
+    contains_pii: bool = False
+    redaction_requested: bool = False
+
+
+@dataclass(frozen=True)
+class LiveStoryContext:
+    consistency_notes: str | None = None
+
+
+@dataclass(frozen=True)
 class StoryIntakeRequest:
     schema_version: str
     submitter: Submitter
     narrative: Narrative
+    origin: Origin | None = None
+    privacy: Privacy | None = None
+    live_story_context: LiveStoryContext | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -55,6 +76,17 @@ def _require_non_empty_string(
     if not isinstance(raw_value, str) or not raw_value.strip():
         raise IntakeValidationError(f"Missing or invalid {parent}.{key}.")
     return raw_value.strip()
+
+
+def _optional_bool(
+    payload: Mapping[str, Any], key: str, *, parent: str = "root"
+) -> bool | None:
+    raw_value = payload.get(key)
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, bool):
+        return raw_value
+    raise IntakeValidationError(f"Missing or invalid {parent}.{key}. Expected boolean.")
 
 
 def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
@@ -99,6 +131,56 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         else None
     )
 
+    origin_payload = payload.get("origin")
+    origin: Origin | None = None
+    if origin_payload is not None:
+        if not isinstance(origin_payload, Mapping):
+            raise IntakeValidationError("Missing or invalid root.origin.")
+        source_raw = origin_payload.get("source")
+        conversation_raw = origin_payload.get("conversation_id")
+        tool_call_raw = origin_payload.get("tool_call_id")
+        origin = Origin(
+            source=source_raw.strip()
+            if isinstance(source_raw, str) and source_raw.strip()
+            else None,
+            conversation_id=conversation_raw.strip()
+            if isinstance(conversation_raw, str) and conversation_raw.strip()
+            else None,
+            tool_call_id=tool_call_raw.strip()
+            if isinstance(tool_call_raw, str) and tool_call_raw.strip()
+            else None,
+        )
+
+    privacy_payload = payload.get("privacy")
+    privacy: Privacy | None = None
+    if privacy_payload is not None:
+        if not isinstance(privacy_payload, Mapping):
+            raise IntakeValidationError("Missing or invalid root.privacy.")
+        contains_pii = _optional_bool(
+            privacy_payload, "contains_pii", parent="privacy"
+        )
+        redaction_requested = _optional_bool(
+            privacy_payload, "redaction_requested", parent="privacy"
+        )
+        privacy = Privacy(
+            contains_pii=contains_pii if contains_pii is not None else False,
+            redaction_requested=(
+                redaction_requested if redaction_requested is not None else False
+            ),
+        )
+
+    live_payload = payload.get("live_story_context")
+    live_story_context: LiveStoryContext | None = None
+    if live_payload is not None:
+        if not isinstance(live_payload, Mapping):
+            raise IntakeValidationError("Missing or invalid root.live_story_context.")
+        notes_raw = live_payload.get("consistency_notes")
+        live_story_context = LiveStoryContext(
+            consistency_notes=notes_raw.strip()
+            if isinstance(notes_raw, str) and notes_raw.strip()
+            else None
+        )
+
     return StoryIntakeRequest(
         schema_version=schema_version,
         submitter=Submitter(
@@ -110,6 +192,9 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
             title_hint=title_hint,
             location_query=location_query,
         ),
+        origin=origin,
+        privacy=privacy,
+        live_story_context=live_story_context,
     )
 
 

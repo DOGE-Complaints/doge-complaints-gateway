@@ -1,6 +1,8 @@
 from __future__ import annotations
+from typing import Mapping
 
 from core.application import ServiceFactory
+from core.config import AppConfig, load_config_from_env
 from core.domain import (
     HealthRepository,
     IdempotencyRepository,
@@ -65,7 +67,16 @@ def provide_geo_service() -> GeoService:
     return GeoService(cache=cache, resolver=chain, metrics=metrics)
 
 
-def provide_service_factory() -> ServiceFactory:
+def provide_app_config(env: Mapping[str, str] | None = None) -> AppConfig:
+    source = dict(env or {})
+    source.setdefault("APP_PROFILE", "demo")
+    source.setdefault("API_BASE_URL", "https://demo.local")
+    source.setdefault("REQUEST_TIMEOUT_S", "15")
+    return load_config_from_env(source)
+
+
+def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
+    resolved_config = config or provide_app_config()
     return DefaultServiceFactory(
         health_repository=provide_health_repository(),
         story_repository=provide_story_repository(),
@@ -75,5 +86,6 @@ def provide_service_factory() -> ServiceFactory:
         review_audit_log_repository=provide_review_audit_log_repository(),
         evidence_pack_repository=provide_evidence_pack_repository(),
         geo_service=provide_geo_service(),
+        config=resolved_config,
     )
 

@@ -44,6 +44,7 @@ def test_protected_route_rejects_without_token_when_auth_enabled() -> None:
     out = handle_protected_status(deps, headers={}, trace_id="t1")
     assert out["error"]["code"] == "UNAUTHORIZED"
     assert out["trace_id"] == "t1"
+    assert deps.metrics.auth_failures == 1
 
 
 def test_protected_route_accepts_bearer_token() -> None:
@@ -86,6 +87,15 @@ def test_readiness_and_metrics_increment_counters() -> None:
     m = handle_metrics(deps, trace_id="m2")
     assert m["data"]["health_requests"] == 0
     assert m["data"]["metrics_requests"] == 2
+
+
+def test_metrics_alert_contract_shape() -> None:
+    metrics = ApiMetrics()
+    metrics.record_auth_failure()
+    alert = metrics.alert_contract()
+    assert alert["auth_failures"] == 1
+    assert alert["auth_failures_threshold"] == 1
+    assert alert["auth_failure_alert"] is True
 
 
 def test_health_logs_structured_trace(caplog: pytest.LogCaptureFixture) -> None:
