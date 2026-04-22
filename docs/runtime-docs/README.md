@@ -33,6 +33,7 @@
    Вопрос: как устроена ответственность слоев, где реальные границы и как контролируется architectural drift.
 2. [Security, Env, API Access](./security-env-api-access.md)  
    Вопрос: как устроен service-to-service доступ, где trust boundary, и как включается строгая защита.
+   Дополнительно: где и как в runtime проходит user identifier (`submitter.external_user_id`) и как он связывается с `StoryRecord`.
 3. [Arweave / On-chain Status and Runbook](./arweave-status-and-runbook.md)  
    Вопрос: что реально есть в chain-контуре сейчас, а что остается pilot roadmap.
 4. [Test Matrix by Type, Layer and Mocks](./test-matrix-by-type-layer-mocks.md)  
@@ -41,7 +42,9 @@
    Вопрос: каков фактический persistence baseline и что нужно для перехода к real DB.
 6. [Operations Playbook](./operations-playbook.md)  
    Вопрос: как запускать и сопровождать текущий runtime, и как готовиться к DB/chain расширениям.
-7. [Cross-check and quality gates](./cross-check-and-quality-gates.md)  
+7. [Quickstart: server/env](./server-env-quickstart.md)  
+   Вопрос: как быстро поднять локальное окружение, выставить env и проверить runtime boundary стандартным dev-путем.
+8. [Cross-check and quality gates](./cross-check-and-quality-gates.md)  
    Вопрос: как поддерживать консистентность документации и верификацию claims.
 
 ## Дополнительные приложения
@@ -55,6 +58,7 @@
 
 - [OpenAPI 3.1 spec](./api-reference/openapi.yaml)
 - [Narrative API reference](./api-reference/API_REFERENCE.md)
+  - Включает отдельный раздел `Identity linkage for stories` с полями submitter и фактическим status маршрутизации.
 
 ## Current runtime boundary
 

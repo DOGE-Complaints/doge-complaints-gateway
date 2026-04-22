@@ -4,8 +4,8 @@
 
 This reference describes the runtime API surface for `doge-complaints-gateway` with explicit state separation:
 
-- **As-is**: behavior currently implemented in handler functions under `src/core/api/handlers.py`.
-- **Planned**: HTTP route bindings and extended endpoint surfaces not yet wired in the runtime transport layer.
+- **As-is**: behavior implemented in `FastAPI` transport routes (`src/core/api/asgi_app.py`) backed by handler functions.
+- **Planned**: extended endpoint surfaces not yet wired in the runtime transport layer.
 
 The canonical machine-readable contract is:
 
@@ -13,12 +13,12 @@ The canonical machine-readable contract is:
 
 ## 2. Runtime Boundary
 
-Current runtime is **handler-driven** and does not include a framework router entrypoint under `src/core`.
+Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 
 This means:
 
-1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented.
-2. HTTP path mapping is documented as a reference binding for integration consistency.
+1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
+2. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 
 ## 3. Authentication Model
 
@@ -32,9 +32,11 @@ Service-to-service authentication is implemented via:
 Implementation sources:
 
 - `src/core/api/security.py`
-- `src/core/api/handlers.py` (`handle_protected_status`)
+- `src/core/api/asgi_app.py` (route dependency policy)
+- `src/core/api/handlers.py` (defense-in-depth auth checks)
 
-If `SERVICE_API_TOKEN` is unset, auth is disabled by design in current runtime mode.
+If `SERVICE_API_TOKEN` is unset, auth is disabled by design in demo runtime mode.
+For pilot profile, config loading now fails fast when `SERVICE_API_TOKEN` is missing.
 
 ### Planned
 
@@ -57,11 +59,11 @@ Validated in:
 - `tests/test_error_envelope_contract.py`
 - `tests/test_trace_propagation.py`
 
-## 5. Ops Endpoints (as-is behavior, planned HTTP binding)
+## 5. Ops Endpoints (as-is behavior, active HTTP binding)
 
 ### `GET /health`
 
-- **As-is implementation**: `handle_health`
+- **As-is implementation**: `GET /health` in `asgi_app` -> `handle_health`
 - **Purpose**: liveness status from `HealthService`
 - **Success example**:
 
@@ -76,7 +78,7 @@ Validated in:
 
 ### `GET /ready`
 
-- **As-is implementation**: `handle_readiness`
+- **As-is implementation**: `GET /ready` in `asgi_app` -> `handle_readiness`
 - **Purpose**: readiness signal for runtime checks
 - **Success example**:
 
@@ -91,7 +93,7 @@ Validated in:
 
 ### `GET /protected/status`
 
-- **As-is implementation**: `handle_protected_status`
+- **As-is implementation**: `GET /protected/status` in `asgi_app` -> `handle_protected_status`
 - **Purpose**: verify service-token gate behavior
 - **Auth required**: Bearer token or `X-Service-Token` when auth is enabled
 - **Unauthorized example**:
@@ -110,8 +112,9 @@ Validated in:
 
 ### `GET /metrics`
 
-- **As-is implementation**: `handle_metrics`
+- **As-is implementation**: `GET /metrics` in `asgi_app` -> `handle_metrics`
 - **Purpose**: in-process counters (`health_requests`, `readiness_requests`, `protected_requests`, `metrics_requests`, `auth_failures`)
+- **Auth required**: Bearer token or `X-Service-Token` when auth is enabled
 
 ## 6. Intake Endpoint (planned HTTP binding, existing contract)
 
@@ -120,10 +123,35 @@ Validated in:
 - **Contract exists**: `src/core/intake/contracts.py`
 - **HTTP binding state**: planned (not currently implemented in `src/core/api/handlers.py`)
 - **Schema version**: `m2.story_intake_envelope.v1`
+- **Submitter identity fields**:
+  - `submitter.external_user_id` (required, non-empty string)
+  - `submitter.identity_issuer` (optional string)
 
 The response contract is envelope-based with payload schema version:
 
 - `m2.story_intake_response.v1`
+
+### Identity linkage for stories (as-is data path)
+
+The runtime data path for submitter identity is already implemented in core logic:
+
+1. Intake parser validates `submitter.external_user_id` in `parse_story_intake_request`.
+2. `StoryIntakeService.create_story` maps submitter data to `StoryRecord`.
+3. `StoryRecord` persists:
+   - `submitter_external_user_id`
+   - `submitter_identity_issuer`
+
+Code sources:
+
+- `src/core/intake/contracts.py`
+- `src/core/application/services.py`
+- `src/core/domain/contracts.py`
+
+Test evidence:
+
+- `tests/test_story_intake_contract.py`
+- `tests/test_story_repository_lifecycle.py`
+- `tests/test_story_intake_idempotency.py`
 
 ## 7. Observability Notes
 
@@ -141,15 +169,23 @@ Sources:
 
 ### As-is
 
-- Handler-level operational API behavior.
+- FastAPI/ASGI runtime entrypoint and routable HTTP operations.
 - Envelope/error/trace consistency.
-- Service-token gate with optional strict mode.
+- Service-token gate on protected operations:
+  - `GET /protected/status`
+  - `GET /metrics`
+- Public operations:
+  - `GET /health`
+  - `GET /ready`
 
 ### Planned
 
-- First-class HTTP router entrypoint.
 - Full intake HTTP handler wiring.
 - Extended API surface for downstream domain modules.
+- Fully enforced server auth for protected business operations:
+  - route-level centralized auth enforcement on all future protected endpoints,
+  - pilot/production-like fail-fast when `SERVICE_API_TOKEN` is missing,
+  - explicit public/protected operation map in API docs and tests.
 
 ## 9. Compatibility Guidance
 
@@ -157,4 +193,4 @@ For integrators:
 
 1. Treat `openapi.yaml` as the normative reference format.
 2. Read operation descriptions for runtime-state markers (`as-is` vs `planned`).
-3. Do not assume planned endpoints are already routable in runtime transport.
+3. Assume only endpoints listed in section 5 are routable today; other endpoints remain planned.

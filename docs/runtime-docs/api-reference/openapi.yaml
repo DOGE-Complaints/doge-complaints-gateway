@@ -2,14 +2,14 @@ openapi: 3.1.0
 info:
   title: DOGE Complaints Gateway Runtime API
   version: 0.1.0
-  summary: Runtime reference for the current handler-level API surface
+  summary: Runtime reference for the current FastAPI/handler API surface
   description: |
     This specification is split into two states:
-    - as-is: behavior implemented in `src/core/api/handlers.py` and related contracts;
-    - planned: HTTP transport bindings and higher-level endpoints not yet wired in runtime.
+    - as-is: behavior implemented in `src/core/api/asgi_app.py` + `src/core/api/handlers.py`;
+    - planned: higher-level endpoints not yet wired in runtime.
 
     Important:
-    The current runtime is handler-driven and does not include a framework router entrypoint in `src/core`.
+    The current runtime is FastAPI/ASGI-based and exposes operational routes directly.
 servers:
   - url: https://runtime.example
     description: Illustrative server URL for reference only
@@ -221,10 +221,10 @@ paths:
       summary: Return liveness status
       description: |
         Runtime state:
-        - as-is behavior is implemented in `handle_health`;
-        - HTTP route binding is a planned transport adapter.
+        - as-is behavior is implemented and routable via FastAPI (`GET /health`);
+        - handler source: `handle_health`.
       operationId: getHealth
-      x-runtime-state: as-is-handler-with-planned-route-binding
+      x-runtime-state: as-is-active-fastapi-route
       responses:
         '200':
           description: Health envelope
@@ -250,10 +250,10 @@ paths:
       summary: Return readiness status
       description: |
         Runtime state:
-        - as-is behavior is implemented in `handle_readiness`;
-        - HTTP route binding is planned.
+        - as-is behavior is implemented and routable via FastAPI (`GET /ready`);
+        - handler source: `handle_readiness`.
       operationId: getReadiness
-      x-runtime-state: as-is-handler-with-planned-route-binding
+      x-runtime-state: as-is-active-fastapi-route
       responses:
         '200':
           description: Readiness envelope
@@ -273,10 +273,10 @@ paths:
       summary: Validate service authentication gate
       description: |
         Runtime state:
-        - as-is behavior is implemented in `handle_protected_status`;
-        - HTTP route binding is planned.
+        - as-is behavior is implemented and routable via FastAPI (`GET /protected/status`);
+        - route-level auth policy + handler-level defense-in-depth.
       operationId: getProtectedStatus
-      x-runtime-state: as-is-handler-with-planned-route-binding
+      x-runtime-state: as-is-active-fastapi-route
       security:
         - BearerAuth: []
         - ServiceTokenHeader: []
@@ -314,10 +314,13 @@ paths:
       summary: Return in-process API counters
       description: |
         Runtime state:
-        - as-is behavior is implemented in `handle_metrics`;
-        - HTTP route binding is planned.
+        - as-is behavior is implemented and routable via FastAPI (`GET /metrics`);
+        - route-level auth policy + handler-level defense-in-depth.
       operationId: getMetrics
-      x-runtime-state: as-is-handler-with-planned-route-binding
+      x-runtime-state: as-is-active-fastapi-route
+      security:
+        - BearerAuth: []
+        - ServiceTokenHeader: []
       responses:
         '200':
           description: Metrics envelope
@@ -335,6 +338,12 @@ paths:
                       metrics_requests: 3
                       auth_failures: 1
                     trace_id: trace-metrics-1
+        '401':
+          description: Missing or invalid service token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /intake/stories:
     post:
       tags: [Intake]

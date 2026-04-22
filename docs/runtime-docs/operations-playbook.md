@@ -7,6 +7,15 @@
 
 ## Run now (current runtime)
 
+### Boundary contract (API vs demo static)
+
+- API runtime boundary обслуживается через `FastAPI` entrypoint `src/core/api/asgi_app.py`.
+- Demo static boundary (`demo/auth-page`) публикуется отдельными static routes:
+  - `GET /demo/auth-page`
+  - `GET /demo/auth-page/styles.css`
+- Текущий operating mode: **combined delivery в одном ASGI процессе только для локального/demo контура**.
+- Target mode (planned): split delivery (отдельный frontend/static host + API runtime).
+
 ### 1) Bootstrap environment (обязательный минимум)
 
 Для текущего `src/core` baseline используются:
@@ -48,7 +57,7 @@
 
 Рекомендуемый smoke/regression набор:
 
-- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_trace_propagation.py -q`
+- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_trace_propagation.py -q`
 
 ### 5) Incident classes и тактика реакции
 

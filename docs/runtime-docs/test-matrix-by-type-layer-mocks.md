@@ -27,6 +27,7 @@
 | `tests/test_di_service_factory.py` | integration (in-process) | infrastructure -> application | Подтверждает service wiring |
 | `tests/test_config_loading.py` | unit | config | Валидация env contract и defaults |
 | `tests/test_api_security_and_ops.py` | integration (in-process) | API security + metrics | Подтверждает service auth и ops counters |
+| `tests/test_http_transport_smoke.py` | integration (transport HTTP) | FastAPI route policy + envelope/status/content-type | Проверяет реальные HTTP 401/200 и контракты ответа |
 | `tests/test_error_envelope_contract.py` | contract | API envelope taxonomy | Стабильность error envelope |
 | `tests/test_trace_propagation.py` | integration | observability | Trace continuity в success/error path |
 | `tests/test_intake_observability.py` | unit/integration | intake telemetry | Error classification + telemetry |
@@ -106,7 +107,7 @@
 
 ## Gaps / risks
 
-- Нет e2e тестов с реальным HTTP transport/server process.
+- Нет browser-level e2e тестов (пока покрыт только API transport smoke через `TestClient`).
 - Нет integration тестов с реальной БД и миграциями.
 - Нет integration тестов real on-chain broadcast/finality path.
 - Нет chaos/failure-injection тестов для rollback runbook.

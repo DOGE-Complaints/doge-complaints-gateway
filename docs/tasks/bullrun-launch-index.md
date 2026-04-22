@@ -7,6 +7,14 @@
 **Pipeline (SSOT):** [`docs/tasks/m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md)  
 **User Manual (Cursor):** [`docs/tasks/m2-pipeline-user-manual-cursor.md`](./m2-pipeline-user-manual-cursor.md)  
 **Git / коммиты (методика репозитория, в т.ч. task-доки):** [`docs/methodology/git-commit.md`](../../../docs/methodology/git-commit.md) · [`docs/methodology/git-commit-prompt.md`](../../../docs/methodology/git-commit-prompt.md)
+**Run source rule:** сначала `ACTIVE_TASK_PATH` (если задан), иначе fallback на первую `⚪` сущность по приоритету из этого индекса.
+
+## Актуальная точка (сводка для запуска)
+
+- **Закрыты по индексу:** EPIC-M2-01 … EPIC-M2-10 (все stories в таблицах ниже — `🟢 Done (Committed)`).
+- **Приёмка / коммиты:** EPIC-M2-13 — все перечисленные stories в `🔵 Implemented (Waiting Acceptance/Commits)`; строка эпика `M2-13` остаётся **In Progress** до перевода stories в `🟢` после acceptance/commits.
+- **Fallback без `ACTIVE_TASK_PATH`:** в `Cross-Epic Task Backlog` нет строк со статусом `⚪`; следующие кандидаты с `⚪` — эпики **M2-11** и **M2-12** (оба Draft).
+- **HTTP runtime (факт):** локальный сервер — `python3 -m core.api.asgi_app` (см. [`../runtime-docs/server-env-quickstart.md`](../runtime-docs/server-env-quickstart.md)); legacy `dev_server` удалён — см. [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md).
 
 ## EPIC-M2-01 — Core Foundation and Governance
 
@@ -123,4 +131,28 @@
 | S | Key | Story | Type | Status | Scope / Notes |
 |---|-----|-------|------|--------|---------------|
 | ⚪ | M2-12 | [EPIC-M2-12 Post-demo tokenization](./epics/EPIC-M2-12-post-demo-story-tokenization-and-contributor-notifications.md) | epic | Draft | `requirements/21` (дисклеймер); срок не зафиксирован. |
+
+## Cross-Epic Task Backlog
+
+| S | Key | Task | Type | Status | Scope / Notes |
+|---|-----|------|------|--------|---------------|
+| 🟢 | TASK-AUTH-01 | [Full Bearer auth enforcement across API boundary](./task-implement-full-bearer-api-enforcement/README.md) | implement | Done (Committed) | Универсальный server-side auth enforcement + fail-fast policy + test matrix. |
+| 🔵 | TASK-DEMO-UI-01 | [Demo static auth mock page (fixed user)](./task-implement-demo-static-auth-mock-page/README.md) | implement | Implemented (Waiting Acceptance/Commits) | Отдельный static `html/css` auth-entry экран для demo narrative и onboarding. |
+| 🔵 | TASK-BP-API-01 | [FastAPI ASGI entrypoint for runtime API](./task-implement-fastapi-asgi-entrypoint/README.md) | implement | Implemented (Waiting Acceptance) | ASGI/uvicorn entrypoint; фактическая верификация + удаление legacy `dev_server`: [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). |
+| 🔵 | TASK-BP-API-02 | [Auth middleware and protected route policy](./task-implement-auth-middleware-and-route-policy/README.md) | implement | Implemented (Waiting Acceptance) | Route-level auth policy; та же runtime-verification сессия: [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). |
+| 🔵 | TASK-BP-API-03 | [HTTP transport smoke and contract checks](./task-tests-http-transport-e2e-smoke/README.md) | test | Implemented (Waiting Acceptance) | `TestClient` smoke; полный pytest `104 passed` — [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). |
+| 🔵 | TASK-BP-API-04 | [Demo auth page delivery boundary](./task-refactor-demo-auth-delivery-boundary/README.md) | refactor | Implemented (Waiting Acceptance) | Combined ASGI delivery + docs; Puppeteer mock-auth smoke — [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). |
+
+## Run Reports Registry
+
+| Timestamp | Mode | Scope | Report | Outcome |
+|---|---|---|---|---|
+| 2026-04-22 20:38 | explicit | Runtime verification + remove legacy `dev_server` | [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md) | Live HTTP smoke OK, Puppeteer mock auth OK, `dev_server.py` removed, full pytest `104 passed`, pilot adapter test env aligned with strict token. |
+| 2026-04-22 17:30 | explicit | TASK_BATCH (`TASK-BP-API-01`, `TASK-BP-API-02`, `TASK-BP-API-03`, `TASK-BP-API-04`) | [run-summary-20260422-1730](./run-reports/run-summary-20260422-1730.md) | FastAPI/ASGI runtime added, route auth policy enforced, HTTP transport smoke tests added, demo static/API boundary documented. |
+| 2026-04-22 14:29 | explicit | TASK_BATCH (`TASK-DEMO-UI-01`) | [run-summary-20260422-1429](./run-reports/run-summary-20260422-1429.md) | Static demo auth page implemented with loading/success states and runbook. |
+| 2026-04-22 14:16 | explicit | TASK_BATCH (`TASK-AUTH-01`) | [run-summary-20260422-1416](./run-reports/run-summary-20260422-1416.md) | Auth gate expanded to metrics, pilot fail-fast policy added, tests green (31 passed). |
+
+Правило синхронизации:
+- после каждого запуска (`EPIC_BATCH`/`STORY_BATCH`/`TASK_BATCH`) создать `run-summary-YYYYMMDD-HHMM.md` в `docs/tasks/run-reports/`;
+- в той же итерации добавить строку в эту таблицу (newest-first).
 

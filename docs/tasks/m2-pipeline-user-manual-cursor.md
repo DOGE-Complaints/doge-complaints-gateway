@@ -5,7 +5,10 @@
 `Epic -> Story -> Execution` с правильной связкой процесса, мышления и skill.
 
 ## 1) Быстрый старт (практически)
-0. Откройте [`docs/tasks/bullrun-launch-index.md`](./bullrun-launch-index.md) и по правилам **«Оркестрация batch-run»** в [`m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md) определите стартовый эпик/story (не ведите отдельный «текущий эпик»-файл).
+0. Определите источник запуска:
+   - либо задайте `ACTIVE_TASK_PATH`,
+   - либо используйте fallback от [`docs/tasks/bullrun-launch-index.md`](./bullrun-launch-index.md).
+1. Откройте [`docs/tasks/m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md) и применяйте правила `Gateway Story Builder`.
 1. Откройте Epic в `docs/tasks/epics/`.
 2. Если сторис еще не созданы — запустите декомпозицию:
    - процесс: `@.cursor/commands/bullrun-epic-decompose.md`
@@ -16,8 +19,9 @@
 5. Для Python story явно попросите агент заявить и применять:
    - `@.cursor/skills/sources/jeffallan-claude-skills/skills/python-pro/SKILL.md`
 6. После каждого этапа принимайте чекпоинт (сделано / осталось / согласование / жду фидбек).
-7. Следите за обновлением `docs/tasks/bullrun-launch-index.md`.
-8. **Коммиты (обязательно):** методика репозитория — [`docs/methodology/git-commit.md`](../../../docs/methodology/git-commit.md); план на согласование и push — [`docs/methodology/git-commit-prompt.md`](../../../docs/methodology/git-commit-prompt.md). Указывайте агенту явно при закрытии стори / фаз 9–10.
+7. Следите за обновлением `docs/tasks/bullrun-launch-index.md` после каждой story/task.
+8. После каждого запуска создавайте `run-summary-YYYYMMDD-HHMM.md` в `docs/tasks/run-reports/` и добавляйте строку в `Run Reports Registry` в индексе.
+9. **Коммиты (обязательно):** методика репозитория — [`docs/methodology/git-commit.md`](../../../docs/methodology/git-commit.md); план на согласование и push — [`docs/methodology/git-commit-prompt.md`](../../../docs/methodology/git-commit-prompt.md). Указывайте агенту явно при закрытии стори / фаз 9–10.
 
 ## 2) Что писать агенту (готовые формулы)
 
@@ -35,6 +39,13 @@
 Story: @docs/tasks/epics/.../stories/STORY-M2-XX-YY-....md
 Для Python-реализации обязательно заяви skill
 @.cursor/skills/sources/jeffallan-claude-skills/skills/python-pro/SKILL.md
+```
+
+### D. Запуск от explicit path
+```text
+Работаем в режиме explicit input.
+ACTIVE_TASK_PATH=@docs/tasks/task-.../task-....md
+Проверь путь и выполняй строго от него по Gateway Story Builder.
 ```
 
 ### C. Коммиты после реализации (фазы 9–10 BULLRUN)
@@ -60,6 +71,8 @@ Task-доки и код группируй отдельными логическ
 2. Есть артефакт этапа (analysis / decisions / architecture / plan).
 3. Для Python story есть явная фиксация `Skill declared: python-pro`.
 4. Статус в `bullrun-launch-index.md` синхронизирован.
+5. Для закрытия story/task пройден `Gate: Phase Coverage`.
+6. Для запуска создан `run-summary-*` и зарегистрирован в `Run Reports Registry`.
 
 ## 5) Частые ошибки
 - Пропускать мышление `analysis.mdc` во время декомпозиции или анализа.
