@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import os
 from functools import lru_cache
-from os import getenv
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+import uvicorn  # pyright: ignore[reportMissingImports]
+from fastapi import Depends, FastAPI, Request  # pyright: ignore[reportMissingImports]
+from fastapi.responses import FileResponse, JSONResponse  # pyright: ignore[reportMissingImports]
 
 from core.api.dependencies import ApiDependencies, build_api_dependencies
 from core.api.envelope import build_error_envelope, ensure_trace_id
@@ -141,10 +142,8 @@ def _parse_port(raw: str | None) -> int:
 
 
 def run_asgi_server(*, host: str | None = None, port: int | None = None) -> None:
-    import uvicorn
-
-    resolved_host = host or getenv("HOST", "127.0.0.1")
-    resolved_port = port if port is not None else _parse_port(getenv("PORT"))
+    resolved_host = host or os.getenv("HOST", "127.0.0.1")
+    resolved_port = port if port is not None else _parse_port(os.getenv("PORT"))
     uvicorn.run("core.api.asgi_app:app", host=resolved_host, port=resolved_port)
 
 

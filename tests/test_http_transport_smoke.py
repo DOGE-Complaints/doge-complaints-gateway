@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import pytest  # pyright: ignore[reportMissingImports]
-from fastapi.testclient import TestClient
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import PROTECTED_ROUTES, PUBLIC_ROUTES, _clear_api_dependencies_cache, app
 
