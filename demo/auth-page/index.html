@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOGEstonia Demo Auth</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="auth-shell">
+      <section class="auth-card" aria-live="polite">
+        <header class="auth-header">
+          <p class="eyebrow">DOGEstonia Demo Access</p>
+          <h1>Авторизация в экосистеме DOGEstonia</h1>
+          <p class="subtitle">
+            Demo-режим с фиксированным пользователем. Эта страница имитирует внешний шаг входа перед запуском основного сценария.
+          </p>
+        </header>
+
+        <section class="user-profile" aria-label="Профиль пользователя демо">
+          <div class="avatar" aria-hidden="true">🐕</div>
+          <div>
+            <p class="profile-name">Demo User: Narva Citizen #42</p>
+            <p class="profile-meta">identity_issuer: idp://doge-demo · external_user_id: demo-user-42</p>
+          </div>
+        </section>
+
+        <section class="doge-hero" aria-label="DOGE персонаж">
+          <div class="doge-hero-art" aria-hidden="true">🐶⭐</div>
+          <p class="doge-hero-copy">
+            Гав-гав! Сейчас вы авторизуетесь в экосистеме DOGEstonia и переходите к демо-потоку подачи истории.
+          </p>
+        </section>
+
+        <div class="actions">
+          <button id="authButton" class="cta" type="button">
+            Авторизоваться в экосистеме DOGEstonia
+          </button>
+        </div>
+
+        <section id="loadingState" class="state state-loading hidden" aria-hidden="true">
+          <div class="loader" aria-hidden="true"></div>
+          <p>Гав-гав... подтверждаем demo-вход и готовим переход.</p>
+        </section>
+
+        <section id="successState" class="state state-success hidden" aria-hidden="true">
+          <p class="success-title">Готово! Вход подтвержден.</p>
+          <p>Вы можете перейти к следующему шагу демо-сценария.</p>
+          <a class="next-link" href="../../docs/runtime-docs/README.md">Перейти к runtime docs</a>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const authButton = document.getElementById("authButton");
+      const loadingState = document.getElementById("loadingState");
+      const successState = document.getElementById("successState");
+
+      authButton.addEventListener("click", () => {
+        authButton.disabled = true;
+        loadingState.classList.remove("hidden");
+        loadingState.setAttribute("aria-hidden", "false");
+
+        setTimeout(() => {
+          loadingState.classList.add("hidden");
+          loadingState.setAttribute("aria-hidden", "true");
+          successState.classList.remove("hidden");
+          successState.setAttribute("aria-hidden", "false");
+        }, 1800);
+      });
+    </script>
+  </body>
+</html>

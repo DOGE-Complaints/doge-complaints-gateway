@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any, cast
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 
 from core.api import (
     ApiDependencies,
@@ -16,12 +17,17 @@ from core.api import (
     handle_protected_status,
     handle_readiness,
 )
+from core.application import HealthService
 
 
 @dataclass(frozen=True)
 class _OkService:
     def get_status(self) -> str:
         return "ok"
+
+
+def _ok_health_service() -> HealthService:
+    return cast(HealthService, _OkService())
 
 
 def test_extract_service_token_bearer() -> None:
@@ -37,7 +43,7 @@ def test_extract_service_token_x_header() -> None:
 
 def test_protected_route_rejects_without_token_when_auth_enabled() -> None:
     deps = ApiDependencies(
-        health_service=_OkService(),
+        health_service=_ok_health_service(),
         service_auth=ServiceTokenAuth.from_secret("expected-secret"),
         metrics=ApiMetrics(),
     )
@@ -49,7 +55,7 @@ def test_protected_route_rejects_without_token_when_auth_enabled() -> None:
 
 def test_protected_route_accepts_bearer_token() -> None:
     deps = ApiDependencies(
-        health_service=_OkService(),
+        health_service=_ok_health_service(),
         service_auth=ServiceTokenAuth.from_secret("expected-secret"),
         metrics=ApiMetrics(),
     )
@@ -65,7 +71,7 @@ def test_protected_route_accepts_bearer_token() -> None:
 
 def test_service_auth_disabled_allows_protected_without_header() -> None:
     deps = ApiDependencies(
-        health_service=_OkService(),
+        health_service=_ok_health_service(),
         service_auth=ServiceTokenAuth.disabled(),
         metrics=ApiMetrics(),
     )
@@ -79,12 +85,12 @@ def test_build_service_auth_from_env() -> None:
 
 
 def test_readiness_and_metrics_increment_counters() -> None:
-    deps = ApiDependencies(health_service=_OkService(), metrics=ApiMetrics())
+    deps = ApiDependencies(health_service=_ok_health_service(), metrics=ApiMetrics())
     handle_readiness(deps, trace_id="r1")
-    handle_metrics(deps, trace_id="m1")
+    handle_metrics(deps, headers={}, trace_id="m1")
     assert deps.metrics.readiness_requests == 1
     assert deps.metrics.metrics_requests == 1
-    m = handle_metrics(deps, trace_id="m2")
+    m = handle_metrics(deps, headers={}, trace_id="m2")
     assert m["data"]["health_requests"] == 0
     assert m["data"]["metrics_requests"] == 2
 
@@ -98,10 +104,37 @@ def test_metrics_alert_contract_shape() -> None:
     assert alert["auth_failure_alert"] is True
 
 
-def test_health_logs_structured_trace(caplog: pytest.LogCaptureFixture) -> None:
-    deps = ApiDependencies(health_service=_OkService(), metrics=ApiMetrics())
+def test_health_logs_structured_trace(caplog: Any) -> None:
+    deps = ApiDependencies(health_service=_ok_health_service(), metrics=ApiMetrics())
     with caplog.at_level(logging.INFO, logger="core.api"):
         handle_health(deps, trace_id="trace-structured")
     assert any(
         getattr(rec, "trace_id", None) == "trace-structured" for rec in caplog.records
     )
+
+
+def test_metrics_rejects_without_token_when_auth_enabled() -> None:
+    deps = ApiDependencies(
+        health_service=_ok_health_service(),
+        service_auth=ServiceTokenAuth.from_secret("expected-secret"),
+        metrics=ApiMetrics(),
+    )
+    out = handle_metrics(deps, headers={}, trace_id="m-auth-err")
+    assert out["error"]["code"] == "UNAUTHORIZED"
+    assert out["trace_id"] == "m-auth-err"
+    assert deps.metrics.auth_failures == 1
+
+
+def test_metrics_accepts_bearer_token_when_auth_enabled() -> None:
+    deps = ApiDependencies(
+        health_service=_ok_health_service(),
+        service_auth=ServiceTokenAuth.from_secret("expected-secret"),
+        metrics=ApiMetrics(),
+    )
+    out = handle_metrics(
+        deps,
+        headers={"Authorization": "Bearer expected-secret"},
+        trace_id="m-auth-ok",
+    )
+    assert out["data"]["metrics_requests"] == 1
+    assert out["trace_id"] == "m-auth-ok"

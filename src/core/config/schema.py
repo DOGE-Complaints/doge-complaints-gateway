@@ -82,6 +82,15 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         default="INFO",
         description="Application log level: DEBUG, INFO, WARNING, ERROR, CRITICAL.",
     ),
+    EnvSpec(
+        name="SERVICE_API_TOKEN",
+        required=False,
+        default=None,
+        description=(
+            "Service-to-service API token for protected operations. "
+            "Required for pilot profile strict auth mode."
+        ),
+    ),
 )
 
 
@@ -213,6 +222,11 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     )
 
     log_level = _parse_log_level(_get_value(source, "LOG_LEVEL"))
+    service_api_token = _get_value(source, "SERVICE_API_TOKEN")
+    if profile is DeploymentProfile.PILOT and service_api_token is None:
+        raise ConfigError(
+            "SERVICE_API_TOKEN is required for APP_PROFILE='pilot' strict auth mode."
+        )
 
     return AppConfig(
         profile=profile,

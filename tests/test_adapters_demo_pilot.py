@@ -12,6 +12,7 @@ def _demo_env() -> dict[str, str]:
     return {
         "APP_PROFILE": "demo",
         "API_BASE_URL": "https://demo.example/api",
+        "REQUEST_TIMEOUT_S": "15",
     }
 
 
@@ -19,6 +20,8 @@ def _pilot_env() -> dict[str, str]:
     return {
         "APP_PROFILE": "pilot",
         "API_BASE_URL": "https://pilot.example/api",
+        "REQUEST_TIMEOUT_S": "15",
+        "SERVICE_API_TOKEN": "pilot-test-token",
     }
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 
 from core.config import ConfigError, DeploymentProfile, ENV_SCHEMA, load_config_from_env
 
@@ -26,6 +26,7 @@ def test_load_config_pilot_defaults() -> None:
         {
             "APP_PROFILE": "pilot",
             "API_BASE_URL": "https://pilot.example/api",
+            "SERVICE_API_TOKEN": "pilot-secret",
         }
     )
     assert config.profile is DeploymentProfile.PILOT
@@ -39,6 +40,7 @@ def test_load_config_feature_flag_override() -> None:
         {
             "APP_PROFILE": "pilot",
             "API_BASE_URL": "https://pilot.example/api",
+            "SERVICE_API_TOKEN": "pilot-secret",
             "FF_WALLET_ADAPTER": "false",
             "FF_BLOCKCHAIN_ADAPTER": "0",
             "FF_TOKENIZATION_PIPELINE": "no",
@@ -116,4 +118,15 @@ def test_env_schema_contains_required_fields() -> None:
     assert "FF_BLOCKCHAIN_ADAPTER" in names
     assert "FF_TOKENIZATION_PIPELINE" in names
     assert "LOG_LEVEL" in names
+    assert "SERVICE_API_TOKEN" in names
+
+
+def test_pilot_profile_requires_service_api_token() -> None:
+    with pytest.raises(ConfigError, match="SERVICE_API_TOKEN is required"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "pilot",
+                "API_BASE_URL": "https://pilot.example/api",
+            }
+        )
 

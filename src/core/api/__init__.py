@@ -1,3 +1,4 @@
+from core.api.asgi_app import app, run_asgi_server
 from core.api.dependencies import ApiDependencies, HandlerDependencies, build_api_dependencies
 from core.api.envelope import (
     ErrorBody,
@@ -24,6 +25,7 @@ from core.api.security import (
 __all__ = [
     "ApiDependencies",
     "HandlerDependencies",
+    "app",
     "ApiMetrics",
     "ServiceTokenAuth",
     "UnauthorizedError",
@@ -40,4 +42,5 @@ __all__ = [
     "handle_readiness",
     "handle_protected_status",
     "handle_metrics",
+    "run_asgi_server",
 ]
