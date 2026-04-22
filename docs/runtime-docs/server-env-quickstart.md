@@ -135,6 +135,28 @@ python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.
 python3 -m pytest tests/test_error_envelope_contract.py tests/test_trace_propagation.py -q
 ```
 
+### 4.7 Railway (Railpack): ошибка «No start command detected»
+
+**Симптом (лог Railpack):** `No start command detected` — план сборки не доходит до деплоя.
+
+**Проверяемые гипотезы (по убыванию вероятности):**
+
+1. **Нет явного start command** — приложение лежит в `src/core/api/asgi_app.py` (`app`), а не в корневых `app.py` / `main.py`, которые Railpack ищет по умолчанию.
+2. **Неверный bind после запуска** — `python3 -m core.api.asgi_app` по умолчанию берёт `HOST=127.0.0.1` из кода; в контейнере нужен **`0.0.0.0`**, иначе health снаружи не достижим даже при успешном старте.
+
+**Что сделать:**
+
+- **В репозитории (рекомендуется):** в корне проекта есть [`railpack.json`](../../railpack.json) с полем `deploy.startCommand` (см. [Railpack: configuration file](https://railpack.com/config/file)).
+- **В UI Railway (Settings):** задайте **Custom Start Command** (аналогично):
+
+```bash
+uvicorn core.api.asgi_app:app --host 0.0.0.0 --port $PORT
+```
+
+- **Переменные в Railway (Variables):** как минимум `API_BASE_URL`, при необходимости `APP_PROFILE`, `SERVICE_API_TOKEN`, `REQUEST_TIMEOUT_S` (см. раздел 3 выше). Порт **`PORT`** Railway задаёт сам — не подменяйте вручную, если только не отлаживаете локально.
+
+**Альтернатива без `uvicorn` в команде:** выставить `HOST=0.0.0.0` и оставить `python3 -m core.api.asgi_app` — тогда слушает адрес из `HOST` (см. `run_asgi_server` в `src/core/api/asgi_app.py`).
+
 ## 5) Частые проблемы
 
 1. `Missing required environment variable: API_BASE_URL`
