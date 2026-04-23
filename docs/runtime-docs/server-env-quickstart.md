@@ -150,12 +150,40 @@ python3 -m pytest tests/test_error_envelope_contract.py tests/test_trace_propaga
 - **В UI Railway (Settings):** задайте **Custom Start Command** (аналогично):
 
 ```bash
-uvicorn core.api.asgi_app:app --host 0.0.0.0 --port $PORT
+PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
 - **Переменные в Railway (Variables):** как минимум `API_BASE_URL`, при необходимости `APP_PROFILE`, `SERVICE_API_TOKEN`, `REQUEST_TIMEOUT_S` (см. раздел 3 выше). Порт **`PORT`** Railway задаёт сам — не подменяйте вручную, если только не отлаживаете локально.
 
-**Альтернатива без `uvicorn` в команде:** выставить `HOST=0.0.0.0` и оставить `python3 -m core.api.asgi_app` — тогда слушает адрес из `HOST` (см. `run_asgi_server` в `src/core/api/asgi_app.py`).
+**Альтернатива без `uvicorn` в команде:** выставить `HOST=0.0.0.0` и оставить `PYTHONPATH=src python3 -m core.api.asgi_app` — тогда слушает адрес из `HOST` (см. `run_asgi_server` в `src/core/api/asgi_app.py`).
+
+### 4.8 Railway: ошибка «uvicorn: command not found» и 502 на `/health`
+
+**Симптомы:**
+
+- в Deploy Logs повторяется `/bin/bash: line 1: uvicorn: command not found`;
+- endpoint `/health` отвечает `502` (контейнер не удерживает процесс приложения).
+
+**Гипотезы (приоритизировано):**
+
+1. **🔴 H1 / P0:** в runtime PATH нет бинарника `uvicorn` (console script), хотя Python окружение может быть валидным.
+2. **🟡 H2 / P1:** сервис стартует не из корня `doge-complaints-gateway`, поэтому Python не видит пакет `core` из `src`.
+3. **🟢 H3 / P1:** `uvicorn` действительно не установлен как зависимость в build image.
+
+**Проверка и действие (применено в `railpack.json`):**
+
+- используем модульный запуск через интерпретатор и явно задаём source-root:
+
+```bash
+PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
+```
+
+Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH и одновременно фиксирует импорт `core.*` из `src`.
+
+**Если после этого останется ошибка:**
+
+- `No module named uvicorn` → подтверждается H3 (проверить install-step/зависимости в build logs);
+- `No module named core` → подтверждается H2 (проверить Root Directory сервиса в Railway, должен указывать на `doge-complaints-gateway`).
 
 ## 5) Частые проблемы
 
