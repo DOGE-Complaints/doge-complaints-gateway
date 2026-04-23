@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from core.application import HealthService, SignalProfileService, StoryIntakeService
+from core.application import (
+    HealthService,
+    IssueCreateService,
+    SignalProfileService,
+    StoryIntakeService,
+    StoryPromotionProjectionBridge,
+)
 from core.cluster import ClusteringEngine
 from core.domain import (
     HealthRepository,
@@ -64,4 +70,11 @@ class DefaultServiceFactory:
 
     def get_geo_service(self) -> GeoService:
         return self.geo_service
+
+    def get_issue_create_service(self) -> IssueCreateService:
+        return IssueCreateService(
+            promotion_service=self.get_issue_promotion_service(),
+            projection_service=self.get_issue_projection_service(),
+            bridge=StoryPromotionProjectionBridge(story_repository=self.story_repository),
+        )
 

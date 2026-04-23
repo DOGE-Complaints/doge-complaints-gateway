@@ -10,9 +10,11 @@ from core.api.envelope import (
 )
 from core.api.handlers import (
     handle_health,
+    handle_issue_create,
     handle_metrics,
     handle_protected_status,
     handle_readiness,
+    handle_story_intake,
 )
 from core.api.metrics import ApiMetrics
 from core.api.security import (
@@ -42,5 +44,7 @@ __all__ = [
     "handle_readiness",
     "handle_protected_status",
     "handle_metrics",
+    "handle_issue_create",
+    "handle_story_intake",
     "run_asgi_server",
 ]

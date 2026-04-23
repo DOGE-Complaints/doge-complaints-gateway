@@ -6,6 +6,10 @@
 
 **Pipeline (SSOT):** [`docs/tasks/m2-epic-story-execution-pipeline.md`](./m2-epic-story-execution-pipeline.md)  
 **User Manual (Cursor):** [`docs/tasks/m2-pipeline-user-manual-cursor.md`](./m2-pipeline-user-manual-cursor.md)  
+**Gap rollout plan (Intake/Projection):** [`docs/tasks/intake-projection-task-batch-plan.md`](./intake-projection-task-batch-plan.md)  
+**Gap traceability matrix (Intake/Projection):** [`docs/tasks/intake-projection-gap-traceability-matrix.md`](./intake-projection-gap-traceability-matrix.md)  
+**Gap rollout plan (DB/Supabase):** [`docs/tasks/db-task-batch-plan.md`](./db-task-batch-plan.md)  
+**Gap traceability matrix (DB/Supabase):** [`docs/tasks/db-gap-traceability-matrix.md`](./db-gap-traceability-matrix.md)  
 **Git / коммиты (методика репозитория, в т.ч. task-доки):** [`docs/methodology/git-commit.md`](../../../docs/methodology/git-commit.md) · [`docs/methodology/git-commit-prompt.md`](../../../docs/methodology/git-commit-prompt.md)
 **Run source rule:** сначала `ACTIVE_TASK_PATH` (если задан), иначе fallback на первую `⚪` сущность по приоритету из этого индекса.
 
@@ -13,7 +17,7 @@
 
 - **Закрыты по индексу:** EPIC-M2-01 … EPIC-M2-10 (все stories в таблицах ниже — `🟢 Done (Committed)`).
 - **Приёмка / коммиты:** EPIC-M2-13 — все перечисленные stories в `🔵 Implemented (Waiting Acceptance/Commits)`; строка эпика `M2-13` остаётся **In Progress** до перевода stories в `🟢` после acceptance/commits.
-- **Fallback без `ACTIVE_TASK_PATH`:** в `Cross-Epic Task Backlog` нет строк со статусом `⚪`; следующие кандидаты с `⚪` — эпики **M2-11** и **M2-12** (оба Draft).
+- **Fallback без `ACTIVE_TASK_PATH`:** приоритетно брать `⚪` из `Cross-Epic Task Backlog`; intake/projection-волна реализована (`🔵`), текущий первый кандидат — `TASK-DB-SCHEMA-01`.
 - **HTTP runtime (факт):** локальный сервер — `python3 -m core.api.asgi_app` (см. [`../runtime-docs/server-env-quickstart.md`](../runtime-docs/server-env-quickstart.md)); legacy `dev_server` удалён — см. [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md).
 
 ## EPIC-M2-01 — Core Foundation and Governance
@@ -136,6 +140,19 @@
 
 | S | Key | Task | Type | Status | Scope / Notes |
 |---|-----|------|------|--------|---------------|
+| 🔵 | TASK-INTAKE-HTTP-01 | [Expose story intake contract via HTTP runtime endpoint](./task-intake-http-01/README.md) | implement | Implemented (Waiting Acceptance/Commits) | GAP-IP-001; `POST /intake/stories` runtime binding implemented, parser/service/envelope wiring, HTTP 200/400 tests green. |
+| 🔵 | TASK-ISSUE-CREATE-HTTP-01 | [Expose create issue orchestration via HTTP API](./task-issue-create-http-01/README.md) | implement | Implemented (Waiting Acceptance/Commits) | GAP-IP-002; `POST /issues` added, orchestration delegated to `IssueCreateService`, HTTP positive/negative tests green. |
+| 🔵 | TASK-STORY-TO-PROJECTION-01 | [Bridge story and promotion data into ProjectionInput](./task-story-to-projection-01/README.md) | implement | Implemented (Waiting Acceptance/Commits) | GAP-IP-003; `StoryPromotionProjectionBridge` added and wired in application layer, bridge tests cover mapping + edge cases. |
+| 🔵 | TASK-SPA-PROJECTION-DATA-01 | [Define and enforce SPA projection derivation policy](./task-spa-projection-data-01/README.md) | implement | Implemented (Waiting Acceptance/Commits) | GAP-IP-004; deterministic derivation rules + `policy_version` marker implemented and validated via tests. |
+| 🔵 | TASK-E2E-CONTRACT-01 | [Add end-to-end contract suite for intake-to-spa pipeline](./task-e2e-contract-01/README.md) | test | Implemented (Waiting Acceptance/Commits) | GAP-IP-005; e2e contract suite `intake -> create -> SPA` added with happy-path + negative cases, linked into verification commands. |
+| ⚪ | TASK-DB-SCHEMA-01 | [Supabase schema bootstrap and migrations baseline](./task-db-schema-01/README.md) | implement | Todo | GAP-DB-002; DB-wave #1; dependency root для всех `TASK-DB-*`. |
+| ⚪ | TASK-DB-CONFIG-01 | [Runtime DB/Supabase config contract and readiness checks](./task-db-config-01/README.md) | implement | Todo | GAP-DB-003; DB-wave #2; depends on `TASK-DB-SCHEMA-01`. |
+| ⚪ | TASK-DB-STORIES-01 | [Persistent storage for incoming stories](./task-db-stories-01/README.md) | implement | Todo | GAP-DB-001 + GAP-DB-006(part); DB-wave #3; depends on schema+config. |
+| ⚪ | TASK-DB-STORY-EMBEDDINGS-01 | [Persistence for incoming story embeddings](./task-db-story-embeddings-01/README.md) | implement | Todo | GAP-DB-005(part); DB-wave #4; depends on `TASK-DB-STORIES-01`. |
+| ⚪ | TASK-DB-SPA-PROJECTIONS-01 | [Persistence for SPA projections](./task-db-spa-projections-01/README.md) | implement | Todo | GAP-DB-004 + GAP-DB-006(part); DB-wave #5; depends on stories+schema. |
+| ⚪ | TASK-DB-SPA-EMBEDDINGS-01 | [Persistence for SPA projection embeddings](./task-db-spa-embeddings-01/README.md) | implement | Todo | GAP-DB-005(part); DB-wave #6; depends on `TASK-DB-SPA-PROJECTIONS-01`. |
+| ⚪ | TASK-DB-RLS-01 | [RLS and policy baseline for exposed DB access patterns](./task-db-rls-01/README.md) | implement | Todo | GAP-DB-007; DB-wave #7; depends on schema+config+core tables. |
+| ⚪ | TASK-DB-E2E-01 | [E2E DB contract checks for intake/create/projection pipeline](./task-db-e2e-01/README.md) | test | Todo | DB-wave #8; final gate; depends on all previous `TASK-DB-*`. |
 | 🟢 | TASK-AUTH-01 | [Full Bearer auth enforcement across API boundary](./task-implement-full-bearer-api-enforcement/README.md) | implement | Done (Committed) | Универсальный server-side auth enforcement + fail-fast policy + test matrix. |
 | 🔵 | TASK-DEMO-UI-01 | [Demo static auth mock page (fixed user)](./task-implement-demo-static-auth-mock-page/README.md) | implement | Implemented (Waiting Acceptance/Commits) | Отдельный static `html/css` auth-entry экран для demo narrative и onboarding. |
 | 🔵 | TASK-BP-API-01 | [FastAPI ASGI entrypoint for runtime API](./task-implement-fastapi-asgi-entrypoint/README.md) | implement | Implemented (Waiting Acceptance) | ASGI/uvicorn entrypoint; фактическая верификация + удаление legacy `dev_server`: [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). |
@@ -147,6 +164,9 @@
 
 | Timestamp | Mode | Scope | Report | Outcome |
 |---|---|---|---|---|
+| 2026-04-23 15:05 | fallback | TASK_BATCH (`TASK-ISSUE-CREATE-HTTP-01`, `TASK-STORY-TO-PROJECTION-01`, `TASK-SPA-PROJECTION-DATA-01`, `TASK-E2E-CONTRACT-01`) | [run-summary-20260423-1505](./run-reports/run-summary-20260423-1505.md) | Create-issue orchestration and bridge/policy/e2e wave implemented; intake->create->SPA contract suite green (`21 passed`). |
+| 2026-04-23 14:53 | fallback | TASK_BATCH (`TASK-INTAKE-HTTP-01`) | [run-summary-20260423-1453](./run-reports/run-summary-20260423-1453.md) | `POST /intake/stories` implemented in runtime API, parser/service/envelope wiring complete, HTTP tests green (`200/400`) and OpenAPI runtime-state synced. |
+| 2026-04-23 14:44 | explicit | Gateway Story Builder process-governance run | [run-summary-20260423-1444](./run-reports/run-summary-20260423-1444.md) | Gateway Story Builder rules re-validated: input source resolution, missing-epic decomposition rule, index sync discipline, registry updated. |
 | 2026-04-22 20:38 | explicit | Runtime verification + remove legacy `dev_server` | [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md) | Live HTTP smoke OK, Puppeteer mock auth OK, `dev_server.py` removed, full pytest `104 passed`, pilot adapter test env aligned with strict token. |
 | 2026-04-22 17:30 | explicit | TASK_BATCH (`TASK-BP-API-01`, `TASK-BP-API-02`, `TASK-BP-API-03`, `TASK-BP-API-04`) | [run-summary-20260422-1730](./run-reports/run-summary-20260422-1730.md) | FastAPI/ASGI runtime added, route auth policy enforced, HTTP transport smoke tests added, demo static/API boundary documented. |
 | 2026-04-22 14:29 | explicit | TASK_BATCH (`TASK-DEMO-UI-01`) | [run-summary-20260422-1429](./run-reports/run-summary-20260422-1429.md) | Static demo auth page implemented with loading/success states and runbook. |

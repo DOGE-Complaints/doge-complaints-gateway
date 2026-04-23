@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
+from core.application.issue_create import IssueCreateService
 from core.cluster import ClusteringEngine
 from core.evidence import EvidencePackService
 from core.geo import GeoService
@@ -49,5 +50,9 @@ class ServiceFactory(Protocol):
 
     def get_geo_service(self) -> GeoService:
         """Build and return geo intelligence service."""
+        ...
+
+    def get_issue_create_service(self) -> IssueCreateService:
+        """Build and return issue create orchestration service."""
         ...
 

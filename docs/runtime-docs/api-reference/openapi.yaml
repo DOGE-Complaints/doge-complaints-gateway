@@ -214,6 +214,65 @@ components:
           $ref: '#/components/schemas/StoryIntakeResponseData'
         trace_id:
           type: string
+    IssueCreateRequest:
+      type: object
+      required: [cluster_id, story_ids, readiness_score, title]
+      properties:
+        cluster_id:
+          type: string
+        story_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        readiness_score:
+          type: integer
+        title:
+          type: string
+    IssueCreateResponseData:
+      type: object
+      required: [issue_id, status, projection, policy_version]
+      properties:
+        issue_id:
+          type: string
+        status:
+          type: string
+        policy_version:
+          type: string
+        projection:
+          type: object
+          required: [id, status, type, labels, title, summary, description]
+          properties:
+            id:
+              type: string
+            status:
+              type: string
+            type:
+              type: string
+            labels:
+              type: array
+              items:
+                type: string
+            title:
+              type: object
+              additionalProperties:
+                type: string
+            summary:
+              type: object
+              additionalProperties:
+                type: string
+            description:
+              type: object
+              additionalProperties:
+                type: string
+    SuccessEnvelope_IssueCreate:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/IssueCreateResponseData'
+        trace_id:
+          type: string
 paths:
   /health:
     get:
@@ -351,9 +410,9 @@ paths:
       description: |
         Runtime state:
         - intake contract exists in `src/core/intake/contracts.py`;
-        - direct HTTP handler binding is planned (not implemented in current API handlers).
+        - HTTP runtime handler is implemented in `src/core/api/asgi_app.py` (`POST /intake/stories`).
       operationId: postStoryIntake
-      x-runtime-state: planned-http-binding-existing-contract
+      x-runtime-state: implemented-runtime-binding
       requestBody:
         required: true
         content:
@@ -369,6 +428,35 @@ paths:
                 $ref: '#/components/schemas/SuccessEnvelope_StoryIntake'
         '400':
           description: Intake validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /issues:
+    post:
+      tags: [Projection]
+      summary: Create issue and return SPA-compatible projection envelope
+      description: |
+        Runtime state:
+        - HTTP create issue orchestration is implemented in `src/core/api/asgi_app.py` (`POST /issues`);
+        - orchestration uses application service boundary (`IssueCreateService`), not inline route mapping.
+      operationId: postIssueCreate
+      x-runtime-state: implemented-runtime-binding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCreateRequest'
+      responses:
+        '200':
+          description: Issue create success envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_IssueCreate'
+        '400':
+          description: Contract or domain validation error
           content:
             application/json:
               schema:

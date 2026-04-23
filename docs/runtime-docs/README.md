@@ -40,12 +40,16 @@
    Вопрос: какую уверенность дает текущий набор тестов и где остаются blind spots.
 5. [Database State and Integration Roadmap](./database-state-and-integration-roadmap.md)  
    Вопрос: каков фактический persistence baseline и что нужно для перехода к real DB.
-6. [Operations Playbook](./operations-playbook.md)  
+6. [Supabase DB Layer Audit and Target State](./supabase-db-layer-audit-and-target-state.md)  
+   Вопрос: что фактически есть по DB/Supabase в текущем runtime и какой целевой контур хранения stories/projections/embeddings.
+7. [Operations Playbook](./operations-playbook.md)  
    Вопрос: как запускать и сопровождать текущий runtime, и как готовиться к DB/chain расширениям.
-7. [Quickstart: server/env](./server-env-quickstart.md)  
+8. [Quickstart: server/env](./server-env-quickstart.md)  
    Вопрос: как быстро поднять локальное окружение, выставить env и проверить runtime boundary стандартным dev-путем.
-8. [Cross-check and quality gates](./cross-check-and-quality-gates.md)  
+9. [Cross-check and quality gates](./cross-check-and-quality-gates.md)  
    Вопрос: как поддерживать консистентность документации и верификацию claims.
+10. [Issue Intake and SPA Projection Audit](./issue-intake-and-spa-projection-audit.md)  
+   Вопрос: какой фактический входной контракт intake в коде и как отдельно строится SPA-compatible projection.
 
 ## Дополнительные приложения
 

@@ -28,6 +28,10 @@
 | `tests/test_config_loading.py` | unit | config | Валидация env contract и defaults |
 | `tests/test_api_security_and_ops.py` | integration (in-process) | API security + metrics | Подтверждает service auth и ops counters |
 | `tests/test_http_transport_smoke.py` | integration (transport HTTP) | FastAPI route policy + envelope/status/content-type | Проверяет реальные HTTP 401/200 и контракты ответа |
+| `tests/test_http_intake_endpoint.py` | integration (transport HTTP) | Intake HTTP binding | Проверяет `POST /intake/stories` (200/400) и envelope/trace behavior |
+| `tests/test_http_issue_create_endpoint.py` | integration (transport HTTP) | Issue create orchestration boundary | Проверяет `POST /issues` и стабильный create envelope + negative cases |
+| `tests/test_story_promotion_projection_bridge.py` | integration + contract | application bridge `Story/Promotion -> ProjectionInput` | Подтверждает deterministic mapping и edge-case errors |
+| `tests/test_e2e_intake_create_spa_contract.py` | e2e/contract | intake -> create issue -> SPA payload | Сквозной contract gate между стадиями pipeline |
 | `tests/test_error_envelope_contract.py` | contract | API envelope taxonomy | Стабильность error envelope |
 | `tests/test_trace_propagation.py` | integration | observability | Trace continuity в success/error path |
 | `tests/test_intake_observability.py` | unit/integration | intake telemetry | Error classification + telemetry |
@@ -49,9 +53,9 @@
 - **Bootstrap/composition confidence**  
   `test_bootstrap_smoke.py`, `test_di_service_factory.py`
 - **API boundary confidence**  
-  `test_api_security_and_ops.py`, `test_error_envelope_contract.py`, `test_trace_propagation.py`
+  `test_api_security_and_ops.py`, `test_http_transport_smoke.py`, `test_http_intake_endpoint.py`, `test_http_issue_create_endpoint.py`, `test_error_envelope_contract.py`, `test_trace_propagation.py`
 - **Core use-case confidence (application/domain)**  
-  lifecycle/idempotency/profile/promotion/projection/evidence/geo test families
+  lifecycle/idempotency/profile/promotion/projection/evidence/geo + bridge/e2e pipeline test families
 - **Config and operational baseline confidence**  
   `test_config_loading.py`, `test_api_security_and_ops.py`
 
