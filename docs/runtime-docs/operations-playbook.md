@@ -48,16 +48,18 @@
 
 ### 4) Smoke checks для регрессионного контроля
 
-Текущие operation handlers:
+Текущие operation handlers (`src/core/api/handlers.py`):
 
-- `handle_health`
-- `handle_readiness`
-- `handle_protected_status`
-- `handle_metrics`
+- `handle_health` → `GET /health`
+- `handle_readiness` → `GET /ready`
+- `handle_protected_status` → `GET /protected/status`
+- `handle_metrics` → `GET /metrics`
+- `handle_story_intake` → `POST /intake/stories`
+- `handle_issue_create` → `POST /issues`
 
 Рекомендуемый smoke/regression набор:
 
-- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_trace_propagation.py -q`
+- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_http_intake_endpoint.py tests/test_http_issue_create_endpoint.py tests/test_trace_propagation.py -q`
 
 ### 5) Incident classes и тактика реакции
 

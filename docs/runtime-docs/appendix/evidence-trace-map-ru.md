@@ -19,9 +19,9 @@
 
 ## API boundary и envelopes
 
-- **Текущий API реализован handler-функциями, а не web-router файлом**
-  - `src/core/api/handlers.py`
-  - `src/core/api/__init__.py`
+- **API boundary: handler-функции + FastAPI transport layer — оба присутствуют**
+  - Handler-функции: `src/core/api/handlers.py` (handle_health, handle_readiness, handle_protected_status, handle_metrics, handle_story_intake, handle_issue_create)
+  - FastAPI transport layer: `src/core/api/asgi_app.py` (регистрирует 8 HTTP-маршрутов, связывая handlers с routes)
 - **Единый envelope-контракт success/error + trace**
   - `src/core/api/envelope.py`
   - `tests/test_error_envelope_contract.py`

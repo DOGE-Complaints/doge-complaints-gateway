@@ -84,6 +84,73 @@ flowchart TD
 - `tests/test_bootstrap_smoke.py` подтверждает, что composition дает рабочий runtime.
 - `tests/test_di_service_factory.py` подтверждает, что `DefaultServiceFactory` выдает ожидаемые services и конфиг.
 
+### 6) HTTP Transport Layer (as-is, все активные маршруты)
+
+Источник: `src/core/api/asgi_app.py` (строки 25–166). Все 8 маршрутов зарегистрированы и активны.
+
+| Метод | Путь | Auth | Handler | Тест |
+|-------|------|------|---------|------|
+| GET | `/health` | public | `handle_health` | `test_http_transport_smoke.py` |
+| GET | `/ready` | public | `handle_readiness` | `test_http_transport_smoke.py` |
+| GET | `/protected/status` | Bearer / X-Service-Token | `handle_protected_status` | `test_http_transport_smoke.py` |
+| GET | `/metrics` | Bearer / X-Service-Token | `handle_metrics` | `test_http_transport_smoke.py` |
+| GET | `/demo/auth-page` | public | `FileResponse` (static) | — |
+| GET | `/demo/auth-page/styles.css` | public | `FileResponse` (static) | — |
+| POST | `/intake/stories` | public | `handle_story_intake` | `test_http_intake_endpoint.py` |
+| POST | `/issues` | public | `handle_issue_create` | `test_http_issue_create_endpoint.py` |
+
+`PUBLIC_ROUTES` tuple (`asgi_app.py:25-31`): `/health`, `/ready`, `/demo/auth-page`, `/intake/stories`, `/issues`.
+
+### 7) End-to-End Domain Pipeline (as-is)
+
+Сквозной поток данных через систему. Источники: `src/core/application/`, `src/core/promotion/`, `src/core/projection/`.
+
+```
+POST /intake/stories
+  │
+  ├─ parse_story_intake_request(payload)       [intake/contracts.py]
+  └─ StoryIntakeService.create_story()         [application/services.py]
+       ├─ IdempotencyRepository.get_by_key()   → early return если dup
+       ├─ GeoService.resolve_for_story()       [geo/service.py] (если location_query)
+       ├─ StoryRecord{lifecycle: ACCEPTED}  → StoryRepository.save()
+       └─ advance_story_readiness()
+            narrative complete  → READY_FOR_PROFILE
+            narrative empty     → PARTIAL_READY
+  → Response: {story_id, status, schema_version}
+
+POST /issues
+  │
+  └─ IssueCreateService.create_issue(IssueCreateCommand)  [application/issue_create.py]
+       │
+       ├─ IssuePromotionService.create_candidate()    → IssueCandidateRecord{DRAFT}
+       ├─ IssuePromotionService.submit_for_review()   → gate check → READY_FOR_REVIEW
+       ├─ IssuePromotionService.start_review()        → IN_REVIEW
+       ├─ IssuePromotionService.record_review(APPROVE) → PROMOTED
+       │
+       ├─ StoryPromotionProjectionBridge.build_projection_input()
+       │    ├─ StoryRepository.get_story() × N   [по каждому story_id]
+       │    ├─ _derive_issue_type(title, corpus)
+       │    │    "broken/outage/hazard" → INCIDENT
+       │    │    "request/need/please"  → SERVICE_REQUEST
+       │    │    default               → IMPROVEMENT
+       │    ├─ _derive_labels(title, corpus)
+       │    │    waste/garbage → "waste"
+       │    │    district/neighborhood → "district"
+       │    │    road/street/bridge → "infrastructure"
+       │    │    danger/unsafe → "safety"
+       │    │    default → ["infrastructure"]
+       │    └─ ProjectionInput{status: PUBLISHED, i18n: I18nText(et,ru,en)}
+       │
+       └─ IssueProjectionService.project(projection_input)
+            ├─ validate_governed_enums()   [projection/validation.py]
+            ├─ validate_optional_tx_fields()
+            └─ SpaIssueProjection.to_public_dict()
+                 → {id, status, type, labels, title, summary, description}
+  → Response: {issue_id, status, projection, policy_version}
+```
+
+E2E тест (happy path + gate failure + validation error): `tests/test_e2e_intake_create_spa_contract.py`
+
 ## Architectural consequences and limitations
 
 - Модель modular-by-contract уже есть, но delivery surface пока в форме handler functions, а не router/server entrypoint.
@@ -92,15 +159,14 @@ flowchart TD
 
 ## Planned target
 
-- Добавить явный transport adapter (HTTP router/app), который оборачивает текущие handlers/services без изменения доменных контрактов.
 - Расширить composition root под SQL-backed repositories и real chain adapters.
-- Ввести end-to-end orchestration слой для сквозного сценария intake->promotion->projection->evidence.
+- Ввести единый end-to-end orchestration сервис для сценария intake→signal profile→cluster→promotion→projection→evidence (сейчас модули существуют независимо, единого оркестратора нет).
 
 ## Gaps / risks
 
-- Нет прямого `FastAPI/Flask` entrypoint в `src/core`; это важно для ожиданий ops-команд.
+- Нет единого orchestration сервиса, склеивающего все доменные модули в один синхронный pipeline.
 - Риск смешения target-архитектуры из `docs/solution architecture` с текущим runtime-as-is, если не держать строгую границу источников.
-- Отсутствие e2e transport-level тестов увеличивает неопределенность при первом HTTP-обертывании.
+- Нет SQL-backed persistence; in-memory блокирует production deployment.
 
 ## Контрольные проверки
 

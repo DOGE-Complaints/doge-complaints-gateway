@@ -13,20 +13,21 @@
 
 ## 1) Фактический HTTP runtime на текущий момент
 
-В `src/core/api/asgi_app.py` реализованы только GET-роуты:
+В `src/core/api/asgi_app.py` реализованы и активны следующие маршруты:
 
-- `/health`
-- `/ready`
-- `/protected/status`
-- `/metrics`
-- `/demo/auth-page` (demo static)
+**GET-роуты (ops + static):**
+- `GET /health`
+- `GET /ready`
+- `GET /protected/status` (auth required)
+- `GET /metrics` (auth required)
+- `GET /demo/auth-page` (static)
+- `GET /demo/auth-page/styles.css` (static)
 
-`POST`-роутов в ASGI-приложении нет (в коде отсутствуют `@app.post(...)`).
+**POST-роуты (бизнес-эндпоинты):**
+- `POST /intake/stories` → `handle_story_intake` (`src/core/api/handlers.py`)
+- `POST /issues` → `handle_issue_create` (`src/core/api/handlers.py`)
 
-Следствие:
-
-- HTTP endpoint для `create issue` в runtime сейчас не существует;
-- HTTP endpoint для story intake (`/intake/stories`) в runtime тоже не подключен, хотя его контракт описан в OpenAPI как planned.
+Оба POST-роута реализованы и зарегистрированы в `asgi_app.py` (строки 140–166). Оба входят в `PUBLIC_ROUTES` (строки 25–31) — авторизация не требуется.
 
 ## 2) Входная модель данных, которая реально реализована в коде
 
@@ -152,18 +153,19 @@ SPA projection строится отдельным projection-слоем:
 - required keys: `id`, `status`, `type`, `labels`, `title`, `summary`, `description`
 - optional keys добавляются только если не `None`.
 
-## 6) Есть ли автоматическая связка intake -> projection в runtime API
+## 6) Фактическая связка intake → projection в runtime API
 
 По факту текущего кода:
 
-- в API handlers (`src/core/api/handlers.py`) intake/projection обработчики не подключены;
-- `parse_story_intake_request` и `build_story_intake_response` не вызываются из API слоя;
-- `IssueProjectionService` только создается в `DefaultServiceFactory`, но не используется HTTP-роутами.
+- `handle_story_intake` в `src/core/api/handlers.py` (строки 114–154) вызывает `parse_story_intake_request()` и `build_story_intake_response()` — intake-хэндлер полностью подключён к HTTP-маршруту `POST /intake/stories`;
+- `handle_issue_create` в `src/core/api/handlers.py` (строки 157–207) оркестрирует `IssueCreateService.create_issue()`, который внутри вызывает `StoryPromotionProjectionBridge`, `IssuePromotionService` и `IssueProjectionService`;
+- `IssueProjectionService` активно используется HTTP-роутами через `IssueCreateService`.
 
 Итог:
 
-- projection объект получается в коде отдельным процессом через `IssueProjectionService`,
-- но end-to-end HTTP pipeline `POST intake/create -> построение SPA projection -> HTTP response` в текущем runtime не реализован.
+- end-to-end HTTP pipeline `POST /intake/stories → StoryRecord` реализован;
+- end-to-end HTTP pipeline `POST /issues → promotion → SPA projection → HTTP response` реализован;
+- E2E тест: `tests/test_e2e_intake_create_spa_contract.py` — подтверждает сквозной flow с реальным HTTP transport.
 
 ## 7) Тестовые доказательства по контрактам
 
@@ -198,20 +200,20 @@ SPA projection строится отдельным projection-слоем:
 
 ## 8) Практический вывод для API входа и SPA модели
 
-1. Текущий "вход на создание" в коде существует как доменный intake parser/service (`StoryIntakeRequest` + `StoryIntakeService`), но не как активный HTTP endpoint.
-2. SPA dashboard-compatible объект не является частью входного intake payload.
-3. SPA объект получается отдельно в projection слое из `ProjectionInput`.
-4. В текущем runtime есть функциональный разрыв между intake и projection на уровне HTTP orchestration.
+1. `POST /intake/stories` — активный HTTP endpoint, принимает `StoryIntakeRequest`, возвращает `story_id` и `lifecycle_status`.
+2. `POST /issues` — активный HTTP endpoint, оркестрирует promotion + projection, возвращает полный SPA-совместимый объект.
+3. SPA dashboard-compatible объект не является частью входного intake payload — он строится отдельно в projection слое из `ProjectionInput`.
+4. Сквозной HTTP pipeline `POST /intake/stories → (story ids) → POST /issues → SPA projection` реализован и покрыт e2e тестом.
 
 ## 9) Gap Register (SSOT)
 
-| gap_id | Симптом (факт кода) | Код-источник | Impact | Target state | owner task key |
-|---|---|---|---|---|---|
-| GAP-IP-001 | Нет HTTP intake endpoint (`POST /intake/stories`) в runtime | `src/core/api/asgi_app.py`, `src/core/api/handlers.py` | Intake-контракт не доступен извне, демо не может показать реальный submit | Активный POST endpoint с envelope/error taxonomy | `TASK-INTAKE-HTTP-01` |
-| GAP-IP-002 | Нет HTTP create issue endpoint | `src/core/api/asgi_app.py` | Ключевой use-case issue creation не экспонирован | Активный POST issue endpoint (orchestration) | `TASK-ISSUE-CREATE-HTTP-01` |
-| GAP-IP-003 | Нет bridge `Story/Promotion -> ProjectionInput` | `src/core/application/services.py`, `src/core/promotion/service.py`, `src/core/projection/input.py` | Невозможно стабильно построить SPA card из текущего потока данных | Явный adapter/assembler слой до `IssueProjectionService` | `TASK-STORY-TO-PROJECTION-01` |
-| GAP-IP-004 | Нет единой политики заполнения обязательных SPA полей (`status/type/labels/i18n`) из intake/story/promotion | `src/core/projection/mapper.py`, `src/core/projection/enums.py`, `src/core/intake/contracts.py` | Недетерминированный mapping и риск ad-hoc логики | Версионированная policy + правила derivation/fallback + валидации | `TASK-SPA-PROJECTION-DATA-01` |
-| GAP-IP-005 | Нет e2e pipeline-контрактов от HTTP intake/create до SPA payload | `tests/test_http_transport_smoke.py`, `tests/test_spa_projection.py` | Нет доказательства сквозной совместимости API->SPA | E2E/contract suite для полного потока + регресс-гейты | `TASK-E2E-CONTRACT-01` |
+| gap_id | Симптом (факт кода) | Статус | Закрыто в |
+|---|---|---|---|
+| GAP-IP-001 | ~~Нет HTTP intake endpoint (`POST /intake/stories`) в runtime~~ | **Closed** | `asgi_app.py:140-152`, `handlers.py:114-154` |
+| GAP-IP-002 | ~~Нет HTTP create issue endpoint~~ | **Closed** | `asgi_app.py:155-166`, `handlers.py:157-207` |
+| GAP-IP-003 | ~~Нет bridge `Story/Promotion -> ProjectionInput`~~ | **Closed** | `application/issue_create.py:38-75` — `StoryPromotionProjectionBridge` |
+| GAP-IP-004 | Нет формализованного версионированного контракта policy заполнения SPA полей (type/labels derivation) | **Planned** | `TASK-SPA-PROJECTION-DATA-01` — policy задана в коде (`DERIVATION_POLICY_VERSION`), но не как внешний контракт |
+| GAP-IP-005 | ~~Нет e2e pipeline-контрактов от HTTP intake/create до SPA payload~~ | **Closed** | `tests/test_e2e_intake_create_spa_contract.py` + `tests/test_story_promotion_projection_bridge.py` |
 
 ## 10) Rule: gap ownership and closure
 

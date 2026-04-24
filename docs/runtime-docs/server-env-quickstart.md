@@ -19,9 +19,11 @@
 
 - `GET /health`
 - `GET /ready`
-- `GET /protected/status`
-- `GET /metrics`
-- demo auth page: `/demo/auth-page`
+- `GET /protected/status` (auth required)
+- `GET /metrics` (auth required)
+- `GET /demo/auth-page` (static)
+- `POST /intake/stories` (story intake, public)
+- `POST /issues` (issue create + SPA projection, public)
 
 ## 1) Prerequisites
 
@@ -122,11 +124,13 @@ python3 -m core.api.asgi_app
 - Protected status URL: `http://127.0.0.1:${PORT:-8000}/protected/status`
 - Metrics URL: `http://127.0.0.1:${PORT:-8000}/metrics`
 - Mock auth page URL: `http://127.0.0.1:${PORT:-8000}/demo/auth-page`
+- Story intake URL: `http://127.0.0.1:${PORT:-8000}/intake/stories` (POST)
+- Issue create URL: `http://127.0.0.1:${PORT:-8000}/issues` (POST)
 
 ### 4.5 Базовая проверка boundary/config/auth
 
 ```bash
-python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_config_loading.py -q
+python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_config_loading.py tests/test_http_intake_endpoint.py tests/test_http_issue_create_endpoint.py -q
 ```
 
 ### 4.6 Расширенная проверка envelope/trace

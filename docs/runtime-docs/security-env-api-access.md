@@ -21,15 +21,19 @@
 
 Практический смысл: gateway защищает вызовы между сервисами/интеграторами, но не реализует full user auth flow.
 
-Protected/public operation split (as-is, route policy):
+Protected/public operation split (as-is, route policy — источник: `asgi_app.py:25-31`):
 
-- Protected routes:
+- Protected routes (Bearer token или `X-Service-Token` обязательны):
   - `GET /protected/status`
   - `GET /metrics`
-- Public routes:
+- Public routes (без авторизации):
   - `GET /health`
   - `GET /ready`
   - `GET /demo/auth-page`
+  - `POST /intake/stories` ← бизнес-эндпоинт, без auth
+  - `POST /issues` ← бизнес-эндпоинт, без auth
+
+**Примечание:** оба бизнес-эндпоинта (`/intake/stories`, `/issues`) намеренно публичны в текущей модели — service-to-service auth применяется только к ops-маршрутам. В pilot-профиле бизнес-эндпоинты могут быть защищены при необходимости.
 
 ### 1.1) User identifier linkage для stories
 
@@ -123,7 +127,7 @@ User identity на уровне доменной истории передаёт
 ## Gaps / risks
 
 - В `demo` профиль всё ещё может работать в auth-disabled режиме при пустом `SERVICE_API_TOKEN`; это допустимо для демо, но рискованно без операционного контроля.
-- Отсутствует intake HTTP handler в `src/core/api/handlers.py`, поэтому universal auth policy для intake маршрута остаётся planned.
+- Бизнес-эндпоинты (`POST /intake/stories`, `POST /issues`) публичны — это осознанное решение для текущей фазы, но в production-like окружении может потребоваться auth gate.
 - Отсутствует отдельный формализованный документ по ротации и аудит-требованиям для сервисных ключей.
 - Нет transport-level rate limiting/WAF логики в текущем `src/core` scope.
 

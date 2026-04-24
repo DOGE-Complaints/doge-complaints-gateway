@@ -48,10 +48,11 @@
 
 ## 4. Какие риски покрыты слабо (структурные пробелы)
 
-1. Нет HTTP transport-level e2e.
-2. Нет DB-backed integration/migration tests.
-3. Нет real chain adapter integration tests.
-4. Нет chaos/failure-injection rehearsal тестов для incident runbooks.
+1. Нет DB-backed integration/migration tests.
+2. Нет real chain adapter integration tests.
+3. Нет chaos/failure-injection rehearsal тестов для incident runbooks.
+
+**Примечание:** HTTP transport-level тесты присутствуют (`test_http_intake_endpoint.py`, `test_http_issue_create_endpoint.py`, `test_e2e_intake_create_spa_contract.py`) — этот пробел закрыт.
 
 ## 5. Что означает это для релизного решения
 

@@ -68,7 +68,8 @@
 ### Частично защищено
 
 - Есть smoke на bootstrap и DI resolution (`tests/test_bootstrap_smoke.py`, `tests/test_di_service_factory.py`).
-- Нет e2e проверки transport integration, так как transport layer не выделен.
+- Есть HTTP transport тесты для intake и issue create (`tests/test_http_intake_endpoint.py`, `tests/test_http_issue_create_endpoint.py`).
+- Нет chaos/failure-injection тестов и DB/chain integration тестов.
 
 ## 5. Точки расширения без ломки контрактов
 
@@ -81,12 +82,10 @@
 
 ## 6. Architectural debt (as-is)
 
-- Нет transport adapter слоя как отдельного runtime entrypoint.
-- Нет unified orchestration service, связывающего модули в end-to-end flow.
-- Нет persistence-backed infrastructure для production durability.
+- Нет unified orchestration service, связывающего все доменные модули (intake → signal profile → cluster → promotion → projection → evidence) в единый синхронный pipeline.
+- Нет persistence-backed infrastructure для production durability — всё хранилище in-memory.
 
 ## 7. Roadmap ориентиры
 
-- Ввести transport boundary модуль (HTTP router + dependency injection adapter).
-- Ввести orchestration слой для сквозных use-cases.
+- Ввести orchestration слой для сквозных use-cases (единый сервис, связывающий intake с downstream модулями).
 - Перенести persistence на SQL-backed adapters с сохранением существующих protocol contracts.

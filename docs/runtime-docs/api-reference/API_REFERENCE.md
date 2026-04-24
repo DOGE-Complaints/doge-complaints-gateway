@@ -116,12 +116,12 @@ Validated in:
 - **Purpose**: in-process counters (`health_requests`, `readiness_requests`, `protected_requests`, `metrics_requests`, `auth_failures`)
 - **Auth required**: Bearer token or `X-Service-Token` when auth is enabled
 
-## 6. Intake Endpoint (planned HTTP binding, existing contract)
+## 6. Intake Endpoint (implemented HTTP binding)
 
 ### `POST /intake/stories`
 
-- **Contract exists**: `src/core/intake/contracts.py`
-- **HTTP binding state**: planned (not currently implemented in `src/core/api/handlers.py`)
+- **Contract**: `src/core/intake/contracts.py`
+- **HTTP binding state**: implemented — `asgi_app.py:140-152` → `handle_story_intake` (`handlers.py:114-154`)
 - **Schema version**: `m2.story_intake_envelope.v1`
 - **Submitter identity fields**:
   - `submitter.external_user_id` (required, non-empty string)
@@ -174,18 +174,19 @@ Sources:
 - Service-token gate on protected operations:
   - `GET /protected/status`
   - `GET /metrics`
-- Public operations:
+- Public operations (no auth required):
   - `GET /health`
   - `GET /ready`
+  - `POST /intake/stories`
+  - `POST /issues`
 
 ### Planned
 
-- Full intake HTTP handler wiring.
-- Extended API surface for downstream domain modules.
 - Fully enforced server auth for protected business operations:
   - route-level centralized auth enforcement on all future protected endpoints,
   - pilot/production-like fail-fast when `SERVICE_API_TOKEN` is missing,
   - explicit public/protected operation map in API docs and tests.
+- Extended API surface for downstream domain modules.
 
 ## 9. Compatibility Guidance
 

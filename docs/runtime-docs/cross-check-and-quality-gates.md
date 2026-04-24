@@ -45,8 +45,13 @@
 Явно подтверждено, что в текущем runtime отсутствуют:
 
 - real Arweave/on-chain execution,
-- real DB integration/migrations/DDL,
-- transport-level e2e HTTP runtime tests.
+- real DB integration/migrations/DDL.
+
+Явно подтверждено, что реализовано (не заявлять как "planned"):
+
+- FastAPI ASGI entrypoint с HTTP транспортом (`src/core/api/asgi_app.py`),
+- `POST /intake/stories` и `POST /issues` как активные HTTP-маршруты,
+- transport-level HTTP тесты (`test_http_intake_endpoint.py`, `test_http_issue_create_endpoint.py`, `test_e2e_intake_create_spa_contract.py`).
 
 ### Gate 4: Roadmap traceability
 
