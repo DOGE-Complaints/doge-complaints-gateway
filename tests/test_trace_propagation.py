@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 
 from core.api import HandlerDependencies, ensure_trace_id, handle_health
 
@@ -20,9 +21,27 @@ class _FailService:
         raise ConnectionError("transport unavailable")
 
 
+@dataclass(frozen=True)
+class _DummyIntakeService:
+    pass
+
+
+@dataclass(frozen=True)
+class _DummyIssueCreateService:
+    pass
+
+
+def _deps_kwargs(health_service: Any) -> dict[str, Any]:
+    return {
+        "health_service": health_service,
+        "story_intake_service": _DummyIntakeService(),
+        "issue_create_service": _DummyIssueCreateService(),
+    }
+
+
 def test_trace_id_preserved_for_success_response() -> None:
     trace_id = "trace-success-explicit"
-    payload = handle_health(HandlerDependencies(health_service=_OkService()), trace_id=trace_id)
+    payload = handle_health(HandlerDependencies(**_deps_kwargs(_OkService())), trace_id=trace_id)
     assert payload["trace_id"] == trace_id
     assert payload["data"]["status"] == "ok"
 
@@ -37,7 +56,7 @@ def test_trace_id_propagates_into_error_and_logs(caplog: pytest.LogCaptureFixtur
     trace_id = "trace-error-explicit"
     with caplog.at_level(logging.ERROR, logger="core.api"):
         payload = handle_health(
-            HandlerDependencies(health_service=_FailService()), trace_id=trace_id
+            HandlerDependencies(**_deps_kwargs(_FailService())), trace_id=trace_id
         )
 
     assert payload["trace_id"] == trace_id

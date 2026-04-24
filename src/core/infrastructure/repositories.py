@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
+from datetime import UTC, datetime
 
 from core.domain import (
     HealthReport,
@@ -21,55 +21,144 @@ class InMemoryHealthRepository:
 
 @dataclass
 class InMemoryStoryRepository:
-    _records: Dict[str, StoryRecord] | None = None
+    _records: dict[str, StoryRecord] | None = None
 
     def __post_init__(self) -> None:
         if self._records is None:
             self._records = {}
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
+        assert self._records is not None
         self._records[record.story_id] = record
         return record
 
     def get_story(self, story_id: str) -> StoryRecord | None:
+        assert self._records is not None
         return self._records.get(story_id)
 
 
 @dataclass
 class InMemoryIdempotencyRepository:
-    _records: Dict[str, IdempotencyRecord] | None = None
+    _records: dict[str, IdempotencyRecord] | None = None
 
     def __post_init__(self) -> None:
         if self._records is None:
             self._records = {}
 
     def get_by_key(self, key: str) -> IdempotencyRecord | None:
+        assert self._records is not None
         return self._records.get(key)
 
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
+        assert self._records is not None
         self._records[record.key] = record
         return record
 
 
 @dataclass
 class InMemorySignalProfileRepository:
-    _versions: Dict[str, list[SignalProfileRecord]] | None = None
+    _versions: dict[str, list[SignalProfileRecord]] | None = None
 
     def __post_init__(self) -> None:
         if self._versions is None:
             self._versions = {}
 
     def save_version(self, profile: SignalProfileRecord) -> SignalProfileRecord:
+        assert self._versions is not None
         versions = self._versions.setdefault(profile.story_id, [])
         versions.append(profile)
         return profile
 
     def get_latest(self, story_id: str) -> SignalProfileRecord | None:
+        assert self._versions is not None
         versions = self._versions.get(story_id, [])
         if not versions:
             return None
         return versions[-1]
 
     def get_versions(self, story_id: str) -> list[SignalProfileRecord]:
+        assert self._versions is not None
         return list(self._versions.get(story_id, []))
+
+
+@dataclass
+class InMemoryStoryEmbeddingStore:
+    _rows: list[dict[str, object]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = []
+
+    def save_story_embedding(
+        self,
+        *,
+        story_id: str,
+        model_name: str,
+        embedding_vector: tuple[float, ...],
+        source_checksum: str,
+    ) -> None:
+        assert self._rows is not None
+        self._rows.append(
+            {
+                "story_id": story_id,
+                "model_name": model_name,
+                "embedding_vector": tuple(embedding_vector),
+                "source_checksum": source_checksum,
+                "created_at": datetime.now(UTC),
+            }
+        )
+
+
+@dataclass
+class InMemoryIssueProjectionStore:
+    _rows: dict[str, dict[str, object]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = {}
+
+    def save_projection(
+        self,
+        *,
+        issue_id: str,
+        status: str,
+        payload: dict[str, object],
+        policy_version: str,
+    ) -> None:
+        assert self._rows is not None
+        self._rows[issue_id] = {
+            "issue_id": issue_id,
+            "status": status,
+            "payload": dict(payload),
+            "policy_version": policy_version,
+            "updated_at": datetime.now(UTC),
+        }
+
+
+@dataclass
+class InMemoryIssueProjectionEmbeddingStore:
+    _rows: list[dict[str, object]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = []
+
+    def save_projection_embedding(
+        self,
+        *,
+        issue_id: str,
+        model_name: str,
+        embedding_vector: tuple[float, ...],
+        source_checksum: str,
+    ) -> None:
+        assert self._rows is not None
+        self._rows.append(
+            {
+                "issue_id": issue_id,
+                "model_name": model_name,
+                "embedding_vector": tuple(embedding_vector),
+                "source_checksum": source_checksum,
+                "created_at": datetime.now(UTC),
+            }
+        )
 

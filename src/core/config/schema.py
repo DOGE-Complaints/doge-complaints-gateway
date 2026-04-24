@@ -37,6 +37,11 @@ class AppConfig:
     request_timeout_s: int
     flags: FeatureFlags
     log_level: str
+    db_backend: str
+    db_enabled: bool
+    database_url: str | None
+    supabase_url: str | None
+    supabase_service_role: str | None
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -90,6 +95,30 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
             "Service-to-service API token for protected operations. "
             "Required for pilot profile strict auth mode."
         ),
+    ),
+    EnvSpec(
+        name="DB_BACKEND",
+        required=False,
+        default="in_memory",
+        description="Database backend mode: in_memory, sqlite, supabase.",
+    ),
+    EnvSpec(
+        name="DATABASE_URL",
+        required=False,
+        default=None,
+        description="Database URL for sqlite/postgresql runtime persistence.",
+    ),
+    EnvSpec(
+        name="SUPABASE_URL",
+        required=False,
+        default=None,
+        description="Supabase project URL for runtime and readiness checks.",
+    ),
+    EnvSpec(
+        name="SUPABASE_SERVICE_ROLE",
+        required=False,
+        default=None,
+        description="Supabase service role key for server-side access.",
     ),
 )
 
@@ -228,11 +257,57 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
             "SERVICE_API_TOKEN is required for APP_PROFILE='pilot' strict auth mode."
         )
 
+    db_backend_raw = _require_value(source, name="DB_BACKEND")
+    db_backend = db_backend_raw.strip().lower()
+    if db_backend not in {"in_memory", "sqlite", "supabase"}:
+        raise ConfigError(
+            f"Unsupported DB_BACKEND={db_backend_raw!r}. Expected in_memory/sqlite/supabase."
+        )
+    database_url = _get_value(source, "DATABASE_URL")
+    supabase_url = _get_value(source, "SUPABASE_URL")
+    supabase_service_role = _get_value(source, "SUPABASE_SERVICE_ROLE")
+    if db_backend == "in_memory":
+        if database_url is not None or supabase_url is not None or supabase_service_role is not None:
+            raise ConfigError(
+                "DB_BACKEND='in_memory' does not allow DATABASE_URL/SUPABASE_URL/SUPABASE_SERVICE_ROLE."
+            )
+    if db_backend == "sqlite":
+        if database_url is None or not database_url.startswith("sqlite:///"):
+            raise ConfigError(
+                "DATABASE_URL is required for DB_BACKEND='sqlite' and must start with sqlite:///."
+            )
+        if supabase_url is not None or supabase_service_role is not None:
+            raise ConfigError(
+                "SUPABASE_URL/SUPABASE_SERVICE_ROLE are not allowed for DB_BACKEND='sqlite'."
+            )
+    if db_backend == "supabase":
+        if database_url is None or not (
+            database_url.startswith("postgresql://")
+            or database_url.startswith("postgres://")
+        ):
+            raise ConfigError(
+                "DATABASE_URL is required for DB_BACKEND='supabase' and must be postgresql://."
+            )
+        if supabase_url is None:
+            raise ConfigError(
+                "SUPABASE_URL is required for DB_BACKEND='supabase'."
+            )
+        if supabase_service_role is None:
+            raise ConfigError(
+                "SUPABASE_SERVICE_ROLE is required for DB_BACKEND='supabase'."
+            )
+    db_enabled = db_backend != "in_memory"
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
         request_timeout_s=request_timeout_s,
         flags=flags,
         log_level=log_level,
+        db_backend=db_backend,
+        db_enabled=db_enabled,
+        database_url=database_url,
+        supabase_url=supabase_url,
+        supabase_service_role=supabase_service_role,
     )
 

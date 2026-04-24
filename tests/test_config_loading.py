@@ -19,6 +19,9 @@ def test_load_config_demo_defaults() -> None:
     assert config.flags.blockchain_adapter is False
     assert config.flags.tokenization_pipeline is False
     assert config.log_level == "INFO"
+    assert config.db_backend == "in_memory"
+    assert config.db_enabled is False
+    assert config.database_url is None
 
 
 def test_load_config_pilot_defaults() -> None:
@@ -119,6 +122,10 @@ def test_env_schema_contains_required_fields() -> None:
     assert "FF_TOKENIZATION_PIPELINE" in names
     assert "LOG_LEVEL" in names
     assert "SERVICE_API_TOKEN" in names
+    assert "DB_BACKEND" in names
+    assert "DATABASE_URL" in names
+    assert "SUPABASE_URL" in names
+    assert "SUPABASE_SERVICE_ROLE" in names
 
 
 def test_pilot_profile_requires_service_api_token() -> None:
@@ -127,6 +134,56 @@ def test_pilot_profile_requires_service_api_token() -> None:
             {
                 "APP_PROFILE": "pilot",
                 "API_BASE_URL": "https://pilot.example/api",
+            }
+        )
+
+
+def test_sqlite_backend_requires_sqlite_database_url() -> None:
+    with pytest.raises(ConfigError, match="DATABASE_URL is required for DB_BACKEND='sqlite'"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "sqlite",
+            }
+        )
+
+
+def test_supabase_backend_requires_supabase_contract() -> None:
+    with pytest.raises(ConfigError, match="SUPABASE_URL is required"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "supabase",
+                "DATABASE_URL": "postgresql://postgres:pass@localhost:5432/postgres",
+            }
+        )
+
+
+def test_in_memory_backend_rejects_database_url() -> None:
+    with pytest.raises(ConfigError, match="DB_BACKEND='in_memory' does not allow"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "in_memory",
+                "DATABASE_URL": "sqlite:////tmp/demo.sqlite3",
+            }
+        )
+
+
+def test_sqlite_backend_rejects_supabase_keys() -> None:
+    with pytest.raises(
+        ConfigError, match="SUPABASE_URL/SUPABASE_SERVICE_ROLE are not allowed"
+    ):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "sqlite",
+                "DATABASE_URL": "sqlite:////tmp/demo.sqlite3",
+                "SUPABASE_URL": "https://example.supabase.co",
             }
         )
 

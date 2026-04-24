@@ -54,14 +54,23 @@ def handle_readiness(
 ) -> dict[str, Any]:
     resolved_trace_id = ensure_trace_id(trace_id)
     dependencies.metrics.record_readiness()
+    status = "ready" if dependencies.db_ready else "degraded"
     log_api_event(
         logging.INFO,
         "readiness_check",
         trace_id=resolved_trace_id,
-        outcome="success",
+        outcome=status,
     )
     return build_success_envelope(
-        data={"status": "ready"}, trace_id=resolved_trace_id
+        data={
+            "status": status,
+            "db": {
+                "backend": dependencies.db_backend,
+                "ready": dependencies.db_ready,
+                "checks": dict(dependencies.db_checks),
+            },
+        },
+        trace_id=resolved_trace_id,
     ).as_dict()
 
 
