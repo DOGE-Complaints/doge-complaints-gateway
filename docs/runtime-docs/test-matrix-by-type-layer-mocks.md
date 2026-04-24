@@ -16,7 +16,7 @@
 3. Проверить in-process поведение сервисов на happy-path и важных негативных ветках.
 
 Сильная сторона: хорошая дисциплина contract/unit/in-process integration в модульной архитектуре.  
-Ограничение: отсутствует transport-level и external dependency integration слой.
+Ограничение: DB-интеграция пока в основном sqlite-centric, supabase-live bucket еще не является базовым gate.
 
 ### 2) Matrix by type and scope
 
@@ -102,17 +102,27 @@
 
 ## Planned target
 
-- Добавить test buckets:
-  - `tests/integration_db/*`
-  - `tests/integration_chain/*`
-  - `tests/e2e/*`
-- Ввести contract drift checks между OpenAPI и runtime handlers.
-- Добавить failover сценарии для ops incident rehearsals.
+Для supabase-native волны вводится формальный набор bucket-ов:
+
+- **Unit/API+App bucket** (`TASK-TEST-UNIT-API-APP-01`)
+  - scope: `src/core/api`, `src/core/application`
+  - фокус: handler/orchestration happy-path + error branches через mocks/stubs.
+- **Unit/Infra+Config bucket** (`TASK-TEST-UNIT-INFRA-CONFIG-01`)
+  - scope: `src/core/infrastructure`, `src/core/config`
+  - фокус: backend switching `in_memory/sqlite/supabase`, fail-fast env validation.
+- **Unit/Domain flows bucket** (`TASK-TEST-UNIT-DOMAIN-FLOWS-01`)
+  - scope: `src/core/intake`, `src/core/promotion`, `src/core/projection`
+  - фокус: domain invariants, edge-cases, contract guards.
+- **Integration/live Supabase bucket** (`TASK-TEST-INTEGRATION-SUPABASE-LIVE-01`)
+  - scope: `tests/integration/supabase/`
+  - фокус: migrations + RLS + pipeline `intake -> issues -> projection` на живой БД.
+- **Coverage gate bucket (policy)** (`TASK-TEST-COVERAGE-GATE-01`)
+  - scope: обязательность выполнения всех bucket-ов и фиксация run-summary.
 
 ## Gaps / risks
 
 - Нет browser-level e2e тестов (пока покрыт только API transport smoke через `TestClient`).
-- Нет integration тестов с реальной БД и миграциями.
+- Нет завершенного green-run для `tests/integration/supabase` (bucket планируется как обязательный gate).
 - Нет integration тестов real on-chain broadcast/finality path.
 - Нет chaos/failure-injection тестов для rollback runbook.
 
@@ -120,3 +130,9 @@
 
 - Быстрый core regression набор:
   `python3 -m pytest tests/test_layer_guardrails.py tests/test_di_service_factory.py tests/test_api_security_and_ops.py tests/test_story_repository_lifecycle.py tests/test_spa_projection.py -q`
+
+- Обязательный supabase-native quality gate (после реализации task wave):
+  - `python3 -m pytest tests -k "api or issue_create or intake" -q`
+  - `python3 -m pytest tests -k "config or provider or service_factory" -q`
+  - `python3 -m pytest tests -k "intake or promotion or projection" -q`
+  - `python3 -m pytest tests/integration/supabase -q`
