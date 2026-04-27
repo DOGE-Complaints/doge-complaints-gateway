@@ -13,7 +13,6 @@ from core.api.dependencies import ApiDependencies, build_api_dependencies
 from core.api.envelope import build_error_envelope, ensure_trace_id
 from core.api.handlers import (
     handle_health,
-    handle_issue_create,
     handle_metrics,
     handle_protected_status,
     handle_readiness,
@@ -27,7 +26,6 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/ready",
     "/demo/auth-page",
     "/intake/stories",
-    "/issues",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
@@ -147,20 +145,6 @@ async def intake_stories(
         deps,
         payload=payload,
         idempotency_key=request.headers.get("idempotency-key"),
-        trace_id=_read_trace_id(request),
-    )
-    return JSONResponse(content=envelope, status_code=status_code)
-
-
-@app.post("/issues")
-async def create_issue(
-    request: Request,
-    deps: ApiDependencies = Depends(get_api_dependencies),
-) -> JSONResponse:
-    payload = await request.json()
-    envelope, status_code = handle_issue_create(
-        deps,
-        payload=payload,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=envelope, status_code=status_code)

@@ -42,6 +42,12 @@ class AppConfig:
     database_url: str | None
     supabase_url: str | None
     supabase_service_role: str | None
+    cluster_min_size: int
+    cluster_readiness_threshold: int
+    cluster_active_lenses: tuple[str, ...]
+    cluster_geo_filter: str
+    cluster_tie_breaker: str
+    cluster_type_resolution: str
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -120,6 +126,42 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         default=None,
         description="Supabase service role key for server-side access.",
     ),
+    EnvSpec(
+        name="CLUSTER_MIN_SIZE",
+        required=False,
+        default="8",
+        description="Minimum number of stories for cluster-level promotion eligibility.",
+    ),
+    EnvSpec(
+        name="CLUSTER_READINESS_THRESHOLD",
+        required=False,
+        default="70",
+        description="Readiness threshold used by promotion gates.",
+    ),
+    EnvSpec(
+        name="CLUSTER_ACTIVE_LENSES",
+        required=False,
+        default="topic_micro,need_local,failure_systemic,failure_micro,repeatability_local,relevance_systemic",
+        description="Comma-separated enabled cluster lenses.",
+    ),
+    EnvSpec(
+        name="CLUSTER_GEO_FILTER",
+        required=False,
+        default="any",
+        description="Geo filtering mode for clustering.",
+    ),
+    EnvSpec(
+        name="CLUSTER_TIE_BREAKER",
+        required=False,
+        default="lexical",
+        description="Tie-breaker strategy for equal-score candidates.",
+    ),
+    EnvSpec(
+        name="CLUSTER_TYPE_RESOLUTION",
+        required=False,
+        default="canonical_priority",
+        description="Issue type resolution strategy for clustered stories.",
+    ),
 )
 
 
@@ -179,6 +221,37 @@ def _parse_bool(value: str, *, env_name: str) -> bool:
     raise ConfigError(
         f"Invalid boolean for {env_name}={value!r}. Use one of: {sorted(truthy | falsy)}."
     )
+
+
+def _parse_positive_int(value: str, *, env_name: str) -> int:
+    try:
+        parsed = int(value.strip())
+    except ValueError as exc:
+        raise ConfigError(f"Invalid {env_name}={value!r}. Expected integer.") from exc
+    if parsed <= 0:
+        raise ConfigError(f"Invalid {env_name}={parsed}. Must be positive.")
+    return parsed
+
+
+def _parse_cluster_lenses(raw: str) -> tuple[str, ...]:
+    allowed = {
+        "topic_micro",
+        "need_local",
+        "failure_systemic",
+        "failure_micro",
+        "repeatability_local",
+        "relevance_systemic",
+    }
+    values = [item.strip() for item in raw.split(",") if item.strip()]
+    if not values:
+        raise ConfigError("CLUSTER_ACTIVE_LENSES must contain at least one lens.")
+    invalid = [item for item in values if item not in allowed]
+    if invalid:
+        raise ConfigError(
+            "Invalid CLUSTER_ACTIVE_LENSES values: "
+            f"{invalid}. Allowed: {sorted(allowed)}."
+        )
+    return tuple(dict.fromkeys(values))
 
 
 def _required_spec(name: str) -> EnvSpec:
@@ -297,6 +370,26 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
                 "SUPABASE_SERVICE_ROLE is required for DB_BACKEND='supabase'."
             )
     db_enabled = db_backend != "in_memory"
+    cluster_min_size = _parse_positive_int(
+        _require_value(source, name="CLUSTER_MIN_SIZE"),
+        env_name="CLUSTER_MIN_SIZE",
+    )
+    cluster_readiness_threshold = _parse_positive_int(
+        _require_value(source, name="CLUSTER_READINESS_THRESHOLD"),
+        env_name="CLUSTER_READINESS_THRESHOLD",
+    )
+    if cluster_readiness_threshold > 100:
+        raise ConfigError(
+            "Invalid CLUSTER_READINESS_THRESHOLD. Expected value in range 1..100."
+        )
+    cluster_active_lenses = _parse_cluster_lenses(
+        _require_value(source, name="CLUSTER_ACTIVE_LENSES")
+    )
+    cluster_geo_filter = _require_value(source, name="CLUSTER_GEO_FILTER").strip().lower()
+    cluster_tie_breaker = _require_value(source, name="CLUSTER_TIE_BREAKER").strip().lower()
+    cluster_type_resolution = _require_value(
+        source, name="CLUSTER_TYPE_RESOLUTION"
+    ).strip().lower()
 
     return AppConfig(
         profile=profile,
@@ -309,5 +402,11 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         database_url=database_url,
         supabase_url=supabase_url,
         supabase_service_role=supabase_service_role,
+        cluster_min_size=cluster_min_size,
+        cluster_readiness_threshold=cluster_readiness_threshold,
+        cluster_active_lenses=cluster_active_lenses,
+        cluster_geo_filter=cluster_geo_filter,
+        cluster_tie_breaker=cluster_tie_breaker,
+        cluster_type_resolution=cluster_type_resolution,
     )
 

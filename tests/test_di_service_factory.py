@@ -62,6 +62,17 @@ def test_default_service_factory_resolves_issue_projection_service() -> None:
     assert proj.policy_version
 
 
+def test_default_service_factory_resolves_story_projection_policy() -> None:
+    factory = _factory()
+    policy = factory.get_story_projection_policy()
+    draft = policy.build_draft(
+        promoted_title="Road safety request",
+        aggregate_text="Road safety request in district",
+    )
+    assert draft.policy_version
+    assert draft.labels
+
+
 def test_default_service_factory_resolves_issue_promotion_service() -> None:
     factory = _factory()
     promotion = factory.get_issue_promotion_service()

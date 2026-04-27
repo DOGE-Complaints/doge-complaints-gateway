@@ -5,7 +5,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
-from core.api.asgi_app import _clear_api_dependencies_cache, app
+from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 
 REQUIRED_SPA_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
@@ -16,6 +16,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
+    monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -43,37 +44,36 @@ def _create_story(client: TestClient, *, external_user_id: str, text: str) -> st
 
 
 def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) -> None:
-    story_1 = _create_story(
+    _create_story(
         client,
         external_user_id="e2e-user-1",
         text="Road lights are broken and unsafe for pedestrians in district A.",
     )
-    story_2 = _create_story(
+    _create_story(
         client,
         external_user_id="e2e-user-2",
-        text="Infrastructure outage continues for second day in district A.",
+        text="Road lights are broken and unsafe for pedestrians in district A.",
     )
-
-    response = client.post(
-        "/issues",
-        json={
-            "cluster_id": "cluster-e2e-1",
-            "story_ids": [story_1, story_2],
-            "readiness_score": 90,
-            "title": "District A safety and infrastructure outage",
-        },
-        headers={"x-trace-id": "trace-e2e-happy"},
-    )
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["trace_id"] == "trace-e2e-happy"
-    assert payload["data"]["issue_id"]
-    assert payload["data"]["status"] == "promoted"
-    assert payload["data"]["policy_version"] == "m2.spa_issue_derivation.v1"
-    projection = payload["data"]["projection"]
+    deps = get_api_dependencies()
+    issue_create = deps.story_cluster_orchestrator.issue_create_service
+    projection_store = issue_create.issue_projection_store
+    assert projection_store is not None
+    rows = getattr(projection_store, "_rows")
+    assert rows
+    issue_id, first = next(iter(rows.items()))
+    projection = first["payload"]
     assert REQUIRED_SPA_KEYS.issubset(projection.keys())
-    assert projection["id"] == payload["data"]["issue_id"]
+    embedding_store = issue_create.issue_projection_embedding_store
+    assert embedding_store is not None
+    embedding_rows = getattr(embedding_store, "_rows")
+    assert embedding_rows
+    assert embedding_rows[0]["embedding_policy_version"] == "m2.issue_embedding_policy.v1"
+    link_store = issue_create.issue_story_link_store
+    assert link_store is not None
+    link_rows = getattr(link_store, "_rows")
+    assert issue_id in link_rows
+    _, linked_story_ids = link_rows[issue_id]
+    assert len(linked_story_ids) == 2
 
 
 def test_e2e_rejects_invalid_intake_payload(client: TestClient) -> None:
@@ -93,31 +93,17 @@ def test_e2e_rejects_invalid_intake_payload(client: TestClient) -> None:
     assert payload["error"]["code"] == "DOMAIN_ERROR"
 
 
-def test_e2e_rejects_create_issue_on_gate_failure(client: TestClient) -> None:
-    story_1 = _create_story(
+def test_e2e_story_first_boundary_and_min_stories_gate(client: TestClient) -> None:
+    _create_story(
         client,
         external_user_id="e2e-user-3",
         text="Single story is not enough for promotion gate baseline.",
     )
-    story_2 = _create_story(
-        client,
-        external_user_id="e2e-user-4",
-        text="Second story exists but readiness score is still too low.",
-    )
+    deps = get_api_dependencies()
+    projection_store = deps.story_cluster_orchestrator.issue_create_service.issue_projection_store
+    assert projection_store is not None
+    rows_before = getattr(projection_store, "_rows")
+    assert rows_before == {}
 
-    response = client.post(
-        "/issues",
-        json={
-            "cluster_id": "cluster-e2e-2",
-            "story_ids": [story_1, story_2],
-            "readiness_score": 10,
-            "title": "Low-readiness candidate should fail",
-        },
-        headers={"x-trace-id": "trace-e2e-gate-fail"},
-    )
-
-    assert response.status_code == 400
-    payload = response.json()
-    assert payload["trace_id"] == "trace-e2e-gate-fail"
-    assert payload["error"]["code"] == "DOMAIN_ERROR"
-    assert "Promotion gates failed" in payload["error"]["message"]
+    response = client.post("/issues", json={"cluster_id": "manual"})
+    assert response.status_code == 404

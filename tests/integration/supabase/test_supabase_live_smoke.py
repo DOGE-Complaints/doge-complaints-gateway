@@ -18,3 +18,4 @@ def test_supabase_connectivity_and_schema() -> None:
     db = SupabaseDatabase.from_url(_require_live_dsn())
     assert db.healthcheck() is True
     assert db.required_tables_ready() is True
+    assert db.required_columns_ready() is True

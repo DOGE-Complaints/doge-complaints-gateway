@@ -4,7 +4,24 @@ from core.application import StoryPromotionProjectionBridge
 from core.application.services import StoryIntakeService
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
-from core.projection import SpaIssueStatus
+from core.projection import I18nText, SpaIssueStatus, StoryProjectionDraft
+
+
+class _CustomPolicy:
+    def build_draft(
+        self,
+        *,
+        promoted_title: str,
+        aggregate_text: str,
+    ) -> StoryProjectionDraft:
+        return StoryProjectionDraft(
+            issue_type="SERVICE_REQUEST",
+            labels=("district",),
+            title=I18nText(et=promoted_title, ru=promoted_title, en=promoted_title),
+            summary=I18nText(et="custom-summary", ru="custom-summary", en="custom-summary"),
+            description=I18nText(et=aggregate_text, ru=aggregate_text, en=aggregate_text),
+            policy_version="test.custom-policy.v1",
+        )
 
 
 def test_bridge_builds_projection_input_from_story_records() -> None:
@@ -97,3 +114,39 @@ def test_bridge_derivation_rules_are_deterministic_for_type_and_labels() -> None
 
     assert projection_input.issue_type == "INCIDENT"
     assert "safety" in projection_input.labels
+
+
+def test_bridge_supports_pluggable_projection_policy_boundary() -> None:
+    story_repository = InMemoryStoryRepository()
+    intake_service = StoryIntakeService(
+        repository=story_repository,
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        geo_service=None,
+    )
+    story = intake_service.create_story(
+        parse_story_intake_request(
+            {
+                "schema_version": INTAKE_SCHEMA_VERSION,
+                "submitter": {"external_user_id": "u-custom"},
+                "narrative": {
+                    "original_text": "District services need predictable scheduling.",
+                    "language": "en",
+                    "title_hint": "Service schedule",
+                },
+            }
+        )
+    )
+
+    bridge = StoryPromotionProjectionBridge(
+        story_repository=story_repository,
+        extraction_policy=_CustomPolicy(),
+    )
+    projection_input = bridge.build_projection_input(
+        issue_id="issue-custom-policy",
+        promoted_title="Service schedule",
+        story_ids=(story.story_id,),
+    )
+
+    assert projection_input.issue_type == "SERVICE_REQUEST"
+    assert projection_input.labels == ("district",)
+    assert projection_input.summary.en == "custom-summary"

@@ -23,9 +23,11 @@ class Submitter:
 @dataclass(frozen=True)
 class Narrative:
     original_text: str
-    language: str | None = None
-    title_hint: str | None = None
+    language: str
+    title_hint: str
     location_query: str | None = None
+    canonical_type: str | None = None
+    canonical_labels: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -116,13 +118,16 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
     original_text = _require_non_empty_string(
         narrative_payload, "original_text", parent="narrative"
     )
-    language_raw = narrative_payload.get("language")
-    title_hint_raw = narrative_payload.get("title_hint")
-    language = language_raw.strip() if isinstance(language_raw, str) and language_raw.strip() else None
-    title_hint = (
-        title_hint_raw.strip()
-        if isinstance(title_hint_raw, str) and title_hint_raw.strip()
-        else None
+    language_raw = _require_non_empty_string(
+        narrative_payload, "language", parent="narrative"
+    )
+    language = language_raw.lower()
+    if language not in {"et", "ru", "en"}:
+        raise IntakeValidationError(
+            "Missing or invalid narrative.language. Supported values: et, ru, en."
+        )
+    title_hint = _require_non_empty_string(
+        narrative_payload, "title_hint", parent="narrative"
     )
     location_query_raw = narrative_payload.get("location_query")
     location_query = (
@@ -130,6 +135,27 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         if isinstance(location_query_raw, str) and location_query_raw.strip()
         else None
     )
+    canonical_type_raw = narrative_payload.get("canonical_type")
+    canonical_type = (
+        canonical_type_raw.strip()
+        if isinstance(canonical_type_raw, str) and canonical_type_raw.strip()
+        else None
+    )
+    canonical_labels_raw = narrative_payload.get("canonical_labels")
+    canonical_labels: tuple[str, ...] = ()
+    if canonical_labels_raw is not None:
+        if not isinstance(canonical_labels_raw, list):
+            raise IntakeValidationError(
+                "Missing or invalid narrative.canonical_labels. Expected array."
+            )
+        normalized_labels: list[str] = []
+        for idx, label in enumerate(canonical_labels_raw):
+            if not isinstance(label, str) or not label.strip():
+                raise IntakeValidationError(
+                    f"Missing or invalid narrative.canonical_labels[{idx}]."
+                )
+            normalized_labels.append(label.strip().lower())
+        canonical_labels = tuple(dict.fromkeys(normalized_labels))
 
     origin_payload = payload.get("origin")
     origin: Origin | None = None
@@ -191,6 +217,8 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
             language=language,
             title_hint=title_hint,
             location_query=location_query,
+            canonical_type=canonical_type,
+            canonical_labels=canonical_labels,
         ),
         origin=origin,
         privacy=privacy,

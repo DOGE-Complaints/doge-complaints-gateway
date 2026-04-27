@@ -94,6 +94,8 @@ def readiness_score_for_cluster(
 
 @dataclass(frozen=True)
 class ClusteringEngine:
+    active_lenses: tuple[ClusterLens, ...] = CANONICAL_LENSES
+
     def build_view(
         self, *, lens: ClusterLens, profiles: tuple[StoryProfileSignals, ...], mode: ClusteringMode
     ) -> ClusterView:
@@ -135,7 +137,7 @@ class ClusteringEngine:
     def memberships(self, profiles: tuple[StoryProfileSignals, ...]) -> dict[str, dict[str, str]]:
         """Map story_id -> {lens: cluster_id} for all canonical lenses."""
         result: dict[str, dict[str, str]] = {}
-        for lens in CANONICAL_LENSES:
+        for lens in self.active_lenses:
             view = self.build_view(lens=lens, profiles=profiles, mode=ClusteringMode.ANALYTIC)
             for cluster in view.clusters:
                 for member in cluster.members:

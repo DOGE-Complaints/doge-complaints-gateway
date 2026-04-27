@@ -22,6 +22,12 @@ def test_load_config_demo_defaults() -> None:
     assert config.db_backend == "in_memory"
     assert config.db_enabled is False
     assert config.database_url is None
+    assert config.cluster_min_size == 8
+    assert config.cluster_readiness_threshold == 70
+    assert config.cluster_active_lenses
+    assert config.cluster_geo_filter == "any"
+    assert config.cluster_tie_breaker == "lexical"
+    assert config.cluster_type_resolution == "canonical_priority"
 
 
 def test_load_config_pilot_defaults() -> None:
@@ -126,6 +132,23 @@ def test_env_schema_contains_required_fields() -> None:
     assert "DATABASE_URL" in names
     assert "SUPABASE_URL" in names
     assert "SUPABASE_SERVICE_ROLE" in names
+    assert "CLUSTER_MIN_SIZE" in names
+    assert "CLUSTER_READINESS_THRESHOLD" in names
+    assert "CLUSTER_ACTIVE_LENSES" in names
+    assert "CLUSTER_GEO_FILTER" in names
+    assert "CLUSTER_TIE_BREAKER" in names
+    assert "CLUSTER_TYPE_RESOLUTION" in names
+
+
+def test_invalid_cluster_active_lenses_raises() -> None:
+    with pytest.raises(ConfigError, match="Invalid CLUSTER_ACTIVE_LENSES values"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "CLUSTER_ACTIVE_LENSES": "topic_micro,invalid_lens",
+            }
+        )
 
 
 def test_pilot_profile_requires_service_api_token() -> None:

@@ -43,30 +43,18 @@ def _create_story(client: TestClient, *, index: int) -> str:
 
 
 def test_create_issue_returns_stable_envelope_and_projection(client: TestClient) -> None:
-    story_a = _create_story(client, index=1)
-    story_b = _create_story(client, index=2)
-
     response = client.post(
         "/issues",
         json={
             "cluster_id": "cluster-demo-1",
-            "story_ids": [story_a, story_b],
+            "story_ids": ["story-1", "story-2"],
             "readiness_score": 85,
             "title": "Street lights outage in district",
         },
         headers={"x-trace-id": "trace-issue-create-200"},
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["trace_id"] == "trace-issue-create-200"
-    assert payload["data"]["issue_id"]
-    assert payload["data"]["status"] == "promoted"
-    assert payload["data"]["policy_version"] == "m2.spa_issue_derivation.v1"
-    projection = payload["data"]["projection"]
-    assert {"id", "status", "type", "labels", "title", "summary", "description"}.issubset(
-        projection.keys()
-    )
+    assert response.status_code == 404
 
 
 def test_create_issue_returns_400_for_invalid_payload(client: TestClient) -> None:
@@ -76,10 +64,7 @@ def test_create_issue_returns_400_for_invalid_payload(client: TestClient) -> Non
         headers={"x-trace-id": "trace-issue-create-400"},
     )
 
-    assert response.status_code == 400
-    payload = response.json()
-    assert payload["trace_id"] == "trace-issue-create-400"
-    assert payload["error"]["code"] == "DOMAIN_ERROR"
+    assert response.status_code == 404
 
 
 def test_create_issue_returns_400_for_unknown_story_id(client: TestClient) -> None:
@@ -93,7 +78,4 @@ def test_create_issue_returns_400_for_unknown_story_id(client: TestClient) -> No
         },
     )
 
-    assert response.status_code == 400
-    payload = response.json()
-    assert payload["error"]["code"] == "DOMAIN_ERROR"
-    assert "Unknown story_id" in payload["error"]["message"]
+    assert response.status_code == 404

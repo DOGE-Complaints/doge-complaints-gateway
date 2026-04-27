@@ -36,15 +36,16 @@ class _DummyIntakeService:
 
 
 @dataclass(frozen=True)
-class _DummyIssueCreateService:
-    pass
+class _DummyStoryClusterOrchestrator:
+    def process_story(self, story_id: str) -> None:
+        return None
 
 
 def _deps_base() -> dict[str, Any]:
     return {
         "health_service": _ok_health_service(),
         "story_intake_service": cast(Any, _DummyIntakeService()),
-        "issue_create_service": cast(Any, _DummyIssueCreateService()),
+        "story_cluster_orchestrator": cast(Any, _DummyStoryClusterOrchestrator()),
         "metrics": ApiMetrics(),
     }
 

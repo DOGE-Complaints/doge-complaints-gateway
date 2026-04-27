@@ -6,11 +6,9 @@ from core.application.issue_create import (
     IssueCreateCommand,
     IssueCreateService,
     StoryPromotionProjectionBridge,
-    _derive_issue_type,
-    _derive_labels,
 )
 from core.infrastructure.repositories import InMemoryStoryRepository
-from core.projection import IssueProjectionService
+from core.projection import DeterministicStoryToProjectionPolicy, IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.service import PromotionStateError
 from core.promotion.gates import PromotionGatePolicy
@@ -46,18 +44,19 @@ def test_issue_create_rejects_whitespace_story_ids() -> None:
 
 
 def test_derive_labels_is_deterministic_and_unique() -> None:
-    labels = _derive_labels(
-        "Danger in district road",
-        "road road safety safety district infrastructure",
+    draft = DeterministicStoryToProjectionPolicy().build_draft(
+        promoted_title="Danger in district road",
+        aggregate_text="road road safety safety district infrastructure",
     )
+    labels = draft.labels
     assert labels == tuple(dict.fromkeys(labels))
     assert "safety" in labels
     assert "district" in labels
 
 
 def test_derive_issue_type_defaults_to_improvement() -> None:
-    issue_type = _derive_issue_type(
-        "Community feedback",
-        "We would like to improve the park lighting experience.",
+    draft = DeterministicStoryToProjectionPolicy().build_draft(
+        promoted_title="Community feedback",
+        aggregate_text="We would like to improve the park lighting experience.",
     )
-    assert issue_type == "IMPROVEMENT"
+    assert draft.issue_type == "IMPROVEMENT"

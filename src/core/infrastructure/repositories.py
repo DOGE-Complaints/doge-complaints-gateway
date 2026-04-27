@@ -36,6 +36,10 @@ class InMemoryStoryRepository:
         assert self._records is not None
         return self._records.get(story_id)
 
+    def list_stories(self) -> list[StoryRecord]:
+        assert self._records is not None
+        return list(self._records.values())
+
 
 @dataclass
 class InMemoryIdempotencyRepository:
@@ -96,6 +100,7 @@ class InMemoryStoryEmbeddingStore:
         model_name: str,
         embedding_vector: tuple[float, ...],
         source_checksum: str,
+        embedding_policy_version: str,
     ) -> None:
         assert self._rows is not None
         self._rows.append(
@@ -104,6 +109,7 @@ class InMemoryStoryEmbeddingStore:
                 "model_name": model_name,
                 "embedding_vector": tuple(embedding_vector),
                 "source_checksum": source_checksum,
+                "embedding_policy_version": embedding_policy_version,
                 "created_at": datetime.now(UTC),
             }
         )
@@ -150,6 +156,7 @@ class InMemoryIssueProjectionEmbeddingStore:
         model_name: str,
         embedding_vector: tuple[float, ...],
         source_checksum: str,
+        embedding_policy_version: str,
     ) -> None:
         assert self._rows is not None
         self._rows.append(
@@ -158,7 +165,27 @@ class InMemoryIssueProjectionEmbeddingStore:
                 "model_name": model_name,
                 "embedding_vector": tuple(embedding_vector),
                 "source_checksum": source_checksum,
+                "embedding_policy_version": embedding_policy_version,
                 "created_at": datetime.now(UTC),
             }
         )
+
+
+@dataclass
+class InMemoryIssueStoryLinkStore:
+    _rows: dict[str, tuple[str, tuple[str, ...]]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = {}
+
+    def save_issue_story_links(
+        self,
+        *,
+        issue_id: str,
+        cluster_id: str,
+        story_ids: tuple[str, ...],
+    ) -> None:
+        assert self._rows is not None
+        self._rows[issue_id] = (cluster_id, tuple(story_ids))
 

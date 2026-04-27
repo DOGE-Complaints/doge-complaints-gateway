@@ -93,6 +93,43 @@ def test_parse_story_intake_request_requires_narrative_original_text() -> None:
         )
 
 
+def test_parse_story_intake_request_requires_narrative_language() -> None:
+    with pytest.raises(IntakeValidationError, match="narrative.language"):
+        parse_story_intake_request(
+            {
+                "schema_version": INTAKE_SCHEMA_VERSION,
+                "submitter": {"external_user_id": "opaque-user-123"},
+                "narrative": {"original_text": "text", "title_hint": "title"},
+            }
+        )
+
+
+def test_parse_story_intake_request_rejects_unsupported_language() -> None:
+    with pytest.raises(IntakeValidationError, match="Supported values: et, ru, en"):
+        parse_story_intake_request(
+            {
+                "schema_version": INTAKE_SCHEMA_VERSION,
+                "submitter": {"external_user_id": "opaque-user-123"},
+                "narrative": {
+                    "original_text": "text",
+                    "language": "de",
+                    "title_hint": "title",
+                },
+            }
+        )
+
+
+def test_parse_story_intake_request_requires_narrative_title_hint() -> None:
+    with pytest.raises(IntakeValidationError, match="narrative.title_hint"):
+        parse_story_intake_request(
+            {
+                "schema_version": INTAKE_SCHEMA_VERSION,
+                "submitter": {"external_user_id": "opaque-user-123"},
+                "narrative": {"original_text": "text", "language": "en"},
+            }
+        )
+
+
 def test_build_story_intake_response_contract_shape() -> None:
     payload = build_story_intake_response(
         story_id="story-001",
@@ -115,8 +152,31 @@ def test_parse_story_intake_request_rejects_non_boolean_privacy_fields() -> None
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
                 "submitter": {"external_user_id": "opaque-user-123"},
-                "narrative": {"original_text": "text"},
+                "narrative": {
+                    "original_text": "text",
+                    "language": "en",
+                    "title_hint": "title",
+                },
                 "privacy": {"contains_pii": "yes"},
             }
         )
+
+
+def test_parse_story_intake_request_normalizes_canonical_fields() -> None:
+    request = parse_story_intake_request(
+        {
+            "schema_version": INTAKE_SCHEMA_VERSION,
+            "submitter": {"external_user_id": "opaque-user-123"},
+            "narrative": {
+                "original_text": "text",
+                "language": "EN",
+                "title_hint": "title",
+                "canonical_type": " complaint ",
+                "canonical_labels": ["Road", "Road", " Safety "],
+            },
+        }
+    )
+    assert request.narrative.language == "en"
+    assert request.narrative.canonical_type == "complaint"
+    assert request.narrative.canonical_labels == ("road", "safety")
 

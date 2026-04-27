@@ -122,7 +122,11 @@ def test_lineage_story_ids_allow_fetching_submitter_identity() -> None:
                 "external_user_id": "author-1",
                 "identity_issuer": "idp://partner",
             },
-            "narrative": {"original_text": "Story for lineage proof."},
+            "narrative": {
+                "original_text": "Story for lineage proof.",
+                "language": "en",
+                "title_hint": "Lineage proof story",
+            },
         }
     )
     story = intake_service.create_story(req)

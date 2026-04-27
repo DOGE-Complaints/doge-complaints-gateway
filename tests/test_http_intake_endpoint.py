@@ -45,7 +45,7 @@ def test_intake_stories_endpoint_returns_success_envelope(client: TestClient) ->
     assert payload["trace_id"] == "trace-intake-200"
     assert payload["data"]["schema_version"] == "m2.story_intake_response.v1"
     assert payload["data"]["story_id"]
-    assert payload["data"]["status"] in {"partial_ready", "ready_for_profile"}
+    assert payload["data"]["status"] == "ready_for_profile"
 
 
 def test_intake_stories_endpoint_returns_400_for_validation_error(

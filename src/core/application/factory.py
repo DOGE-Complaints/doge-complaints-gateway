@@ -4,10 +4,11 @@ from typing import Protocol
 
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
 from core.application.issue_create import IssueCreateService
+from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.cluster import ClusteringEngine
 from core.evidence import EvidencePackService
 from core.geo import GeoService
-from core.projection import IssueProjectionService
+from core.projection import IssueProjectionService, StoryToProjectionPolicy
 from core.promotion import IssuePromotionService
 from core.config import AppConfig
 
@@ -44,6 +45,10 @@ class ServiceFactory(Protocol):
         """Build and return SPA issue projection service."""
         ...
 
+    def get_story_projection_policy(self) -> StoryToProjectionPolicy:
+        """Build and return story->projection policy boundary implementation."""
+        ...
+
     def get_evidence_pack_service(self) -> EvidencePackService:
         """Build and return evidence pack / lineage service."""
         ...
@@ -54,5 +59,9 @@ class ServiceFactory(Protocol):
 
     def get_issue_create_service(self) -> IssueCreateService:
         """Build and return issue create orchestration service."""
+        ...
+
+    def get_story_cluster_orchestrator(self) -> StoryClusterOrchestrator:
+        """Build and return story-first cluster->issue orchestrator."""
         ...
 

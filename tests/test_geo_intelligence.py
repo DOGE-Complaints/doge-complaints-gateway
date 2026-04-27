@@ -66,6 +66,8 @@ def test_intake_attaches_geo_when_location_query_present() -> None:
             "submitter": {"external_user_id": "u1"},
             "narrative": {
                 "original_text": "Issue in capital",
+                "language": "en",
+                "title_hint": "Issue in capital",
                 "location_query": "Tallinn",
             },
         }

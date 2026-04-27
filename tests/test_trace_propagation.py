@@ -27,15 +27,16 @@ class _DummyIntakeService:
 
 
 @dataclass(frozen=True)
-class _DummyIssueCreateService:
-    pass
+class _DummyStoryClusterOrchestrator:
+    def process_story(self, story_id: str) -> None:
+        return None
 
 
 def _deps_kwargs(health_service: Any) -> dict[str, Any]:
     return {
         "health_service": health_service,
         "story_intake_service": _DummyIntakeService(),
-        "issue_create_service": _DummyIssueCreateService(),
+        "story_cluster_orchestrator": _DummyStoryClusterOrchestrator(),
     }
 
 

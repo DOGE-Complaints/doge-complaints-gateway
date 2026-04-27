@@ -44,6 +44,10 @@ class StoryRecord:
     lifecycle_status: StoryLifecycleStatus
     created_at: datetime
     updated_at: datetime
+    narrative_language: str | None = None
+    narrative_title_hint: str | None = None
+    narrative_canonical_type: str | None = None
+    narrative_canonical_labels: tuple[str, ...] = ()
     geo: StoryGeoSnapshot | None = None
     origin_source: str | None = None
     origin_conversation_id: str | None = None
@@ -58,6 +62,9 @@ class StoryRepository(Protocol):
 
     def get_story(self, story_id: str) -> StoryRecord | None:
         """Fetch a story record by id."""
+
+    def list_stories(self) -> list[StoryRecord]:
+        """List all persisted stories."""
 
 
 @dataclass(frozen=True)

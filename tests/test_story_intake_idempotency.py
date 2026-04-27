@@ -9,7 +9,11 @@ def _request() -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
         "submitter": {"external_user_id": "opaque-abc"},
-        "narrative": {"original_text": "Water leakage observed near public square."},
+        "narrative": {
+            "original_text": "Water leakage observed near public square.",
+            "language": "en",
+            "title_hint": "Water leakage report",
+        },
     }
 
 

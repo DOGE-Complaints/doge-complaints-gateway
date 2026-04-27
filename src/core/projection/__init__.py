@@ -6,6 +6,13 @@ from core.projection.mapper import apply_summary_fallback, project_distinct_issu
 from core.projection.policy import PROJECTION_POLICY_VERSION
 from core.projection.service import IssueProjectionService
 from core.projection.validation import ProjectionContractError, validate_governed_enums
+from core.projection.extraction_policy import (
+    EXTRACTION_POLICY_VERSION,
+    DeterministicStoryToProjectionPolicy,
+    StoryProjectionDraft,
+    StoryToProjectionPolicy,
+    build_projection_input_from_draft,
+)
 
 __all__ = [
     "I18nText",
@@ -16,6 +23,11 @@ __all__ = [
     "SpaLabel",
     "IssueProjectionService",
     "PROJECTION_POLICY_VERSION",
+    "EXTRACTION_POLICY_VERSION",
+    "StoryProjectionDraft",
+    "StoryToProjectionPolicy",
+    "DeterministicStoryToProjectionPolicy",
+    "build_projection_input_from_draft",
     "ProjectionContractError",
     "apply_summary_fallback",
     "project_distinct_issue",

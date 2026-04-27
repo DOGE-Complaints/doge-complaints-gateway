@@ -5,6 +5,7 @@ from core.application.issue_create import (
     IssueCreateService,
     StoryPromotionProjectionBridge,
 )
+from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
 from core.application.factory import ServiceFactory
 
@@ -14,6 +15,7 @@ __all__ = [
     "IssueCreateCommand",
     "IssueCreateResult",
     "IssueCreateService",
+    "StoryClusterOrchestrator",
     "ServiceFactory",
     "SignalProfileService",
     "StoryIntakeService",

@@ -66,12 +66,14 @@ def test_story_intake_service_supports_readiness_transitions() -> None:
             "submitter": {"external_user_id": "user-opaque-42"},
             "narrative": {
                 "original_text": "Needs clarification later.",
+                "language": "en",
+                "title_hint": "Needs clarification",
             },
         }
     )
 
     saved = service.create_story(request)
-    assert saved.lifecycle_status == StoryLifecycleStatus.PARTIAL_READY
+    assert saved.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE
 
     advanced = service.advance_story_readiness(
         story_id=saved.story_id, narrative_complete=True
