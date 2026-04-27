@@ -10,10 +10,10 @@
 
 ## Запуск локального сервера (as-is)
 
-В проекте используется ASGI entrypoint на `FastAPI` + `uvicorn`:
+В проекте используется ASGI entrypoint на `FastAPI` + единый `uvicorn` подход:
 
 - `src/core/api/asgi_app.py`
-- запуск: `python3 -m core.api.asgi_app`
+- запуск: `python -m uvicorn --app-dir src core.api.asgi_app:app`
 
 Он обслуживает:
 
@@ -39,7 +39,7 @@ cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
-python -m pip install -e .[dev]
+python -m pip install -e '.[dev]'
 ```
 
 ## 3) Переменные окружения
@@ -83,10 +83,10 @@ export SERVICE_API_TOKEN=pilot-secret-token
 
 ### 4.1 Установка dev-зависимостей (исправляет `No module named pytest`)
 
-Если получаете ошибку `No module named pytest`, установите dev extras в активное venv:
+Если получаете ошибку `No module named pytest` или `No module named uvicorn`, установите зависимости в активное venv:
 
 ```bash
-python -m pip install -e .[dev]
+python -m pip install -e '.[dev]'
 ```
 
 ### 4.2 Запуск сервера
@@ -94,15 +94,7 @@ python -m pip install -e .[dev]
 ```bash
 cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
 source .venv/bin/activate
-python3 -m core.api.asgi_app
-```
-
-Альтернатива через `uvicorn` напрямую:
-
-```bash
-cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
-source .venv/bin/activate
-uvicorn core.api.asgi_app:app --host 127.0.0.1 --port 8000
+python -m uvicorn --app-dir src core.api.asgi_app:app --host 127.0.0.1 --port 8000
 ```
 
 ### 4.3 Как задается порт запуска
@@ -111,7 +103,7 @@ uvicorn core.api.asgi_app:app --host 127.0.0.1 --port 8000
 
 ```bash
 export PORT=8010
-python3 -m core.api.asgi_app
+python -m uvicorn --app-dir src core.api.asgi_app:app --host 127.0.0.1 --port "$PORT"
 ```
 
 Если `PORT` не задан, используется `8000`.
@@ -144,7 +136,7 @@ python3 -m pytest tests/test_error_envelope_contract.py tests/test_trace_propaga
 **Проверяемые гипотезы (по убыванию вероятности):**
 
 1. **Нет явного start command** — приложение лежит в `src/core/api/asgi_app.py` (`app`), а не в корневых `app.py` / `main.py`, которые Railpack ищет по умолчанию.
-2. **Неверный bind после запуска** — `python3 -m core.api.asgi_app` по умолчанию берёт `HOST=127.0.0.1` из кода; в контейнере нужен **`0.0.0.0`**, иначе health снаружи не достижим даже при успешном старте.
+2. **Неверный bind после запуска** — в контейнере нужен **`0.0.0.0`**, иначе health снаружи не достижим даже при успешном старте.
 
 **Что сделать:**
 
@@ -152,12 +144,12 @@ python3 -m pytest tests/test_error_envelope_contract.py tests/test_trace_propaga
 - **В UI Railway (Settings):** задайте **Custom Start Command** (аналогично):
 
 ```bash
-PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
+python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
 - **Переменные в Railway (Variables):** как минимум `API_BASE_URL`, при необходимости `APP_PROFILE`, `SERVICE_API_TOKEN`, `REQUEST_TIMEOUT_S` (см. раздел 3 выше). Порт **`PORT`** Railway задаёт сам — не подменяйте вручную, если только не отлаживаете локально.
 
-**Альтернатива без `uvicorn` в команде:** выставить `HOST=0.0.0.0` и оставить `PYTHONPATH=src python3 -m core.api.asgi_app` — тогда слушает адрес из `HOST` (см. `run_asgi_server` в `src/core/api/asgi_app.py`).
+Для консистентности runtime и Railway используйте тот же `uvicorn --app-dir src` формат и локально.
 
 ### 4.8 Railway: ошибка «uvicorn: command not found» и 502 на `/health`
 
@@ -177,7 +169,7 @@ PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${P
 - используем модульный запуск через интерпретатор и явно задаём source-root:
 
 ```bash
-PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
+python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
 Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH и одновременно фиксирует импорт `core.*` из `src`.
@@ -193,6 +185,8 @@ PYTHONPATH=src python -m uvicorn core.api.asgi_app:app --host 0.0.0.0 --port ${P
    - выставить `API_BASE_URL`.
 2. `SERVICE_API_TOKEN is required for APP_PROFILE='pilot' strict auth mode`
    - выставить `SERVICE_API_TOKEN` или вернуться к `APP_PROFILE=demo`.
-3. Импорт `core.*` не резолвится
+3. `zsh: no matches found: .[dev]`
+   - в `zsh` ставить зависимости только в кавычках: `python -m pip install -e '.[dev]'`.
+4. Импорт `core.*` не резолвится
    - запускать команды из корня `doge-complaints-gateway`;
-   - убедиться, что установлено `pip install -e .[dev]`.
+   - использовать `python -m uvicorn --app-dir src core.api.asgi_app:app ...`.

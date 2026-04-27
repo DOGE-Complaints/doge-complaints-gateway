@@ -22,6 +22,9 @@
 - **API boundary: handler-функции + FastAPI transport layer — оба присутствуют**
   - Handler-функции: `src/core/api/handlers.py` (handle_health, handle_readiness, handle_protected_status, handle_metrics, handle_story_intake)
   - FastAPI transport layer: `src/core/api/asgi_app.py` (story-first runtime, без `POST /issues`)
+- **Каноничный runtime start (local + Railway): `python -m uvicorn --app-dir src core.api.asgi_app:app`**
+  - `docs/runtime-docs/server-env-quickstart.md`
+  - `railpack.json`
 - **Единый envelope-контракт success/error + trace**
   - `src/core/api/envelope.py`
   - `tests/test_error_envelope_contract.py`
