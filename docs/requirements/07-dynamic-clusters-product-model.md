@@ -33,3 +33,7 @@
 - мониторинг false merge / false split;
 - review-процедура для reframe;
 - версионирование линз и порогов.
+
+## Demo M2: зафиксированные параметры (после интервью 2026-04-26)
+
+Конкретные пороги, env-driven линзы, правила N:M story–issue и контракт выхода кластера для **demo** вынесены в отдельный SSOT: **`23-m2-demo-story-clustering-interview-ssot-v1.md`** (сверка с `src/core/cluster/engine.py` и promotion/issue-слоем). Этот файл (**07**) остаётся продуктовой рамкой; **23** — операционная детализация demo.

@@ -11,6 +11,8 @@
 
 Аудитория: разработчик GPT-интеграции, backend, архитектор контрактов. Документ согласован с `04-business-entities-model.md`, `09-spa-issue-projection.md`, `10-functional-requirements-system-spec.md`, `11-working-content-model.md`, solution architecture (`04-module-api-and-contract-layer`, `05-module-story-intake-and-store`, `07-module-distinct-issue-and-spa-projection`).
 
+**Связь с demo M2 (интервью 2026-04-26):** продуктовые решения по переходу GPT на `POST /intake/stories`, обязательным полям, отказу от `PARTIAL_READY` при неполном narrative в demo, async extraction и маппингу полей GPT → минимальный runtime-контракт зафиксированы в **`22-m2-demo-story-intake-interview-ssot-v1.md`** вместе с разделом **верификации по текущему коду** (`src/core/intake/contracts.py`, `src/core/domain/contracts.py`, `src/core/application/services.py`, `src/core/api/asgi_app.py`). Критерии кластеризации, пороги из `.env`, контракт выхода кластера и первичность GPT `canonical_type` / `canonical_labels` для issue — в **`23-m2-demo-story-clustering-interview-ssot-v1.md`**. При расхождении описания envelope в этом файле с фактической реализацией gateway для **текущей demo-итерации** сначала сверять код и doc **22** / **23**, затем планировать конвергенцию §4–§7 сюда.
+
 ---
 
 ## 2. Принципы (обязательны к соблюдению в интеграции)

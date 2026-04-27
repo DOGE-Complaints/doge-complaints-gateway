@@ -34,6 +34,10 @@
 ### Контракты интеграции (GPT / API)
 
 - `19-inbound-api-gpt-preprocessing-and-spa-issue-contracts.md` — inbound JSON для Story Intake, препроцессинг GPT, «живая» история, черновик SPA-issue (i18n), задел gov-interop.
+- `22-m2-demo-story-intake-interview-ssot-v1.md` — **SSOT решений** по story intake для **demo M2** после интервью 2026-04-26: обязательные поля, async extraction, deprecated `/issues`, маппинг GPT → intake; раздел «as-is» синхронизирован с фактическим кодом `src/core/intake/contracts.py` и `src/core/application/services.py`.
+- `23-m2-demo-story-clustering-interview-ssot-v1.md` — **SSOT решений** по кластеризации stories и выпуску issue из кластера (demo): пороги через `.env`, линзы, geo/tie-breaker/type-resolution, primary GPT canonical type/labels, N:M story–issue, контракт выхода кластера; раздел «as-is» сверен с `src/core/cluster/engine.py`, `src/core/application/issue_create.py`, `src/core/promotion/gates.py`.
+
+**Порядок исполнения gateway (Python) после SSOT 22/23:** operative `ACTIVE_TASK_PATH` — в [`.cursor/plans/Gateway_builder.plan.md`](../../../.cursor/plans/Gateway_builder.plan.md) (раздел «Текущий TASK_BATCH»); не путать с [`.cursor/plans/GPT_builder.plan.md`](../../../.cursor/plans/GPT_builder.plan.md) (репозиторий GPT UI).
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
