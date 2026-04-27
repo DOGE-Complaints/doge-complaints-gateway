@@ -15,8 +15,8 @@
 2. Подтвердить контрактность ключевых payload/error моделей.
 3. Проверить in-process поведение сервисов на happy-path и важных негативных ветках.
 
-Сильная сторона: хорошая дисциплина contract/unit/in-process integration в модульной архитектуре.  
-Ограничение: DB-интеграция пока в основном sqlite-centric, supabase-live bucket еще не является базовым gate.
+Сильная сторона: хорошая дисциплина contract/unit/integration для story-first runtime и transport-boundary.  
+Ограничение: Supabase live bucket остается opt-in (env-dependent), не всегда часть локального default gate.
 
 ### 2) Matrix by type and scope
 
@@ -29,9 +29,16 @@
 | `tests/test_api_security_and_ops.py` | integration (in-process) | API security + metrics | Подтверждает service auth и ops counters |
 | `tests/test_http_transport_smoke.py` | integration (transport HTTP) | FastAPI route policy + envelope/status/content-type | Проверяет реальные HTTP 401/200 и контракты ответа |
 | `tests/test_http_intake_endpoint.py` | integration (transport HTTP) | Intake HTTP binding | Проверяет `POST /intake/stories` (200/400) и envelope/trace behavior |
-| `tests/test_http_issue_create_endpoint.py` | integration (transport HTTP) | Issue create orchestration boundary | Проверяет `POST /issues` и стабильный create envelope + negative cases |
+| `tests/test_http_issue_create_endpoint.py` | integration (transport HTTP) | Story-first API boundary cleanup | Проверяет, что `POST /issues` отсутствует в runtime (`404`) |
 | `tests/test_story_promotion_projection_bridge.py` | integration + contract | application bridge `Story/Promotion -> ProjectionInput` | Подтверждает deterministic mapping и edge-case errors |
-| `tests/test_e2e_intake_create_spa_contract.py` | e2e/contract | intake -> create issue -> SPA payload | Сквозной contract gate между стадиями pipeline |
+| `tests/test_e2e_intake_create_spa_contract.py` | e2e/contract | intake -> cluster/orchestrator -> SPA payload | Сквозной contract gate story-first pipeline без manual issue endpoint, проверка embedding policy marker и linkage store |
+| `tests/test_e2e_story_cluster_issue_pipeline.py` | e2e/contract | story-cluster -> issue materialization | Happy-path story-first pipeline: projection persistence + embedding policy version + issue->stories linkage |
+| `tests/test_db_backed_pipeline_e2e.py` | e2e/integration | DB backend parity (sqlite/supabase-ready wiring) | Проверяет story-first pipeline на DB-backed конфигурации |
+| `tests/test_db_backend_switching.py` | integration | infra/config backend selection | Проверяет корректный switch `in_memory/sqlite/supabase` |
+| `tests/test_process_linkage_sqlite.py` | integration | process linkage persistence | Проверяет SQL persistence `issue_candidates/review_audit_log/issue_story_links` |
+| `tests/test_embedding_policy_versioning.py` | unit/integration | embedding canonicalization/versioning | Проверяет canonical source + policy version для story/issue embeddings |
+| `tests/integration/supabase/test_supabase_live_smoke.py` | integration/live (skip-safe) | Supabase connectivity/readiness | Проверяет live-путь при наличии env и корректных миграций |
+| `tests/integration/supabase/test_spa_projection_supabase_roundtrip.py` | integration/live (skip-safe) | Supabase projection roundtrip | Проверяет сохранение/чтение projection в live Supabase |
 | `tests/test_error_envelope_contract.py` | contract | API envelope taxonomy | Стабильность error envelope |
 | `tests/test_trace_propagation.py` | integration | observability | Trace continuity в success/error path |
 | `tests/test_intake_observability.py` | unit/integration | intake telemetry | Error classification + telemetry |
@@ -58,6 +65,8 @@
   lifecycle/idempotency/profile/promotion/projection/evidence/geo + bridge/e2e pipeline test families
 - **Config and operational baseline confidence**  
   `test_config_loading.py`, `test_api_security_and_ops.py`
+- **DB and persistence confidence**
+  `test_db_backend_switching.py`, `test_db_backed_pipeline_e2e.py`, `test_process_linkage_sqlite.py`, `test_embedding_policy_versioning.py`, `tests/integration/supabase/*`
 
 ### 4) Mocks / stubs / in-memory doubles (и зачем они нужны)
 
@@ -102,27 +111,13 @@
 
 ## Planned target
 
-Для supabase-native волны вводится формальный набор bucket-ов:
-
-- **Unit/API+App bucket** (`TASK-TEST-UNIT-API-APP-01`)
-  - scope: `src/core/api`, `src/core/application`
-  - фокус: handler/orchestration happy-path + error branches через mocks/stubs.
-- **Unit/Infra+Config bucket** (`TASK-TEST-UNIT-INFRA-CONFIG-01`)
-  - scope: `src/core/infrastructure`, `src/core/config`
-  - фокус: backend switching `in_memory/sqlite/supabase`, fail-fast env validation.
-- **Unit/Domain flows bucket** (`TASK-TEST-UNIT-DOMAIN-FLOWS-01`)
-  - scope: `src/core/intake`, `src/core/promotion`, `src/core/projection`
-  - фокус: domain invariants, edge-cases, contract guards.
-- **Integration/live Supabase bucket** (`TASK-TEST-INTEGRATION-SUPABASE-LIVE-01`)
-  - scope: `tests/integration/supabase/`
-  - фокус: migrations + RLS + pipeline `intake -> issues -> projection` на живой БД.
-- **Coverage gate bucket (policy)** (`TASK-TEST-COVERAGE-GATE-01`)
-  - scope: обязательность выполнения всех bucket-ов и фиксация run-summary.
+- Добавить нагрузочные и конкурентные тесты для story-first orchestration под DB-backed режимами.
+- Зафиксировать CI policy для отдельного live-Supabase job.
 
 ## Gaps / risks
 
 - Нет browser-level e2e тестов (пока покрыт только API transport smoke через `TestClient`).
-- Нет завершенного green-run для `tests/integration/supabase` (bucket планируется как обязательный gate).
+- Live Supabase тесты зависят от внешнего окружения и могут быть skip в локальном прогоне.
 - Нет integration тестов real on-chain broadcast/finality path.
 - Нет chaos/failure-injection тестов для rollback runbook.
 
@@ -132,7 +127,5 @@
   `python3 -m pytest tests/test_layer_guardrails.py tests/test_di_service_factory.py tests/test_api_security_and_ops.py tests/test_story_repository_lifecycle.py tests/test_spa_projection.py -q`
 
 - Обязательный supabase-native quality gate (после реализации task wave):
-  - `python3 -m pytest tests -k "api or issue_create or intake" -q`
-  - `python3 -m pytest tests -k "config or provider or service_factory" -q`
-  - `python3 -m pytest tests -k "intake or promotion or projection" -q`
+  - `python3 -m pytest tests/test_db_backend_switching.py tests/test_db_backed_pipeline_e2e.py tests/test_process_linkage_sqlite.py tests/test_embedding_policy_versioning.py -q`
   - `python3 -m pytest tests/integration/supabase -q`

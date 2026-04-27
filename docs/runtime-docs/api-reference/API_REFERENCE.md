@@ -19,6 +19,10 @@ This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
 2. Public/protected policy is declared in route definitions and validated by transport smoke tests.
+3. Demo static routes are also active in the same ASGI process:
+   - `GET /demo/auth-page`
+   - `GET /demo/auth-page/`
+   - `GET /demo/auth-page/styles.css`
 
 ## 3. Authentication Model
 
@@ -85,7 +89,16 @@ Validated in:
 ```json
 {
   "data": {
-    "status": "ready"
+    "status": "ready",
+    "db": {
+      "backend": "supabase",
+      "ready": true,
+      "checks": {
+        "connectivity": true,
+        "schema": true,
+        "policy_probe": true
+      }
+    }
   },
   "trace_id": "trace-ready-1"
 }
@@ -123,6 +136,13 @@ Validated in:
 - **Contract**: `src/core/intake/contracts.py`
 - **HTTP binding state**: implemented — `asgi_app.py:140-152` → `handle_story_intake` (`handlers.py:114-154`)
 - **Schema version**: `m2.story_intake_envelope.v1`
+- **Narrative required fields**:
+  - `narrative.original_text`
+  - `narrative.language` (`et | ru | en`)
+  - `narrative.title_hint`
+- **Narrative optional canonical fields**:
+  - `narrative.canonical_type`
+  - `narrative.canonical_labels` (array of strings)
 - **Submitter identity fields**:
   - `submitter.external_user_id` (required, non-empty string)
   - `submitter.identity_issuer` (optional string)
@@ -178,7 +198,6 @@ Sources:
   - `GET /health`
   - `GET /ready`
   - `POST /intake/stories`
-  - `POST /issues`
 
 ### Planned
 
@@ -195,3 +214,4 @@ For integrators:
 1. Treat `openapi.yaml` as the normative reference format.
 2. Read operation descriptions for runtime-state markers (`as-is` vs `planned`).
 3. Assume only endpoints listed in section 5 are routable today; other endpoints remain planned.
+4. Demo static routes are active and routable in current runtime (`/demo/auth-page*`).

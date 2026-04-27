@@ -45,13 +45,14 @@
 Явно подтверждено, что в текущем runtime отсутствуют:
 
 - real Arweave/on-chain execution,
-- real DB integration/migrations/DDL.
+- production-ready external chain finality pipeline.
 
 Явно подтверждено, что реализовано (не заявлять как "planned"):
 
 - FastAPI ASGI entrypoint с HTTP транспортом (`src/core/api/asgi_app.py`),
-- `POST /intake/stories` и `POST /issues` как активные HTTP-маршруты,
-- transport-level HTTP тесты (`test_http_intake_endpoint.py`, `test_http_issue_create_endpoint.py`, `test_e2e_intake_create_spa_contract.py`).
+- `POST /intake/stories` как активный HTTP-маршрут story-first intake,
+- DB backend switching (`in_memory` / `sqlite` / `supabase`) и SQL migrations в `supabase/migrations`,
+- transport-level HTTP и story-first e2e тесты (`test_http_intake_endpoint.py`, `test_http_issue_create_endpoint.py`, `test_e2e_intake_create_spa_contract.py`, `test_e2e_story_cluster_issue_pipeline.py`).
 
 ### Gate 4: Roadmap traceability
 

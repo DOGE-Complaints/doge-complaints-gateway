@@ -17,7 +17,6 @@
 | GET | `/metrics` | Bearer token | In-process counters |
 | GET | `/demo/auth-page` | public | Demo static page |
 | POST | `/intake/stories` | public | Принять жалобу |
-| POST | `/issues` | public | Создать Issue + SPA projection |
 
 **Auth:** `Authorization: Bearer <token>` или `X-Service-Token: <token>`.  
 При `APP_PROFILE=pilot` — `SERVICE_API_TOKEN` обязателен, иначе fail-fast startup.  
@@ -45,22 +44,25 @@ StoryIntakeRequest {schema_version, submitter, narrative, origin?, privacy?}
                                → PARTIAL_READY (narrative пустой)
 ```
 
-### Issue create flow (`POST /issues`)
+### Story-first issue materialization flow (внутренний orchestrator)
 
 ```
-IssueCreateCommand {cluster_id, story_ids, readiness_score, title}
-  → IssuePromotionService (state machine):
+StoryClusterOrchestrator.process_story(story_id)
+  → ClusteringEngine.memberships() + cluster selection
+  → IssueCreateService (internal application service):
+     IssueCreateCommand {cluster_id, story_ids, readiness_score, title}
+     → IssuePromotionService (state machine):
        DRAFT → submit_for_review (gate check) → READY_FOR_REVIEW
        → start_review → IN_REVIEW
        → record_review(APPROVE) → PROMOTED
 
-  → StoryPromotionProjectionBridge.build_projection_input()
+     → StoryPromotionProjectionBridge.build_projection_input()
        Читает N StoryRecord → агрегирует narratives → выводит:
          issue_type: INCIDENT | SERVICE_REQUEST | IMPROVEMENT
          labels: [infrastructure, safety, waste, district]
          i18n: I18nText{et, ru, en} (сейчас deterministic fallback)
 
-  → IssueProjectionService.project() → SpaIssueProjection
+     → IssueProjectionService.project() → SpaIssueProjection
        → to_public_dict() → {id, status, type, labels, title, summary, description}
 ```
 
@@ -104,7 +106,7 @@ run_asgi_server()
 |------|--------|---------------|
 | `health_service` | `HealthService` | `handle_health` |
 | `story_intake_service` | `StoryIntakeService` | `handle_story_intake` |
-| `issue_create_service` | `IssueCreateService` | `handle_issue_create` |
+| `story_cluster_orchestrator` | `StoryClusterOrchestrator` | `handle_story_intake` (post-intake trigger) |
 | `service_auth` | `ServiceTokenAuth` | все protected routes |
 | `metrics` | `ApiMetrics` | все handlers |
 

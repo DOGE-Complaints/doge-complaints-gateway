@@ -3,93 +3,121 @@
 ## Контекст и управленческий вопрос
 
 Ключевой вопрос:  
-**какова фактическая зрелость persistence-контура сегодня, и что требуется для безопасного перехода от in-memory baseline к real DB без потери контрактной целостности?**
+**какова фактическая зрелость persistence-контура сегодня, и что требуется для безопасного production-hardening без потери story-first контрактов?**
 
 ## Current state (implemented now)
 
-### 1) Фактическая persistence модель runtime
+### 1) Три режима persistence
 
-В текущем `src/core` persistence целиком in-memory:
+Runtime поддерживает три взаимоисключающих backend-режима через `DB_BACKEND`.
 
-- `src/core/infrastructure/repositories.py`
-- `src/core/evidence/repositories.py`
-- `src/core/promotion/repositories.py`
-- `src/core/geo/repositories.py`
+| Режим | `DB_BACKEND` | Класс | Статус |
+|---|---|---|---|
+| In-memory | `in_memory` | `InMemory*` | Stable для unit/integration тестов и демо |
+| SQLite | `sqlite` | `Sqlite*` в `db_sqlite.py` | Stable, авто-DDL (`ensure_schema`) |
+| Supabase/PostgreSQL | `supabase` | `Supabase*` в `db_supabase.py` | Stable для runtime path + readiness probes |
 
-`provide_service_factory()` в `src/core/infrastructure/providers.py` wiring-ит именно эти реализации.
+Источник выбора и wiring: `src/core/infrastructure/providers.py`.
 
-### 2) Что это означает операционно
+### 2) Конфигурация per backend
 
-- Runtime удобен для deterministic тестов и демо-сценариев.
-- Долговременное хранение состояния, recovery после рестарта и транзакционная согласованность отсутствуют.
-- Текущая модель intentionally lightweight и не является production persistence profile.
+Источник: `src/core/config/schema.py`.
 
-### 3) DB connection status (строго по коду)
+- `in_memory`: запрещает `DATABASE_URL`/`SUPABASE_*`
+- `sqlite`: требует `DATABASE_URL` c префиксом `sqlite:///`
+- `supabase`: требует `DATABASE_URL` (`postgresql://`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE`
 
-- В `src/core/config/schema.py` нет DB connection contract (`DATABASE_URL`, pool params).
-- В `src/core` нет SQL/ORM клиентских модулей.
-- `example.env` содержит `DATABASE_URL` и Supabase-related значения, но runtime ядро их напрямую не использует.
+### 3) Реально персистируемые сущности
 
-### 4) Доменные контракты как источник будущей схемы
+#### SQLite (`src/core/infrastructure/db_sqlite.py`)
 
-Минимальный schema candidate формируется из фактических контрактов:
-
-- `StoryRecord`, `IdempotencyRecord`, `SignalProfileRecord` (`src/core/domain/contracts.py`)
-- `EvidencePackRecord` (`src/core/evidence/types.py`)
-- promotion entities (`src/core/promotion/types.py`)
-- geo cache contract (`src/core/geo/repositories.py`)
-
-## Архитектурные последствия и ограничения
-
-- Позитив: in-memory модель обеспечивает быстрый feedback cycle и низкую стоимость изменений в домене.
-- Ограничение: нет durability и transactional semantics; это блокирует production deployment.
-- Критичный момент перехода: сохранить idempotency и immutable audit behavior в SQL-представлении.
-
-## Planned target (migration roadmap)
-
-### 1) DDL/migrations package
-
-Рекомендуемый минимальный набор таблиц:
+`ensure_schema()` создает и использует:
 
 - `stories`
 - `idempotency_keys`
-- `signal_profile_versions`
+- `story_embeddings`
+- `spa_issue_projections`
+- `spa_issue_projection_embeddings`
 - `issue_candidates`
 - `review_audit_log`
-- `evidence_packs`
-- `geo_cache`
+- `issue_story_links`
 
-### 2) SQL-backed repositories (contract compatibility first)
+#### Supabase (`src/core/infrastructure/db_supabase.py` + `supabase/migrations`)
 
-Новые реализации должны сохранить совместимость с текущими protocol/service контрактами:
+Runtime stores реализованы для тех же групп данных:
 
-- `StoryRepository`
-- `IdempotencyRepository`
-- `SignalProfileRepository`
-- `EvidencePackRepository`
-- `IssueCandidateStore` и `ReviewAuditLogRepository`
+- stories/idempotency
+- story embeddings
+- issue projections
+- issue embeddings
+- issue candidates
+- review audit
+- issue->stories linkage
 
-### 3) Config and health integration
+Критичные миграции текущей волны:
 
-- Расширить `AppConfig` (`src/core/config/schema.py`) DB полями.
-- Ввести readiness/health проверки DB connectivity и migration version compatibility.
+- `20260427_1600_story_first_schema_parity.sql`
+- `20260427_1615_spa_issues_dashboard_view.sql`
+- `20260427_1645_process_linkage.sql`
+- `20260427_1655_embedding_policy_version.sql`
 
-### 4) Integration test wave
+### 4) Embeddings и policy versioning
 
-- CRUD + transactional behavior для story/idempotency/profile/evidence/promotion.
-- Race conditions для idempotency uniqueness.
-- Migration up/down проверки на clean database.
+В обоих SQL backend-ах embeddings сохраняются как JSON-vector + checksum + policy version:
+
+- story embeddings: `embedding_policy_version = m2.story_embedding_policy.v1`
+- issue embeddings: `embedding_policy_version = m2.issue_embedding_policy.v1`
+
+Runtime-источники:
+
+- `src/core/application/services.py`
+- `src/core/application/issue_create.py`
+
+### 5) Healthcheck и readiness
+
+`SupabaseDatabase` предоставляет:
+
+- `healthcheck()`
+- `required_tables_ready()`
+- `required_columns_ready()`
+- `service_role_policy_probe()`
+
+Их агрегированный результат публикуется в `GET /ready` через `db.checks`.
 
 ## Gaps / risks
 
-- В текущем runtime нет фактического скрипта создания таблиц; это roadmap deliverable.
-- Без явной migration strategy есть риск расхождения между in-memory semantics и SQL persistence.
-- Особо чувствительные зоны:
-  - versioning `SignalProfileRecord`,
-  - lineage snapshot semantics в evidence,
-  - ordering/immutability review audit trail.
+- Для Supabase используется «новое соединение на операцию», connection pool отсутствует.
+- Нет централизованного retry/backoff слоя для DB adapter операций.
+- Применение Supabase миграций по-прежнему внешнее (CLI/операционный процесс), нет встроенного migration runner в Python runtime.
+- Часть operational checks возвращает `bool` без детального structured error reason.
+
+## Roadmap
+
+### Ближайшие шаги
+
+1. Добавить connection pooling для Supabase backend.
+2. Добавить retry/backoff policy для transient DB ошибок.
+3. Расширить readiness output диагностикой причин деградации (не только bool flags).
+
+### Средний горизонт
+
+4. Формализовать миграционный процесс (preflight + audit trail запуска миграций).
+5. Добавить race-condition integration tests для idempotency/linkage под конкурентной нагрузкой.
+
+### Долгосрочно
+
+6. Ввести performance budget/observability для story-first pipeline на Supabase.
+7. Подготовить migration governance для смены embedding-модели/размерности.
 
 ## Контрольные проверки
 
-- Проверка текущего baseline persistence поведения:
-  - `python3 -m pytest tests/test_story_repository_lifecycle.py tests/test_story_intake_idempotency.py tests/test_signal_profile_enrichment_and_versioning.py tests/test_evidence_pack.py tests/test_issue_promotion_service.py -q`
+```bash
+# Core regression
+python3 -m pytest tests/ -q
+
+# Story-first DB pipeline
+python3 -m pytest tests/test_db_backed_pipeline_e2e.py tests/test_process_linkage_sqlite.py tests/test_embedding_policy_versioning.py -q
+
+# Supabase integration (skip-safe без live env)
+python3 -m pytest tests/integration/supabase/test_supabase_live_smoke.py tests/integration/supabase/test_spa_projection_supabase_roundtrip.py -q
+```

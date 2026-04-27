@@ -17,9 +17,7 @@ tags:
   - name: Ops
     description: Operational endpoints mapped to existing handlers
   - name: Intake
-    description: Intake contract surface (planned HTTP binding)
-  - name: Projection
-    description: SPA projection contract surface (planned HTTP binding)
+    description: Story-first intake contract surface
 components:
   securitySchemes:
     BearerAuth:
@@ -63,11 +61,24 @@ components:
           example: ok
     ReadinessData:
       type: object
-      required: [status]
+      required: [status, db]
       properties:
         status:
           type: string
           example: ready
+        db:
+          type: object
+          required: [backend, ready, checks]
+          properties:
+            backend:
+              type: string
+              examples: [in_memory, sqlite, supabase]
+            ready:
+              type: boolean
+            checks:
+              type: object
+              additionalProperties:
+                type: boolean
     ProtectedStatusData:
       type: object
       required: [service]
@@ -138,19 +149,25 @@ components:
           nullable: true
     Narrative:
       type: object
-      required: [original_text]
+      required: [original_text, language, title_hint]
       properties:
         original_text:
           type: string
         language:
           type: string
-          nullable: true
+          enum: [et, ru, en]
         title_hint:
           type: string
-          nullable: true
         location_query:
           type: string
           nullable: true
+        canonical_type:
+          type: string
+          nullable: true
+        canonical_labels:
+          type: array
+          items:
+            type: string
     Origin:
       type: object
       properties:
@@ -214,65 +231,6 @@ components:
           $ref: '#/components/schemas/StoryIntakeResponseData'
         trace_id:
           type: string
-    IssueCreateRequest:
-      type: object
-      required: [cluster_id, story_ids, readiness_score, title]
-      properties:
-        cluster_id:
-          type: string
-        story_ids:
-          type: array
-          minItems: 1
-          items:
-            type: string
-        readiness_score:
-          type: integer
-        title:
-          type: string
-    IssueCreateResponseData:
-      type: object
-      required: [issue_id, status, projection, policy_version]
-      properties:
-        issue_id:
-          type: string
-        status:
-          type: string
-        policy_version:
-          type: string
-        projection:
-          type: object
-          required: [id, status, type, labels, title, summary, description]
-          properties:
-            id:
-              type: string
-            status:
-              type: string
-            type:
-              type: string
-            labels:
-              type: array
-              items:
-                type: string
-            title:
-              type: object
-              additionalProperties:
-                type: string
-            summary:
-              type: object
-              additionalProperties:
-                type: string
-            description:
-              type: object
-              additionalProperties:
-                type: string
-    SuccessEnvelope_IssueCreate:
-      type: object
-      required: [data, trace_id]
-      properties:
-        data:
-          $ref: '#/components/schemas/IssueCreateResponseData'
-        trace_id:
-          type: string
 paths:
   /health:
     get:
@@ -325,6 +283,13 @@ paths:
                   value:
                     data:
                       status: ready
+                      db:
+                        backend: supabase
+                        ready: true
+                        checks:
+                          connectivity: true
+                          schema: true
+                          policy_probe: true
                     trace_id: trace-ready-1
   /protected/status:
     get:
@@ -432,32 +397,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /issues:
-    post:
-      tags: [Projection]
-      summary: Create issue and return SPA-compatible projection envelope
+  /demo/auth-page:
+    get:
+      tags: [Ops]
+      summary: Return demo auth mock page
       description: |
         Runtime state:
-        - HTTP create issue orchestration is implemented in `src/core/api/asgi_app.py` (`POST /issues`);
-        - orchestration uses application service boundary (`IssueCreateService`), not inline route mapping.
-      operationId: postIssueCreate
-      x-runtime-state: implemented-runtime-binding
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IssueCreateRequest'
+        - as-is behavior is implemented and routable via FastAPI (`GET /demo/auth-page`);
+        - static HTML is served from `demo/auth-page/index.html`.
+      operationId: getDemoAuthPage
+      x-runtime-state: as-is-active-fastapi-route
       responses:
         '200':
-          description: Issue create success envelope
+          description: Demo auth HTML page
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: '#/components/schemas/SuccessEnvelope_IssueCreate'
-        '400':
-          description: Contract or domain validation error
+                type: string
+  /demo/auth-page/styles.css:
+    get:
+      tags: [Ops]
+      summary: Return demo auth page stylesheet
+      description: |
+        Runtime state:
+        - as-is behavior is implemented and routable via FastAPI (`GET /demo/auth-page/styles.css`);
+        - static CSS is served from `demo/auth-page/styles.css`.
+      operationId: getDemoAuthStylesheet
+      x-runtime-state: as-is-active-fastapi-route
+      responses:
+        '200':
+          description: Demo auth CSS
           content:
-            application/json:
+            text/css:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                type: string

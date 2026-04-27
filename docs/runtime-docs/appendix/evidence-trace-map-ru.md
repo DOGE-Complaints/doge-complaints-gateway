@@ -20,8 +20,8 @@
 ## API boundary и envelopes
 
 - **API boundary: handler-функции + FastAPI transport layer — оба присутствуют**
-  - Handler-функции: `src/core/api/handlers.py` (handle_health, handle_readiness, handle_protected_status, handle_metrics, handle_story_intake, handle_issue_create)
-  - FastAPI transport layer: `src/core/api/asgi_app.py` (регистрирует 8 HTTP-маршрутов, связывая handlers с routes)
+  - Handler-функции: `src/core/api/handlers.py` (handle_health, handle_readiness, handle_protected_status, handle_metrics, handle_story_intake)
+  - FastAPI transport layer: `src/core/api/asgi_app.py` (story-first runtime, без `POST /issues`)
 - **Единый envelope-контракт success/error + trace**
   - `src/core/api/envelope.py`
   - `tests/test_error_envelope_contract.py`
@@ -67,6 +67,10 @@
 - **Clustering engine (canonical lenses, readiness scoring, memberships)**
   - `src/core/cluster/engine.py`
   - `tests/test_clustering_engine.py`
+- **Story-first orchestration (intake trigger -> cluster -> issue materialization)**
+  - `src/core/application/story_cluster_orchestrator.py`
+  - `tests/test_e2e_story_cluster_issue_pipeline.py`
+  - `tests/test_e2e_intake_create_spa_contract.py`
 - **Promotion gates и lifecycle candidate**
   - `src/core/promotion/gates.py`
   - `src/core/promotion/service.py`
@@ -74,10 +78,12 @@
   - `tests/test_issue_promotion_service.py`
 - **Projection contract и валидация tx placeholders**
   - `src/core/projection/input.py`
+  - `src/core/projection/extraction_policy.py`
   - `src/core/projection/mapper.py`
   - `src/core/projection/validation.py`
   - `src/core/projection/dto.py`
   - `tests/test_spa_projection.py`
+  - `tests/test_story_promotion_projection_bridge.py`
 
 ## Evidence, geo, adapters
 
@@ -100,12 +106,25 @@
 
 ## DB and operations boundaries
 
-- **В runtime нет real DB integration**
+- **В runtime есть DB integration через backend switching (`in_memory/sqlite/supabase`)**
+  - `src/core/infrastructure/providers.py`
   - `src/core/infrastructure/repositories.py`
-  - `src/core/evidence/repositories.py`
-  - `src/core/promotion/repositories.py`
+  - `src/core/infrastructure/db_sqlite.py`
+  - `src/core/infrastructure/db_supabase.py`
   - `src/core/config/schema.py`
-- **`example.env` содержит Supabase/DB переменные как шаблон, но runtime ядро их не читает напрямую**
+- **Supabase schema и process-linkage/embedding-policy миграции**
+  - `supabase/migrations/20260427_1600_story_first_schema_parity.sql`
+  - `supabase/migrations/20260427_1615_spa_issues_dashboard_view.sql`
+  - `supabase/migrations/20260427_1645_process_linkage.sql`
+  - `supabase/migrations/20260427_1655_embedding_policy_version.sql`
+- **DB и linkage/embedding тестовые доказательства**
+  - `tests/test_db_backend_switching.py`
+  - `tests/test_db_backed_pipeline_e2e.py`
+  - `tests/test_process_linkage_sqlite.py`
+  - `tests/test_embedding_policy_versioning.py`
+  - `tests/integration/supabase/test_supabase_live_smoke.py`
+  - `tests/integration/supabase/test_spa_projection_supabase_roundtrip.py`
+- **`example.env` содержит Supabase/DB переменные как operational шаблон**
   - `example.env`
   - `src/core/config/schema.py`
 

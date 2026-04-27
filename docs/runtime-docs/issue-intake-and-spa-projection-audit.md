@@ -13,206 +13,93 @@
 
 ## 1) Фактический HTTP runtime на текущий момент
 
-В `src/core/api/asgi_app.py` реализованы и активны следующие маршруты:
+В `src/core/api/asgi_app.py` для бизнес-потока активен только `POST /intake/stories`.  
+`POST /issues` отсутствует в runtime surface (проверяется `tests/test_http_issue_create_endpoint.py`).
 
-**GET-роуты (ops + static):**
-- `GET /health`
-- `GET /ready`
-- `GET /protected/status` (auth required)
-- `GET /metrics` (auth required)
-- `GET /demo/auth-page` (static)
-- `GET /demo/auth-page/styles.css` (static)
+## 2) Входная модель данных `StoryIntakeRequest` (as-is)
 
-**POST-роуты (бизнес-эндпоинты):**
-- `POST /intake/stories` → `handle_story_intake` (`src/core/api/handlers.py`)
-- `POST /issues` → `handle_issue_create` (`src/core/api/handlers.py`)
+Контракт задается `parse_story_intake_request()` в `src/core/intake/contracts.py`.
 
-Оба POST-роута реализованы и зарегистрированы в `asgi_app.py` (строки 140–166). Оба входят в `PUBLIC_ROUTES` (строки 25–31) — авторизация не требуется.
+### 2.1 Required поля
 
-## 2) Входная модель данных, которая реально реализована в коде
+- `schema_version = "m2.story_intake_envelope.v1"`
+- `submitter.external_user_id`
+- `narrative.original_text`
+- `narrative.language` (`et | ru | en`)
+- `narrative.title_hint`
 
-Реальный входной контракт определен в `src/core/intake/contracts.py`:
+### 2.2 Optional поля
 
-- `parse_story_intake_request(payload)` -> `StoryIntakeRequest`
-- `INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v1"`
+- `submitter.identity_issuer`
+- `narrative.location_query`
+- `narrative.canonical_type`
+- `narrative.canonical_labels`
+- `origin.*`
+- `privacy.contains_pii`, `privacy.redaction_requested` (strict bool when present)
+- `live_story_context.consistency_notes`
 
-### 2.1 Корневые поля `StoryIntakeRequest`
+## 3) Runtime flow: intake -> cluster -> issue -> projection -> storage
 
-- `schema_version` (required, non-empty `str`, строго равно `m2.story_intake_envelope.v1`)
-- `submitter` (required object)
-- `narrative` (required object)
-- `origin` (optional object)
-- `privacy` (optional object)
-- `live_story_context` (optional object)
+1. API handler: `handle_story_intake()` парсит payload и создает story через `StoryIntakeService`.
+2. `StoryIntakeService.create_story()`:
+   - idempotency check/store,
+   - story persistence (`StoryRepository`),
+   - story embedding persistence (`StoryEmbeddingStore`) c `embedding_policy_version`.
+3. После успешного intake вызывается `StoryClusterOrchestrator.process_story(story_id)`.
+4. Оркестратор вычисляет cluster memberships и при готовности запускает `IssueCreateService.create_issue(...)`.
+5. `IssueCreateService`:
+   - проводит promotion checks,
+   - строит projection draft через `StoryPromotionProjectionBridge` + `StoryToProjectionPolicy`,
+   - materialize SPA projection через `IssueProjectionService`,
+   - сохраняет projection (`IssueProjectionStore`),
+   - сохраняет linkage (`IssueStoryLinkStore`),
+   - сохраняет issue embedding (`IssueProjectionEmbeddingStore`) с policy version.
 
-### 2.2 Детализация полей и валидаций
+## 4) Где формируется SPA projection
 
-#### `submitter`
+Во входном intake payload **нет** готового SPA projection объекта.
 
-- `external_user_id`: required, non-empty `str` (иначе `IntakeValidationError`)
-- `identity_issuer`: optional `str`; пустая строка -> `None`; не-строка -> `None`
+Он формируется только внутри projection stack:
 
-#### `narrative`
+- `src/core/projection/extraction_policy.py`
+- `src/core/projection/input.py`
+- `src/core/projection/service.py`
+- `src/core/projection/dto.py`
 
-- `original_text`: required, non-empty `str` (иначе `IntakeValidationError`)
-- `language`: optional `str`; пустая строка -> `None`; не-строка -> `None`
-- `title_hint`: optional `str`; пустая строка -> `None`; не-строка -> `None`
-- `location_query`: optional `str`; пустая строка -> `None`; не-строка -> `None`
+Итоговый shape для dashboard: `id/status/type/labels/title/summary/description` + optional fields.
 
-#### `origin`
+## 5) Contracts and storage
 
-Если поле передано, оно обязано быть object.
+- Stories: `stories` + `idempotency_keys` + `story_embeddings`
+- Issues: `spa_issue_projections` + `spa_issue_projection_embeddings`
+- Process linkage: `issue_candidates`, `review_audit_log`, `issue_story_links`
+- Supabase read-model для SPA: `issues_dashboard` view
 
-- `source`: optional `str` -> trimmed or `None`
-- `conversation_id`: optional `str` -> trimmed or `None`
-- `tool_call_id`: optional `str` -> trimmed or `None`
+## 6) Достаточность данных для projection
 
-#### `privacy`
+Текущий intake контракт уже содержит минимально нужные поля для deterministic story->issue extraction без дополнительной AI модели на этом этапе:
 
-Если поле передано, оно обязано быть object.
+- narrative text/title/language
+- optional canonical hints (`canonical_type`, `canonical_labels`)
+- submitter/origin/privacy metadata для governance/audit
 
-- `contains_pii`: optional, но если передано, строго `bool`; default `False`
-- `redaction_requested`: optional, но если передано, строго `bool`; default `False`
+Ограничение: качество кластеризации и типизации issue сейчас rule-based и зависит от policy heuristic; это ожидаемое ограничение текущей demo-wave.
 
-Для non-bool значений бросается `IntakeValidationError`.
+## 7) Verification evidence
 
-#### `live_story_context`
+- HTTP boundary: `tests/test_http_intake_endpoint.py`, `tests/test_http_issue_create_endpoint.py`
+- Story-first e2e: `tests/test_e2e_intake_create_spa_contract.py`, `tests/test_e2e_story_cluster_issue_pipeline.py`
+- Projection contract: `tests/test_spa_projection.py`, `tests/test_story_promotion_projection_bridge.py`
+- Embedding/versioning/linkage: `tests/test_embedding_policy_versioning.py`, `tests/test_process_linkage_sqlite.py`
 
-Если поле передано, оно обязано быть object.
-
-- `consistency_notes`: optional `str` -> trimmed or `None`
-
-### 2.3 Нормализация и поведение parser
-
-- `str`-поля режутся через `strip()`;
-- часть optional строковых полей при не-`str` значении не вызывает ошибку, а становится `None`;
-- неизвестные дополнительные поля parser явно не отклоняет.
-
-## 3) Что происходит после intake-парсинга (доменная запись)
-
-Создание доменной сущности делает `StoryIntakeService.create_story(...)` в `src/core/application/services.py`.
-
-Маппинг `StoryIntakeRequest` -> `StoryRecord`:
-
-- генерируется `story_id` (`uuid4`)
-- `schema_version` переносится из request
-- `narrative.original_text` -> `narrative_original_text`
-- `submitter.external_user_id` -> `submitter_external_user_id`
-- `submitter.identity_issuer` -> `submitter_identity_issuer`
-- `origin.*` -> `origin_source` / `origin_conversation_id` / `origin_tool_call_id`
-- `privacy.*` -> `privacy_contains_pii` / `privacy_redaction_requested`
-- `geo` вычисляется через `geo_service.resolve_for_story(location_query)` (если geo_service подключен)
-- начальный статус: `accepted`, затем readiness transition в `partial_ready` или `ready_for_profile`
-
-В `StoryRecord` (см. `src/core/domain/contracts.py`) нет SPA projection-полей вроде `title/summary/labels/type` в формате дашборда.
-
-## 4) Аудит вопроса про SPA projection внутри входной модели
-
-Короткий ответ: **нет**, во входной intake-модели SPA projection-объекта нет.
-
-В `StoryIntakeRequest` отсутствуют:
-
-- `status/type/labels` в SPA-гранулярности;
-- i18n-пакеты `title/summary/description` формата `{et, ru, en}`;
-- поля card-level вида `arweave_txid/image_txid/image_hash`.
-
-То есть SPA-объект не приходит "как есть" во входном payload intake.
-
-## 5) Где формируется SPA-совместимый объект
-
-SPA projection строится отдельным projection-слоем:
-
-- вход: `ProjectionInput` (`src/core/projection/input.py`)
-- маппер: `project_distinct_issue(...)` (`src/core/projection/mapper.py`)
-- сервис: `IssueProjectionService.project(...)` (`src/core/projection/service.py`)
-- выход DTO: `SpaIssueProjection` + `to_public_dict()` (`src/core/projection/dto.py`)
-- проверки контракта: `validate_governed_enums`, `validate_optional_tx_fields` (`src/core/projection/validation.py`)
-
-### 5.1 Вход `ProjectionInput` (что нужно для SPA проекции)
-
-- `issue_id: str`
-- `status: str` (должен быть из `SpaIssueStatus`)
-- `issue_type: str` (должен быть из `SpaIssueType`)
-- `labels: tuple[str, ...]` (каждый label должен быть из `SpaLabel`)
-- `title: I18nText`
-- `summary: I18nText | None`
-- `description: I18nText`
-- optional: `institution`, `created_at`, `arweave_txid`, `image_txid`, `image_hash`
-
-### 5.2 Как строится `SpaIssueProjection`
-
-`project_distinct_issue` делает:
-
-1. валидацию enum-значений (`status`, `issue_type`, `labels`);
-2. валидацию txid полей (запрещены placeholder значения: `fake`, `placeholder`, `todo`, `0x0`, пустая строка);
-3. fallback summary: если `summary` отсутствует или частично пустая по локали, берется соответствующая локаль из `title`;
-4. сборку `SpaIssueProjection`.
-
-`to_public_dict()` возвращает JSON shape для SPA:
-
-- required keys: `id`, `status`, `type`, `labels`, `title`, `summary`, `description`
-- optional keys добавляются только если не `None`.
-
-## 6) Фактическая связка intake → projection в runtime API
-
-По факту текущего кода:
-
-- `handle_story_intake` в `src/core/api/handlers.py` (строки 114–154) вызывает `parse_story_intake_request()` и `build_story_intake_response()` — intake-хэндлер полностью подключён к HTTP-маршруту `POST /intake/stories`;
-- `handle_issue_create` в `src/core/api/handlers.py` (строки 157–207) оркестрирует `IssueCreateService.create_issue()`, который внутри вызывает `StoryPromotionProjectionBridge`, `IssuePromotionService` и `IssueProjectionService`;
-- `IssueProjectionService` активно используется HTTP-роутами через `IssueCreateService`.
-
-Итог:
-
-- end-to-end HTTP pipeline `POST /intake/stories → StoryRecord` реализован;
-- end-to-end HTTP pipeline `POST /issues → promotion → SPA projection → HTTP response` реализован;
-- E2E тест: `tests/test_e2e_intake_create_spa_contract.py` — подтверждает сквозной flow с реальным HTTP transport.
-
-## 7) Тестовые доказательства по контрактам
-
-### Intake-контракт и story create
-
-- `tests/test_story_intake_contract.py`
-  - required поля;
-  - версия схемы;
-  - bool-валидация privacy;
-  - формат envelope ответа intake response builder.
-- `tests/test_story_repository_lifecycle.py`
-  - маппинг intake -> `StoryRecord`;
-  - lifecycle переходы.
-- `tests/test_story_intake_idempotency.py`
-  - поведение `idempotency_key`.
-- `tests/test_geo_intelligence.py`
-  - добавление `geo` при `location_query`.
-
-### SPA projection
-
-- `tests/test_spa_projection.py`
-  - happy path проекции;
-  - fallback summary по локалям;
-  - rejection unknown labels;
-  - rejection placeholder txid;
-  - required keys публичного SPA payload.
-
-### HTTP surface (подтверждение отсутствия POST intake/create в runtime)
-
-- `tests/test_http_transport_smoke.py`
-  - покрывает только `/health`, `/ready`, `/protected/status`, `/metrics`.
-
-## 8) Практический вывод для API входа и SPA модели
-
-1. `POST /intake/stories` — активный HTTP endpoint, принимает `StoryIntakeRequest`, возвращает `story_id` и `lifecycle_status`.
-2. `POST /issues` — активный HTTP endpoint, оркестрирует promotion + projection, возвращает полный SPA-совместимый объект.
-3. SPA dashboard-compatible объект не является частью входного intake payload — он строится отдельно в projection слое из `ProjectionInput`.
-4. Сквозной HTTP pipeline `POST /intake/stories → (story ids) → POST /issues → SPA projection` реализован и покрыт e2e тестом.
-
-## 9) Gap Register (SSOT)
+## 8) Gap Register (SSOT)
 
 | gap_id | Симптом (факт кода) | Статус | Закрыто в |
 |---|---|---|---|
 | GAP-IP-001 | ~~Нет HTTP intake endpoint (`POST /intake/stories`) в runtime~~ | **Closed** | `asgi_app.py:140-152`, `handlers.py:114-154` |
-| GAP-IP-002 | ~~Нет HTTP create issue endpoint~~ | **Closed** | `asgi_app.py:155-166`, `handlers.py:157-207` |
+| GAP-IP-002 | Удален manual HTTP issue-create endpoint в пользу story-first boundary | **Closed** | `asgi_app.py` (без `/issues`), `handlers.py` (без `handle_issue_create`) |
 | GAP-IP-003 | ~~Нет bridge `Story/Promotion -> ProjectionInput`~~ | **Closed** | `application/issue_create.py:38-75` — `StoryPromotionProjectionBridge` |
-| GAP-IP-004 | Нет формализованного версионированного контракта policy заполнения SPA полей (type/labels derivation) | **Planned** | `TASK-SPA-PROJECTION-DATA-01` — policy задана в коде (`DERIVATION_POLICY_VERSION`), но не как внешний контракт |
+| GAP-IP-004 | Нет внешнего (requirements-level) контракта policy заполнения SPA полей (type/labels derivation) | **Planned** | Policy есть в runtime (`EXTRACTION_POLICY_VERSION`), но не вынесен как отдельный продуктовый контракт |
 | GAP-IP-005 | ~~Нет e2e pipeline-контрактов от HTTP intake/create до SPA payload~~ | **Closed** | `tests/test_e2e_intake_create_spa_contract.py` + `tests/test_story_promotion_projection_bridge.py` |
 
 ## 10) Rule: gap ownership and closure

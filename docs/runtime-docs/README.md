@@ -40,8 +40,8 @@
    Вопрос: какую уверенность дает текущий набор тестов и где остаются blind spots.
 5. [Database State and Integration Roadmap](./database-state-and-integration-roadmap.md)  
    Вопрос: каков фактический persistence baseline и что нужно для перехода к real DB.
-6. [Supabase DB Layer Audit and Target State](./supabase-db-layer-audit-and-target-state.md)  
-   Вопрос: что фактически есть по DB/Supabase в текущем runtime и какой целевой контур хранения stories/projections/embeddings.
+6. [Database State and Integration Roadmap](./database-state-and-integration-roadmap.md)  
+   Вопрос: что фактически есть по DB/Supabase в текущем runtime и какой целевой контур хранения stories/projections/embeddings/linkage.
 7. [Operations Playbook](./operations-playbook.md)  
    Вопрос: как запускать и сопровождать текущий runtime, и как готовиться к DB/chain расширениям.
 8. [Quickstart: server/env](./server-env-quickstart.md)  

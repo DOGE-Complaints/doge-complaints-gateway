@@ -21,7 +21,7 @@
 
 Практический смысл: gateway защищает вызовы между сервисами/интеграторами, но не реализует full user auth flow.
 
-Protected/public operation split (as-is, route policy — источник: `asgi_app.py:25-31`):
+Protected/public operation split (as-is, route policy — источник: `asgi_app.py`):
 
 - Protected routes (Bearer token или `X-Service-Token` обязательны):
   - `GET /protected/status`
@@ -30,10 +30,11 @@ Protected/public operation split (as-is, route policy — источник: `asg
   - `GET /health`
   - `GET /ready`
   - `GET /demo/auth-page`
+  - `GET /demo/auth-page/`
+  - `GET /demo/auth-page/styles.css`
   - `POST /intake/stories` ← бизнес-эндпоинт, без auth
-  - `POST /issues` ← бизнес-эндпоинт, без auth
 
-**Примечание:** оба бизнес-эндпоинта (`/intake/stories`, `/issues`) намеренно публичны в текущей модели — service-to-service auth применяется только к ops-маршрутам. В pilot-профиле бизнес-эндпоинты могут быть защищены при необходимости.
+**Примечание:** бизнес-эндпоинт intake (`/intake/stories`) намеренно публичен в текущей модели — service-to-service auth применяется только к ops-маршрутам. В pilot-профиле бизнес-эндпоинт может быть защищен при необходимости.
 
 ### 1.1) User identifier linkage для stories
 
@@ -77,7 +78,13 @@ User identity на уровне доменной истории передаёт
 | `FF_TOKENIZATION_PIPELINE` | `src/core/config/schema.py` | Override pipeline behavior |
 | `LOG_LEVEL` | `src/core/config/schema.py` | Уровень логирования |
 
-### 5) Test evidence
+### 5) Readiness and auth boundary semantics
+
+- `GET /ready` всегда публичный и не требует service token.
+- `GET /protected/status` и `GET /metrics` — единственные маршруты с обязательным service token.
+- В `demo` profile при пустом `SERVICE_API_TOKEN` protected checks de-facto становятся permissive; в `pilot` конфиг не стартует без токена.
+
+### 6) Test evidence
 
 - `tests/test_api_security_and_ops.py`
   - проверяет Bearer/X-Service-Token extraction;
@@ -105,13 +112,13 @@ User identity на уровне доменной истории передаёт
 ## Strict Bearer runbook (current runtime)
 
 1. Для `pilot` обязательно установить `SERVICE_API_TOKEN` (иначе startup config validation завершится ошибкой).
-2. Для `demo` рекомендуемо тоже установить `SERVICE_API_TOKEN`, если нужен строгий режим API gate.
-2. Проверить, что protected вызовы несут `Authorization: Bearer ...` (или `X-Service-Token`):
+2. Для `demo` тоже установить `SERVICE_API_TOKEN`, если нужен строгий режим API gate.
+3. Проверить, что protected вызовы несут `Authorization: Bearer ...` (или `X-Service-Token`):
    - `GET /protected/status`
    - `GET /metrics`
-3. Выполнить контрольные тесты:
+4. Выполнить контрольные тесты:
    - `python3 -m pytest tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_error_envelope_contract.py tests/test_trace_propagation.py tests/test_config_loading.py -q`
-4. Оценить `auth_failures` через `ApiMetrics.alert_contract()` для сигнализации инцидентов.
+5. Оценить `auth_failures` через `ApiMetrics.alert_contract()` для сигнализации инцидентов.
 
 ## Planned target
 
@@ -127,7 +134,7 @@ User identity на уровне доменной истории передаёт
 ## Gaps / risks
 
 - В `demo` профиль всё ещё может работать в auth-disabled режиме при пустом `SERVICE_API_TOKEN`; это допустимо для демо, но рискованно без операционного контроля.
-- Бизнес-эндпоинты (`POST /intake/stories`, `POST /issues`) публичны — это осознанное решение для текущей фазы, но в production-like окружении может потребоваться auth gate.
+- Бизнес-эндпоинт (`POST /intake/stories`) публичен — это осознанное решение для текущей фазы, но в production-like окружении может потребоваться auth gate.
 - Отсутствует отдельный формализованный документ по ротации и аудит-требованиям для сервисных ключей.
 - Нет transport-level rate limiting/WAF логики в текущем `src/core` scope.
 

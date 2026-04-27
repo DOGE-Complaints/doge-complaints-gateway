@@ -23,7 +23,6 @@
 - `GET /metrics` (auth required)
 - `GET /demo/auth-page` (static)
 - `POST /intake/stories` (story intake, public)
-- `POST /issues` (issue create + SPA projection, public)
 
 ## 1) Prerequisites
 
@@ -125,12 +124,11 @@ python3 -m core.api.asgi_app
 - Metrics URL: `http://127.0.0.1:${PORT:-8000}/metrics`
 - Mock auth page URL: `http://127.0.0.1:${PORT:-8000}/demo/auth-page`
 - Story intake URL: `http://127.0.0.1:${PORT:-8000}/intake/stories` (POST)
-- Issue create URL: `http://127.0.0.1:${PORT:-8000}/issues` (POST)
 
 ### 4.5 Базовая проверка boundary/config/auth
 
 ```bash
-python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_config_loading.py tests/test_http_intake_endpoint.py tests/test_http_issue_create_endpoint.py -q
+python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_config_loading.py tests/test_http_intake_endpoint.py tests/test_e2e_story_cluster_issue_pipeline.py -q
 ```
 
 ### 4.6 Расширенная проверка envelope/trace

@@ -13,7 +13,7 @@
 - Demo static boundary (`demo/auth-page`) публикуется отдельными static routes:
   - `GET /demo/auth-page`
   - `GET /demo/auth-page/styles.css`
-- Текущий operating mode: **combined delivery в одном ASGI процессе только для локального/demo контура**.
+- Текущий operating mode: **combined delivery в одном ASGI процессе (API + demo static)**.
 - Target mode (planned): split delivery (отдельный frontend/static host + API runtime).
 
 ### 1) Bootstrap environment (обязательный минимум)
@@ -55,11 +55,18 @@
 - `handle_protected_status` → `GET /protected/status`
 - `handle_metrics` → `GET /metrics`
 - `handle_story_intake` → `POST /intake/stories`
-- `handle_issue_create` → `POST /issues`
+
+Readiness semantics:
+
+- `GET /ready` возвращает `data.status` (`ready`/`degraded`)
+- дополнительно возвращает `data.db`:
+  - `backend`
+  - `ready`
+  - `checks` (словари probe-флагов)
 
 Рекомендуемый smoke/regression набор:
 
-- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_http_intake_endpoint.py tests/test_http_issue_create_endpoint.py tests/test_trace_propagation.py -q`
+- `python3 -m pytest tests/test_bootstrap_smoke.py tests/test_api_security_and_ops.py tests/test_http_transport_smoke.py tests/test_http_intake_endpoint.py tests/test_e2e_story_cluster_issue_pipeline.py tests/test_trace_propagation.py -q`
 
 ### 5) Incident classes и тактика реакции
 
@@ -112,6 +119,6 @@
 
 ## Gaps / risks
 
-- Текущий playbook опирается на in-process handlers/tests, не на полноценный HTTP deployment runtime.
+- Нет отдельного deployment playbook для split delivery (API и static как независимые сервисы).
 - Нет formalized escalation matrix (SRE/on-call ownership).
 - Secret rotation и key audit trails не оформлены как отдельный operational standard.
