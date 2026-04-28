@@ -172,15 +172,7 @@ python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PO
 python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
-В `railpack.json` также зафиксирован install-step, чтобы зависимости из `pyproject.toml` гарантированно попадали в runtime image:
-
-```json
-"steps": {
-  "install": {
-    "commands": ["...", "python -m pip install --upgrade pip", "python -m pip install ."]
-  }
-}
-```
+Install-step в `railpack.json` не задаем вручную: Python provider Railpack сам обрабатывает `pyproject.toml` и устанавливает зависимости автоматически.
 
 И зафиксирована версия Python `3.11`, чтобы не зависеть от изменений дефолта Railpack:
 
@@ -188,11 +180,11 @@ python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PO
 "packages": { "python": "3.11" }
 ```
 
-Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH, фиксирует импорт `core.*` из `src` и закрывает кейс, когда в build/runtime отсутствует установленный пакет `uvicorn`.
+Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH и фиксирует импорт `core.*` из `src`.
 
 **Если после этого останется ошибка:**
 
-- `No module named uvicorn` → подтверждается H3 (проверить install-step/зависимости в build logs);
+- `No module named uvicorn` → подтверждается H3 (проверить, что build использует root с `pyproject.toml`, а install не переопределен кастомным `steps`);
 - `No module named core` → подтверждается H2 (проверить Root Directory сервиса в Railway, должен указывать на `doge-complaints-gateway`).
 
 ## 5) Частые проблемы
