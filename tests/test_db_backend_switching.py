@@ -18,9 +18,6 @@ def test_supabase_backend_uses_supabase_repositories(monkeypatch) -> None:
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("DB_BACKEND", "supabase")
-    monkeypatch.setenv(
-        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
-    )
     monkeypatch.setenv("SUPABASE_URL", "https://demo.supabase.co")
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "service-role-key")
 

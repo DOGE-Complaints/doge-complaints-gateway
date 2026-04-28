@@ -179,7 +179,6 @@ def test_supabase_backend_requires_supabase_contract() -> None:
                 "APP_PROFILE": "demo",
                 "API_BASE_URL": "https://demo.example/api",
                 "DB_BACKEND": "supabase",
-                "DATABASE_URL": "postgresql://postgres:pass@localhost:5432/postgres",
             }
         )
 

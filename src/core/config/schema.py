@@ -354,13 +354,6 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
                 "SUPABASE_URL/SUPABASE_SERVICE_ROLE are not allowed for DB_BACKEND='sqlite'."
             )
     if db_backend == "supabase":
-        if database_url is None or not (
-            database_url.startswith("postgresql://")
-            or database_url.startswith("postgres://")
-        ):
-            raise ConfigError(
-                "DATABASE_URL is required for DB_BACKEND='supabase' and must be postgresql://."
-            )
         if supabase_url is None:
             raise ConfigError(
                 "SUPABASE_URL is required for DB_BACKEND='supabase'."

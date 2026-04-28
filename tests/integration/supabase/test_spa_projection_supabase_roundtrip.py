@@ -8,15 +8,20 @@ import pytest  # pyright: ignore[reportMissingImports]
 from core.infrastructure.db_supabase import SupabaseDatabase, SupabaseIssueProjectionStore
 
 
-def _require_live_dsn() -> str:
-    dsn = os.environ.get("SUPABASE_TEST_DATABASE_URL", "").strip()
-    if not dsn:
-        pytest.skip("SUPABASE_TEST_DATABASE_URL is not configured for live integration.")
-    return dsn
+def _require_live_http_env() -> tuple[str, str]:
+    url = os.environ.get("SUPABASE_TEST_URL", "").strip()
+    key = os.environ.get("SUPABASE_TEST_SERVICE_ROLE", "").strip()
+    if not url or not key:
+        pytest.skip("SUPABASE_TEST_URL/SUPABASE_TEST_SERVICE_ROLE are not configured.")
+    return url, key
 
 
 def test_spa_projection_roundtrip_via_dashboard_view() -> None:
-    db = SupabaseDatabase.from_url(_require_live_dsn())
+    supabase_url, service_role_key = _require_live_http_env()
+    db = SupabaseDatabase.from_http(
+        supabase_url=supabase_url,
+        service_role_key=service_role_key,
+    )
     store = SupabaseIssueProjectionStore(db)
     issue_id = f"test-{uuid4()}"
     store.save_projection(
@@ -32,18 +37,18 @@ def test_spa_projection_roundtrip_via_dashboard_view() -> None:
         },
     )
 
-    with db._connect() as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT issue_id, status, type, title_en
-            FROM public.issues_dashboard
-            WHERE issue_id = %(issue_id)s
-            """,
-            {"issue_id": issue_id},
-        )
-        row = cur.fetchone()
+    rows = db._request(
+        method="GET",
+        path="/rest/v1/issues_dashboard",
+        params={
+            "select": "issue_id,status,type,title_en",
+            "issue_id": db._eq_filter(issue_id),
+            "limit": "1",
+        },
+    )
 
-    assert row is not None
+    assert rows
+    row = rows[0]
     assert row["issue_id"] == issue_id
     assert row["status"] == "promoted"
     assert row["type"] == "improvement"

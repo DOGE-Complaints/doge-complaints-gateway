@@ -9,11 +9,9 @@ from core.domain import IdempotencyRecord, StoryLifecycleStatus, StoryRecord
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
 try:
-    import psycopg  # pyright: ignore[reportMissingImports]
-    from psycopg.rows import dict_row  # pyright: ignore[reportMissingImports]
+    import httpx  # pyright: ignore[reportMissingImports]
 except Exception:  # pragma: no cover - optional dependency in local envs
-    psycopg = None
-    dict_row = None
+    httpx = None
 
 
 def _utcnow() -> datetime:
@@ -26,32 +24,79 @@ def _parse_dt(value: str) -> datetime:
 
 @dataclass
 class SupabaseDatabase:
-    dsn: str
+    base_url: str
+    service_role_key: str
+    timeout_s: float = 15.0
 
     @classmethod
-    def from_url(cls, database_url: str) -> SupabaseDatabase:
-        if not (
-            database_url.startswith("postgresql://")
-            or database_url.startswith("postgres://")
+    def from_http(
+        cls,
+        *,
+        supabase_url: str,
+        service_role_key: str,
+        timeout_s: float = 15.0,
+    ) -> SupabaseDatabase:
+        if not supabase_url.startswith("http://") and not supabase_url.startswith(
+            "https://"
         ):
-            raise ValueError(
-                f"Unsupported database URL for supabase backend: {database_url!r}."
-            )
-        return cls(dsn=database_url)
+            raise ValueError(f"Unsupported SUPABASE_URL: {supabase_url!r}.")
+        if not service_role_key.strip():
+            raise ValueError("SUPABASE_SERVICE_ROLE must be non-empty.")
+        return cls(
+            base_url=supabase_url.rstrip("/"),
+            service_role_key=service_role_key.strip(),
+            timeout_s=timeout_s,
+        )
 
-    def _connect(self) -> Any:
-        if psycopg is None or dict_row is None:
+    def _client(self) -> Any:
+        if httpx is None:
             raise RuntimeError(
-                "Supabase backend requires psycopg. Install dependency: psycopg[binary]."
+                "Supabase HTTP backend requires httpx. Install dependency: httpx."
             )
-        return psycopg.connect(self.dsn, row_factory=dict_row)
+        return httpx.Client(timeout=self.timeout_s)
+
+    def _headers(self, *, prefer: str | None = None) -> dict[str, str]:
+        headers = {
+            "apikey": self.service_role_key,
+            "Authorization": f"Bearer {self.service_role_key}",
+            "Content-Type": "application/json",
+        }
+        if prefer is not None:
+            headers["Prefer"] = prefer
+        return headers
+
+    def _request(
+        self,
+        *,
+        method: str,
+        path: str,
+        params: dict[str, str] | None = None,
+        json_body: Any = None,
+        prefer: str | None = None,
+    ) -> Any:
+        with self._client() as client:
+            response = client.request(
+                method=method,
+                url=f"{self.base_url}{path}",
+                headers=self._headers(prefer=prefer),
+                params=params,
+                json=json_body,
+            )
+        response.raise_for_status()
+        if response.text.strip():
+            return response.json()
+        return None
+
+    def _escape(self, value: str) -> str:
+        return value.replace('"', '\\"')
+
+    def _eq_filter(self, value: str) -> str:
+        return f'eq."{self._escape(value)}"'
 
     def healthcheck(self) -> bool:
         try:
-            with self._connect() as conn, conn.cursor() as cur:
-                cur.execute("SELECT 1 AS ok")
-                row = cur.fetchone()
-                return bool(row and row["ok"] == 1)
+            self._request(method="GET", path="/rest/v1/", params={"limit": "1"})
+            return True
         except Exception:
             return False
 
@@ -67,16 +112,13 @@ class SupabaseDatabase:
             "issue_story_links",
         }
         try:
-            with self._connect() as conn, conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT table_name
-                    FROM information_schema.tables
-                    WHERE table_schema = 'public'
-                    """
+            for table_name in required:
+                self._request(
+                    method="GET",
+                    path=f"/rest/v1/{table_name}",
+                    params={"select": "*", "limit": "1"},
                 )
-                existing = {str(row["table_name"]) for row in cur.fetchall()}
-                return required.issubset(existing)
+            return True
         except Exception:
             return False
 
@@ -99,32 +141,24 @@ class SupabaseDatabase:
             },
         }
         try:
-            with self._connect() as conn, conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT table_name, column_name
-                    FROM information_schema.columns
-                    WHERE table_schema = 'public'
-                    """
+            for table_name, columns in required.items():
+                self._request(
+                    method="GET",
+                    path=f"/rest/v1/{table_name}",
+                    params={"select": ",".join(sorted(columns)), "limit": "1"},
                 )
-                columns_by_table: dict[str, set[str]] = {}
-                for row in cur.fetchall():
-                    table_name = str(row["table_name"])
-                    column_name = str(row["column_name"])
-                    columns_by_table.setdefault(table_name, set()).add(column_name)
-                for table_name, columns in required.items():
-                    if not columns.issubset(columns_by_table.get(table_name, set())):
-                        return False
-                return True
+            return True
         except Exception:
             return False
 
     def service_role_policy_probe(self) -> bool:
         try:
-            with self._connect() as conn, conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) AS rows_count FROM stories")
-                row = cur.fetchone()
-                return bool(row and row["rows_count"] >= 0)
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={"select": "story_id", "limit": "1"},
+            )
+            return True
         except Exception:
             return False
 
@@ -134,39 +168,11 @@ class SupabaseStoryRepository:
     db: SupabaseDatabase
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO stories (
-                    story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                    narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                    submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                    origin_source, origin_conversation_id, origin_tool_call_id,
-                    privacy_contains_pii, privacy_redaction_requested
-                ) VALUES (
-                    %(story_id)s, %(schema_version)s, %(narrative_original_text)s, %(submitter_external_user_id)s,
-                    %(narrative_language)s, %(narrative_title_hint)s, %(narrative_canonical_type)s, %(narrative_canonical_labels_json)s,
-                    %(submitter_identity_issuer)s, %(lifecycle_status)s, %(created_at)s, %(updated_at)s,
-                    %(origin_source)s, %(origin_conversation_id)s, %(origin_tool_call_id)s,
-                    %(privacy_contains_pii)s, %(privacy_redaction_requested)s
-                )
-                ON CONFLICT(story_id) DO UPDATE SET
-                    schema_version = EXCLUDED.schema_version,
-                    narrative_original_text = EXCLUDED.narrative_original_text,
-                    submitter_external_user_id = EXCLUDED.submitter_external_user_id,
-                    narrative_language = EXCLUDED.narrative_language,
-                    narrative_title_hint = EXCLUDED.narrative_title_hint,
-                    narrative_canonical_type = EXCLUDED.narrative_canonical_type,
-                    narrative_canonical_labels_json = EXCLUDED.narrative_canonical_labels_json,
-                    submitter_identity_issuer = EXCLUDED.submitter_identity_issuer,
-                    lifecycle_status = EXCLUDED.lifecycle_status,
-                    updated_at = EXCLUDED.updated_at,
-                    origin_source = EXCLUDED.origin_source,
-                    origin_conversation_id = EXCLUDED.origin_conversation_id,
-                    origin_tool_call_id = EXCLUDED.origin_tool_call_id,
-                    privacy_contains_pii = EXCLUDED.privacy_contains_pii,
-                    privacy_redaction_requested = EXCLUDED.privacy_redaction_requested
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/stories",
+            params={"on_conflict": "story_id"},
+            json_body=[
                 {
                     "story_id": record.story_id,
                     "schema_version": record.schema_version,
@@ -187,28 +193,25 @@ class SupabaseStoryRepository:
                     "origin_tool_call_id": record.origin_tool_call_id,
                     "privacy_contains_pii": record.privacy_contains_pii,
                     "privacy_redaction_requested": record.privacy_redaction_requested,
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
         return record
 
     def get_story(self, story_id: str) -> StoryRecord | None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                       narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                       submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                       origin_source, origin_conversation_id, origin_tool_call_id,
-                       privacy_contains_pii, privacy_redaction_requested
-                FROM stories
-                WHERE story_id = %(story_id)s
-                """,
-                {"story_id": story_id},
-            )
-            row = cur.fetchone()
-        if row is None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/stories",
+            params={
+                "select": "story_id,schema_version,narrative_original_text,submitter_external_user_id,narrative_language,narrative_title_hint,narrative_canonical_type,narrative_canonical_labels_json,submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested",
+                "story_id": self.db._eq_filter(story_id),
+                "limit": "1",
+            },
+        )
+        if not rows:
             return None
+        row = rows[0]
         return StoryRecord(
             story_id=str(row["story_id"]),
             schema_version=str(row["schema_version"]),
@@ -232,19 +235,14 @@ class SupabaseStoryRepository:
         )
 
     def list_stories(self) -> list[StoryRecord]:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                       narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                       submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                       origin_source, origin_conversation_id, origin_tool_call_id,
-                       privacy_contains_pii, privacy_redaction_requested
-                FROM stories
-                ORDER BY created_at ASC
-                """
-            )
-            rows = cur.fetchall()
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/stories",
+            params={
+                "select": "story_id,schema_version,narrative_original_text,submitter_external_user_id,narrative_language,narrative_title_hint,narrative_canonical_type,narrative_canonical_labels_json,submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested",
+                "order": "created_at.asc",
+            },
+        )
         result: list[StoryRecord] = []
         for row in rows:
             result.append(
@@ -278,18 +276,18 @@ class SupabaseIdempotencyRepository:
     db: SupabaseDatabase
 
     def get_by_key(self, key: str) -> IdempotencyRecord | None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT key, story_id, created_at
-                FROM idempotency_keys
-                WHERE key = %(key)s
-                """,
-                {"key": key},
-            )
-            row = cur.fetchone()
-        if row is None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/idempotency_keys",
+            params={
+                "select": "key,story_id,created_at",
+                "key": self.db._eq_filter(key),
+                "limit": "1",
+            },
+        )
+        if not rows:
             return None
+        row = rows[0]
         return IdempotencyRecord(
             key=str(row["key"]),
             story_id=str(row["story_id"]),
@@ -297,22 +295,19 @@ class SupabaseIdempotencyRepository:
         )
 
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO idempotency_keys (key, story_id, created_at)
-                VALUES (%(key)s, %(story_id)s, %(created_at)s)
-                ON CONFLICT(key) DO UPDATE SET
-                    story_id = EXCLUDED.story_id,
-                    created_at = EXCLUDED.created_at
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/idempotency_keys",
+            params={"on_conflict": "key"},
+            json_body=[
                 {
                     "key": record.key,
                     "story_id": record.story_id,
                     "created_at": record.created_at.isoformat(),
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
         return record
 
 
@@ -329,13 +324,10 @@ class SupabaseStoryEmbeddingStore:
         source_checksum: str,
         embedding_policy_version: str,
     ) -> None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO story_embeddings (
-                    story_id, model_name, embedding_vector_json, source_checksum, embedding_policy_version, created_at
-                ) VALUES (%(story_id)s, %(model_name)s, %(embedding_vector_json)s, %(source_checksum)s, %(embedding_policy_version)s, %(created_at)s)
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/story_embeddings",
+            json_body=[
                 {
                     "story_id": story_id,
                     "model_name": model_name,
@@ -343,9 +335,10 @@ class SupabaseStoryEmbeddingStore:
                     "source_checksum": source_checksum,
                     "embedding_policy_version": embedding_policy_version,
                     "created_at": _utcnow().isoformat(),
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="return=minimal",
+        )
 
 
 @dataclass
@@ -361,20 +354,11 @@ class SupabaseIssueProjectionStore:
         policy_version: str,
     ) -> None:
         now = _utcnow().isoformat()
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO spa_issue_projections (
-                    issue_id, status, payload_json, policy_version, created_at, updated_at
-                ) VALUES (
-                    %(issue_id)s, %(status)s, %(payload_json)s, %(policy_version)s, %(created_at)s, %(updated_at)s
-                )
-                ON CONFLICT(issue_id) DO UPDATE SET
-                    status = EXCLUDED.status,
-                    payload_json = EXCLUDED.payload_json,
-                    policy_version = EXCLUDED.policy_version,
-                    updated_at = EXCLUDED.updated_at
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/spa_issue_projections",
+            params={"on_conflict": "issue_id"},
+            json_body=[
                 {
                     "issue_id": issue_id,
                     "status": status,
@@ -382,9 +366,10 @@ class SupabaseIssueProjectionStore:
                     "policy_version": policy_version,
                     "created_at": now,
                     "updated_at": now,
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
 
 
 @dataclass
@@ -400,15 +385,10 @@ class SupabaseIssueProjectionEmbeddingStore:
         source_checksum: str,
         embedding_policy_version: str,
     ) -> None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO spa_issue_projection_embeddings (
-                    issue_id, model_name, embedding_vector_json, source_checksum, embedding_policy_version, created_at
-                ) VALUES (
-                    %(issue_id)s, %(model_name)s, %(embedding_vector_json)s, %(source_checksum)s, %(embedding_policy_version)s, %(created_at)s
-                )
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/spa_issue_projection_embeddings",
+            json_body=[
                 {
                     "issue_id": issue_id,
                     "model_name": model_name,
@@ -416,9 +396,10 @@ class SupabaseIssueProjectionEmbeddingStore:
                     "source_checksum": source_checksum,
                     "embedding_policy_version": embedding_policy_version,
                     "created_at": _utcnow().isoformat(),
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="return=minimal",
+        )
 
 
 @dataclass
@@ -426,22 +407,11 @@ class SupabaseIssueCandidateStore:
     db: SupabaseDatabase
 
     def save(self, record: IssueCandidateRecord) -> IssueCandidateRecord:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO issue_candidates (
-                    candidate_id, status, cluster_id, story_ids_json, readiness_score, title, updated_at
-                ) VALUES (
-                    %(candidate_id)s, %(status)s, %(cluster_id)s, %(story_ids_json)s, %(readiness_score)s, %(title)s, %(updated_at)s
-                )
-                ON CONFLICT(candidate_id) DO UPDATE SET
-                    status = EXCLUDED.status,
-                    cluster_id = EXCLUDED.cluster_id,
-                    story_ids_json = EXCLUDED.story_ids_json,
-                    readiness_score = EXCLUDED.readiness_score,
-                    title = EXCLUDED.title,
-                    updated_at = EXCLUDED.updated_at
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/issue_candidates",
+            params={"on_conflict": "candidate_id"},
+            json_body=[
                 {
                     "candidate_id": record.candidate_id,
                     "status": record.status.value,
@@ -450,24 +420,25 @@ class SupabaseIssueCandidateStore:
                     "readiness_score": record.readiness_score,
                     "title": record.title,
                     "updated_at": _utcnow().isoformat(),
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
         return record
 
     def get(self, candidate_id: str) -> IssueCandidateRecord | None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT candidate_id, status, cluster_id, story_ids_json, readiness_score, title
-                FROM issue_candidates
-                WHERE candidate_id = %(candidate_id)s
-                """,
-                {"candidate_id": candidate_id},
-            )
-            row = cur.fetchone()
-        if row is None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/issue_candidates",
+            params={
+                "select": "candidate_id,status,cluster_id,story_ids_json,readiness_score,title",
+                "candidate_id": self.db._eq_filter(candidate_id),
+                "limit": "1",
+            },
+        )
+        if not rows:
             return None
+        row = rows[0]
         return IssueCandidateRecord(
             candidate_id=str(row["candidate_id"]),
             status=IssueCandidateStatus(str(row["status"])),
@@ -478,12 +449,12 @@ class SupabaseIssueCandidateStore:
         )
 
     def delete(self, candidate_id: str) -> None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM issue_candidates WHERE candidate_id = %(candidate_id)s",
-                {"candidate_id": candidate_id},
-            )
-            conn.commit()
+        self.db._request(
+            method="DELETE",
+            path="/rest/v1/issue_candidates",
+            params={"candidate_id": self.db._eq_filter(candidate_id)},
+            prefer="return=minimal",
+        )
 
 
 @dataclass
@@ -491,15 +462,10 @@ class SupabaseReviewAuditLogRepository:
     db: SupabaseDatabase
 
     def append(self, entry: ReviewAuditEntry) -> ReviewAuditEntry:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO review_audit_log (
-                    candidate_id, actor, decision, rationale, related_cluster_id, related_story_ids_json, created_at
-                ) VALUES (
-                    %(candidate_id)s, %(actor)s, %(decision)s, %(rationale)s, %(related_cluster_id)s, %(related_story_ids_json)s, %(created_at)s
-                )
-                """,
+        self.db._request(
+            method="POST",
+            path="/rest/v1/review_audit_log",
+            json_body=[
                 {
                     "candidate_id": entry.candidate_id,
                     "actor": entry.actor,
@@ -508,23 +474,22 @@ class SupabaseReviewAuditLogRepository:
                     "related_cluster_id": entry.related_cluster_id,
                     "related_story_ids_json": json.dumps(list(entry.related_story_ids)),
                     "created_at": _utcnow().isoformat(),
-                },
-            )
-            conn.commit()
+                }
+            ],
+            prefer="return=minimal",
+        )
         return entry
 
     def list_for_candidate(self, candidate_id: str) -> tuple[ReviewAuditEntry, ...]:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT candidate_id, actor, decision, rationale, related_cluster_id, related_story_ids_json
-                FROM review_audit_log
-                WHERE candidate_id = %(candidate_id)s
-                ORDER BY audit_id ASC
-                """,
-                {"candidate_id": candidate_id},
-            )
-            rows = cur.fetchall()
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/review_audit_log",
+            params={
+                "select": "candidate_id,actor,decision,rationale,related_cluster_id,related_story_ids_json",
+                "candidate_id": self.db._eq_filter(candidate_id),
+                "order": "audit_id.asc",
+            },
+        )
         return tuple(
             ReviewAuditEntry(
                 candidate_id=str(row["candidate_id"]),
@@ -549,26 +514,28 @@ class SupabaseIssueStoryLinkStore:
         cluster_id: str,
         story_ids: tuple[str, ...],
     ) -> None:
-        with self.db._connect() as conn, conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM issue_story_links WHERE issue_id = %(issue_id)s",
-                {"issue_id": issue_id},
-            )
-            now = _utcnow().isoformat()
-            for story_id in story_ids:
-                cur.execute(
-                    """
-                    INSERT INTO issue_story_links (issue_id, cluster_id, story_id, created_at)
-                    VALUES (%(issue_id)s, %(cluster_id)s, %(story_id)s, %(created_at)s)
-                    ON CONFLICT(issue_id, story_id) DO UPDATE SET
-                        cluster_id = EXCLUDED.cluster_id,
-                        created_at = EXCLUDED.created_at
-                    """,
-                    {
-                        "issue_id": issue_id,
-                        "cluster_id": cluster_id,
-                        "story_id": story_id,
-                        "created_at": now,
-                    },
-                )
-            conn.commit()
+        self.db._request(
+            method="DELETE",
+            path="/rest/v1/issue_story_links",
+            params={"issue_id": self.db._eq_filter(issue_id)},
+            prefer="return=minimal",
+        )
+        now = _utcnow().isoformat()
+        if not story_ids:
+            return
+        payload = [
+            {
+                "issue_id": issue_id,
+                "cluster_id": cluster_id,
+                "story_id": story_id,
+                "created_at": now,
+            }
+            for story_id in story_ids
+        ]
+        self.db._request(
+            method="POST",
+            path="/rest/v1/issue_story_links",
+            params={"on_conflict": "issue_id,story_id"},
+            json_body=payload,
+            prefer="resolution=merge-duplicates,return=minimal",
+        )

@@ -126,9 +126,14 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store = SqliteIssueStoryLinkStore(sqlite_db)
     elif (
         resolved_config.db_backend == "supabase"
-        and resolved_config.database_url is not None
+        and resolved_config.supabase_url is not None
+        and resolved_config.supabase_service_role is not None
     ):
-        supabase_db = SupabaseDatabase.from_url(resolved_config.database_url)
+        supabase_db = SupabaseDatabase.from_http(
+            supabase_url=resolved_config.supabase_url,
+            service_role_key=resolved_config.supabase_service_role,
+            timeout_s=float(resolved_config.request_timeout_s),
+        )
         story_repository = SupabaseStoryRepository(supabase_db)
         idempotency_repository = SupabaseIdempotencyRepository(supabase_db)
         story_embedding_store = SupabaseStoryEmbeddingStore(supabase_db)

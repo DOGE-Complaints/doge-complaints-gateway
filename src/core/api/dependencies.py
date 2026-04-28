@@ -50,13 +50,22 @@ def build_api_dependencies() -> ApiDependencies:
         db_checks = {"connectivity": health_db.healthcheck()}
         db_ready = db_checks["connectivity"]
         health_db.connection.close()
-    elif db_backend == "supabase" and service_factory.config.database_url is not None:
+    elif (
+        db_backend == "supabase"
+        and service_factory.config.supabase_url is not None
+        and service_factory.config.supabase_service_role is not None
+    ):
         from core.infrastructure.db_supabase import SupabaseDatabase
 
-        health_db = SupabaseDatabase.from_url(service_factory.config.database_url)
+        health_db = SupabaseDatabase.from_http(
+            supabase_url=service_factory.config.supabase_url,
+            service_role_key=service_factory.config.supabase_service_role,
+            timeout_s=float(service_factory.config.request_timeout_s),
+        )
         db_checks = {
             "connectivity": health_db.healthcheck(),
             "schema": health_db.required_tables_ready(),
+            "columns": health_db.required_columns_ready(),
             "policy_probe": health_db.service_role_policy_probe(),
         }
         db_ready = all(db_checks.values())
