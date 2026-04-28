@@ -141,6 +141,7 @@ python3 -m pytest tests/test_error_envelope_contract.py tests/test_trace_propaga
 **Что сделать:**
 
 - **В репозитории (рекомендуется):** в корне проекта есть [`railpack.json`](../../railpack.json) с полем `deploy.startCommand` (см. [Railpack: configuration file](https://railpack.com/config/file)).
+- Для стабильного dependency install в Railpack добавить/держать в корне проекта `requirements.txt` (дублирует runtime deps из `pyproject.toml`).
 - **В UI Railway (Settings):** задайте **Custom Start Command** (аналогично):
 
 ```bash
@@ -198,3 +199,6 @@ Install-step в `railpack.json` не задаем вручную: Python provide
 4. Импорт `core.*` не резолвится
    - запускать команды из корня `doge-complaints-gateway`;
    - использовать `python -m uvicorn --app-dir src core.api.asgi_app:app ...`.
+5. Railway build не ставит `uvicorn` (`No module named uvicorn`)
+   - убедиться, что в корне есть `requirements.txt` с `fastapi`, `uvicorn`, `psycopg[binary]`;
+   - проверить, что Railway Root Directory указывает на `doge-complaints-gateway`.
