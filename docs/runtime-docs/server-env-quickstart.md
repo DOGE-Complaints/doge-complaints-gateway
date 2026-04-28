@@ -202,3 +202,13 @@ Install-step в `railpack.json` не задаем вручную: Python provide
 5. Railway build не ставит `uvicorn` (`No module named uvicorn`)
    - убедиться, что в корне есть `requirements.txt` с `fastapi`, `uvicorn`, `psycopg[binary]`;
    - проверить, что Railway Root Directory указывает на `doge-complaints-gateway`.
+
+## 6) DB backend env quick reference
+
+- `DB_BACKEND=in_memory`
+  - не допускает `DATABASE_URL` и `SUPABASE_*`.
+- `DB_BACKEND=sqlite`
+  - требует `DATABASE_URL=sqlite:///...`.
+- `DB_BACKEND=supabase`
+  - требует `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE`;
+  - не требует `DATABASE_URL` (runtime работает через Supabase HTTP/PostgREST client).

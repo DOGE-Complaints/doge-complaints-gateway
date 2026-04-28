@@ -15,7 +15,7 @@ Runtime поддерживает три взаимоисключающих backe
 |---|---|---|---|
 | In-memory | `in_memory` | `InMemory*` | Stable для unit/integration тестов и демо |
 | SQLite | `sqlite` | `Sqlite*` в `db_sqlite.py` | Stable, авто-DDL (`ensure_schema`) |
-| Supabase/PostgreSQL | `supabase` | `Supabase*` в `db_supabase.py` | Stable для runtime path + readiness probes |
+| Supabase/PostgreSQL | `supabase` | `Supabase*` в `db_supabase.py` | Stable для runtime path + readiness probes (HTTP/PostgREST client) |
 
 Источник выбора и wiring: `src/core/infrastructure/providers.py`.
 
@@ -25,7 +25,7 @@ Runtime поддерживает три взаимоисключающих backe
 
 - `in_memory`: запрещает `DATABASE_URL`/`SUPABASE_*`
 - `sqlite`: требует `DATABASE_URL` c префиксом `sqlite:///`
-- `supabase`: требует `DATABASE_URL` (`postgresql://`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE`
+- `supabase`: требует `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (`DATABASE_URL` не обязателен)
 
 ### 3) Реально персистируемые сущности
 
@@ -119,5 +119,6 @@ python3 -m pytest tests/ -q
 python3 -m pytest tests/test_db_backed_pipeline_e2e.py tests/test_process_linkage_sqlite.py tests/test_embedding_policy_versioning.py -q
 
 # Supabase integration (skip-safe без live env)
+# requires SUPABASE_TEST_URL + SUPABASE_TEST_SERVICE_ROLE
 python3 -m pytest tests/integration/supabase/test_supabase_live_smoke.py tests/integration/supabase/test_spa_projection_supabase_roundtrip.py -q
 ```

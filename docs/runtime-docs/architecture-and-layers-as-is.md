@@ -81,7 +81,7 @@ flowchart TD
 ### 6) Config knobs actually used
 
 - `DB_BACKEND`: `in_memory | sqlite | supabase`
-- `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (в supabase/sqlite режимах)
+- `DATABASE_URL` (только `sqlite`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (в `supabase` HTTP режиме)
 - `SERVICE_API_TOKEN` (protected endpoints)
 - `APP_PROFILE`, `API_BASE_URL`, `REQUEST_TIMEOUT_S`, feature flags adapter-профиля
 
