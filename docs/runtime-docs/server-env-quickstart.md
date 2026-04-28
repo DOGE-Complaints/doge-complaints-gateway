@@ -172,7 +172,23 @@ python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PO
 python -m uvicorn --app-dir src core.api.asgi_app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
-Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH и одновременно фиксирует импорт `core.*` из `src`.
+В `railpack.json` также зафиксирован install-step, чтобы зависимости из `pyproject.toml` гарантированно попадали в runtime image:
+
+```json
+"steps": {
+  "install": {
+    "commands": ["...", "python -m pip install --upgrade pip", "python -m pip install ."]
+  }
+}
+```
+
+И зафиксирована версия Python `3.11`, чтобы не зависеть от изменений дефолта Railpack:
+
+```json
+"packages": { "python": "3.11" }
+```
+
+Это устраняет зависимость от наличия CLI-бинарника `uvicorn` в PATH, фиксирует импорт `core.*` из `src` и закрывает кейс, когда в build/runtime отсутствует установленный пакет `uvicorn`.
 
 **Если после этого останется ошибка:**
 
