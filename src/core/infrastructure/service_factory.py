@@ -18,10 +18,12 @@ from core.application.issue_create import (
 from core.application.services import StoryEmbeddingStore
 from core.cluster import ClusterLens, ClusteringEngine
 from core.domain import (
+    ClusterMembershipStore,
     HealthRepository,
     IdempotencyRepository,
     SignalProfileRepository,
     StoryRepository,
+    StorySignalStore,
 )
 from core.evidence import EvidencePackRepository, EvidencePackService
 from core.geo import GeoService
@@ -53,6 +55,8 @@ class DefaultServiceFactory:
     issue_projection_store: IssueProjectionStore | None = None
     issue_projection_embedding_store: IssueProjectionEmbeddingStore | None = None
     issue_story_link_store: IssueStoryLinkStore | None = None
+    story_signal_store: StorySignalStore | None = None
+    cluster_membership_store: ClusterMembershipStore | None = None
 
     def get_health_service(self) -> HealthService:
         return HealthService(repository=self.health_repository)
@@ -72,7 +76,13 @@ class DefaultServiceFactory:
         return ClusteringEngine(
             active_lenses=tuple(
                 ClusterLens(lens) for lens in self.config.cluster_active_lenses
-            )
+            ),
+            primary_lens=ClusterLens(self.config.cluster_primary_lens),
+            id_algorithm=self.config.cluster_id_algorithm,
+            signal_source=self.config.cluster_signal_source,
+            geo_filter=self.config.cluster_geo_filter,
+            tie_breaker=self.config.cluster_tie_breaker,
+            type_resolution=self.config.cluster_type_resolution,
         )
 
     def get_issue_promotion_service(self) -> IssuePromotionService:
@@ -115,5 +125,7 @@ class DefaultServiceFactory:
             story_repository=self.story_repository,
             clustering_engine=self.get_clustering_engine(),
             issue_create_service=self.get_issue_create_service(),
+            story_signal_store=self.story_signal_store,
+            cluster_membership_store=self.cluster_membership_store,
         )
 

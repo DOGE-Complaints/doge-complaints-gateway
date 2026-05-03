@@ -45,6 +45,9 @@ class AppConfig:
     cluster_min_size: int
     cluster_readiness_threshold: int
     cluster_active_lenses: tuple[str, ...]
+    cluster_primary_lens: str
+    cluster_signal_source: str
+    cluster_id_algorithm: str
     cluster_geo_filter: str
     cluster_tie_breaker: str
     cluster_type_resolution: str
@@ -135,14 +138,32 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_READINESS_THRESHOLD",
         required=False,
-        default="70",
-        description="Readiness threshold used by promotion gates.",
+        default="60",
+        description="Readiness threshold used by promotion gates (aligned with L3 readiness formula for small clusters).",
     ),
     EnvSpec(
         name="CLUSTER_ACTIVE_LENSES",
         required=False,
         default="topic_micro,need_local,failure_systemic,failure_micro,repeatability_local,relevance_systemic",
         description="Comma-separated enabled cluster lenses.",
+    ),
+    EnvSpec(
+        name="CLUSTER_PRIMARY_LENS",
+        required=False,
+        default="topic_micro",
+        description="Primary lens for orchestrator (must be one of CLUSTER_ACTIVE_LENSES).",
+    ),
+    EnvSpec(
+        name="CLUSTER_SIGNAL_SOURCE",
+        required=False,
+        default="canonical",
+        description="Signal extraction strategy: canonical | narrative | hybrid.",
+    ),
+    EnvSpec(
+        name="CLUSTER_ID_ALGORITHM",
+        required=False,
+        default="legacy_hash",
+        description="Cluster id derivation: legacy_hash | sha256.",
     ),
     EnvSpec(
         name="CLUSTER_GEO_FILTER",
@@ -233,15 +254,27 @@ def _parse_positive_int(value: str, *, env_name: str) -> int:
     return parsed
 
 
+def _all_cluster_lens_ids() -> frozenset[str]:
+    return frozenset(
+        {
+            "topic_micro",
+            "need_local",
+            "failure_systemic",
+            "failure_micro",
+            "repeatability_local",
+            "relevance_systemic",
+            "civic_domain_micro",
+            "failure_pattern_micro",
+            "civic_weight_systemic",
+            "desired_outcome_local",
+            "affected_group_local",
+            "geographic_district_micro",
+        }
+    )
+
+
 def _parse_cluster_lenses(raw: str) -> tuple[str, ...]:
-    allowed = {
-        "topic_micro",
-        "need_local",
-        "failure_systemic",
-        "failure_micro",
-        "repeatability_local",
-        "relevance_systemic",
-    }
+    allowed = _all_cluster_lens_ids()
     values = [item.strip() for item in raw.split(",") if item.strip()]
     if not values:
         raise ConfigError("CLUSTER_ACTIVE_LENSES must contain at least one lens.")
@@ -252,6 +285,39 @@ def _parse_cluster_lenses(raw: str) -> tuple[str, ...]:
             f"{invalid}. Allowed: {sorted(allowed)}."
         )
     return tuple(dict.fromkeys(values))
+
+
+def _parse_cluster_signal_source(raw: str) -> str:
+    normalized = raw.strip().lower()
+    allowed = {"canonical", "narrative", "hybrid"}
+    if normalized not in allowed:
+        raise ConfigError(
+            f"Invalid CLUSTER_SIGNAL_SOURCE={raw!r}. Expected one of: {sorted(allowed)}."
+        )
+    return normalized
+
+
+def _parse_cluster_id_algorithm(raw: str) -> str:
+    normalized = raw.strip().lower()
+    allowed = {"legacy_hash", "sha256"}
+    if normalized not in allowed:
+        raise ConfigError(
+            f"Invalid CLUSTER_ID_ALGORITHM={raw!r}. Expected one of: {sorted(allowed)}."
+        )
+    return normalized
+
+
+def _parse_cluster_primary_lens(raw: str, active: tuple[str, ...]) -> str:
+    normalized = raw.strip().lower()
+    if normalized not in _all_cluster_lens_ids():
+        raise ConfigError(
+            f"Invalid CLUSTER_PRIMARY_LENS={raw!r}. Must be a known lens id."
+        )
+    if normalized not in active:
+        raise ConfigError(
+            f"CLUSTER_PRIMARY_LENS={raw!r} must appear in CLUSTER_ACTIVE_LENSES={list(active)}."
+        )
+    return normalized
 
 
 def _required_spec(name: str) -> EnvSpec:
@@ -378,6 +444,16 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     cluster_active_lenses = _parse_cluster_lenses(
         _require_value(source, name="CLUSTER_ACTIVE_LENSES")
     )
+    cluster_primary_lens = _parse_cluster_primary_lens(
+        _require_value(source, name="CLUSTER_PRIMARY_LENS"),
+        cluster_active_lenses,
+    )
+    cluster_signal_source = _parse_cluster_signal_source(
+        _require_value(source, name="CLUSTER_SIGNAL_SOURCE")
+    )
+    cluster_id_algorithm = _parse_cluster_id_algorithm(
+        _require_value(source, name="CLUSTER_ID_ALGORITHM")
+    )
     cluster_geo_filter = _require_value(source, name="CLUSTER_GEO_FILTER").strip().lower()
     cluster_tie_breaker = _require_value(source, name="CLUSTER_TIE_BREAKER").strip().lower()
     cluster_type_resolution = _require_value(
@@ -398,6 +474,9 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_min_size=cluster_min_size,
         cluster_readiness_threshold=cluster_readiness_threshold,
         cluster_active_lenses=cluster_active_lenses,
+        cluster_primary_lens=cluster_primary_lens,
+        cluster_signal_source=cluster_signal_source,
+        cluster_id_algorithm=cluster_id_algorithm,
         cluster_geo_filter=cluster_geo_filter,
         cluster_tie_breaker=cluster_tie_breaker,
         cluster_type_resolution=cluster_type_resolution,

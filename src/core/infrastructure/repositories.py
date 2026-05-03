@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+from typing import Mapping
 
 from core.domain import (
     HealthReport,
     IdempotencyRecord,
     SignalProfileRecord,
+    StoryLifecycleStatus,
     StoryRecord,
 )
 
@@ -39,6 +41,21 @@ class InMemoryStoryRepository:
     def list_stories(self) -> list[StoryRecord]:
         assert self._records is not None
         return list(self._records.values())
+
+    def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
+        return [
+            s
+            for s in self.list_stories()
+            if s.lifecycle_status is StoryLifecycleStatus.READY_FOR_PROFILE
+        ]
+
+    def update_lifecycle_status(self, story_id: str, status: StoryLifecycleStatus) -> None:
+        current = self.get_story(story_id)
+        if current is None:
+            raise ValueError(f"Unknown story_id={story_id!r}")
+        self.save_story(
+            replace(current, lifecycle_status=status, updated_at=datetime.now(UTC))
+        )
 
 
 @dataclass
@@ -188,4 +205,43 @@ class InMemoryIssueStoryLinkStore:
     ) -> None:
         assert self._rows is not None
         self._rows[issue_id] = (cluster_id, tuple(story_ids))
+
+
+@dataclass
+class InMemoryStorySignalStore:
+    _rows: dict[tuple[str, str], dict[str, str]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = {}
+
+    def save_signals(self, story_id: str, policy: str, signals: Mapping[str, str]) -> None:
+        assert self._rows is not None
+        self._rows[(story_id, policy)] = dict(signals)
+
+    def get_signals(self, story_id: str, policy: str) -> Mapping[str, str] | None:
+        assert self._rows is not None
+        row = self._rows.get((story_id, policy))
+        return dict(row) if row is not None else None
+
+
+@dataclass
+class InMemoryClusterMembershipStore:
+    _story_lens_to_cluster: dict[tuple[str, str], str] | None = None
+
+    def __post_init__(self) -> None:
+        if self._story_lens_to_cluster is None:
+            self._story_lens_to_cluster = {}
+
+    def save_membership(self, story_id: str, lens: str, cluster_id: str) -> None:
+        assert self._story_lens_to_cluster is not None
+        self._story_lens_to_cluster[(story_id, lens)] = cluster_id
+
+    def get_cluster_members(self, cluster_id: str, lens: str) -> list[str]:
+        assert self._story_lens_to_cluster is not None
+        return sorted(
+            sid
+            for (sid, ln), cid in self._story_lens_to_cluster.items()
+            if ln == lens and cid == cluster_id
+        )
 

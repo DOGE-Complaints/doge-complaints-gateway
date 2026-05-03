@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Mapping
 
 
 class ClusterLens(StrEnum):
-    """Canonical clustering lenses (minimum required set for EPIC-M2-04)."""
+    """Canonical clustering lenses (EPIC-M2-04 baseline + civic target-state set)."""
 
     TOPIC_MICRO = "topic_micro"
     NEED_LOCAL = "need_local"
@@ -14,6 +14,12 @@ class ClusterLens(StrEnum):
     FAILURE_MICRO = "failure_micro"
     REPEATABILITY_LOCAL = "repeatability_local"
     RELEVANCE_SYSTEMIC = "relevance_systemic"
+    CIVIC_DOMAIN_MICRO = "civic_domain_micro"
+    FAILURE_PATTERN_MICRO = "failure_pattern_micro"
+    CIVIC_WEIGHT_SYSTEMIC = "civic_weight_systemic"
+    DESIRED_OUTCOME_LOCAL = "desired_outcome_local"
+    AFFECTED_GROUP_LOCAL = "affected_group_local"
+    GEOGRAPHIC_DISTRICT_MICRO = "geographic_district_micro"
 
 
 class ClusteringMode(StrEnum):
@@ -37,6 +43,9 @@ class Cluster:
     cluster_id: str
     lens: ClusterLens
     members: tuple[ClusterMember, ...]
+    readiness_score: int = 0
+    readiness_factors: Mapping[str, int] = field(default_factory=dict)
+    key: str = ""
 
 
 @dataclass(frozen=True)

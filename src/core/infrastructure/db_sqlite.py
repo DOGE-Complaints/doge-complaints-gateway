@@ -5,8 +5,9 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Mapping
 
-from core.domain import IdempotencyRecord, StoryLifecycleStatus, StoryRecord
+from core.domain import IdempotencyRecord, StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
 
@@ -16,6 +17,54 @@ def _utcnow() -> datetime:
 
 def _parse_dt(value: str) -> datetime:
     return datetime.fromisoformat(value)
+
+
+def _geo_bind(record: StoryRecord) -> tuple:
+    if record.geo is None:
+        return (None, None, None, None, None, "[]")
+    geo = record.geo
+    return (
+        geo.normalized_label,
+        geo.latitude,
+        geo.longitude,
+        geo.confidence,
+        geo.provider,
+        json.dumps(list(geo.cluster_tags)),
+    )
+
+
+def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
+    keys = set(row.keys())
+    geo: StoryGeoSnapshot | None = None
+    if "geo_normalized_label" in keys and row["geo_normalized_label"] is not None:
+        geo = StoryGeoSnapshot(
+            normalized_label=str(row["geo_normalized_label"]),
+            latitude=float(row["geo_latitude"]),
+            longitude=float(row["geo_longitude"]),
+            confidence=float(row["geo_confidence"]),
+            provider=str(row["geo_provider"]),
+            cluster_tags=tuple(json.loads(str(row["geo_cluster_tags_json"] or "[]"))),
+        )
+    return StoryRecord(
+        story_id=str(row["story_id"]),
+        schema_version=str(row["schema_version"]),
+        narrative_original_text=str(row["narrative_original_text"]),
+        submitter_external_user_id=str(row["submitter_external_user_id"]),
+        narrative_language=row["narrative_language"],
+        narrative_title_hint=row["narrative_title_hint"],
+        narrative_canonical_type=row["narrative_canonical_type"],
+        narrative_canonical_labels=tuple(json.loads(str(row["narrative_canonical_labels_json"]))),
+        submitter_identity_issuer=row["submitter_identity_issuer"],
+        lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
+        created_at=_parse_dt(str(row["created_at"])),
+        updated_at=_parse_dt(str(row["updated_at"])),
+        origin_source=row["origin_source"],
+        origin_conversation_id=row["origin_conversation_id"],
+        origin_tool_call_id=row["origin_tool_call_id"],
+        privacy_contains_pii=bool(row["privacy_contains_pii"]),
+        privacy_redaction_requested=bool(row["privacy_redaction_requested"]),
+        geo=geo,
+    )
 
 
 @dataclass
@@ -137,6 +186,51 @@ class SqliteDatabase:
             """
         )
         self.connection.commit()
+        self._ensure_sqlite_schema_migrations()
+
+    def _ensure_sqlite_schema_migrations(self) -> None:
+        cur = self.connection.execute("PRAGMA table_info(stories)")
+        cols = {row[1] for row in cur.fetchall()}
+        for name, ddl in (
+            ("geo_normalized_label", "ALTER TABLE stories ADD COLUMN geo_normalized_label TEXT"),
+            ("geo_latitude", "ALTER TABLE stories ADD COLUMN geo_latitude REAL"),
+            ("geo_longitude", "ALTER TABLE stories ADD COLUMN geo_longitude REAL"),
+            ("geo_confidence", "ALTER TABLE stories ADD COLUMN geo_confidence REAL"),
+            ("geo_provider", "ALTER TABLE stories ADD COLUMN geo_provider TEXT"),
+            (
+                "geo_cluster_tags_json",
+                "ALTER TABLE stories ADD COLUMN geo_cluster_tags_json TEXT DEFAULT '[]'",
+            ),
+        ):
+            if name not in cols:
+                self.connection.execute(ddl)
+        self.connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS story_signals (
+                story_id TEXT NOT NULL,
+                extraction_policy TEXT NOT NULL,
+                signals_json TEXT NOT NULL,
+                extracted_at TEXT NOT NULL,
+                PRIMARY KEY (story_id, extraction_policy)
+            );
+            CREATE INDEX IF NOT EXISTS idx_story_signals_policy ON story_signals(extraction_policy);
+
+            CREATE TABLE IF NOT EXISTS cluster_memberships (
+                story_id TEXT NOT NULL,
+                lens TEXT NOT NULL,
+                cluster_id TEXT NOT NULL,
+                computed_at TEXT NOT NULL,
+                PRIMARY KEY (story_id, lens)
+            );
+            CREATE INDEX IF NOT EXISTS idx_cluster_memberships_cluster ON cluster_memberships(cluster_id);
+            CREATE INDEX IF NOT EXISTS idx_cluster_memberships_lens ON cluster_memberships(lens);
+
+            CREATE INDEX IF NOT EXISTS idx_issue_candidates_cluster_status
+                ON issue_candidates(cluster_id, status);
+            CREATE INDEX IF NOT EXISTS idx_issue_story_links_cluster ON issue_story_links(cluster_id);
+            """
+        )
+        self.connection.commit()
 
     def healthcheck(self) -> bool:
         try:
@@ -151,6 +245,7 @@ class SqliteStoryRepository:
     db: SqliteDatabase
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
+        geo = _geo_bind(record)
         self.db.connection.execute(
             """
             INSERT INTO stories (
@@ -158,8 +253,9 @@ class SqliteStoryRepository:
                 narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
                 submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                 origin_source, origin_conversation_id, origin_tool_call_id,
-                privacy_contains_pii, privacy_redaction_requested
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                privacy_contains_pii, privacy_redaction_requested,
+                geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
@@ -175,7 +271,13 @@ class SqliteStoryRepository:
                 origin_conversation_id = excluded.origin_conversation_id,
                 origin_tool_call_id = excluded.origin_tool_call_id,
                 privacy_contains_pii = excluded.privacy_contains_pii,
-                privacy_redaction_requested = excluded.privacy_redaction_requested
+                privacy_redaction_requested = excluded.privacy_redaction_requested,
+                geo_normalized_label = excluded.geo_normalized_label,
+                geo_latitude = excluded.geo_latitude,
+                geo_longitude = excluded.geo_longitude,
+                geo_confidence = excluded.geo_confidence,
+                geo_provider = excluded.geo_provider,
+                geo_cluster_tags_json = excluded.geo_cluster_tags_json
             """,
             (
                 record.story_id,
@@ -195,6 +297,7 @@ class SqliteStoryRepository:
                 record.origin_tool_call_id,
                 int(record.privacy_contains_pii),
                 int(record.privacy_redaction_requested),
+                *geo,
             ),
         )
         self.db.connection.commit()
@@ -207,7 +310,8 @@ class SqliteStoryRepository:
                    narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
                    submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                    origin_source, origin_conversation_id, origin_tool_call_id,
-                   privacy_contains_pii, privacy_redaction_requested
+                   privacy_contains_pii, privacy_redaction_requested,
+                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
             FROM stories
             WHERE story_id = ?
             """,
@@ -215,25 +319,7 @@ class SqliteStoryRepository:
         ).fetchone()
         if row is None:
             return None
-        return StoryRecord(
-            story_id=str(row["story_id"]),
-            schema_version=str(row["schema_version"]),
-            narrative_original_text=str(row["narrative_original_text"]),
-            submitter_external_user_id=str(row["submitter_external_user_id"]),
-            narrative_language=row["narrative_language"],
-            narrative_title_hint=row["narrative_title_hint"],
-            narrative_canonical_type=row["narrative_canonical_type"],
-            narrative_canonical_labels=tuple(json.loads(str(row["narrative_canonical_labels_json"]))),
-            submitter_identity_issuer=row["submitter_identity_issuer"],
-            lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
-            created_at=_parse_dt(str(row["created_at"])),
-            updated_at=_parse_dt(str(row["updated_at"])),
-            origin_source=row["origin_source"],
-            origin_conversation_id=row["origin_conversation_id"],
-            origin_tool_call_id=row["origin_tool_call_id"],
-            privacy_contains_pii=bool(row["privacy_contains_pii"]),
-            privacy_redaction_requested=bool(row["privacy_redaction_requested"]),
-        )
+        return _story_record_from_sqlite_row(row)
 
     def list_stories(self) -> list[StoryRecord]:
         rows = self.db.connection.execute(
@@ -242,37 +328,37 @@ class SqliteStoryRepository:
                    narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
                    submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                    origin_source, origin_conversation_id, origin_tool_call_id,
-                   privacy_contains_pii, privacy_redaction_requested
+                   privacy_contains_pii, privacy_redaction_requested,
+                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
             FROM stories
             ORDER BY created_at ASC
             """
         ).fetchall()
-        result: list[StoryRecord] = []
-        for row in rows:
-            result.append(
-                StoryRecord(
-                    story_id=str(row["story_id"]),
-                    schema_version=str(row["schema_version"]),
-                    narrative_original_text=str(row["narrative_original_text"]),
-                    submitter_external_user_id=str(row["submitter_external_user_id"]),
-                    narrative_language=row["narrative_language"],
-                    narrative_title_hint=row["narrative_title_hint"],
-                    narrative_canonical_type=row["narrative_canonical_type"],
-                    narrative_canonical_labels=tuple(
-                        json.loads(str(row["narrative_canonical_labels_json"]))
-                    ),
-                    submitter_identity_issuer=row["submitter_identity_issuer"],
-                    lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
-                    created_at=_parse_dt(str(row["created_at"])),
-                    updated_at=_parse_dt(str(row["updated_at"])),
-                    origin_source=row["origin_source"],
-                    origin_conversation_id=row["origin_conversation_id"],
-                    origin_tool_call_id=row["origin_tool_call_id"],
-                    privacy_contains_pii=bool(row["privacy_contains_pii"]),
-                    privacy_redaction_requested=bool(row["privacy_redaction_requested"]),
-                )
-            )
-        return result
+        return [_story_record_from_sqlite_row(row) for row in rows]
+
+    def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
+                   narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
+                   submitter_identity_issuer, lifecycle_status, created_at, updated_at,
+                   origin_source, origin_conversation_id, origin_tool_call_id,
+                   privacy_contains_pii, privacy_redaction_requested,
+                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+            FROM stories
+            WHERE lifecycle_status = ?
+            ORDER BY created_at ASC
+            """,
+            (StoryLifecycleStatus.READY_FOR_PROFILE.value,),
+        ).fetchall()
+        return [_story_record_from_sqlite_row(row) for row in rows]
+
+    def update_lifecycle_status(self, story_id: str, status: StoryLifecycleStatus) -> None:
+        self.db.connection.execute(
+            "UPDATE stories SET lifecycle_status = ?, updated_at = ? WHERE story_id = ?",
+            (status.value, _utcnow().isoformat(), story_id),
+        )
+        self.db.connection.commit()
 
 
 @dataclass
@@ -453,6 +539,27 @@ class SqliteIssueCandidateStore:
             title=str(row["title"]),
         )
 
+    def find_promoted_by_cluster_id(self, cluster_id: str) -> IssueCandidateRecord | None:
+        row = self.db.connection.execute(
+            """
+            SELECT candidate_id, status, cluster_id, story_ids_json, readiness_score, title
+            FROM issue_candidates
+            WHERE cluster_id = ? AND status = ?
+            LIMIT 1
+            """,
+            (cluster_id, IssueCandidateStatus.PROMOTED.value),
+        ).fetchone()
+        if row is None:
+            return None
+        return IssueCandidateRecord(
+            candidate_id=str(row["candidate_id"]),
+            status=IssueCandidateStatus(str(row["status"])),
+            cluster_id=str(row["cluster_id"]),
+            story_ids=tuple(json.loads(str(row["story_ids_json"]))),
+            readiness_score=int(row["readiness_score"]),
+            title=str(row["title"]),
+        )
+
     def delete(self, candidate_id: str) -> None:
         self.db.connection.execute(
             "DELETE FROM issue_candidates WHERE candidate_id = ?",
@@ -536,3 +643,62 @@ class SqliteIssueStoryLinkStore:
                 (issue_id, cluster_id, story_id, now),
             )
         self.db.connection.commit()
+
+
+@dataclass
+class SqliteStorySignalStore:
+    db: SqliteDatabase
+
+    def save_signals(self, story_id: str, policy: str, signals: Mapping[str, str]) -> None:
+        self.db.connection.execute(
+            """
+            INSERT INTO story_signals (story_id, extraction_policy, signals_json, extracted_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(story_id, extraction_policy) DO UPDATE SET
+                signals_json = excluded.signals_json,
+                extracted_at = excluded.extracted_at
+            """,
+            (story_id, policy, json.dumps(dict(signals)), _utcnow().isoformat()),
+        )
+        self.db.connection.commit()
+
+    def get_signals(self, story_id: str, policy: str) -> Mapping[str, str] | None:
+        row = self.db.connection.execute(
+            """
+            SELECT signals_json FROM story_signals
+            WHERE story_id = ? AND extraction_policy = ?
+            """,
+            (story_id, policy),
+        ).fetchone()
+        if row is None:
+            return None
+        return dict(json.loads(str(row["signals_json"])))
+
+
+@dataclass
+class SqliteClusterMembershipStore:
+    db: SqliteDatabase
+
+    def save_membership(self, story_id: str, lens: str, cluster_id: str) -> None:
+        self.db.connection.execute(
+            """
+            INSERT INTO cluster_memberships (story_id, lens, cluster_id, computed_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(story_id, lens) DO UPDATE SET
+                cluster_id = excluded.cluster_id,
+                computed_at = excluded.computed_at
+            """,
+            (story_id, lens, cluster_id, _utcnow().isoformat()),
+        )
+        self.db.connection.commit()
+
+    def get_cluster_members(self, cluster_id: str, lens: str) -> list[str]:
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id FROM cluster_memberships
+            WHERE cluster_id = ? AND lens = ?
+            ORDER BY story_id ASC
+            """,
+            (cluster_id, lens),
+        ).fetchall()
+        return [str(row["story_id"]) for row in rows]

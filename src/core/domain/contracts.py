@@ -14,12 +14,14 @@ class HealthReport:
 class HealthRepository(Protocol):
     def get_health(self) -> HealthReport:
         """Return current health snapshot."""
+        ...
 
 
 class StoryLifecycleStatus(StrEnum):
     ACCEPTED = "accepted"
     PARTIAL_READY = "partial_ready"
     READY_FOR_PROFILE = "ready_for_profile"
+    CLUSTERED = "clustered"
 
 
 @dataclass(frozen=True)
@@ -59,12 +61,23 @@ class StoryRecord:
 class StoryRepository(Protocol):
     def save_story(self, record: StoryRecord) -> StoryRecord:
         """Persist a story record."""
+        ...
 
     def get_story(self, story_id: str) -> StoryRecord | None:
         """Fetch a story record by id."""
+        ...
 
     def list_stories(self) -> list[StoryRecord]:
         """List all persisted stories."""
+        ...
+
+    def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
+        """Stories eligible for clustering (typically READY_FOR_PROFILE)."""
+        ...
+
+    def update_lifecycle_status(self, story_id: str, status: StoryLifecycleStatus) -> None:
+        """Advance lifecycle for clustering pipeline."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -77,18 +90,52 @@ class IdempotencyRecord:
 class IdempotencyRepository(Protocol):
     def get_by_key(self, key: str) -> IdempotencyRecord | None:
         """Fetch idempotency record by key."""
+        ...
 
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
         """Persist idempotency record."""
+        ...
 
 
 class SignalDimension(StrEnum):
+    """Signal axes for profiles and clustering.
+
+    Legacy six values remain for backward compatibility; civic-oriented axes
+    extend the SA cluster-engine target state (gap G1-02).
+    """
+
     TOPIC = "topic"
     SYSTEM_FAILURE = "system_failure"
     NEED = "need"
     DESIRED_STATE = "desired_state"
     REPEATABILITY = "repeatability"
     RELEVANCE = "relevance"
+    CIVIC_DOMAIN = "civic_domain"
+    FAILURE_PATTERN = "failure_pattern"
+    CIVIC_WEIGHT = "civic_weight"
+    DESIRED_OUTCOME = "desired_outcome"
+    AFFECTED_GROUP = "affected_group"
+    GEOGRAPHIC_DISTRICT = "geographic_district"
+
+
+class StorySignalStore(Protocol):
+    def save_signals(self, story_id: str, policy: str, signals: Mapping[str, str]) -> None:
+        """Persist extracted signals for a story under a named policy."""
+        ...
+
+    def get_signals(self, story_id: str, policy: str) -> Mapping[str, str] | None:
+        """Return stored signals or None if missing."""
+        ...
+
+
+class ClusterMembershipStore(Protocol):
+    def save_membership(self, story_id: str, lens: str, cluster_id: str) -> None:
+        """Record story membership in a lens-specific cluster."""
+        ...
+
+    def get_cluster_members(self, cluster_id: str, lens: str) -> list[str]:
+        """List story_ids belonging to cluster_id for lens."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -103,10 +150,13 @@ class SignalProfileRecord:
 class SignalProfileRepository(Protocol):
     def save_version(self, profile: SignalProfileRecord) -> SignalProfileRecord:
         """Persist profile version."""
+        ...
 
     def get_latest(self, story_id: str) -> SignalProfileRecord | None:
         """Get latest profile version by story id."""
+        ...
 
     def get_versions(self, story_id: str) -> list[SignalProfileRecord]:
         """Get all profile versions for a story."""
+        ...
 

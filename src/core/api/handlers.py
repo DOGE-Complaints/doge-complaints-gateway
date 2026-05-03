@@ -133,7 +133,24 @@ def handle_story_intake(
             request,
             idempotency_key=idempotency_key,
         )
-        dependencies.story_cluster_orchestrator.process_story(story.story_id)
+        issue_id = dependencies.story_cluster_orchestrator.process_story(story.story_id)
+        if issue_id is not None:
+            log_api_event(
+                logging.INFO,
+                "story_intake_cluster_triggered_issue",
+                trace_id=resolved_trace_id,
+                outcome="success",
+                story_id=story.story_id,
+                issue_id=issue_id,
+            )
+        else:
+            log_api_event(
+                logging.DEBUG,
+                "story_intake_cluster_no_issue",
+                trace_id=resolved_trace_id,
+                outcome="no_issue",
+                story_id=story.story_id,
+            )
         log_api_event(
             logging.INFO,
             "story_intake_created",

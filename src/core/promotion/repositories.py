@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Protocol
 
-from core.promotion.types import IssueCandidateRecord, ReviewAuditEntry
+from core.promotion.types import (
+    IssueCandidateRecord,
+    IssueCandidateStatus,
+    ReviewAuditEntry,
+)
 
 
 class IssueCandidateStore(Protocol):
@@ -15,6 +19,9 @@ class IssueCandidateStore(Protocol):
 
     def delete(self, candidate_id: str) -> None:
         """Remove candidate by id."""
+
+    def find_promoted_by_cluster_id(self, cluster_id: str) -> IssueCandidateRecord | None:
+        """Return a promoted candidate for cluster_id, if any."""
 
 
 class ReviewAuditLogRepository(Protocol):
@@ -45,6 +52,13 @@ class InMemoryIssueCandidateStore:
     def delete(self, candidate_id: str) -> None:
         assert self._records is not None
         self._records.pop(candidate_id, None)
+
+    def find_promoted_by_cluster_id(self, cluster_id: str) -> IssueCandidateRecord | None:
+        assert self._records is not None
+        for rec in self._records.values():
+            if rec.cluster_id == cluster_id and rec.status is IssueCandidateStatus.PROMOTED:
+                return rec
+        return None
 
 
 @dataclass

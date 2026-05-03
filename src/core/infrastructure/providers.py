@@ -10,7 +10,9 @@ from core.domain import (
     SignalProfileRepository,
     StoryRepository,
 )
+from core.domain import ClusterMembershipStore, StorySignalStore
 from core.infrastructure.repositories import (
+    InMemoryClusterMembershipStore,
     InMemoryHealthRepository,
     InMemoryIdempotencyRepository,
     InMemoryIssueProjectionEmbeddingStore,
@@ -19,8 +21,10 @@ from core.infrastructure.repositories import (
     InMemorySignalProfileRepository,
     InMemoryStoryEmbeddingStore,
     InMemoryStoryRepository,
+    InMemoryStorySignalStore,
 )
 from core.infrastructure.db_sqlite import (
+    SqliteClusterMembershipStore,
     SqliteDatabase,
     SqliteIssueCandidateStore,
     SqliteIdempotencyRepository,
@@ -30,8 +34,10 @@ from core.infrastructure.db_sqlite import (
     SqliteReviewAuditLogRepository,
     SqliteStoryEmbeddingStore,
     SqliteStoryRepository,
+    SqliteStorySignalStore,
 )
 from core.infrastructure.db_supabase import (
+    SupabaseClusterMembershipStore,
     SupabaseDatabase,
     SupabaseIssueCandidateStore,
     SupabaseIdempotencyRepository,
@@ -41,6 +47,7 @@ from core.infrastructure.db_supabase import (
     SupabaseReviewAuditLogRepository,
     SupabaseStoryEmbeddingStore,
     SupabaseStoryRepository,
+    SupabaseStorySignalStore,
 )
 from core.infrastructure.service_factory import DefaultServiceFactory
 from core.evidence import EvidencePackRepository, InMemoryEvidencePackRepository
@@ -112,6 +119,8 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     issue_story_link_store = InMemoryIssueStoryLinkStore()
     issue_candidate_store = provide_issue_candidate_store()
     review_audit_log_repository = provide_review_audit_log_repository()
+    story_signal_store: StorySignalStore = InMemoryStorySignalStore()
+    cluster_membership_store: ClusterMembershipStore = InMemoryClusterMembershipStore()
 
     if resolved_config.db_backend == "sqlite" and resolved_config.database_url is not None:
         sqlite_db = SqliteDatabase.from_url(resolved_config.database_url)
@@ -124,6 +133,8 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_candidate_store = SqliteIssueCandidateStore(sqlite_db)
         review_audit_log_repository = SqliteReviewAuditLogRepository(sqlite_db)
         issue_story_link_store = SqliteIssueStoryLinkStore(sqlite_db)
+        story_signal_store = SqliteStorySignalStore(sqlite_db)
+        cluster_membership_store = SqliteClusterMembershipStore(sqlite_db)
     elif (
         resolved_config.db_backend == "supabase"
         and resolved_config.supabase_url is not None
@@ -144,6 +155,8 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_candidate_store = SupabaseIssueCandidateStore(supabase_db)
         review_audit_log_repository = SupabaseReviewAuditLogRepository(supabase_db)
         issue_story_link_store = SupabaseIssueStoryLinkStore(supabase_db)
+        story_signal_store = SupabaseStorySignalStore(supabase_db)
+        cluster_membership_store = SupabaseClusterMembershipStore(supabase_db)
 
     return DefaultServiceFactory(
         health_repository=provide_health_repository(),
@@ -159,5 +172,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_projection_store=issue_projection_store,
         issue_projection_embedding_store=issue_projection_embedding_store,
         issue_story_link_store=issue_story_link_store,
+        story_signal_store=story_signal_store,
+        cluster_membership_store=cluster_membership_store,
     )
 

@@ -4,12 +4,12 @@ from core.domain import SignalDimension
 
 
 REQUIRED_SIGNAL_DIMENSIONS: tuple[SignalDimension, ...] = (
-    SignalDimension.TOPIC,
-    SignalDimension.SYSTEM_FAILURE,
-    SignalDimension.NEED,
-    SignalDimension.DESIRED_STATE,
-    SignalDimension.REPEATABILITY,
-    SignalDimension.RELEVANCE,
+    SignalDimension.CIVIC_DOMAIN,
+    SignalDimension.FAILURE_PATTERN,
+    SignalDimension.CIVIC_WEIGHT,
+    SignalDimension.DESIRED_OUTCOME,
+    SignalDimension.AFFECTED_GROUP,
+    SignalDimension.GEOGRAPHIC_DISTRICT,
 )
 
 
