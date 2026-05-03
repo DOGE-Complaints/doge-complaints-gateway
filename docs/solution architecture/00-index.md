@@ -37,3 +37,13 @@
 3. Потом cross-cutting и delivery `10-15`.  
 4. Для post-demo оркестрации — `16` и требования `docs/requirements/20-*.md`.  
 5. Для post-demo токенизации/уведомлений — `17` + `docs/requirements/21-*.md`.
+6. Для детальной SA Cluster Engine — `cluster-engine/` (см. ниже).
+
+## Детализированные пакеты
+
+### cluster-engine/ — Cluster Engine (req 25, 26)
+
+- `cluster-engine/00-overview-and-decisions.md` — обзор, keep/redesign, 8 ADRs
+- `cluster-engine/01-data-model-and-contracts.md` — типы, протоколы, схема БД, AppConfig
+- `cluster-engine/02-signal-extraction.md` — vocabulary registries, infer_signals_from_canonical(), signal source hierarchy
+- `cluster-engine/03-engine-and-orchestrator.md` — SHA-256 cluster IDs, per-cluster readiness, orchestrator, observability

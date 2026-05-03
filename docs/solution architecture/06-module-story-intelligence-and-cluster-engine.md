@@ -29,3 +29,12 @@
 - why-in-cluster explanation per story;
 - top contributing signals;
 - split/merge/reframe action hooks.
+
+## Детальное техническое решение
+
+Полная SA-проработка вынесена в `cluster-engine/` subdirectory:
+
+- `cluster-engine/00-overview-and-decisions.md` — архитектурный обзор, keep/redesign table, ADRs
+- `cluster-engine/01-data-model-and-contracts.md` — типы, протоколы, схема БД
+- `cluster-engine/02-signal-extraction.md` — извлечение сигналов из GPT canonical labels
+- `cluster-engine/03-engine-and-orchestrator.md` — ClusteringEngine, orchestrator, lifecycle

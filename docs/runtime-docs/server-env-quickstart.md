@@ -188,6 +188,34 @@ Install-step в `railpack.json` не задаем вручную: Python provide
 - `No module named uvicorn` → подтверждается H3 (проверить, что build использует root с `pyproject.toml`, а install не переопределен кастомным `steps`);
 - `No module named core` → подтверждается H2 (проверить Root Directory сервиса в Railway, должен указывать на `doge-complaints-gateway`).
 
+### 4.9 Smoke проверка реального URL через `sh` + `curl`
+
+В репозитории есть POSIX smoke-скрипт:
+
+- `scripts/smoke_real_urls.sh`
+
+Он проверяет:
+
+- `GET /health` (ожидается HTTP 200)
+- `POST /intake/stories` с валидным payload (ожидается HTTP 200)
+
+Параметризация URL:
+
+- сначала используется `SMOKE_BASE_URL`;
+- если не задан, берется `API_BASE_URL`.
+
+Опционально:
+
+- если задан `SERVICE_API_TOKEN`, скрипт добавляет `Authorization: Bearer ...`.
+
+Команды:
+
+```bash
+cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
+sh -n scripts/smoke_real_urls.sh
+SMOKE_BASE_URL="https://dogestonia-tallinn-demo.up.railway.app" sh scripts/smoke_real_urls.sh
+```
+
 ## 5) Частые проблемы
 
 1. `Missing required environment variable: API_BASE_URL`
