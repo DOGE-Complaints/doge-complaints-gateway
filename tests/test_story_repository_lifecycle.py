@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 
 from core.application import StoryIntakeService
-from core.domain import StoryLifecycleStatus
+from core.domain import StoryLifecycleStatus, StoryRecord
+from core.infrastructure.db_sqlite import SqliteDatabase, SqliteStoryRepository
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
 
@@ -106,4 +109,46 @@ def test_story_intake_service_rejects_readiness_regression() -> None:
         service.advance_story_readiness(
             story_id=saved.story_id, narrative_complete=False
         )
+
+
+def test_story_intake_service_raises_for_unknown_story_id() -> None:
+    service = StoryIntakeService(
+        repository=InMemoryStoryRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+    )
+    with pytest.raises(ValueError, match="Unknown story_id"):
+        service.advance_story_readiness(story_id="missing-story", narrative_complete=True)
+
+
+def test_sqlite_story_repository_roundtrip_and_get_missing() -> None:
+    db = SqliteDatabase.from_url("sqlite:///:memory:")
+    db.ensure_schema()
+    repo = SqliteStoryRepository(db)
+    now = datetime.now(UTC)
+    story = StoryRecord(
+        story_id="sqlite-story-1",
+        schema_version="m2.story_intake_envelope.v1",
+        narrative_original_text="SQLite direct story roundtrip",
+        submitter_external_user_id="sqlite-user",
+        submitter_identity_issuer=None,
+        lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
+        created_at=now,
+        updated_at=now,
+        narrative_language="en",
+        narrative_title_hint="SQLite roundtrip",
+        narrative_canonical_type="infrastructure",
+        narrative_canonical_labels=("lighting",),
+    )
+
+    repo.save_story(story)
+    fetched = repo.get_story("sqlite-story-1")
+    all_rows = repo.list_stories()
+    missing = repo.get_story("missing-story")
+
+    assert fetched is not None
+    assert fetched.story_id == "sqlite-story-1"
+    assert fetched.narrative_canonical_labels == ("lighting",)
+    assert len(all_rows) == 1
+    assert all_rows[0].story_id == "sqlite-story-1"
+    assert missing is None
 

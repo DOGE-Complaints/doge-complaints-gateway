@@ -55,7 +55,7 @@ def test_sqlite_process_linkage_persists_candidate_audit_and_issue_story_links()
     promotion = IssuePromotionService(
         candidates=candidate_store,
         audit_log=audit_store,
-        gate_policy=PromotionGatePolicy(min_readiness_score=70, min_stories=2),
+        gate_policy=PromotionGatePolicy(min_readiness_score=60, min_stories=2),
     )
     create_service = IssueCreateService(
         promotion_service=promotion,

@@ -26,7 +26,7 @@ def test_signal_profile_quality_validation_detects_missing_dimensions() -> None:
         created_at=datetime.now(UTC),
     )
     errors = service.validate_quality(profile)
-    assert any("topic" in item for item in errors)
+    assert any("civic_domain" in item for item in errors)
 
 
 def test_signal_profile_quality_validation_detects_duplicate_user_system_values() -> None:

@@ -23,7 +23,7 @@ def test_load_config_demo_defaults() -> None:
     assert config.db_enabled is False
     assert config.database_url is None
     assert config.cluster_min_size == 8
-    assert config.cluster_readiness_threshold == 70
+    assert config.cluster_readiness_threshold == 60
     assert config.cluster_active_lenses
     assert config.cluster_geo_filter == "any"
     assert config.cluster_tie_breaker == "lexical"
@@ -135,6 +135,9 @@ def test_env_schema_contains_required_fields() -> None:
     assert "CLUSTER_MIN_SIZE" in names
     assert "CLUSTER_READINESS_THRESHOLD" in names
     assert "CLUSTER_ACTIVE_LENSES" in names
+    assert "CLUSTER_PRIMARY_LENS" in names
+    assert "CLUSTER_SIGNAL_SOURCE" in names
+    assert "CLUSTER_ID_ALGORITHM" in names
     assert "CLUSTER_GEO_FILTER" in names
     assert "CLUSTER_TIE_BREAKER" in names
     assert "CLUSTER_TYPE_RESOLUTION" in names

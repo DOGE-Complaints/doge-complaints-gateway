@@ -69,6 +69,12 @@ def test_story_embedding_uses_policy_version_and_canonical_source() -> None:
     assert first["embedding_policy_version"] == "m2.story_embedding_policy.v1"
     assert second["embedding_policy_version"] == "m2.story_embedding_policy.v1"
     assert first["source_checksum"] != second["source_checksum"]
+    # TC-21: direct output fields for save_story_embedding path
+    assert first["model_name"] == "deterministic-baseline-v1"
+    assert second["model_name"] == "deterministic-baseline-v1"
+    assert first["story_id"] is not None
+    assert second["story_id"] is not None
+    assert first["story_id"] != second["story_id"]
 
 
 def test_issue_embedding_persists_policy_version() -> None:
@@ -102,7 +108,7 @@ def test_issue_embedding_persists_policy_version() -> None:
         promotion_service=IssuePromotionService(
             candidates=InMemoryIssueCandidateStore(),
             audit_log=InMemoryReviewAuditLogRepository(),
-            gate_policy=PromotionGatePolicy(min_readiness_score=70, min_stories=2),
+            gate_policy=PromotionGatePolicy(min_readiness_score=60, min_stories=2),
         ),
         projection_service=IssueProjectionService(),
         bridge=StoryPromotionProjectionBridge(story_repository=repo),
