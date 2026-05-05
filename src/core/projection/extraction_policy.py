@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from core.projection.enums import SpaIssueStatus, SpaIssueType
+from core.projection.enums import DOGEIssueStatus, DOGEIssueType
 from core.projection.i18n import I18nText
 from core.projection.input import ProjectionInput
 
-EXTRACTION_POLICY_VERSION = "m2.story_to_projection_policy.v1"
+EXTRACTION_POLICY_VERSION = "m3.story_to_doge_issue_policy.v1"
 
 
 @dataclass(frozen=True)
@@ -62,7 +62,7 @@ def build_projection_input_from_draft(
 ) -> ProjectionInput:
     return ProjectionInput(
         issue_id=issue_id,
-        status=SpaIssueStatus.PUBLISHED.value,
+        status=DOGEIssueStatus.PUBLISHED.value,
         issue_type=draft.issue_type,
         labels=draft.labels,
         title=draft.title,
@@ -81,10 +81,10 @@ def _to_i18n(text: str) -> I18nText:
 def _derive_issue_type(title: str, aggregate_text: str) -> str:
     corpus = f"{title} {aggregate_text}".lower()
     if any(token in corpus for token in ("broken", "outage", "accident", "hazard", "danger")):
-        return SpaIssueType.INCIDENT.value
+        return DOGEIssueType.INCIDENT.value
     if any(token in corpus for token in ("request", "need", "please", "could you")):
-        return SpaIssueType.SERVICE_REQUEST.value
-    return SpaIssueType.IMPROVEMENT.value
+        return DOGEIssueType.SERVICE_REQUEST.value
+    return DOGEIssueType.IMPROVEMENT.value
 
 
 def _derive_labels(title: str, aggregate_text: str) -> tuple[str, ...]:

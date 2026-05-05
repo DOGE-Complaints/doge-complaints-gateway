@@ -5,7 +5,7 @@ from typing import Any
 
 
 @dataclass(frozen=True)
-class SpaIssueProjection:
+class DOGEIssue:
     """SPA-compatible issue card payload (required + optional fields per requirements/09)."""
 
     id: str

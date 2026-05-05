@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.projection.dto import SpaIssueProjection
+from core.projection.dto import DOGEIssue
 from core.projection.i18n import I18nText
 from core.projection.input import ProjectionInput
 from core.projection.validation import validate_governed_enums, validate_optional_tx_fields
@@ -17,14 +17,14 @@ def apply_summary_fallback(title: I18nText, summary: I18nText | None) -> I18nTex
     )
 
 
-def project_distinct_issue(data: ProjectionInput) -> SpaIssueProjection:
+def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
     """Map governed domain input to SPA Issue projection."""
     validate_governed_enums(status=data.status, issue_type=data.issue_type, labels=data.labels)
     validate_optional_tx_fields(arweave_txid=data.arweave_txid, image_txid=data.image_txid)
 
     summary = apply_summary_fallback(data.title, data.summary)
 
-    return SpaIssueProjection(
+    return DOGEIssue(
         id=data.issue_id,
         status=data.status,
         type=data.issue_type,

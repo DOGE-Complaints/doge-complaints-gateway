@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 
 
-class SpaIssueStatus(StrEnum):
+class DOGEIssueStatus(StrEnum):
     """Board-visible status values (minimal governed set for MVP)."""
 
     NEW = "NEW"
@@ -11,7 +11,7 @@ class SpaIssueStatus(StrEnum):
     PUBLISHED = "PUBLISHED"
 
 
-class SpaIssueType(StrEnum):
+class DOGEIssueType(StrEnum):
     """Distinct issue type vocabulary aligned with UI filters."""
 
     IMPROVEMENT = "IMPROVEMENT"
@@ -19,7 +19,7 @@ class SpaIssueType(StrEnum):
     INCIDENT = "INCIDENT"
 
 
-class SpaLabel(StrEnum):
+class DOGEIssueLabel(StrEnum):
     """Governed label set (lowercase tokens; extend via version bump)."""
 
     WASTE = "waste"

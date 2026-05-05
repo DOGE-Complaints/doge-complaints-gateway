@@ -1,5 +1,5 @@
-from core.projection.dto import SpaIssueProjection
-from core.projection.enums import SpaIssueStatus, SpaIssueType, SpaLabel
+from core.projection.dto import DOGEIssue
+from core.projection.enums import DOGEIssueStatus, DOGEIssueType, DOGEIssueLabel
 from core.projection.i18n import I18nText
 from core.projection.input import ProjectionInput
 from core.projection.mapper import apply_summary_fallback, project_distinct_issue
@@ -17,10 +17,10 @@ from core.projection.extraction_policy import (
 __all__ = [
     "I18nText",
     "ProjectionInput",
-    "SpaIssueProjection",
-    "SpaIssueStatus",
-    "SpaIssueType",
-    "SpaLabel",
+    "DOGEIssue",
+    "DOGEIssueStatus",
+    "DOGEIssueType",
+    "DOGEIssueLabel",
     "IssueProjectionService",
     "PROJECTION_POLICY_VERSION",
     "EXTRACTION_POLICY_VERSION",

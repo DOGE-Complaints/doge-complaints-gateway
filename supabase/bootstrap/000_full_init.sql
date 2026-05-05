@@ -47,7 +47,7 @@ alter table if exists public.story_embeddings
 
 create index if not exists idx_story_embeddings_story_id on public.story_embeddings(story_id);
 
-create table if not exists public.spa_issue_projections (
+create table if not exists public.doge_issues (
     issue_id text primary key,
     status text not null,
     payload_json jsonb not null,
@@ -56,20 +56,20 @@ create table if not exists public.spa_issue_projections (
     updated_at timestamptz not null default now()
 );
 
-create table if not exists public.spa_issue_projection_embeddings (
+create table if not exists public.doge_issue_embeddings (
     embedding_id bigint generated always as identity primary key,
-    issue_id text not null references public.spa_issue_projections(issue_id) on delete cascade,
+    issue_id text not null references public.doge_issues(issue_id) on delete cascade,
     model_name text not null,
     embedding vector(8) not null,
     source_checksum text not null,
     created_at timestamptz not null default now()
 );
 
-alter table if exists public.spa_issue_projection_embeddings
+alter table if exists public.doge_issue_embeddings
     add column if not exists embedding_vector_json text,
-    add column if not exists embedding_policy_version text not null default 'm2.issue_embedding_policy.v1';
+    add column if not exists embedding_policy_version text not null default 'm3.doge_issue_embedding_policy.v1';
 
-create index if not exists idx_issue_embeddings_issue_id on public.spa_issue_projection_embeddings(issue_id);
+create index if not exists idx_issue_embeddings_issue_id on public.doge_issue_embeddings(issue_id);
 
 -- Story-first process/linkage tables
 create table if not exists public.issue_candidates (
@@ -122,7 +122,7 @@ select
     p.payload_json->'description'->>'ru' as description_ru,
     p.payload_json->'labels' as labels_json,
     p.payload_json as payload_json
-from public.spa_issue_projections p;
+from public.doge_issues p;
 
 grant select on public.issues_dashboard to anon, authenticated;
 
@@ -130,8 +130,8 @@ grant select on public.issues_dashboard to anon, authenticated;
 alter table public.stories enable row level security;
 alter table public.idempotency_keys enable row level security;
 alter table public.story_embeddings enable row level security;
-alter table public.spa_issue_projections enable row level security;
-alter table public.spa_issue_projection_embeddings enable row level security;
+alter table public.doge_issues enable row level security;
+alter table public.doge_issue_embeddings enable row level security;
 
 drop policy if exists stories_service_role_all on public.stories;
 create policy stories_service_role_all
@@ -157,17 +157,17 @@ to service_role
 using (true)
 with check (true);
 
-drop policy if exists projections_service_role_all on public.spa_issue_projections;
+drop policy if exists projections_service_role_all on public.doge_issues;
 create policy projections_service_role_all
-on public.spa_issue_projections
+on public.doge_issues
 for all
 to service_role
 using (true)
 with check (true);
 
-drop policy if exists projection_embeddings_service_role_all on public.spa_issue_projection_embeddings;
+drop policy if exists projection_embeddings_service_role_all on public.doge_issue_embeddings;
 create policy projection_embeddings_service_role_all
-on public.spa_issue_projection_embeddings
+on public.doge_issue_embeddings
 for all
 to service_role
 using (true)

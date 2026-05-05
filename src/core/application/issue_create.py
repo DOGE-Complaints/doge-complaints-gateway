@@ -16,7 +16,7 @@ from core.projection import (
 )
 from core.promotion import IssuePromotionService, ReviewDecision
 
-DERIVATION_POLICY_VERSION = "m2.spa_issue_derivation.v1"
+DERIVATION_POLICY_VERSION = "m3.doge_issue_derivation.v1"
 
 
 @dataclass(frozen=True)
@@ -194,7 +194,7 @@ def _build_embedding_vector_from_projection(
     return tuple(vector)
 
 
-ISSUE_EMBEDDING_POLICY_VERSION = "m2.issue_embedding_policy.v1"
+ISSUE_EMBEDDING_POLICY_VERSION = "m3.doge_issue_embedding_policy.v1"
 
 
 def _canonical_issue_embedding_source(projection_payload: dict[str, object]) -> str:

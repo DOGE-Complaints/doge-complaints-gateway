@@ -170,8 +170,8 @@ class SupabaseDatabase:
             "stories",
             "idempotency_keys",
             "story_embeddings",
-            "spa_issue_projections",
-            "spa_issue_projection_embeddings",
+            "doge_issues",
+            "doge_issue_embeddings",
             "issue_candidates",
             "review_audit_log",
             "issue_story_links",
@@ -208,7 +208,7 @@ class SupabaseDatabase:
                 "embedding_vector_json",
                 "embedding_policy_version",
             },
-            "spa_issue_projection_embeddings": {
+            "doge_issue_embeddings": {
                 "embedding_vector_json",
                 "embedding_policy_version",
             },
@@ -407,7 +407,7 @@ class SupabaseIssueProjectionStore:
         now = _utcnow().isoformat()
         self.db._request(
             method="POST",
-            path="/rest/v1/spa_issue_projections",
+            path="/rest/v1/doge_issues",
             params={"on_conflict": "issue_id"},
             json_body=[
                 {
@@ -438,7 +438,7 @@ class SupabaseIssueProjectionEmbeddingStore:
     ) -> None:
         self.db._request(
             method="POST",
-            path="/rest/v1/spa_issue_projection_embeddings",
+            path="/rest/v1/doge_issue_embeddings",
             json_body=[
                 {
                     "issue_id": issue_id,

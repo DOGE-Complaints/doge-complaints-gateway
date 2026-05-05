@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.projection.enums import SpaIssueStatus, SpaIssueType, SpaLabel
+from core.projection.enums import DOGEIssueStatus, DOGEIssueType, DOGEIssueLabel
 
 
 class ProjectionContractError(ValueError):
@@ -8,11 +8,11 @@ class ProjectionContractError(ValueError):
 
 
 def validate_governed_enums(*, status: str, issue_type: str, labels: tuple[str, ...]) -> None:
-    if status not in {s.value for s in SpaIssueStatus}:
+    if status not in {s.value for s in DOGEIssueStatus}:
         raise ProjectionContractError(f"Unknown SPA status: {status!r}.")
-    if issue_type not in {t.value for t in SpaIssueType}:
+    if issue_type not in {t.value for t in DOGEIssueType}:
         raise ProjectionContractError(f"Unknown SPA issue type: {issue_type!r}.")
-    allowed = {lbl.value for lbl in SpaLabel}
+    allowed = {lbl.value for lbl in DOGEIssueLabel}
     for label in labels:
         if label not in allowed:
             raise ProjectionContractError(f"Unknown SPA label: {label!r}.")

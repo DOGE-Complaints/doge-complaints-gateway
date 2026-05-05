@@ -129,7 +129,7 @@ class SqliteDatabase:
             CREATE INDEX IF NOT EXISTS idx_story_embeddings_story_id
                 ON story_embeddings(story_id);
 
-            CREATE TABLE IF NOT EXISTS spa_issue_projections (
+            CREATE TABLE IF NOT EXISTS doge_issues (
                 issue_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL,
                 payload_json TEXT NOT NULL,
@@ -138,18 +138,18 @@ class SqliteDatabase:
                 updated_at TEXT NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS spa_issue_projection_embeddings (
+            CREATE TABLE IF NOT EXISTS doge_issue_embeddings (
                 embedding_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 issue_id TEXT NOT NULL,
                 model_name TEXT NOT NULL,
                 embedding_vector_json TEXT NOT NULL,
                 source_checksum TEXT NOT NULL,
-                embedding_policy_version TEXT NOT NULL DEFAULT 'm2.issue_embedding_policy.v1',
+                embedding_policy_version TEXT NOT NULL DEFAULT 'm3.doge_issue_embedding_policy.v1',
                 created_at TEXT NOT NULL,
-                FOREIGN KEY(issue_id) REFERENCES spa_issue_projections(issue_id) ON DELETE CASCADE
+                FOREIGN KEY(issue_id) REFERENCES doge_issues(issue_id) ON DELETE CASCADE
             );
             CREATE INDEX IF NOT EXISTS idx_issue_embeddings_issue_id
-                ON spa_issue_projection_embeddings(issue_id);
+                ON doge_issue_embeddings(issue_id);
 
             CREATE TABLE IF NOT EXISTS issue_candidates (
                 candidate_id TEXT PRIMARY KEY,
@@ -444,7 +444,7 @@ class SqliteIssueProjectionStore:
         now = _utcnow().isoformat()
         self.db.connection.execute(
             """
-            INSERT INTO spa_issue_projections (issue_id, status, payload_json, policy_version, created_at, updated_at)
+            INSERT INTO doge_issues (issue_id, status, payload_json, policy_version, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(issue_id) DO UPDATE SET
                 status = excluded.status,
@@ -472,7 +472,7 @@ class SqliteIssueProjectionEmbeddingStore:
     ) -> None:
         self.db.connection.execute(
             """
-            INSERT INTO spa_issue_projection_embeddings (
+            INSERT INTO doge_issue_embeddings (
                 issue_id, model_name, embedding_vector_json, source_checksum, embedding_policy_version, created_at
             ) VALUES (?, ?, ?, ?, ?, ?)
             """,
