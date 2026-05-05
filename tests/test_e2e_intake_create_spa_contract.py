@@ -67,7 +67,7 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
     assert embedding_store is not None
     embedding_rows = getattr(embedding_store, "_rows")
     assert embedding_rows
-    assert embedding_rows[0]["embedding_policy_version"] == "m2.issue_embedding_policy.v1"
+    assert embedding_rows[0]["embedding_policy_version"] == "m3.doge_issue_embedding_policy.v1"
     link_store = issue_create.issue_story_link_store
     assert link_store is not None
     link_rows = getattr(link_store, "_rows")

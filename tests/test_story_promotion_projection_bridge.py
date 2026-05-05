@@ -4,7 +4,7 @@ from core.application import StoryPromotionProjectionBridge
 from core.application.services import StoryIntakeService
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
-from core.projection import I18nText, SpaIssueStatus, StoryProjectionDraft
+from core.projection import I18nText, DOGEIssueStatus, StoryProjectionDraft
 
 
 class _CustomPolicy:
@@ -66,7 +66,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
     )
 
     assert projection_input.issue_id == "issue-bridge-1"
-    assert projection_input.status == SpaIssueStatus.PUBLISHED.value
+    assert projection_input.status == DOGEIssueStatus.PUBLISHED.value
     assert "infrastructure" in projection_input.labels
     assert projection_input.description.en
 

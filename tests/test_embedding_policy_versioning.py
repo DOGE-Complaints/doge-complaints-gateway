@@ -126,4 +126,4 @@ def test_issue_embedding_persists_policy_version() -> None:
     assert embedding_store._rows is not None
     assert embedding_store._rows
     row = embedding_store._rows[0]
-    assert row["embedding_policy_version"] == "m2.issue_embedding_policy.v1"
+    assert row["embedding_policy_version"] == "m3.doge_issue_embedding_policy.v1"

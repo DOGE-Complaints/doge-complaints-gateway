@@ -27,7 +27,7 @@ def test_spa_projection_roundtrip_via_dashboard_view() -> None:
     store.save_projection(
         issue_id=issue_id,
         status="promoted",
-        policy_version="m2.spa_issue_derivation.v1",
+        policy_version="m3.doge_issue_derivation.v1",
         payload={
             "type": "improvement",
             "title": {"en": "Road light issue", "et": "Teevalgusti mure", "ru": "Проблема с освещением"},

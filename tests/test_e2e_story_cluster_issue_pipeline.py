@@ -75,7 +75,7 @@ def test_e2e_story_cluster_issue_pipeline_creates_projection() -> None:
     saved = projection_store._rows[issue_id]
     assert saved["status"] == "promoted"
     assert projection_embedding_store._rows is not None
-    assert projection_embedding_store._rows[0]["embedding_policy_version"] == "m2.issue_embedding_policy.v1"
+    assert projection_embedding_store._rows[0]["embedding_policy_version"] == "m3.doge_issue_embedding_policy.v1"
     assert issue_story_link_store._rows is not None
     assert issue_id in issue_story_link_store._rows
     s1 = stories.get_story("s1")

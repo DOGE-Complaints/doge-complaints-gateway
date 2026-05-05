@@ -62,13 +62,13 @@ def test_db_backed_pipeline_persists_stories_projections_and_embeddings(
             "SELECT COUNT(*) FROM story_embeddings"
         ).fetchone()[0]
         projections_count = connection.execute(
-            "SELECT COUNT(*) FROM spa_issue_projections"
+            "SELECT COUNT(*) FROM doge_issues"
         ).fetchone()[0]
         projection_embeddings_count = connection.execute(
-            "SELECT COUNT(*) FROM spa_issue_projection_embeddings"
+            "SELECT COUNT(*) FROM doge_issue_embeddings"
         ).fetchone()[0]
         persisted_issue = connection.execute(
-            "SELECT issue_id FROM spa_issue_projections LIMIT 1"
+            "SELECT issue_id FROM doge_issues LIMIT 1"
         ).fetchone()
     finally:
         connection.close()

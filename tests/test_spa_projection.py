@@ -7,9 +7,9 @@ from core.projection import (
     IssueProjectionService,
     ProjectionContractError,
     ProjectionInput,
-    SpaIssueStatus,
-    SpaIssueType,
-    SpaLabel,
+    DOGEIssueStatus,
+    DOGEIssueType,
+    DOGEIssueLabel,
     project_distinct_issue,
 )
 
@@ -17,9 +17,9 @@ from core.projection import (
 def _sample_input(*, summary: I18nText | None = None) -> ProjectionInput:
     return ProjectionInput(
         issue_id="issue-1",
-        status=SpaIssueStatus.NEW.value,
-        issue_type=SpaIssueType.IMPROVEMENT.value,
-        labels=(SpaLabel.WASTE.value, SpaLabel.DISTRICT.value),
+        status=DOGEIssueStatus.NEW.value,
+        issue_type=DOGEIssueType.IMPROVEMENT.value,
+        labels=(DOGEIssueLabel.WASTE.value, DOGEIssueLabel.DISTRICT.value),
         title=I18nText(et="Pealkiri", ru="Заголовок", en="Title"),
         summary=summary,
         description=I18nText(et="Kirjeldus", ru="Описание", en="Description"),
@@ -48,8 +48,8 @@ def test_summary_fallback_per_locale() -> None:
 def test_rejects_unknown_label() -> None:
     bad = ProjectionInput(
         issue_id="i",
-        status=SpaIssueStatus.NEW.value,
-        issue_type=SpaIssueType.IMPROVEMENT.value,
+        status=DOGEIssueStatus.NEW.value,
+        issue_type=DOGEIssueType.IMPROVEMENT.value,
         labels=("unknown",),
         title=I18nText(et="a", ru="b", en="c"),
         summary=None,
@@ -62,9 +62,9 @@ def test_rejects_unknown_label() -> None:
 def test_rejects_placeholder_arweave() -> None:
     bad = ProjectionInput(
         issue_id="i",
-        status=SpaIssueStatus.NEW.value,
-        issue_type=SpaIssueType.IMPROVEMENT.value,
-        labels=(SpaLabel.WASTE.value,),
+        status=DOGEIssueStatus.NEW.value,
+        issue_type=DOGEIssueType.IMPROVEMENT.value,
+        labels=(DOGEIssueLabel.WASTE.value,),
         title=I18nText(et="a", ru="b", en="c"),
         summary=None,
         description=I18nText(et="d", ru="e", en="f"),
