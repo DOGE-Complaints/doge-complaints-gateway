@@ -28,8 +28,7 @@ class _DummyIntakeService:
 
 @dataclass(frozen=True)
 class _DummyStoryClusterOrchestrator:
-    def process_story(self, story_id: str) -> None:
-        return None
+    pass
 
 
 def _deps_kwargs(health_service: Any) -> dict[str, Any]:
