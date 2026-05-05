@@ -42,6 +42,12 @@
 
 **Порядок исполнения gateway (Python) после SSOT 22/23:** operative очередь — YAML [`gateway-active-packages/pkg-*.yaml`](../tasks/gateway-active-packages/) + указатель [`gateway-active-package.current.yaml`](../tasks/gateway-active-package.current.yaml); процесс и Build — [`.cursor/plans/Gateway_builder.plan.md`](../../../.cursor/plans/Gateway_builder.plan.md); не путать с [`.cursor/plans/GPT_builder.plan.md`](../../../.cursor/plans/GPT_builder.plan.md) (репозиторий GPT UI).
 
+### Архитектурные решения 2026-05-05 (стратегия v2)
+
+- `27-doge-issue-domain-rename.md` — **DOGEIssue**: переименование `SpaIssueProjection` → `DOGEIssue`, таблицы `spa_issue_projections` → `doge_issues`; supersedes раздел 2.1 из `24`. Полный инвентарь изменений + migration SQL + AC.
+- `28-clustering-cron-scheduler.md` — **Cron-планировщик**: отвязка кластеризации от intake; новый метод `process_all_pending()`, `ClusterCronJob` на stdlib threading, lifespan-хук в ASGI, новые env vars `CLUSTER_CRON_INTERVAL_S` / `CLUSTER_CRON_ENABLED`.
+- `29-living-issues-cluster-growth-model.md` — **Living Issues**: один `cluster_id` → один активный `DOGEIssue`; новый `extend_candidate()` на `IssuePromotionService`; extend path в `IssueCreateService`; задействует существующий `find_promoted_by_cluster_id` из всех трёх backends.
+
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
 - `20-post-demo-orchestration-and-scheduled-jobs.md` — оркестрация, cron/queue, единый use-case слой.
