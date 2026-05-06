@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.application.issue_create import IssueCreateService, StoryPromotionProjectionBridge
-from core.cluster import ClusteringEngine
+from core.cluster import ClusteringEngine, ClusterLens
 from core.domain import StoryLifecycleStatus, StoryRecord
 from core.infrastructure.repositories import (
     InMemoryIssueStoryLinkStore,
@@ -190,12 +190,15 @@ def test_process_story_returns_none_when_story_not_in_memberships() -> None:
     stories.save_story(_story("s2", "same narrative", "Broken light"))
 
     class _MembershipsWithoutTargetEngine:
-        active_lenses = ("topic_micro",)
+        active_lenses = (ClusterLens.TOPIC_MICRO,)
 
         def memberships(
             self, profiles: object, *, id_algorithm: str | None = None
         ) -> dict[str, dict[str, str]]:
             return {"s2": {"topic_micro": "cluster:topic_micro:1"}}
+
+        def resolved_primary_lens(self) -> ClusterLens:
+            return ClusterLens.TOPIC_MICRO
 
     issue_create = IssueCreateService(
         promotion_service=IssuePromotionService(
@@ -212,3 +215,54 @@ def test_process_story_returns_none_when_story_not_in_memberships() -> None:
         issue_create_service=issue_create,
     )
     assert orchestrator.process_story("s1") is None
+
+
+def test_e2e_living_issue_two_batches_reuses_issue_and_appends_stories() -> None:
+    stories = InMemoryStoryRepository()
+    stories.save_story(_story("s1", "district lights broken near school", "Broken light"))
+    stories.save_story(_story("s2", "district lights broken near station", "Broken light"))
+
+    projection_store = InMemoryIssueProjectionStore()
+    issue_story_link_store = InMemoryIssueStoryLinkStore()
+    promotion_service = IssuePromotionService(
+        candidates=InMemoryIssueCandidateStore(),
+        audit_log=InMemoryReviewAuditLogRepository(),
+        gate_policy=PromotionGatePolicy(min_readiness_score=60, min_stories=2),
+    )
+    issue_create = IssueCreateService(
+        promotion_service=promotion_service,
+        projection_service=IssueProjectionService(),
+        bridge=StoryPromotionProjectionBridge(story_repository=stories),
+        issue_projection_store=projection_store,
+        issue_story_link_store=issue_story_link_store,
+    )
+    orchestrator = StoryClusterOrchestrator(
+        story_repository=stories,
+        clustering_engine=ClusteringEngine(),
+        issue_create_service=issue_create,
+    )
+
+    first_issue_ids = orchestrator.process_all_pending()
+    assert len(first_issue_ids) == 1
+    issue_id = first_issue_ids[0]
+
+    stories.save_story(_story("s3", "district lights broken near square", "Broken light"))
+    stories.save_story(_story("s4", "district lights broken near bridge", "Broken light"))
+    second_issue_ids = orchestrator.process_all_pending()
+
+    assert second_issue_ids == [issue_id]
+    promoted = promotion_service.candidates.get(issue_id)
+    assert promoted is not None
+    assert set(promoted.story_ids) == {"s1", "s2", "s3", "s4"}
+
+    links = issue_story_link_store._rows
+    assert links is not None
+    assert issue_id in links
+    assert set(links[issue_id][1]) == {"s1", "s2", "s3", "s4"}
+    for story_id in ("s1", "s2", "s3", "s4"):
+        story = stories.get_story(story_id)
+        assert story is not None
+        assert story.lifecycle_status is StoryLifecycleStatus.CLUSTERED
+
+    audit = promotion_service.audit_trail(issue_id)
+    assert [entry.rationale for entry in audit][-1] == "cluster_growth_extend"

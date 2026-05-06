@@ -17,7 +17,8 @@
 
 - **Закрыты по индексу:** EPIC-M2-01 … EPIC-M2-10 (все stories в таблицах ниже — `🟢 Done (Committed)`).
 - **Приёмка / коммиты:** EPIC-M2-13 — все перечисленные stories в `🔵 Implemented (Waiting Acceptance/Commits)`; строка эпика `M2-13` остаётся **In Progress** до перевода stories в `🟢` после acceptance/commits.
-- **Fallback без `ACTIVE_TASK_PATH`:** приоритетно первая `⚪` в `Cross-Epic Task Backlog` сверху вниз; текущий story-first старт — `TASK-SF-P0-01` (см. новый SF pack и operative `TASK_BATCH` в `Gateway_builder.plan.md`).
+- **Активная wave living-issues:** EPIC-M2-17 / STORY-M2-17-01 (`living issues cluster growth model` по requirement 29) — в статусе `🟡 In Progress (task decomposition wave)`, подключается отдельным `pkg-*` snapshot.
+- **Fallback без `ACTIVE_TASK_PATH`:** приоритетно первая `⚪` в активной секции EPIC сверху вниз, затем `Cross-Epic Task Backlog`.
 - **Продуктовый SSOT story-first (после интервью):** [`docs/requirements/22-m2-demo-story-intake-interview-ssot-v1.md`](../requirements/22-m2-demo-story-intake-interview-ssot-v1.md), [`docs/requirements/23-m2-demo-story-clustering-interview-ssot-v1.md`](../requirements/23-m2-demo-story-clustering-interview-ssot-v1.md).
 - **HTTP runtime (факт):** локальный сервер — `python3 -m core.api.asgi_app` (см. [`../runtime-docs/server-env-quickstart.md`](../runtime-docs/server-env-quickstart.md)); legacy `dev_server` удалён — см. [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md).
 
@@ -137,6 +138,53 @@
 |---|-----|-------|------|--------|---------------|
 | ⚪ | M2-12 | [EPIC-M2-12 Post-demo tokenization](./epics/EPIC-M2-12-post-demo-story-tokenization-and-contributor-notifications.md) | epic | Draft | `requirements/21` (дисклеймер); срок не зафиксирован. |
 
+## EPIC-M2-15 — DOGE Issue Domain Rename
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🔵 | M2-15-01 | [DOGE issue domain rename](./epics/EPIC-M2-15-doge-issue-domain-rename/stories/STORY-M2-15-01/STORY-M2-15-01-doge-issue-domain-rename.md) | implement | Implemented (Awaiting Commit) | Requirement 27: `SpaIssueProjection` -> `DOGEIssue`, policy `m2.*` -> `m3.*`, table rename to `doge_issues` / `doge_issue_embeddings`, migration + RLS + tests. |
+| 🟡 | M2-15 | [EPIC-M2-15 DOGE Issue Domain Rename](./epics/EPIC-M2-15-doge-issue-domain-rename.md) | epic | In Progress | Domain identity rename wave; read namespace `/tallinn/issues` remains unchanged. |
+
+## EPIC-M2-16 — Clustering Cron Scheduler
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🟡 | M2-16-01 | [Clustering cron scheduler decoupling](./epics/EPIC-M2-16-clustering-cron-scheduler/stories/STORY-M2-16-01/STORY-M2-16-01-clustering-cron-scheduler.md) | implement | In Progress (Audit gap closure wave) | Requirement 28: decouple intake from clustering, add batch `process_all_pending()`, cron runtime, ASGI lifecycle integration, tests/smoke + GAP-28-01..03 closure. |
+| 🟡 | M2-16 | [EPIC-M2-16 Clustering Cron Scheduler](./epics/EPIC-M2-16-clustering-cron-scheduler.md) | epic | In Progress | Scheduler wave for throughput-safe story intake and deferred issue materialization. |
+
+### STORY-M2-16-01 — audit gap closure tasks
+
+| S | Key | Task | Type | Status | Scope / Notes |
+|---|-----|------|------|--------|---------------|
+| ⚪ | TASK-CRON-COUNT-QUERY-01 | [T07: cron precheck dedup](./epics/EPIC-M2-16-clustering-cron-scheduler/stories/STORY-M2-16-01/task-m2-16-01-t07-cron-precheck-dedup/README.md) | refactor | Todo | GAP-28-01: убрать двойной pending scan за тик (`cluster_cron` pre-check vs `process_all_pending`). |
+| ⚪ | TASK-CRON-LIFESPAN-TEST-01 | [T08: lifespan disabled cron test](./epics/EPIC-M2-16-clustering-cron-scheduler/stories/STORY-M2-16-01/task-m2-16-01-t08-lifespan-disabled-cron-test/README.md) | test | Todo | GAP-28-02: добавить lifecycle тест для ветки `CLUSTER_CRON_ENABLED=false`. |
+| ⚪ | TASK-CRON-DEAD-STUB-CLEANUP-01 | [T09: remove dead process_story stubs](./epics/EPIC-M2-16-clustering-cron-scheduler/stories/STORY-M2-16-01/task-m2-16-01-t09-remove-dead-process-story-stubs/README.md) | refactor | Todo | GAP-28-03: удалить dead stubs `process_story` из API unit tests. |
+
+## EPIC-M2-17 — Living Issues Cluster Growth Model
+
+| S | Key | Story | Type | Status | Scope / Notes |
+|---|-----|-------|------|--------|---------------|
+| 🟡 | M2-17-01 | [Living issues create/extend orchestration](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/STORY-M2-17-01-living-issues-create-extend-orchestration.md) | implement | In Progress (Audit gap closure wave) | Requirement 29: living issue model, create/extend branching, persistence invariants, AC-29-1..6 coverage + GAP-29-01..04 closure. |
+| 🟡 | M2-17 | [EPIC-M2-17 Living Issues Cluster Growth Model](./epics/EPIC-M2-17-living-issues-cluster-growth-model.md) | epic | In Progress | cluster_id -> one active issue model with extend path, audit traceability and req29 audit hardening wave. |
+
+### STORY-M2-17-01 — task wave
+
+| S | Key | Task | Type | Status | Scope / Notes |
+|---|-----|------|------|--------|---------------|
+| ✅ | TASK-LI-PRIMARY-01 | [Primary: story orchestration and acceptance gates](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-living-issues-primary/README.md) | orchestrate | Done | Story-level phase log, acceptance and run discipline. |
+| ✅ | TASK-LI-UPSERT-01 | [T03: projection/embedding upsert invariants](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t03-projection-embedding-upsert-invariants/README.md) | implement | Done | Validate/fix idempotent upsert for projections and embeddings. |
+| ✅ | TASK-LI-LINKS-DEDUP-01 | [T04: issue-story links dedup contract](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t04-issue-story-links-dedup-contract/README.md) | implement | Done | Ensure duplicate links are ignored safely. |
+| ✅ | TASK-LI-EXTEND-PROMOTION-01 | [T01: promotion extend primitive](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t01-promotion-extend-primitive/README.md) | implement | Done | Add `extend_candidate()` with dedup and audit event. |
+| ✅ | TASK-LI-CREATE-EXTEND-SPLIT-01 | [T02: issue create/extend split](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t02-issue-create-create-extend-split/README.md) | implement | Done | Branch create path vs extend path by cluster lookup. |
+| ✅ | TASK-LI-BACKEND-PARITY-01 | [T05: candidate lookup/update backend parity](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t05-candidate-lookup-update-backend-parity/README.md) | verify | Done | InMemory/SQLite/Supabase parity for `save` and lookup semantics. |
+| ✅ | TASK-LI-SERVICE-TESTS-01 | [T06: issue create service tests](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t06-issue-create-service-tests/README.md) | test | Done | Unit/integration coverage for create/extend/idempotent extend. |
+| ✅ | TASK-LI-E2E-TWO-BATCHES-01 | [T07: e2e living issue two batches](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t07-e2e-living-issue-two-batches/README.md) | test | Done | Two-batch scenario with one cluster_id -> one issue. |
+| ✅ | TASK-LI-AUDIT-TRAIL-01 | [T08: audit trail extend events test](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t08-audit-trail-extend-events-test/README.md) | test | Done | Verify `cluster_growth_extend` records in review audit log. |
+| ⚪ | TASK-LI-EMBED-UPSERT-ATOMIC-01 | [T09: embedding upsert atomicity](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t09-embedding-upsert-atomicity/README.md) | implement | Todo | GAP-29-01: заменить DELETE+INSERT в projection embedding store на upsert semantics. |
+| ⚪ | TASK-LI-E2E-CLUSTERED-AC29-6-01 | [T10: e2e clustered status AC-29-6](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t10-e2e-clustered-status-ac29-6/README.md) | test | Todo | GAP-29-02: добавить assertions `CLUSTERED` для обеих волн историй в e2e. |
+| ⚪ | TASK-LI-SQLITE-EXTEND-PARITY-01 | [T11: sqlite extend parity test](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t11-sqlite-extend-parity-test/README.md) | test | Todo | GAP-29-03: SQLite-backed coverage для create+extend persistence parity. |
+| ⚪ | TASK-LI-PROJECTION-CONTENT-INV-01 | [T12: projection content invariant](./epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-01/task-m2-17-01-t12-projection-content-invariant/README.md) | test | Todo | GAP-29-04: content assertion для INV-LI-04 после extend. |
+
 ## Cross-Epic Task Backlog
 
 | S | Key | Task | Type | Status | Scope / Notes |
@@ -204,6 +252,7 @@
 
 | Timestamp | Mode | Scope | Report | Outcome |
 |---|---|---|---|---|
+| 2026-05-05 14:39 | explicit | Gateway Story Builder process governance alignment | [run-summary-20260505-1439](./run-reports/run-summary-20260505-1439.md) | Queue verify/list re-run complete, index-first start-epic rule tightened in SSOT/user-manual, legacy `EPIC-M2-02` fixed-start wording deprecated. |
 | 2026-04-27 16:37 | fallback | Post-SF backlog continuation (`TASK-PROJECTION-MODULE-BOUNDARY-01` … `TASK-CODEBASE-REFACTOR-CLEANUP-01`) | [run-summary-20260427-1637](./run-reports/run-summary-20260427-1637.md) | Remaining story-first backlog items implemented: modular projection policy boundary, clustering pipeline closure, SQL process/linkage persistence, canonical embedding policy versioning, expanded e2e cluster flow, and cleanup anti-drift pass. |
 | 2026-04-27 16:35 | explicit | SF pack completion (P2 closure) | [run-summary-20260427-1635](./run-reports/run-summary-20260427-1635.md) | `TASK-SF-P2-01`, `TASK-SF-P2-02`, `TASK-SF-P2-03` finalized as implemented (waiting acceptance/commits); story-first boundary cleanup + runtime docs/OpenAPI reconciliation completed. |
 | 2026-04-27 16:30 | explicit | SF pack continuation (P1 completion) | [run-summary-20260427-1630](./run-reports/run-summary-20260427-1630.md) | `TASK-SF-P1-01`, `TASK-SF-P1-02`, `TASK-SF-P1-03` implemented (waiting acceptance): fixture alignment, story-first e2e rewrite, and live Supabase gate coverage completed. |

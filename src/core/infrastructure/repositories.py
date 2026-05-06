@@ -176,6 +176,7 @@ class InMemoryIssueProjectionEmbeddingStore:
         embedding_policy_version: str,
     ) -> None:
         assert self._rows is not None
+        self._rows = [row for row in self._rows if row.get("issue_id") != issue_id]
         self._rows.append(
             {
                 "issue_id": issue_id,
@@ -204,7 +205,10 @@ class InMemoryIssueStoryLinkStore:
         story_ids: tuple[str, ...],
     ) -> None:
         assert self._rows is not None
-        self._rows[issue_id] = (cluster_id, tuple(story_ids))
+        existing = self._rows.get(issue_id)
+        existing_story_ids = existing[1] if existing is not None else ()
+        merged_story_ids = tuple(sorted(set(existing_story_ids).union(set(story_ids))))
+        self._rows[issue_id] = (cluster_id, merged_story_ids)
 
 
 @dataclass

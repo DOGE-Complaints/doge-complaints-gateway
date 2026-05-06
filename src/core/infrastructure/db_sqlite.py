@@ -470,21 +470,43 @@ class SqliteIssueProjectionEmbeddingStore:
         source_checksum: str,
         embedding_policy_version: str,
     ) -> None:
-        self.db.connection.execute(
+        now = _utcnow().isoformat()
+        cursor = self.db.connection.execute(
             """
-            INSERT INTO doge_issue_embeddings (
-                issue_id, model_name, embedding_vector_json, source_checksum, embedding_policy_version, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
+            UPDATE doge_issue_embeddings
+            SET
+                model_name = ?,
+                embedding_vector_json = ?,
+                source_checksum = ?,
+                embedding_policy_version = ?,
+                created_at = ?
+            WHERE issue_id = ?
             """,
             (
-                issue_id,
                 model_name,
                 json.dumps(list(embedding_vector)),
                 source_checksum,
                 embedding_policy_version,
-                _utcnow().isoformat(),
+                now,
+                issue_id,
             ),
         )
+        if cursor.rowcount == 0:
+            self.db.connection.execute(
+                """
+                INSERT INTO doge_issue_embeddings (
+                    issue_id, model_name, embedding_vector_json, source_checksum, embedding_policy_version, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    issue_id,
+                    model_name,
+                    json.dumps(list(embedding_vector)),
+                    source_checksum,
+                    embedding_policy_version,
+                    now,
+                ),
+            )
         self.db.connection.commit()
 
 
@@ -627,18 +649,12 @@ class SqliteIssueStoryLinkStore:
         story_ids: tuple[str, ...],
     ) -> None:
         now = _utcnow().isoformat()
-        self.db.connection.execute(
-            "DELETE FROM issue_story_links WHERE issue_id = ?",
-            (issue_id,),
-        )
         for story_id in story_ids:
             self.db.connection.execute(
                 """
                 INSERT INTO issue_story_links (issue_id, cluster_id, story_id, created_at)
                 VALUES (?, ?, ?, ?)
-                ON CONFLICT(issue_id, story_id) DO UPDATE SET
-                    cluster_id = excluded.cluster_id,
-                    created_at = excluded.created_at
+                ON CONFLICT(issue_id, story_id) DO NOTHING
                 """,
                 (issue_id, cluster_id, story_id, now),
             )

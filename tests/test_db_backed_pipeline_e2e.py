@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+import json
 import sqlite3
 from pathlib import Path
 
 import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
-from core.api.asgi_app import _clear_api_dependencies_cache, app
+from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 
 
@@ -53,6 +54,7 @@ def test_db_backed_pipeline_persists_stories_projections_and_embeddings(
 ) -> None:
     client.post("/intake/stories", json=_intake_payload(1))
     client.post("/intake/stories", json=_intake_payload(2))
+    get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)
     connection = sqlite3.connect(db_path)
@@ -140,3 +142,56 @@ def test_http_idempotency_deduplication_sqlite_same_key_different_payload(
 
     assert idem_count == 1
     assert stories_count == 1
+
+
+def test_sqlite_living_issue_extend_persists_merged_candidate_and_audit(
+    client: TestClient,
+    sqlite_db_url: str,
+) -> None:
+    client.post("/intake/stories", json=_intake_payload(1))
+    client.post("/intake/stories", json=_intake_payload(2))
+    deps = get_api_dependencies()
+    first_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
+    assert len(first_issue_ids) == 1
+    issue_id = first_issue_ids[0]
+
+    client.post("/intake/stories", json=_intake_payload(3))
+    client.post("/intake/stories", json=_intake_payload(4))
+    second_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
+    assert second_issue_ids == [issue_id]
+
+    db_path = _sqlite_path_from_url(sqlite_db_url)
+    connection = sqlite3.connect(db_path)
+    try:
+        story_ids_json = connection.execute(
+            "SELECT story_ids_json FROM issue_candidates WHERE candidate_id = ?",
+            (issue_id,),
+        ).fetchone()
+        assert story_ids_json is not None
+        merged_story_ids = set(json.loads(str(story_ids_json[0])))
+        assert len(merged_story_ids) == 4
+
+        audit_rows = connection.execute(
+            """
+            SELECT rationale
+            FROM review_audit_log
+            WHERE candidate_id = ?
+            ORDER BY audit_id ASC
+            """,
+            (issue_id,),
+        ).fetchall()
+        assert [str(row[0]) for row in audit_rows] == [
+            "http_create_issue_auto_promote",
+            "cluster_growth_extend",
+        ]
+
+        persisted_payload = connection.execute(
+            "SELECT payload_json FROM doge_issues WHERE issue_id = ?",
+            (issue_id,),
+        ).fetchone()
+        assert persisted_payload is not None
+        payload = json.loads(str(persisted_payload[0]))
+        description = payload.get("description", {}).get("en", "")
+        assert "issue #4" in description.lower()
+    finally:
+        connection.close()

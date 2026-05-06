@@ -97,3 +97,50 @@ def test_reframe_title_requires_draft() -> None:
     svc.submit_for_review(candidate.candidate_id)
     with pytest.raises(PromotionStateError):
         svc.reframe_title(candidate.candidate_id, "New title")
+
+
+def test_extend_candidate_updates_promoted_with_dedup_and_audit() -> None:
+    svc = IssuePromotionService.baseline()
+    candidate = svc.create_candidate(
+        cluster_id="cluster-extend",
+        story_ids=("s1", "s2"),
+        readiness_score=85,
+        title="Cluster issue",
+    )
+    svc.submit_for_review(candidate.candidate_id)
+    svc.start_review(candidate.candidate_id)
+    promoted = svc.record_review(
+        candidate_id=candidate.candidate_id,
+        actor="reviewer",
+        decision=ReviewDecision.APPROVE,
+        rationale="ok",
+    )
+
+    updated = svc.extend_candidate(
+        promoted.candidate_id,
+        additional_story_ids=("s2", "s3"),
+        new_readiness_score=92,
+    )
+
+    assert updated.status == IssueCandidateStatus.PROMOTED
+    assert updated.readiness_score == 92
+    assert updated.story_ids == ("s1", "s2", "s3")
+    audit = svc.audit_trail(promoted.candidate_id)
+    assert audit[-1].rationale == "cluster_growth_extend"
+    assert audit[-1].related_story_ids == ("s2", "s3")
+
+
+def test_extend_candidate_rejects_non_promoted_status() -> None:
+    svc = IssuePromotionService.baseline()
+    candidate = svc.create_candidate(
+        cluster_id="cluster-extend-invalid",
+        story_ids=("s1",),
+        readiness_score=90,
+        title="Draft candidate",
+    )
+    with pytest.raises(PromotionStateError):
+        svc.extend_candidate(
+            candidate.candidate_id,
+            additional_story_ids=("s2",),
+            new_readiness_score=90,
+        )

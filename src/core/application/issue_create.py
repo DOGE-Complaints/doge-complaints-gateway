@@ -7,6 +7,7 @@ from typing import Any
 from typing import Protocol
 
 from core.domain import StoryRepository
+from core.promotion.types import IssueCandidateRecord
 from core.projection import (
     DeterministicStoryToProjectionPolicy,
     IssueProjectionService,
@@ -126,6 +127,14 @@ class IssueCreateService:
         if not command.title.strip():
             raise ValueError("title must be non-empty.")
 
+        existing = self.promotion_service.candidates.find_promoted_by_cluster_id(
+            command.cluster_id.strip()
+        )
+        if existing is not None:
+            return self._extend_issue(existing, command)
+        return self._create_issue(command)
+
+    def _create_issue(self, command: IssueCreateCommand) -> IssueCreateResult:
         candidate = self.promotion_service.create_candidate(
             cluster_id=command.cluster_id.strip(),
             story_ids=tuple(story_id.strip() for story_id in command.story_ids if story_id.strip()),
@@ -178,6 +187,76 @@ class IssueCreateService:
         return IssueCreateResult(
             issue_id=promoted.candidate_id,
             status=promoted.status.value,
+            projection=projection_payload,
+        )
+
+    def _extend_issue(
+        self,
+        existing: IssueCandidateRecord,
+        command: IssueCreateCommand,
+    ) -> IssueCreateResult:
+        existing_story_ids = set(existing.story_ids)
+        requested_story_ids = {
+            story_id.strip() for story_id in command.story_ids if story_id.strip()
+        }
+        additional_story_ids = tuple(sorted(requested_story_ids - existing_story_ids))
+        if not additional_story_ids:
+            projection_input = self.bridge.build_projection_input(
+                issue_id=existing.candidate_id,
+                promoted_title=existing.title,
+                story_ids=existing.story_ids,
+            )
+            projection = self.projection_service.project(projection_input)
+            projection_payload = projection.to_public_dict()
+            return IssueCreateResult(
+                issue_id=existing.candidate_id,
+                status=existing.status.value,
+                projection=projection_payload,
+            )
+
+        updated = self.promotion_service.extend_candidate(
+            existing.candidate_id,
+            additional_story_ids=additional_story_ids,
+            new_readiness_score=command.readiness_score,
+        )
+        projection_input = self.bridge.build_projection_input(
+            issue_id=updated.candidate_id,
+            promoted_title=updated.title,
+            story_ids=updated.story_ids,
+        )
+        projection = self.projection_service.project(projection_input)
+        projection_payload = projection.to_public_dict()
+
+        if self.issue_story_link_store is not None:
+            self.issue_story_link_store.save_issue_story_links(
+                issue_id=updated.candidate_id,
+                cluster_id=updated.cluster_id,
+                story_ids=additional_story_ids,
+            )
+        if self.issue_projection_store is not None:
+            self.issue_projection_store.save_projection(
+                issue_id=updated.candidate_id,
+                status=updated.status.value,
+                payload=projection_payload,
+                policy_version=DERIVATION_POLICY_VERSION,
+            )
+        if self.issue_projection_embedding_store is not None:
+            checksum = sha256(
+                _canonical_issue_embedding_source(projection_payload).encode("utf-8")
+            ).hexdigest()
+            self.issue_projection_embedding_store.save_projection_embedding(
+                issue_id=updated.candidate_id,
+                model_name="deterministic-baseline-v1",
+                embedding_vector=_build_embedding_vector_from_projection(
+                    projection_payload
+                ),
+                source_checksum=checksum,
+                embedding_policy_version=ISSUE_EMBEDDING_POLICY_VERSION,
+            )
+
+        return IssueCreateResult(
+            issue_id=updated.candidate_id,
+            status=updated.status.value,
             projection=projection_payload,
         )
 

@@ -436,21 +436,39 @@ class SupabaseIssueProjectionEmbeddingStore:
         source_checksum: str,
         embedding_policy_version: str,
     ) -> None:
-        self.db._request(
-            method="POST",
+        now = _utcnow().isoformat()
+        updated = self.db._request(
+            method="PATCH",
             path="/rest/v1/doge_issue_embeddings",
-            json_body=[
-                {
-                    "issue_id": issue_id,
-                    "model_name": model_name,
-                    "embedding_vector_json": json.dumps(list(embedding_vector)),
-                    "source_checksum": source_checksum,
-                    "embedding_policy_version": embedding_policy_version,
-                    "created_at": _utcnow().isoformat(),
-                }
-            ],
-            prefer="return=minimal",
+            params={
+                "issue_id": self.db._eq_filter(issue_id),
+                "select": "issue_id",
+            },
+            json_body={
+                "model_name": model_name,
+                "embedding_vector_json": json.dumps(list(embedding_vector)),
+                "source_checksum": source_checksum,
+                "embedding_policy_version": embedding_policy_version,
+                "created_at": now,
+            },
+            prefer="return=representation",
         )
+        if not updated:
+            self.db._request(
+                method="POST",
+                path="/rest/v1/doge_issue_embeddings",
+                json_body=[
+                    {
+                        "issue_id": issue_id,
+                        "model_name": model_name,
+                        "embedding_vector_json": json.dumps(list(embedding_vector)),
+                        "source_checksum": source_checksum,
+                        "embedding_policy_version": embedding_policy_version,
+                        "created_at": now,
+                    }
+                ],
+                prefer="return=minimal",
+            )
 
 
 @dataclass
@@ -588,12 +606,6 @@ class SupabaseIssueStoryLinkStore:
         cluster_id: str,
         story_ids: tuple[str, ...],
     ) -> None:
-        self.db._request(
-            method="DELETE",
-            path="/rest/v1/issue_story_links",
-            params={"issue_id": self.db._eq_filter(issue_id)},
-            prefer="return=minimal",
-        )
         now = _utcnow().isoformat()
         if not story_ids:
             return
@@ -611,7 +623,7 @@ class SupabaseIssueStoryLinkStore:
             path="/rest/v1/issue_story_links",
             params={"on_conflict": "issue_id,story_id"},
             json_body=payload,
-            prefer="resolution=merge-duplicates,return=minimal",
+            prefer="resolution=ignore-duplicates,return=minimal",
         )
 
 

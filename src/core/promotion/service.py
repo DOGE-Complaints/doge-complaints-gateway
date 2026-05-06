@@ -141,6 +141,40 @@ class IssuePromotionService:
         )
         return updated
 
+    def extend_candidate(
+        self,
+        candidate_id: str,
+        *,
+        additional_story_ids: tuple[str, ...],
+        new_readiness_score: int,
+    ) -> IssueCandidateRecord:
+        current = self._get(candidate_id)
+        _require_transition(current.status, IssueCandidateStatus.PROMOTED)
+
+        merged_story_ids = tuple(
+            sorted(set(current.story_ids).union(set(additional_story_ids)))
+        )
+        updated = IssueCandidateRecord(
+            candidate_id=current.candidate_id,
+            status=current.status,
+            cluster_id=current.cluster_id,
+            story_ids=merged_story_ids,
+            readiness_score=new_readiness_score,
+            title=current.title,
+        )
+        self.candidates.save(updated)
+        self.audit_log.append(
+            ReviewAuditEntry(
+                candidate_id=candidate_id,
+                actor="system",
+                decision=ReviewDecision.APPROVE,
+                rationale="cluster_growth_extend",
+                related_cluster_id=current.cluster_id,
+                related_story_ids=additional_story_ids,
+            )
+        )
+        return updated
+
     def merge_candidates(self, primary_id: str, secondary_id: str) -> IssueCandidateRecord:
         primary = self._get(primary_id)
         secondary = self._get(secondary_id)
