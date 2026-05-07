@@ -612,3 +612,41 @@ CLUSTER_ID_ALGORITHM=sha256
 | Реализация новых vocabulary + enrichment | `TASK-CLUSTER-TAXONOMY-SIGNALS-01` |
 | Новые ClusterLens enum values | `TASK-CLUSTER-LENS-SEMANTIC-01` |
 | Geographic district lens | `TASK-CLUSTER-GEO-DISTRICT-01` (зависит от GAP-IMP-03) |
+
+---
+
+## 16. Gap Analysis: текущее состояние vs. спецификация (аудит 2026-05-05)
+
+Аудит проведён по фактическому коду. Статусы — **факты из кода**, не предположения.
+
+### 16.1 Статус реализации
+
+| Требование (раздел) | Статус | Файл / строка |
+|--------------------|--------|---------------|
+| `vocabulary.py` с frozenset registries (6) | ✅ | `src/core/cluster/vocabulary.py` — все 5 словарей присутствуют |
+| 6 новых `SignalDimension` значений (10) | ✅ | `src/core/domain/contracts.py` |
+| 6 новых `ClusterLens` значений (11) | ✅ | `src/core/cluster/types.py` |
+| `infer_signals_from_canonical()` через vocabulary (7) | ✅ | `src/core/cluster/enrichment.py` |
+| `civic_weight_systemic` бонус +10 (8.2) | ✅ | `src/core/cluster/engine.py:113` — `high_bonus` frozenset |
+| **`CLUSTER_ACTIVE_LENSES` default = civic triple (12)** | ❌ | `src/core/config/schema.py` — дефолт legacy lenses (`topic_micro,...`) |
+| **`CLUSTER_ID_ALGORITHM` default = `"sha256"` (12)** | ❌ | `src/core/config/schema.py` — дефолт `"legacy_hash"` |
+| **`CLUSTER_MIN_SIZE` default = 5 (12)** | ❌ | `src/core/config/schema.py` — дефолт `8` |
+| **`story_signals` в Supabase bootstrap** | ❌ | `supabase/bootstrap/000_full_init.sql` — отсутствует |
+| **`cluster_memberships` в Supabase bootstrap** | ❌ | `supabase/bootstrap/000_full_init.sql` — отсутствует |
+
+### 16.2 Незакрытые пункты → задачи
+
+| GAP-ID | Проблема | Файл | Задача |
+|--------|---------|------|--------|
+| GAP-26-01 | `CLUSTER_ACTIVE_LENSES` default = legacy вместо `civic_domain_micro,failure_pattern_micro,civic_weight_systemic` | `src/core/config/schema.py` | `TASK-CLUSTER-CONFIG-DEFAULT-01` |
+| GAP-26-02 | `CLUSTER_ID_ALGORITHM` default = `"legacy_hash"` вместо `"sha256"` | `src/core/config/schema.py` | `TASK-CLUSTER-CONFIG-DEFAULT-01` (совмещается) |
+| GAP-26-03 | `CLUSTER_MIN_SIZE` default = 8 вместо 5 | `src/core/config/schema.py` | `TASK-CLUSTER-CONFIG-DEFAULT-01` (совмещается) |
+| GAP-26-04 | `story_signals` отсутствует в Supabase bootstrap | `supabase/bootstrap/000_full_init.sql` | `TASK-CLUSTER-SUPABASE-SCHEMA-01` |
+| GAP-26-05 | `cluster_memberships` отсутствует в Supabase bootstrap | `supabase/bootstrap/000_full_init.sql` | `TASK-CLUSTER-SUPABASE-SCHEMA-01` (совмещается) |
+
+### 16.3 Рекомендуемый порядок закрытия
+
+1. **GAP-26-01 + GAP-26-02 + GAP-26-03** — три строки в `schema.py`; один компактный PR; критично для правильного поведения публичного узла из коробки
+2. **GAP-26-04 + GAP-26-05** — один SQL блок в bootstrap; нужен для Supabase fresh install и полноты схемы
+
+**Важно:** GAP-26-01 (смена дефолтных линз) — breaking change для существующих dev/test сред с данными в legacy-кластерах. Рекомендуется выполнять при чистом перезапуске dev-среды или после миграции данных.

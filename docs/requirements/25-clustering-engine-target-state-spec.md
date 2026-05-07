@@ -730,3 +730,46 @@ def get_clustering_engine(self) -> ClusteringEngine:
 | Продуктовая рамка кластеров | `07-dynamic-clusters-product-model.md` |
 | Demo-параметры и env-принцип | `23-m2-demo-story-clustering-interview-ssot-v1.md` |
 | Аудит текущей реализации | `docs/analysis/clustering-audit-story-to-issue.md` |
+
+---
+
+## 15. Gap Analysis: текущее состояние vs. спецификация (аудит 2026-05-05)
+
+Аудит проведён по фактическому коду. Статусы — **факты из кода**, не предположения.
+
+### 15.1 Статус реализации
+
+| Требование (раздел) | Статус | Файл / строка |
+|--------------------|--------|---------------|
+| `CLUSTERED` lifecycle статус (7.1) | ✅ | `src/core/domain/contracts.py:24` |
+| readiness_score не захардкожен (6.3) | ✅ | `src/core/cluster/engine.py` — `readiness_for_story()` |
+| `list_stories_ready_for_clustering()` на DB-уровне (9.3) | ✅ | `src/core/infrastructure/db_sqlite.py` — `WHERE lifecycle_status = ?` |
+| `story_signals` таблица в SQLite DDL (9.1) | ✅ | `src/core/infrastructure/db_sqlite.py:209-226` |
+| `cluster_memberships` таблица в SQLite DDL (9.1) | ✅ | `src/core/infrastructure/db_sqlite.py` |
+| SHA-256 алгоритм — реализован (3.4) | ✅ | `src/core/cluster/engine.py` — `stable_cluster_id()` |
+| Тест на детерминизм SHA-256 (3.5) | ✅ | `tests/test_clustering_engine.py:131` |
+| `CLUSTER_SIGNAL_SOURCE` env var (8.1) | ✅ | `src/core/config/schema.py` |
+| `CLUSTER_PRIMARY_LENS` env var (8.1) | ✅ | `src/core/config/schema.py` |
+| `CLUSTER_ID_ALGORITHM` env var (8.1) | ✅ | `src/core/config/schema.py` |
+| **`CLUSTER_ID_ALGORITHM` default = `"sha256"` (8.2)** | ❌ | `src/core/config/schema.py` — дефолт `"legacy_hash"` |
+| **`story_signals` в Supabase bootstrap (9.1)** | ❌ | `supabase/bootstrap/000_full_init.sql` — отсутствует |
+| **`cluster_memberships` в Supabase bootstrap (9.1)** | ❌ | `supabase/bootstrap/000_full_init.sql` — отсутствует |
+| **Idempotency check через `find_promoted_by_cluster_id` (7.3)** | ❌ | Метод есть в 3 backends, orchestrator не вызывает |
+| Logging event names (11.2) | ⚠️ | `src/core/api/handlers.py` — имена событий отличаются от spec |
+
+### 15.2 Незакрытые пункты → задачи
+
+| GAP-ID | Проблема | Файл | Задача |
+|--------|---------|------|--------|
+| GAP-25-01 | `CLUSTER_ID_ALGORITHM` default = `"legacy_hash"` вместо `"sha256"` | `src/core/config/schema.py` | `TASK-CLUSTER-CONFIG-DEFAULT-01` |
+| GAP-25-02 | `story_signals` отсутствует в Supabase bootstrap | `supabase/bootstrap/000_full_init.sql` | `TASK-CLUSTER-SUPABASE-SCHEMA-01` |
+| GAP-25-03 | `cluster_memberships` отсутствует в Supabase bootstrap | `supabase/bootstrap/000_full_init.sql` | `TASK-CLUSTER-SUPABASE-SCHEMA-01` (совмещается) |
+| GAP-25-04 | Orchestrator не вызывает `find_promoted_by_cluster_id` (INV-03) | `src/core/application/cluster_orchestrator.py` | покрывается req29 |
+| GAP-25-05 | Logging event names не соответствуют spec (11.2) | `src/core/api/handlers.py` | `TASK-CLUSTER-OBSERVABILITY-01` |
+
+### 15.3 Рекомендуемый порядок закрытия
+
+1. **GAP-25-01** — одна строка в `schema.py`, нулевой риск; нужно для корректного default behavior на новых установках
+2. **GAP-25-02 + GAP-25-03** — один SQL блок в bootstrap; нужен для Supabase fresh install и полноты схемы
+3. **GAP-25-04** — покрывается реализацией req29 (living issues); отдельная задача не нужна
+4. **GAP-25-05** — низкий приоритет, не блокирует функциональность

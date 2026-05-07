@@ -42,6 +42,10 @@
 
 **Порядок исполнения gateway (Python) после SSOT 22/23:** operative очередь — YAML [`gateway-active-packages/pkg-*.yaml`](../tasks/gateway-active-packages/) + указатель [`gateway-active-package.current.yaml`](../tasks/gateway-active-package.current.yaml); процесс и Build — [`.cursor/plans/Gateway_builder.plan.md`](../../../.cursor/plans/Gateway_builder.plan.md); не путать с [`.cursor/plans/GPT_builder.plan.md`](../../../.cursor/plans/GPT_builder.plan.md) (репозиторий GPT UI).
 
+### Обрамляющий контекст
+
+- `30-clustering-concepts-and-lens-model.md` — **самодостаточный вводный документ**: теория кластеризации и концепции линз через пример DOGEstonia; читать перед `25` и `26`; содержит полный pipeline story→signal→cluster→issue, анатомию линзы, legacy vs civic поколения, таблицу config defaults vs target.
+
 ### Архитектурные решения 2026-05-05 (стратегия v2)
 
 - `27-doge-issue-domain-rename.md` — **DOGEIssue**: переименование `SpaIssueProjection` → `DOGEIssue`, таблицы `spa_issue_projections` → `doge_issues`; supersedes раздел 2.1 из `24`. Полный инвентарь изменений + migration SQL + AC.
