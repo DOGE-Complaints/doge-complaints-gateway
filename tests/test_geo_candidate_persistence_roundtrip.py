@@ -1,0 +1,93 @@
+from __future__ import annotations
+
+from core.application import StoryIntakeService
+from core.domain import StoryGeoSnapshot
+from core.geo import GeoResolverChain, GeoResolverPolicy, GeoService, InMemoryGeoCacheRepository, InMemoryGeoMetrics
+from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateStore
+from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
+from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
+
+
+class _GeoProvider:
+    provider_id = "tc_geo_provider"
+
+    def resolve(self, original_query: str, *, canonical_key: str) -> StoryGeoSnapshot | None:
+        if canonical_key != "tallinn":
+            return None
+        return StoryGeoSnapshot(
+            normalized_label="Tallinn, EE",
+            latitude=59.437,
+            longitude=24.7536,
+            confidence=0.92,
+            provider=self.provider_id,
+            cluster_tags=("capital", "urban"),
+        )
+
+
+def _geo_service() -> GeoService:
+    metrics = InMemoryGeoMetrics()
+    return GeoService(
+        cache=InMemoryGeoCacheRepository(),
+        resolver=GeoResolverChain(
+            providers=(_GeoProvider(),),
+            policy=GeoResolverPolicy(max_attempts_per_provider=1),
+            metrics=metrics,
+        ),
+        metrics=metrics,
+    )
+
+
+def test_geo_snapshot_roundtrip_persists_on_story_record() -> None:
+    service = StoryIntakeService(
+        repository=InMemoryStoryRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        geo_service=_geo_service(),
+    )
+    request = parse_story_intake_request(
+        {
+            "schema_version": INTAKE_SCHEMA_VERSION,
+            "submitter": {"external_user_id": "geo-roundtrip-user"},
+            "narrative": {
+                "original_text": "Street condition issue near center.",
+                "language": "en",
+                "title_hint": "Street condition issue",
+                "location_query": "Tallinn",
+            },
+        }
+    )
+
+    saved = service.create_story(request)
+
+    assert saved.geo is not None
+    assert saved.geo.normalized_label == "Tallinn, EE"
+    assert saved.geo.provider == "tc_geo_provider"
+    assert saved.geo.cluster_tags == ("capital", "urban")
+
+
+def test_issue_candidate_sqlite_roundtrip_and_delete() -> None:
+    db = SqliteDatabase.from_url("sqlite:///:memory:")
+    db.ensure_schema()
+    store = SqliteIssueCandidateStore(db)
+    candidate = IssueCandidateRecord(
+        candidate_id="candidate-tc-p1-04",
+        status=IssueCandidateStatus.READY_FOR_REVIEW,
+        cluster_id="cluster:tc:p1:04",
+        story_ids=("story-a", "story-b"),
+        readiness_score=88,
+        title="Candidate title",
+    )
+
+    saved = store.save(candidate)
+    fetched = store.get(candidate.candidate_id)
+    store.delete(candidate.candidate_id)
+    missing = store.get(candidate.candidate_id)
+
+    assert saved == candidate
+    assert fetched is not None
+    assert fetched.candidate_id == "candidate-tc-p1-04"
+    assert fetched.cluster_id == "cluster:tc:p1:04"
+    assert fetched.story_ids == ("story-a", "story-b")
+    assert fetched.readiness_score == 88
+    assert fetched.status == IssueCandidateStatus.READY_FOR_REVIEW
+    assert missing is None

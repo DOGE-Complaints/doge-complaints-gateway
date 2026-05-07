@@ -50,7 +50,7 @@ def test_intake_stories_endpoint_returns_success_envelope(client: TestClient) ->
     assert payload["data"]["status"] == "ready_for_profile"
 
 
-def test_intake_logs_issue_id_when_cluster_issue_forms(
+def test_intake_does_not_trigger_sync_clustering_logs(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     monkeypatch.setenv("APP_PROFILE", "demo")
@@ -84,10 +84,36 @@ def test_intake_logs_issue_id_when_cluster_issue_forms(
     triggered = [
         r
         for r in caplog.records
-        if r.getMessage() == "story_intake_cluster_triggered_issue"
+        if r.getMessage() in {"story_intake_cluster_triggered_issue", "story_intake_cluster_no_issue"}
     ]
-    assert triggered, "expected cluster promotion log on second intake"
-    assert any(getattr(r, "issue_id", None) for r in triggered)
+    assert triggered == []
+
+
+def test_intake_emits_cluster_pending_observability_event(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setenv("APP_PROFILE", "demo")
+    monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
+    monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
+    _clear_api_dependencies_cache()
+    caplog.set_level(logging.DEBUG, logger="core.api")
+    try:
+        with TestClient(app) as client:
+            response = client.post(
+                "/intake/stories",
+                json=_valid_intake_payload(),
+                headers={"x-trace-id": "trace-cluster-pending", "idempotency-key": "idem-pending"},
+            )
+            assert response.status_code == 200
+    finally:
+        _clear_api_dependencies_cache()
+
+    pending = [r for r in caplog.records if r.getMessage() == "story_cluster_issue_pending"]
+    assert pending
+    record = pending[-1]
+    assert getattr(record, "story_id", None)
+    assert getattr(record, "reason", None) == "cron_deferred"
+    assert getattr(record, "outcome", None) == "not_clustered"
 
 
 def test_intake_stories_endpoint_returns_400_for_validation_error(

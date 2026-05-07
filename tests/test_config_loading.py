@@ -22,12 +22,22 @@ def test_load_config_demo_defaults() -> None:
     assert config.db_backend == "in_memory"
     assert config.db_enabled is False
     assert config.database_url is None
-    assert config.cluster_min_size == 8
+    assert config.cluster_min_size == 5
     assert config.cluster_readiness_threshold == 60
     assert config.cluster_active_lenses
+    assert config.cluster_active_lenses == (
+        "civic_domain_micro",
+        "failure_pattern_micro",
+        "civic_weight_systemic",
+    )
+    assert "relevance_systemic" not in config.cluster_active_lenses
+    assert config.cluster_primary_lens == "civic_domain_micro"
     assert config.cluster_geo_filter == "any"
     assert config.cluster_tie_breaker == "lexical"
     assert config.cluster_type_resolution == "canonical_priority"
+    assert config.cluster_id_algorithm == "sha256"
+    assert config.cluster_cron_interval_s == 60
+    assert config.cluster_cron_enabled is True
 
 
 def test_load_config_pilot_defaults() -> None:
@@ -141,6 +151,8 @@ def test_env_schema_contains_required_fields() -> None:
     assert "CLUSTER_GEO_FILTER" in names
     assert "CLUSTER_TIE_BREAKER" in names
     assert "CLUSTER_TYPE_RESOLUTION" in names
+    assert "CLUSTER_CRON_INTERVAL_S" in names
+    assert "CLUSTER_CRON_ENABLED" in names
 
 
 def test_invalid_cluster_active_lenses_raises() -> None:

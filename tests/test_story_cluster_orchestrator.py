@@ -216,3 +216,46 @@ def test_orchestrator_primary_lens_from_config() -> None:
     )
     orchestrator.process_story("s1")
     assert captured[0].cluster_id.startswith("cluster:civic_domain_micro:")
+
+
+def test_process_all_pending_returns_empty_when_below_min_size() -> None:
+    stories = InMemoryStoryRepository()
+    stories.save_story(_ready_story("s1"))
+    issue_create = _issue_service(stories)
+    orchestrator = StoryClusterOrchestrator(
+        story_repository=stories,
+        clustering_engine=_civic_engine(),
+        issue_create_service=issue_create,
+    )
+    assert orchestrator.process_all_pending() == []
+
+
+def test_process_all_pending_creates_issue_for_ready_batch() -> None:
+    stories = InMemoryStoryRepository()
+    stories.save_story(_ready_story("s1"))
+    stories.save_story(_ready_story("s2"))
+    issue_create = _issue_service(stories)
+    orchestrator = StoryClusterOrchestrator(
+        story_repository=stories,
+        clustering_engine=_civic_engine(),
+        issue_create_service=issue_create,
+    )
+    issue_ids = orchestrator.process_all_pending()
+    assert len(issue_ids) == 1
+    assert issue_ids[0]
+
+
+def test_process_all_pending_is_idempotent_after_lifecycle_advance() -> None:
+    stories = InMemoryStoryRepository()
+    stories.save_story(_ready_story("s1"))
+    stories.save_story(_ready_story("s2"))
+    issue_create = _issue_service(stories)
+    orchestrator = StoryClusterOrchestrator(
+        story_repository=stories,
+        clustering_engine=_civic_engine(),
+        issue_create_service=issue_create,
+    )
+    first = orchestrator.process_all_pending()
+    second = orchestrator.process_all_pending()
+    assert len(first) == 1
+    assert second == []

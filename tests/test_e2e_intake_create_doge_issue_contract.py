@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 
-REQUIRED_SPA_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
+REQUIRED_DOGE_ISSUE_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
 
 
 @pytest.fixture()
@@ -55,6 +55,7 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
         text="Road lights are broken and unsafe for pedestrians in district A.",
     )
     deps = get_api_dependencies()
+    deps.story_cluster_orchestrator.process_all_pending()
     issue_create = deps.story_cluster_orchestrator.issue_create_service
     projection_store = issue_create.issue_projection_store
     assert projection_store is not None
@@ -62,7 +63,7 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
     assert rows
     issue_id, first = next(iter(rows.items()))
     projection = first["payload"]
-    assert REQUIRED_SPA_KEYS.issubset(projection.keys())
+    assert REQUIRED_DOGE_ISSUE_KEYS.issubset(projection.keys())
     embedding_store = issue_create.issue_projection_embedding_store
     assert embedding_store is not None
     embedding_rows = getattr(embedding_store, "_rows")
@@ -100,6 +101,7 @@ def test_e2e_story_first_boundary_and_min_stories_gate(client: TestClient) -> No
         text="Single story is not enough for promotion gate baseline.",
     )
     deps = get_api_dependencies()
+    deps.story_cluster_orchestrator.process_all_pending()
     projection_store = deps.story_cluster_orchestrator.issue_create_service.issue_projection_store
     assert projection_store is not None
     rows_before = getattr(projection_store, "_rows")

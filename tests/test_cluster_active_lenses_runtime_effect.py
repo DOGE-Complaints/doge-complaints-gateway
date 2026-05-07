@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
-from core.api.asgi_app import _clear_api_dependencies_cache, app
+from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 
 
@@ -53,6 +53,7 @@ def _run_for_lens(
     _clear_api_dependencies_cache()
     assert r1.status_code == 200
     assert r2.status_code == 200
+    get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)
     connection = sqlite3.connect(db_path)
