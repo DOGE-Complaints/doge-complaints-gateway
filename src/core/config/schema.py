@@ -51,6 +51,8 @@ class AppConfig:
     cluster_geo_filter: str
     cluster_tie_breaker: str
     cluster_type_resolution: str
+    cluster_cron_interval_s: int
+    cluster_cron_enabled: bool
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -132,7 +134,7 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_MIN_SIZE",
         required=False,
-        default="8",
+        default="5",
         description="Minimum number of stories for cluster-level promotion eligibility.",
     ),
     EnvSpec(
@@ -144,13 +146,13 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_ACTIVE_LENSES",
         required=False,
-        default="topic_micro,need_local,failure_systemic,failure_micro,repeatability_local,relevance_systemic",
+        default="civic_domain_micro,failure_pattern_micro,civic_weight_systemic",
         description="Comma-separated enabled cluster lenses.",
     ),
     EnvSpec(
         name="CLUSTER_PRIMARY_LENS",
         required=False,
-        default="topic_micro",
+        default="civic_domain_micro",
         description="Primary lens for orchestrator (must be one of CLUSTER_ACTIVE_LENSES).",
     ),
     EnvSpec(
@@ -162,7 +164,7 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_ID_ALGORITHM",
         required=False,
-        default="legacy_hash",
+        default="sha256",
         description="Cluster id derivation: legacy_hash | sha256.",
     ),
     EnvSpec(
@@ -182,6 +184,18 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         required=False,
         default="canonical_priority",
         description="Issue type resolution strategy for clustered stories.",
+    ),
+    EnvSpec(
+        name="CLUSTER_CRON_INTERVAL_S",
+        required=False,
+        default="60",
+        description="Cron interval in seconds for background cluster processing.",
+    ),
+    EnvSpec(
+        name="CLUSTER_CRON_ENABLED",
+        required=False,
+        default="true",
+        description="Enable/disable background cluster cron loop.",
     ),
 )
 
@@ -459,6 +473,14 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     cluster_type_resolution = _require_value(
         source, name="CLUSTER_TYPE_RESOLUTION"
     ).strip().lower()
+    cluster_cron_interval_s = _parse_positive_int(
+        _require_value(source, name="CLUSTER_CRON_INTERVAL_S"),
+        env_name="CLUSTER_CRON_INTERVAL_S",
+    )
+    cluster_cron_enabled = _parse_bool(
+        _require_value(source, name="CLUSTER_CRON_ENABLED"),
+        env_name="CLUSTER_CRON_ENABLED",
+    )
 
     return AppConfig(
         profile=profile,
@@ -480,5 +502,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_geo_filter=cluster_geo_filter,
         cluster_tie_breaker=cluster_tie_breaker,
         cluster_type_resolution=cluster_type_resolution,
+        cluster_cron_interval_s=cluster_cron_interval_s,
+        cluster_cron_enabled=cluster_cron_enabled,
     )
 

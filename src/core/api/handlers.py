@@ -133,30 +133,21 @@ def handle_story_intake(
             request,
             idempotency_key=idempotency_key,
         )
-        issue_id = dependencies.story_cluster_orchestrator.process_story(story.story_id)
-        if issue_id is not None:
-            log_api_event(
-                logging.INFO,
-                "story_intake_cluster_triggered_issue",
-                trace_id=resolved_trace_id,
-                outcome="success",
-                story_id=story.story_id,
-                issue_id=issue_id,
-            )
-        else:
-            log_api_event(
-                logging.DEBUG,
-                "story_intake_cluster_no_issue",
-                trace_id=resolved_trace_id,
-                outcome="no_issue",
-                story_id=story.story_id,
-            )
         log_api_event(
             logging.INFO,
             "story_intake_created",
             trace_id=resolved_trace_id,
             outcome="success",
             story_id=story.story_id,
+        )
+        # Intake path no longer clusters synchronously; emit explicit pending signal.
+        log_api_event(
+            logging.DEBUG,
+            "story_cluster_issue_pending",
+            trace_id=resolved_trace_id,
+            story_id=story.story_id,
+            reason="cron_deferred",
+            outcome="not_clustered",
         )
         return (
             build_story_intake_response(

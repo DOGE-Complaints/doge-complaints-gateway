@@ -6,9 +6,10 @@
 
 - `000_full_init.sql` — полный idempotent setup:
   - extension `vector`
-  - core таблицы (`stories`, `idempotency_keys`, `story_embeddings`, `spa_issue_projections`, `spa_issue_projection_embeddings`)
+  - core таблицы (`stories`, `idempotency_keys`, `story_embeddings`, `doge_issues`, `doge_issue_embeddings`)
   - story-first расширения (`narrative_*`, `embedding_vector_json`, `embedding_policy_version`)
   - process/linkage таблицы (`issue_candidates`, `review_audit_log`, `issue_story_links`)
+  - clustering persistence таблицы (`story_signals`, `cluster_memberships`)
   - view `issues_dashboard`
   - RLS + `service_role` policies (включая hardened_plus для новых таблиц)
   - grant на `issues_dashboard` для `anon`, `authenticated`

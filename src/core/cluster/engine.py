@@ -173,7 +173,7 @@ def readiness_score_for_cluster(
 class ClusteringEngine:
     active_lenses: tuple[ClusterLens, ...] = LEGACY_LENSES
     primary_lens: ClusterLens | None = None
-    id_algorithm: str = "legacy_hash"
+    id_algorithm: str = "sha256"
     signal_source: str = "canonical"
     geo_filter: str = "any"
     tie_breaker: str = "lexical"

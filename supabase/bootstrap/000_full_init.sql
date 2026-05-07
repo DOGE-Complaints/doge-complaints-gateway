@@ -102,6 +102,23 @@ create table if not exists public.issue_story_links (
     primary key (issue_id, story_id)
 );
 create index if not exists idx_issue_story_links_issue on public.issue_story_links(issue_id);
+create table if not exists public.story_signals (
+    story_id text not null references public.stories(story_id) on delete cascade,
+    extraction_policy text not null,
+    signals_json jsonb not null,
+    extracted_at timestamptz not null default now(),
+    primary key (story_id, extraction_policy)
+);
+create index if not exists idx_story_signals_policy on public.story_signals(extraction_policy);
+
+create table if not exists public.cluster_memberships (
+    story_id text not null references public.stories(story_id) on delete cascade,
+    lens text not null,
+    cluster_id text not null,
+    computed_at timestamptz not null default now(),
+    primary key (story_id, lens)
+);
+create index if not exists idx_cluster_memberships_cluster on public.cluster_memberships(cluster_id);
 
 -- SPA read model
 create or replace view public.issues_dashboard as
@@ -158,7 +175,8 @@ using (true)
 with check (true);
 
 drop policy if exists projections_service_role_all on public.doge_issues;
-create policy projections_service_role_all
+drop policy if exists doge_issues_service_role_all on public.doge_issues;
+create policy doge_issues_service_role_all
 on public.doge_issues
 for all
 to service_role
@@ -166,7 +184,8 @@ using (true)
 with check (true);
 
 drop policy if exists projection_embeddings_service_role_all on public.doge_issue_embeddings;
-create policy projection_embeddings_service_role_all
+drop policy if exists doge_issue_embeddings_service_role_all on public.doge_issue_embeddings;
+create policy doge_issue_embeddings_service_role_all
 on public.doge_issue_embeddings
 for all
 to service_role
@@ -177,6 +196,8 @@ with check (true);
 alter table public.issue_candidates enable row level security;
 alter table public.review_audit_log enable row level security;
 alter table public.issue_story_links enable row level security;
+alter table public.story_signals enable row level security;
+alter table public.cluster_memberships enable row level security;
 
 drop policy if exists issue_candidates_service_role_all on public.issue_candidates;
 create policy issue_candidates_service_role_all
@@ -197,6 +218,22 @@ with check (true);
 drop policy if exists issue_story_links_service_role_all on public.issue_story_links;
 create policy issue_story_links_service_role_all
 on public.issue_story_links
+for all
+to service_role
+using (true)
+with check (true);
+
+drop policy if exists story_signals_service_role_all on public.story_signals;
+create policy story_signals_service_role_all
+on public.story_signals
+for all
+to service_role
+using (true)
+with check (true);
+
+drop policy if exists cluster_memberships_service_role_all on public.cluster_memberships;
+create policy cluster_memberships_service_role_all
+on public.cluster_memberships
 for all
 to service_role
 using (true)

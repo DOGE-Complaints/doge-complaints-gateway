@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ from core.api.handlers import (
 )
 from core.api.security import UnauthorizedError
 from core.config import ConfigError
+from core.scheduler import ClusterCronJob
 
 PUBLIC_ROUTES: tuple[str, ...] = (
     "/health",
@@ -30,7 +32,25 @@ PUBLIC_ROUTES: tuple[str, ...] = (
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
 
-app = FastAPI(title="doge-complaints-gateway", version="0.1.0")
+@asynccontextmanager
+async def _lifespan(_: FastAPI):
+    deps = get_api_dependencies()
+    cron_job: ClusterCronJob | None = None
+    if deps.config.cluster_cron_enabled:
+        cron_job = ClusterCronJob(
+            orchestrator=deps.story_cluster_orchestrator,
+            interval_s=deps.config.cluster_cron_interval_s,
+            min_size_guard=deps.config.cluster_min_size,
+        )
+        cron_job.start()
+    try:
+        yield
+    finally:
+        if cron_job is not None:
+            cron_job.stop()
+
+
+app = FastAPI(title="doge-complaints-gateway", version="0.1.0", lifespan=_lifespan)
 
 
 @lru_cache(maxsize=1)
