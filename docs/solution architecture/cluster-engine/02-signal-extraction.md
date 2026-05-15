@@ -8,27 +8,18 @@
 StoryRecord
   ├─ narrative_canonical_type   (GPT)
   ├─ narrative_canonical_labels (GPT) ["roads", "broken_infrastructure", "recurring_issue"]
-  ├─ narrative_original_text    (user)
-  └─ geo.normalized_label       (geo service)
+  └─ geo.admin_settlement       (geo service)  ← используется для geographic_district
           │
           ▼
-  CLUSTER_SIGNAL_SOURCE (env)
-          │
-    ┌─────┼──────┐
-    │     │      │
- canonical keyword hybrid
-    │     │      │
-    ▼     │      ▼
-infer_signals_from_canonical()   ← primary (language-agnostic)
-          │
-          ▼ (если canonical_labels пустой)
-infer_signals_from_narrative()   ← legacy fallback
+infer_signals_from_canonical()   ← единственный поддерживаемый режим (language-agnostic)
           │
           ▼
     dict[str, str]               ← StoryProfileSignals.signals
 ```
 
-**Инвариант:** функция всегда возвращает все 6 новых SignalDimension ключей. Отсутствие данных → `"unknown"` (не None, не пустая строка).
+**⚠️ Решение 2026-05-13:** `keyword` и `hybrid` режимы **удалены**. Причина: `infer_signals_from_narrative()` делал keyword-matching (`"road" in text`) — работало только на английском, 0% точность для ET/RU. `CLUSTER_SIGNAL_SOURCE` env var более не поддерживает значения `keyword`/`hybrid`.
+
+**Инвариант:** функция всегда возвращает все 6 SignalDimension ключей. Отсутствие данных → `"unknown"` (не None, не пустая строка).
 
 ---
 
@@ -121,7 +112,7 @@ KEYWORD_EXTRACTION_POLICY   = "v1.keyword"
 
 ## 3. infer_signals_from_canonical() (src/core/profile/enrichment.py)
 
-Новая функция. Старая `infer_signals_from_narrative()` сохраняется для `CLUSTER_SIGNAL_SOURCE=keyword`.
+Единственная функция извлечения сигналов. `infer_signals_from_narrative()` **удалена** (решение 2026-05-13).
 
 ```python
 def infer_signals_from_canonical(
@@ -189,36 +180,19 @@ GPT должен возвращать labels с наиболее конфиде�
 
 **Правило для extraction:** `civic_domain` и `failure_pattern` берут ПЕРВЫЙ matching label из `canonical_labels` в том порядке, в котором они присланы GPT. `civic_weight` использует `CIVIC_SIGNAL_PRIORITY` — не порядок из labels, а предопределённую важность.
 
-### 3.2 Fallback chain при CLUSTER_SIGNAL_SOURCE=hybrid
+### 3.2 get_signals_for_story() — canonical only
 
 ```python
-def get_signals_for_story(
-    story: StoryRecord,
-    signal_source: str,  # из AppConfig
-) -> dict[str, str]:
-    if signal_source == "canonical":
-        return infer_signals_from_canonical(
-            story.narrative_canonical_type,
-            story.narrative_canonical_labels,
-            story.geo.normalized_label if story.geo else None,
-        )
-    if signal_source == "keyword":
-        return infer_signals_from_narrative(story.narrative_original_text)
-    # hybrid: canonical first, keyword fallback for missing fields
-    canonical = infer_signals_from_canonical(
+def get_signals_for_story(story: StoryRecord) -> dict[str, str]:
+    # keyword и hybrid режимы удалены (2026-05-13)
+    return infer_signals_from_canonical(
         story.narrative_canonical_type,
         story.narrative_canonical_labels,
-        story.geo.normalized_label if story.geo else None,
+        story.geo.admin_settlement if story.geo else None,
     )
-    if all(v != "unknown" for v in canonical.values()):
-        return canonical
-    # fallback для полей где canonical дал "unknown"
-    keyword = infer_signals_from_narrative(story.narrative_original_text)
-    return {
-        key: (val if val != "unknown" else keyword.get(key, "unknown"))
-        for key, val in canonical.items()
-    }
 ```
+
+**Примечание:** `geo_normalized_label` заменён на `geo.admin_settlement` для соответствия новой структуре `StoryGeoSnapshot` (admin levels, REQ-35).
 
 ---
 

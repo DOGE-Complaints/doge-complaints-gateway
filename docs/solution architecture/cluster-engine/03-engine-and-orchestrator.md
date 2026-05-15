@@ -258,9 +258,10 @@ class ClusteringEngine:
     active_lenses: tuple[ClusterLens, ...]
     primary_lens: ClusterLens
     id_algorithm: str              # "sha256" | "legacy_hash"
-    signal_source: str             # "canonical" | "keyword" | "hybrid"
-    geo_filter: str                # "any" | normalized district label
-    tie_breaker: str               # "lexical" | "oldest_first" | "systemic_priority"
+    signal_source: str             # "canonical" only (keyword/hybrid удалены 2026-05-13)
+    geo_filter: str                # "district"|"settlement"|"region"|"country" (default: "country")
+    geo_scope: str | None          # "<level>:<value>" напр. "settlement:tallinn" (новый 2026-05-13)
+    tie_breaker: str               # "alpha" (единственный поддерживаемый; oldest_first/systemic_priority — roadmap)
     type_resolution: str           # "canonical_priority" | "majority" | "first"
 ```
 
@@ -357,10 +358,22 @@ def process_story(self, story_id: str) -> str | None:
     # Двойная проверка не проблема: gates — чистая функция.
 
     # ── Шаг 10: создать issue ─────────────────────────────────────────────
+    # narrative_title_hint удалён в v2 контракте (2026-05-13)
+    # issue_type и labels берутся из canonical fields (G-09, REQ-34)
+    dominant_story = self._get_dominant_story(member_story_ids, profiles)
     issue_title = (
-        target.narrative_title_hint
+        (dominant_story.narrative_title or {}).get("en")
+        or (dominant_story.narrative_title or {}).get("et")
         or f"cluster:{primary_lens.value}:{cluster_id}"
     )
+    issue_type = dominant_story.narrative_canonical_type or "observation"
+    issue_labels = list(dict.fromkeys(
+        label
+        for sid in member_story_ids
+        for story in [self.story_repository.get_story(sid)]
+        if story is not None
+        for label in story.narrative_canonical_labels
+    ))
     try:
         result = self.issue_create_service.create_issue(
             IssueCreateCommand(
@@ -563,3 +576,42 @@ handler.POST /stories
 | `test_orchestrator_primary_lens_from_config` | primary_lens из ClusteringEngine, не active_lenses[0] |
 | `test_build_cluster_narrative_dynamic` | Narrative содержит dominant signal values, не static template |
 | `test_handler_logs_issue_id` | handlers.process_story() result логируется с issue_id |
+
+---
+
+## 12. Alpha Scoring — выбор dominant story (решение 2026-05-13, G-03, REQ-36)
+
+Заменяет примитивный алфавитный tiebreaker. Dominant story = story с наибольшим `alpha_score`.
+
+```python
+def alpha_score(story: StoryRecord) -> float:
+    score = 0.0
+
+    # Измерение 1: Классификационная покрытость (0–30)
+    if story.narrative_canonical_type:
+        score += 12
+    label_count = len(story.narrative_canonical_labels)
+    score += min(label_count * 6, 18)  # до 3 меток × 6 pts
+
+    # Измерение 2: Богатство нарратива (0–40)
+    text_len = len(story.narrative_original_text.strip())
+    score += min(text_len / 15, 20)    # cap: 300 символов → 20 pts
+    if story.narrative_summary_json:
+        score += 10
+    if story.narrative_consistency_notes:
+        score += 10
+
+    # Измерение 3: Гео-точность (0–30)
+    if story.geo is not None:
+        score += 10
+        score += story.geo.confidence * 20  # confidence=0.88 → +17.6 pts
+
+    return score  # max: 100
+```
+
+**Tiebreaker при равных баллах:** старейшая история (`min(stories, key=lambda s: s.created_at)`).
+
+**Canonical type readiness gate (`promotion/gates.py`):**  
+Кластер без хотя бы одной истории с `canonical_type in {"complaint", "system_bug"}` → не промотируется в Issue.
+
+**Местоположение в коде:** новый модуль `cluster/alpha.py` или встроить в `cluster/engine.py`.
