@@ -16,30 +16,27 @@ from core.cluster.types import (
 from core.domain import SignalDimension
 
 
-LEGACY_LENSES: tuple[ClusterLens, ...] = (
-    ClusterLens.TOPIC_MICRO,
-    ClusterLens.NEED_LOCAL,
-    ClusterLens.FAILURE_SYSTEMIC,
-    ClusterLens.FAILURE_MICRO,
-    ClusterLens.REPEATABILITY_LOCAL,
-    ClusterLens.RELEVANCE_SYSTEMIC,
+CIVIC_LENSES: tuple[ClusterLens, ...] = (
+    ClusterLens.CIVIC_DOMAIN_MICRO,
+    ClusterLens.FAILURE_PATTERN_MICRO,
+    ClusterLens.CIVIC_WEIGHT_SYSTEMIC,
+    ClusterLens.DESIRED_OUTCOME_LOCAL,
+    ClusterLens.AFFECTED_GROUP_LOCAL,
+    ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
 )
 
-CANONICAL_LENSES: tuple[ClusterLens, ...] = LEGACY_LENSES  # backward-compat alias (deprecated name)
+# Backward-compat alias (deprecated name; same as CIVIC_LENSES).
+CANONICAL_LENSES: tuple[ClusterLens, ...] = CIVIC_LENSES
 
 _SYSTEMIC_LENSES: frozenset[ClusterLens] = frozenset(
     {
         ClusterLens.CIVIC_WEIGHT_SYSTEMIC,
-        ClusterLens.FAILURE_SYSTEMIC,
-        ClusterLens.RELEVANCE_SYSTEMIC,
     }
 )
 _LOCAL_LENSES: frozenset[ClusterLens] = frozenset(
     {
         ClusterLens.DESIRED_OUTCOME_LOCAL,
         ClusterLens.AFFECTED_GROUP_LOCAL,
-        ClusterLens.NEED_LOCAL,
-        ClusterLens.REPEATABILITY_LOCAL,
     }
 )
 _MICRO_LENSES: frozenset[ClusterLens] = frozenset(
@@ -47,8 +44,6 @@ _MICRO_LENSES: frozenset[ClusterLens] = frozenset(
         ClusterLens.CIVIC_DOMAIN_MICRO,
         ClusterLens.FAILURE_PATTERN_MICRO,
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
-        ClusterLens.TOPIC_MICRO,
-        ClusterLens.FAILURE_MICRO,
     }
 )
 
@@ -61,12 +56,6 @@ def merged_signals(profile: StoryProfileSignals) -> dict[str, str]:
 
 def lens_dimension(lens: ClusterLens) -> SignalDimension:
     mapping: dict[ClusterLens, SignalDimension] = {
-        ClusterLens.TOPIC_MICRO: SignalDimension.TOPIC,
-        ClusterLens.NEED_LOCAL: SignalDimension.NEED,
-        ClusterLens.FAILURE_SYSTEMIC: SignalDimension.SYSTEM_FAILURE,
-        ClusterLens.FAILURE_MICRO: SignalDimension.SYSTEM_FAILURE,
-        ClusterLens.REPEATABILITY_LOCAL: SignalDimension.REPEATABILITY,
-        ClusterLens.RELEVANCE_SYSTEMIC: SignalDimension.RELEVANCE,
         ClusterLens.CIVIC_DOMAIN_MICRO: SignalDimension.CIVIC_DOMAIN,
         ClusterLens.FAILURE_PATTERN_MICRO: SignalDimension.FAILURE_PATTERN,
         ClusterLens.CIVIC_WEIGHT_SYSTEMIC: SignalDimension.CIVIC_WEIGHT,
@@ -114,8 +103,6 @@ def lens_readiness_bonus(lens: ClusterLens) -> int:
     med_bonus = frozenset(
         {
             ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
-            ClusterLens.FAILURE_SYSTEMIC,
-            ClusterLens.RELEVANCE_SYSTEMIC,
         }
     )
     if lens in high_bonus:
@@ -171,12 +158,12 @@ def readiness_score_for_cluster(
 
 @dataclass(frozen=True)
 class ClusteringEngine:
-    active_lenses: tuple[ClusterLens, ...] = LEGACY_LENSES
+    active_lenses: tuple[ClusterLens, ...] = CIVIC_LENSES
     primary_lens: ClusterLens | None = None
     id_algorithm: str = "sha256"
     signal_source: str = "canonical"
     geo_filter: str = "any"
-    tie_breaker: str = "lexical"
+    tie_breaker: str = "alpha"
     type_resolution: str = "canonical_priority"
 
     def resolved_primary_lens(self) -> ClusterLens:
@@ -184,7 +171,7 @@ class ClusteringEngine:
             return self.primary_lens
         if self.active_lenses:
             return self.active_lenses[0]
-        return ClusterLens.TOPIC_MICRO
+        return ClusterLens.CIVIC_DOMAIN_MICRO
 
     @staticmethod
     def _dominant_for_profiles(profiles: list[StoryProfileSignals]) -> dict[str, str]:

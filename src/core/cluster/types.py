@@ -6,14 +6,8 @@ from typing import Mapping
 
 
 class ClusterLens(StrEnum):
-    """Canonical clustering lenses (EPIC-M2-04 baseline + civic target-state set)."""
+    """Civic clustering lenses (canonical_labels-based, multilingual-safe)."""
 
-    TOPIC_MICRO = "topic_micro"
-    NEED_LOCAL = "need_local"
-    FAILURE_SYSTEMIC = "failure_systemic"
-    FAILURE_MICRO = "failure_micro"
-    REPEATABILITY_LOCAL = "repeatability_local"
-    RELEVANCE_SYSTEMIC = "relevance_systemic"
     CIVIC_DOMAIN_MICRO = "civic_domain_micro"
     FAILURE_PATTERN_MICRO = "failure_pattern_micro"
     CIVIC_WEIGHT_SYSTEMIC = "civic_weight_systemic"

@@ -85,4 +85,3 @@ AFFECTED_SCOPE_VOCABULARY: frozenset[str] = frozenset(
 AFFECTED_GROUP_DEFAULT = "general_public"
 
 CANONICAL_EXTRACTION_POLICY = "v2.canonical"
-KEYWORD_EXTRACTION_POLICY = "v1.keyword"

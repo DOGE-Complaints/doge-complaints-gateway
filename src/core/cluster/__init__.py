@@ -1,6 +1,6 @@
 from core.cluster.engine import (
     CANONICAL_LENSES,
-    LEGACY_LENSES,
+    CIVIC_LENSES,
     ClusteringEngine,
 )
 from core.cluster.types import ClusterLens, ClusteringMode, ClusterView, StoryProfileSignals
@@ -14,12 +14,11 @@ from core.cluster.vocabulary import (
     CIVIC_WEIGHT_DEFAULT,
     DESIRED_OUTCOME_VOCABULARY,
     FAILURE_PATTERN_VOCABULARY,
-    KEYWORD_EXTRACTION_POLICY,
 )
 
 __all__ = [
     "CANONICAL_LENSES",
-    "LEGACY_LENSES",
+    "CIVIC_LENSES",
     "ClusterLens",
     "ClusteringMode",
     "StoryProfileSignals",
@@ -34,5 +33,4 @@ __all__ = [
     "AFFECTED_SCOPE_VOCABULARY",
     "AFFECTED_GROUP_DEFAULT",
     "CANONICAL_EXTRACTION_POLICY",
-    "KEYWORD_EXTRACTION_POLICY",
 ]
