@@ -4,6 +4,11 @@
 /app/services/__pycache__
 /app/__pycache__
 .env
+.env.test
 __pycache__/
 *.py[cod]
 docs/analysis/*
+.venv_tmp/
+src/doge_complaints_gateway.egg-info/
+supabase/.temp/
+.vscode/
