@@ -120,6 +120,7 @@ class SignalDimension(StrEnum):
     DESIRED_OUTCOME = "desired_outcome"
     AFFECTED_GROUP = "affected_group"
     GEOGRAPHIC_DISTRICT = "geographic_district"
+    CANONICAL_TYPE = "canonical_type"
 
 
 class StorySignalStore(Protocol):
