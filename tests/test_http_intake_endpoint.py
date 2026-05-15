@@ -66,7 +66,7 @@ def test_intake_does_not_trigger_sync_clustering_logs(
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
-    monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "narrative")
+    monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     _clear_api_dependencies_cache()
     caplog.set_level(logging.INFO, logger="core.api")
     base = _valid_intake_payload()

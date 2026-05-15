@@ -32,7 +32,7 @@ def _payload(user: str, text: str) -> dict[str, object]:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Story package issue tracking"},
             "description": {"et": "d", "ru": "d", "en": text},
-            "canonical_type": "infrastructure",
+            "canonical_type": "complaint",
             "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }

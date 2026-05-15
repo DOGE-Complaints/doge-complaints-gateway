@@ -32,6 +32,8 @@ def _payload(idx: int) -> dict[str, object]:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Street lights issue"},
             "description": {"et": "d", "ru": "d", "en": "Street lights are broken and unsafe in district center."},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "broken_infrastructure", "safety"],
         },
     }
 
@@ -50,7 +52,7 @@ def _run_for_lens(
     monkeypatch.setenv("CLUSTER_ACTIVE_LENSES", cluster_active_lenses)
     primary = cluster_active_lenses.split(",")[0].strip()
     monkeypatch.setenv("CLUSTER_PRIMARY_LENS", primary)
-    monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "narrative")
+    monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     _clear_api_dependencies_cache()
     with TestClient(app) as client:
         r1 = client.post("/intake/stories", json=_payload(1))
@@ -75,12 +77,12 @@ def _run_for_lens(
 def test_cluster_active_lenses_changes_runtime_cluster_id_prefix(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    topic_db = f"sqlite:///{tmp_path / 'lens-topic.sqlite3'}"
-    need_db = f"sqlite:///{tmp_path / 'lens-need.sqlite3'}"
+    domain_db = f"sqlite:///{tmp_path / 'lens-domain.sqlite3'}"
+    failure_db = f"sqlite:///{tmp_path / 'lens-failure.sqlite3'}"
 
-    topic_cluster_id = _run_for_lens(monkeypatch, topic_db, "topic_micro")
-    need_cluster_id = _run_for_lens(monkeypatch, need_db, "need_local")
+    domain_cluster_id = _run_for_lens(monkeypatch, domain_db, "civic_domain_micro")
+    failure_cluster_id = _run_for_lens(monkeypatch, failure_db, "failure_pattern_micro")
 
-    assert topic_cluster_id.startswith("cluster:topic_micro:")
-    assert need_cluster_id.startswith("cluster:need_local:")
-    assert topic_cluster_id != need_cluster_id
+    assert domain_cluster_id.startswith("cluster:civic_domain_micro:")
+    assert failure_cluster_id.startswith("cluster:failure_pattern_micro:")
+    assert domain_cluster_id != failure_cluster_id

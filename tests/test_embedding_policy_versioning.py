@@ -34,6 +34,8 @@ def _intake_payload(*, text: str, title_hint: str, user_id: str) -> dict[str, ob
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": title_hint},
             "description": {"et": "d", "ru": "d", "en": text},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }
 

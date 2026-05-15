@@ -31,7 +31,7 @@ def _ready_story(
         lifecycle_status=lifecycle,
         narrative_title=narrative_dict(en="hint"),
         narrative_description=narrative_dict(en="hint description"),
-        narrative_canonical_type="infrastructure",
+        narrative_canonical_type="complaint",
         narrative_canonical_labels=labels,
     )
 
@@ -45,10 +45,6 @@ def _civic_engine(
         active_lenses=lenses,
         primary_lens=primary if primary is not None else lenses[0],
         id_algorithm="legacy_hash",
-        signal_source="canonical",
-        geo_filter="any",
-        tie_breaker="lexical",
-        type_resolution="canonical_priority",
     )
 
 
@@ -202,10 +198,6 @@ def test_orchestrator_primary_lens_from_config() -> None:
         active_lenses=(ClusterLens.CIVIC_DOMAIN_MICRO, ClusterLens.FAILURE_PATTERN_MICRO),
         primary_lens=ClusterLens.CIVIC_DOMAIN_MICRO,
         id_algorithm="legacy_hash",
-        signal_source="canonical",
-        geo_filter="any",
-        tie_breaker="lexical",
-        type_resolution="canonical_priority",
     )
     orchestrator = StoryClusterOrchestrator(
         story_repository=stories,

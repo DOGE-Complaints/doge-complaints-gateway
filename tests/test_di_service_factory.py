@@ -65,9 +65,17 @@ def test_default_service_factory_resolves_issue_projection_service() -> None:
 def test_default_service_factory_resolves_story_projection_policy() -> None:
     factory = _factory()
     policy = factory.get_story_projection_policy()
+    from tests.intake_v2_fixtures import make_story_record
+
+    story = make_story_record(
+        narrative_canonical_type="complaint",
+        narrative_canonical_labels=("roads", "safety"),
+    )
     draft = policy.build_draft(
         promoted_title="Road safety request",
         aggregate_text="Road safety request in district",
+        dominant_story=story,
+        cluster_stories=(story,),
     )
     assert draft.policy_version
     assert draft.labels

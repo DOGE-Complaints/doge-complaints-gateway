@@ -80,7 +80,7 @@ def intake_payload_simple(
             "description": narrative_dict(
                 en=original_text, et=original_text, ru=original_text
             ),
-            "canonical_type": "infrastructure",
+            "canonical_type": "complaint",
             "canonical_labels": ["roads", "broken_infrastructure"],
         },
         **extra,

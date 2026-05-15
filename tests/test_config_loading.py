@@ -44,11 +44,15 @@ def test_load_config_demo_defaults() -> None:
         "civic_domain_micro",
         "failure_pattern_micro",
         "civic_weight_systemic",
+        "desired_outcome_local",
+        "affected_group_local",
+        "geographic_district_micro",
     )
-    assert "relevance_systemic" not in config.cluster_active_lenses
+    assert "topic_micro" not in config.cluster_active_lenses
     assert config.cluster_primary_lens == "civic_domain_micro"
+    assert config.cluster_signal_source == "canonical"
     assert config.cluster_geo_filter == "any"
-    assert config.cluster_tie_breaker == "lexical"
+    assert config.cluster_tie_breaker == "alpha"
     assert config.cluster_type_resolution == "canonical_priority"
     assert config.cluster_id_algorithm == "sha256"
     assert config.cluster_cron_interval_s == 60
@@ -200,7 +204,7 @@ def test_invalid_cluster_active_lenses_raises() -> None:
             {
                 "APP_PROFILE": "demo",
                 "API_BASE_URL": "https://demo.example/api",
-                "CLUSTER_ACTIVE_LENSES": "topic_micro,invalid_lens",
+                "CLUSTER_ACTIVE_LENSES": "civic_domain_micro,invalid_lens",
             }
         )
 
@@ -288,7 +292,7 @@ def test_cluster_primary_lens_must_appear_in_cluster_active_lenses() -> None:
                 "APP_PROFILE": "demo",
                 "API_BASE_URL": "https://demo.example/api",
                 "CLUSTER_ACTIVE_LENSES": "civic_domain_micro,failure_pattern_micro,civic_weight_systemic",
-                "CLUSTER_PRIMARY_LENS": "topic_micro",
+                "CLUSTER_PRIMARY_LENS": "geographic_district_micro",
             }
         )
 

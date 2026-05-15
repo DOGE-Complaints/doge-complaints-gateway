@@ -15,6 +15,8 @@ class _CustomPolicy:
         *,
         promoted_title: str,
         aggregate_text: str,
+        dominant_story,
+        cluster_stories,
     ) -> StoryProjectionDraft:
         return StoryProjectionDraft(
             issue_type="SERVICE_REQUEST",
@@ -44,6 +46,8 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Street light issue"},
             "description": {"et": "d", "ru": "d", "en": "Broken street light and unsafe crossing near district center."},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "safety"],
                 },
             }
         )
@@ -59,6 +63,8 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Road repair request"},
             "description": {"et": "d", "ru": "d", "en": "Road infrastructure needs urgent repair."},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "infrastructure"],
                 },
             }
         )
@@ -74,6 +80,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
     assert projection_input.issue_id == "issue-bridge-1"
     assert projection_input.status == DOGEIssueStatus.PUBLISHED.value
     assert "infrastructure" in projection_input.labels
+    assert "safety" in projection_input.labels
     assert projection_input.description.en
 
 
@@ -109,6 +116,8 @@ def test_bridge_derivation_rules_are_deterministic_for_type_and_labels() -> None
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Safety incident"},
             "description": {"et": "d", "ru": "d", "en": "Danger and unsafe road crossing with broken lights."},
+            "canonical_type": "complaint",
+            "canonical_labels": ["safety", "roads"],
                 },
             }
         )

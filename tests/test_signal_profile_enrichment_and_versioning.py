@@ -13,10 +13,10 @@ def test_signal_profile_service_creates_enriched_profile_version_one() -> None:
     )
     assert profile.version == 1
     assert profile.user_asserted["topic"] == "mobility"
-    assert profile.system_inferred["system_failure"] == "service_disruption"
-    assert profile.system_inferred["repeatability"] == "recurrent"
-    assert profile.system_inferred.get("civic_domain") == "roads"
-    assert profile.system_inferred.get("failure_pattern") == "broken_infrastructure"
+    assert profile.system_inferred.get("civic_domain") == "unknown"
+    assert profile.system_inferred.get("failure_pattern") == "unknown"
+    assert profile.system_inferred.get("civic_weight") == "isolated"
+    assert profile.system_inferred.get("canonical_type") == "unknown"
 
 
 def test_signal_profile_service_tracks_versions_for_audit_trail() -> None:

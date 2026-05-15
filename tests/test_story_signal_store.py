@@ -84,7 +84,6 @@ def test_signals_not_recomputed_if_cached() -> None:
         active_lenses=(ClusterLens.CIVIC_DOMAIN_MICRO,),
         primary_lens=ClusterLens.CIVIC_DOMAIN_MICRO,
         id_algorithm="legacy_hash",
-        signal_source="canonical",
     )
     orchestrator = StoryClusterOrchestrator(
         story_repository=stories,

@@ -33,7 +33,7 @@ def _story(story_id: str, text: str) -> StoryRecord:
         updated_at=now,
         narrative_language="en",
         narrative_title=narrative_dict(en="District lighting issue"),
-        narrative_canonical_type="infrastructure",
+        narrative_canonical_type="complaint",
         narrative_canonical_labels=("roads", "broken_infrastructure"),
     )
 

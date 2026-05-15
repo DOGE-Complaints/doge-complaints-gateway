@@ -33,3 +33,11 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SUPABASE_URL", "")
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "")
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "60")
+    monkeypatch.setenv(
+        "CLUSTER_ACTIVE_LENSES",
+        "civic_domain_micro,failure_pattern_micro,civic_weight_systemic,"
+        "desired_outcome_local,affected_group_local,geographic_district_micro",
+    )
+    monkeypatch.setenv("CLUSTER_PRIMARY_LENS", "civic_domain_micro")
+    monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
+    monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")

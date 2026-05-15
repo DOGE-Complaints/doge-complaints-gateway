@@ -17,7 +17,7 @@ from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, n
 def _snapshot() -> ClusterSnapshotRef:
     return ClusterSnapshotRef(
         cluster_id="c-1",
-        lens="topic_micro",
+        lens="civic_domain_micro",
         lens_version="v1",
         captured_at_iso="2026-04-20T12:00:00+00:00",
     )

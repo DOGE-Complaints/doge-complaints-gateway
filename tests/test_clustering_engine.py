@@ -16,16 +16,11 @@ def _engine(
     lenses: tuple[ClusterLens, ...] = (ClusterLens.CIVIC_DOMAIN_MICRO,),
     primary: ClusterLens | None = None,
     id_algorithm: str = "sha256",
-    signal_source: str = "keyword",
 ) -> ClusteringEngine:
     return ClusteringEngine(
         active_lenses=lenses,
         primary_lens=primary if primary is not None else lenses[0],
         id_algorithm=id_algorithm,
-        signal_source=signal_source,
-        geo_filter="any",
-        tie_breaker="lexical",
-        type_resolution="canonical_priority",
     )
 
 
@@ -42,26 +37,30 @@ def test_clustering_engine_build_view_is_deterministic() -> None:
     profiles = (
         _profile(
             "story-a",
-            topic="mobility",
-            need="restore_access",
-            system_failure="service_disruption",
-            repeatability="recurrent",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="recurring_issue",
+            desired_outcome="safer_space",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
         _profile(
             "story-b",
-            topic="mobility",
-            need="resolve_issue",
-            system_failure="quality_gap",
-            repeatability="single_or_unknown",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="isolated",
+            desired_outcome="safer_space",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
     )
 
-    first = engine.build_view(lens=ClusterLens.TOPIC_MICRO, profiles=profiles, mode=ClusteringMode.ANALYTIC)
-    second = engine.build_view(lens=ClusterLens.TOPIC_MICRO, profiles=profiles, mode=ClusteringMode.ANALYTIC)
+    first = engine.build_view(
+        lens=ClusterLens.CIVIC_DOMAIN_MICRO, profiles=profiles, mode=ClusteringMode.ANALYTIC
+    )
+    second = engine.build_view(
+        lens=ClusterLens.CIVIC_DOMAIN_MICRO, profiles=profiles, mode=ClusteringMode.ANALYTIC
+    )
     assert first == second
 
 
@@ -70,18 +69,18 @@ def test_memberships_allow_multi_membership_across_lenses() -> None:
     profiles = (
         _profile(
             "story-1",
-            topic="mobility",
-            need="restore_access",
-            system_failure="service_disruption",
-            repeatability="recurrent",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="systemic_pattern",
+            desired_outcome="digital_fix",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
     )
 
     memberships = engine.memberships(profiles)
-    assert memberships["story-1"][ClusterLens.TOPIC_MICRO.value] != memberships["story-1"][
-        ClusterLens.NEED_LOCAL.value
+    assert memberships["story-1"][ClusterLens.CIVIC_DOMAIN_MICRO.value] != memberships["story-1"][
+        ClusterLens.DESIRED_OUTCOME_LOCAL.value
     ]
 
 
@@ -90,15 +89,17 @@ def test_cluster_narrative_is_non_empty() -> None:
     profiles = (
         _profile(
             "story-1",
-            topic="mobility",
-            need="restore_access",
-            system_failure="service_disruption",
-            repeatability="recurrent",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="systemic_pattern",
+            desired_outcome="safer_space",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
     )
-    view = engine.build_view(lens=ClusterLens.FAILURE_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ANALYTIC)
+    view = engine.build_view(
+        lens=ClusterLens.CIVIC_WEIGHT_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ANALYTIC
+    )
     assert view.narrative
 
 
@@ -107,29 +108,29 @@ def test_readiness_scoring_differs_between_modes() -> None:
     profiles = (
         _profile(
             "story-1",
-            topic="mobility",
-            need="restore_access",
-            system_failure="service_disruption",
-            repeatability="recurrent",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="systemic_pattern",
+            desired_outcome="safer_space",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
         _profile(
             "story-2",
-            topic="mobility",
-            need="resolve_issue",
-            system_failure="service_disruption",
-            repeatability="recurrent",
-            relevance="high",
-            desired_state="stable_public_service",
+            civic_domain="roads",
+            failure_pattern="broken_infrastructure",
+            civic_weight="systemic_pattern",
+            desired_outcome="safer_space",
+            affected_group="general_public",
+            geographic_district="unknown",
         ),
     )
 
     analytic = engine.build_view(
-        lens=ClusterLens.FAILURE_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ANALYTIC
+        lens=ClusterLens.CIVIC_WEIGHT_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ANALYTIC
     )
     issue_ready = engine.build_view(
-        lens=ClusterLens.FAILURE_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ISSUE_READY
+        lens=ClusterLens.CIVIC_WEIGHT_SYSTEMIC, profiles=profiles, mode=ClusteringMode.ISSUE_READY
     )
     assert issue_ready.readiness_score >= analytic.readiness_score
 
@@ -226,10 +227,9 @@ def test_ac06_language_neutral_clustering_via_canonical() -> None:
         active_lenses=(ClusterLens.FAILURE_PATTERN_MICRO,),
         primary_lens=ClusterLens.FAILURE_PATTERN_MICRO,
         id_algorithm="sha256",
-        signal_source="canonical",
     )
-    et_signals = infer_signals_from_canonical("INCIDENT", ("roads", "broken_infrastructure"))
-    en_signals = infer_signals_from_canonical("INCIDENT", ("roads", "broken_infrastructure"))
+    et_signals = infer_signals_from_canonical("complaint", ("roads", "broken_infrastructure"))
+    en_signals = infer_signals_from_canonical("complaint", ("roads", "broken_infrastructure"))
     profiles = (
         StoryProfileSignals(story_id="s-et", signals=et_signals),
         StoryProfileSignals(story_id="s-en", signals=en_signals),

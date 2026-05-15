@@ -30,7 +30,7 @@ def _story(story_id: str, text: str, title_hint: str) -> StoryRecord:
         narrative_original_text=text,
         submitter_external_user_id=f"user-{story_id}",
         narrative_title=narrative_dict(en=title_hint),
-        narrative_canonical_type="improvement",
+        narrative_canonical_type="complaint",
         narrative_canonical_labels=("roads", "broken_infrastructure"),
     )
 
@@ -111,7 +111,7 @@ def test_process_story_returns_none_when_story_not_ready_for_profile() -> None:
             submitter_external_user_id="user-partial",
             lifecycle_status=StoryLifecycleStatus.PARTIAL_READY,
             narrative_title=narrative_dict(en="Partial"),
-            narrative_canonical_type="improvement",
+            narrative_canonical_type="complaint",
             narrative_canonical_labels=("roads", "broken_infrastructure"),
         )
     )
@@ -182,15 +182,15 @@ def test_process_story_returns_none_when_story_not_in_memberships() -> None:
     stories.save_story(_story("s2", "same narrative", "Broken light"))
 
     class _MembershipsWithoutTargetEngine:
-        active_lenses = (ClusterLens.TOPIC_MICRO,)
+        active_lenses = (ClusterLens.CIVIC_DOMAIN_MICRO,)
 
         def memberships(
             self, profiles: object, *, id_algorithm: str | None = None
         ) -> dict[str, dict[str, str]]:
-            return {"s2": {"topic_micro": "cluster:topic_micro:1"}}
+            return {"s2": {"civic_domain_micro": "cluster:civic_domain_micro:1"}}
 
         def resolved_primary_lens(self) -> ClusterLens:
-            return ClusterLens.TOPIC_MICRO
+            return ClusterLens.CIVIC_DOMAIN_MICRO
 
     issue_create = IssueCreateService(
         promotion_service=IssuePromotionService(

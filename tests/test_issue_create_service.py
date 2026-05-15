@@ -41,6 +41,8 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "District lights outage"},
             "description": {"et": "d", "ru": "d", "en": f"District lights outage report #{idx}."},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "broken_infrastructure", "safety"],
                 },
             }
         )

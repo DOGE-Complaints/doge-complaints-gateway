@@ -32,6 +32,8 @@ def _payload(user: str, text: str) -> dict[str, object]:
             "session_language": "en",
             "title": {"et": "t", "ru": "t", "en": "Create story fullpath"},
             "description": {"et": "d", "ru": "d", "en": text},
+            "canonical_type": "complaint",
+            "canonical_labels": ["roads", "broken_infrastructure", "safety"],
         },
         "origin": {"source": "tc_p0_03"},
     }
