@@ -12,21 +12,13 @@ from core.domain import (
     StoryRepository,
     StorySignalStore,
 )
+from core.domain.narrative_i18n import story_primary_title
 from core.profile import get_signals_for_story
 from core.promotion.service import PromotionStateError
 
 logger = logging.getLogger(__name__)
 
-
-def _signal_policy(signal_source: str) -> str:
-    src = signal_source.strip().lower()
-    _map = {
-        "canonical": "v2.canonical",
-        "keyword": "v1.keyword",
-        "narrative": "v1.keyword",
-        "hybrid": "v2.hybrid",
-    }
-    return _map.get(src, "v2.canonical")
+_CANONICAL_SIGNAL_POLICY = "v2.canonical"
 
 
 @dataclass(frozen=True)
@@ -37,29 +29,32 @@ class StoryClusterOrchestrator:
     story_signal_store: StorySignalStore | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
 
-    def _get_or_compute_signals(
-        self, story: StoryRecord, signal_source: str, policy: str
-    ) -> dict[str, str]:
+    def _get_or_compute_signals(self, story: StoryRecord) -> dict[str, str]:
         if self.story_signal_store is not None:
-            cached = self.story_signal_store.get_signals(story.story_id, policy)
+            cached = self.story_signal_store.get_signals(
+                story.story_id, _CANONICAL_SIGNAL_POLICY
+            )
             if cached is not None:
                 return dict(cached)
-        signals = get_signals_for_story(story, signal_source)
+        signals = get_signals_for_story(story)
         if self.story_signal_store is not None:
             try:
-                self.story_signal_store.save_signals(story.story_id, policy, signals)
+                self.story_signal_store.save_signals(
+                    story.story_id, _CANONICAL_SIGNAL_POLICY, signals
+                )
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
                     "cluster.signal_persist_failed",
                     extra={
                         "story_id": story.story_id,
-                        "policy": policy,
+                        "policy": _CANONICAL_SIGNAL_POLICY,
                         "error": str(exc),
                     },
                 )
         return signals
 
     def process_story(self, story_id: str) -> str | None:
+        logger.debug("cluster.process_story_start", extra={"story_id": story_id})
         target = self.story_repository.get_story(story_id)
         if target is None:
             return None
@@ -77,6 +72,10 @@ class StoryClusterOrchestrator:
             return None
 
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
+        logger.debug(
+            "cluster.ready_snapshot",
+            extra={"story_id": story_id, "ready_count": len(ready_stories)},
+        )
         if not ready_stories:
             return None
         profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
@@ -97,6 +96,14 @@ class StoryClusterOrchestrator:
         )
         if not member_story_ids:
             return None
+        logger.debug(
+            "cluster.members_resolved",
+            extra={
+                "story_id": story_id,
+                "cluster_id": cluster_id,
+                "member_count": len(member_story_ids),
+            },
+        )
 
         return self._create_issue_for_cluster(
             trigger_story_id=story_id,
@@ -111,6 +118,7 @@ class StoryClusterOrchestrator:
 
     def process_all_pending(self) -> list[str]:
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
+        logger.debug("cluster.batch_start", extra={"ready_count": len(ready_stories)})
         min_size_guard = max(1, self._resolve_min_size_guard())
         if len(ready_stories) < min_size_guard:
             logger.info(
@@ -128,6 +136,10 @@ class StoryClusterOrchestrator:
         clusters = self._cluster_members(primary.value, profiles, memberships)
         created_issue_ids: list[str] = []
         for cluster_id, member_story_ids in clusters.items():
+            logger.debug(
+                "cluster.batch_cluster_candidate",
+                extra={"cluster_id": cluster_id, "member_count": len(member_story_ids)},
+            )
             if not member_story_ids:
                 continue
             target = self.story_repository.get_story(member_story_ids[0])
@@ -163,12 +175,10 @@ class StoryClusterOrchestrator:
         ClusterLens,
         str,
     ]:
-        signal_src = getattr(self.clustering_engine, "signal_source", "canonical")
         id_algorithm = getattr(self.clustering_engine, "id_algorithm", "legacy_hash")
-        policy = _signal_policy(signal_src)
         profile_list: list[StoryProfileSignals] = []
         for story in ready_stories:
-            inferred = self._get_or_compute_signals(story, signal_src, policy)
+            inferred = self._get_or_compute_signals(story)
             profile_list.append(
                 StoryProfileSignals(story_id=story.story_id, signals=inferred)
             )
@@ -211,7 +221,12 @@ class StoryClusterOrchestrator:
             primary_lens=self.clustering_engine.resolved_primary_lens(),
             id_algorithm=id_algorithm,
         )
-        issue_title = target.narrative_title_hint or f"cluster:{primary_lens}:{cluster_id}"
+        primary_title = story_primary_title(
+            narrative_title=target.narrative_title,
+            narrative_session_language=target.narrative_session_language,
+            narrative_language=target.narrative_language,
+        )
+        issue_title = primary_title or f"cluster:{primary_lens}:{cluster_id}"
         try:
             result = self.issue_create_service.create_issue(
                 IssueCreateCommand(

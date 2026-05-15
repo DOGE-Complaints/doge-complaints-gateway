@@ -3,10 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from hashlib import sha256
 import json
+import logging
 from typing import Any
 from typing import Protocol
 
-from core.domain import StoryRepository
+from core.domain import StoryRecord, StoryRepository
 from core.promotion.types import IssueCandidateRecord
 from core.projection import (
     DeterministicStoryToProjectionPolicy,
@@ -14,10 +15,12 @@ from core.projection import (
     ProjectionInput,
     StoryToProjectionPolicy,
     build_projection_input_from_draft,
+    select_dominant_story,
 )
 from core.promotion import IssuePromotionService, ReviewDecision
 
 DERIVATION_POLICY_VERSION = "m3.doge_issue_derivation.v1"
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -94,18 +97,26 @@ class StoryPromotionProjectionBridge:
         promoted_title: str,
         story_ids: tuple[str, ...],
     ) -> ProjectionInput:
-        stories = []
+        stories: list[StoryRecord] = []
         for story_id in story_ids:
             story = self.story_repository.get_story(story_id)
             if story is None:
                 raise ValueError(f"Unknown story_id: {story_id}.")
             stories.append(story)
 
-        narrative_chunks = [story.narrative_original_text.strip() for story in stories if story.narrative_original_text.strip()]
+        cluster_stories = tuple(stories)
+        dominant_story = select_dominant_story(cluster_stories)
+        narrative_chunks = [
+            story.narrative_original_text.strip()
+            for story in stories
+            if story.narrative_original_text.strip()
+        ]
         aggregate_text = " ".join(narrative_chunks) if narrative_chunks else promoted_title
         draft = self.extraction_policy.build_draft(
             promoted_title=promoted_title,
             aggregate_text=aggregate_text,
+            dominant_story=dominant_story,
+            cluster_stories=cluster_stories,
         )
         return build_projection_input_from_draft(issue_id=issue_id, draft=draft)
 
@@ -120,6 +131,14 @@ class IssueCreateService:
     issue_story_link_store: IssueStoryLinkStore | None = None
 
     def create_issue(self, command: IssueCreateCommand) -> IssueCreateResult:
+        logger.debug(
+            "issue_create.start",
+            extra={
+                "cluster_id": command.cluster_id,
+                "story_count": len(command.story_ids),
+                "readiness_score": command.readiness_score,
+            },
+        )
         if not command.cluster_id.strip():
             raise ValueError("cluster_id must be non-empty.")
         if not command.story_ids:
@@ -131,23 +150,44 @@ class IssueCreateService:
             command.cluster_id.strip()
         )
         if existing is not None:
+            logger.debug(
+                "issue_create.extend_path",
+                extra={"cluster_id": command.cluster_id, "issue_id": existing.candidate_id},
+            )
             return self._extend_issue(existing, command)
+        logger.debug("issue_create.new_path", extra={"cluster_id": command.cluster_id})
         return self._create_issue(command)
 
     def _create_issue(self, command: IssueCreateCommand) -> IssueCreateResult:
+        story_ids = tuple(
+            story_id.strip() for story_id in command.story_ids if story_id.strip()
+        )
+        cluster_canonical_types: list[str] = []
+        for story_id in story_ids:
+            record = self.bridge.story_repository.get_story(story_id)
+            if record is not None and record.narrative_canonical_type:
+                cluster_canonical_types.append(record.narrative_canonical_type)
+
         candidate = self.promotion_service.create_candidate(
             cluster_id=command.cluster_id.strip(),
-            story_ids=tuple(story_id.strip() for story_id in command.story_ids if story_id.strip()),
+            story_ids=story_ids,
             readiness_score=command.readiness_score,
             title=command.title.strip(),
         )
-        self.promotion_service.submit_for_review(candidate.candidate_id)
+        self.promotion_service.submit_for_review(
+            candidate.candidate_id,
+            cluster_canonical_types=tuple(cluster_canonical_types),
+        )
         self.promotion_service.start_review(candidate.candidate_id)
         promoted = self.promotion_service.record_review(
             candidate_id=candidate.candidate_id,
             actor="system",
             decision=ReviewDecision.APPROVE,
             rationale="http_create_issue_auto_promote",
+        )
+        logger.debug(
+            "issue_create.promoted",
+            extra={"issue_id": promoted.candidate_id, "story_count": len(promoted.story_ids)},
         )
 
         projection_input = self.bridge.build_projection_input(
@@ -201,6 +241,10 @@ class IssueCreateService:
         }
         additional_story_ids = tuple(sorted(requested_story_ids - existing_story_ids))
         if not additional_story_ids:
+            logger.debug(
+                "issue_create.extend_noop",
+                extra={"issue_id": existing.candidate_id, "reason": "no_additional_story_ids"},
+            )
             projection_input = self.bridge.build_projection_input(
                 issue_id=existing.candidate_id,
                 promoted_title=existing.title,
@@ -218,6 +262,14 @@ class IssueCreateService:
             existing.candidate_id,
             additional_story_ids=additional_story_ids,
             new_readiness_score=command.readiness_score,
+        )
+        logger.debug(
+            "issue_create.extend_applied",
+            extra={
+                "issue_id": updated.candidate_id,
+                "added_story_count": len(additional_story_ids),
+                "new_story_count": len(updated.story_ids),
+            },
         )
         projection_input = self.bridge.build_projection_input(
             issue_id=updated.candidate_id,

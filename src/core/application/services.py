@@ -22,7 +22,7 @@ from core.geo import GeoService
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
 from core.intake import StoryIntakeRequest
 from core.profile import (
-    infer_signals_from_narrative,
+    infer_signals_from_canonical,
     normalize_signal_map,
     validate_profile_minimum_quality,
 )
@@ -373,7 +373,7 @@ class SignalProfileService:
             story_id=story_id,
             version=version,
             user_asserted=normalize_signal_map(dict(user_asserted or {})),
-            system_inferred=infer_signals_from_narrative(narrative_text),
+            system_inferred=infer_signals_from_canonical(None, (), None),
             created_at=datetime.now(UTC),
         )
         return self.repository.save_version(profile)
