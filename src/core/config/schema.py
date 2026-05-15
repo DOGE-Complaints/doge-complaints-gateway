@@ -160,7 +160,7 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_ACTIVE_LENSES",
         required=False,
-        default="civic_domain_micro,failure_pattern_micro,civic_weight_systemic",
+        default="civic_domain_micro,failure_pattern_micro,civic_weight_systemic,desired_outcome_local,affected_group_local,geographic_district_micro",
         description="Comma-separated enabled cluster lenses.",
     ),
     EnvSpec(
@@ -173,7 +173,7 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         name="CLUSTER_SIGNAL_SOURCE",
         required=False,
         default="canonical",
-        description="Signal extraction strategy: canonical | narrative | hybrid.",
+        description="Signal extraction strategy (canonical only).",
     ),
     EnvSpec(
         name="CLUSTER_ID_ALGORITHM",
@@ -190,8 +190,8 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_TIE_BREAKER",
         required=False,
-        default="lexical",
-        description="Tie-breaker strategy for equal-score candidates.",
+        default="alpha",
+        description="Tie-breaker strategy for equal-score candidates (alpha only until REQ-36).",
     ),
     EnvSpec(
         name="CLUSTER_TYPE_RESOLUTION",
@@ -296,12 +296,6 @@ def _parse_positive_int(value: str, *, env_name: str) -> int:
 def _all_cluster_lens_ids() -> frozenset[str]:
     return frozenset(
         {
-            "topic_micro",
-            "need_local",
-            "failure_systemic",
-            "failure_micro",
-            "repeatability_local",
-            "relevance_systemic",
             "civic_domain_micro",
             "failure_pattern_micro",
             "civic_weight_systemic",
@@ -328,10 +322,18 @@ def _parse_cluster_lenses(raw: str) -> tuple[str, ...]:
 
 def _parse_cluster_signal_source(raw: str) -> str:
     normalized = raw.strip().lower()
-    allowed = {"canonical", "narrative", "hybrid"}
-    if normalized not in allowed:
+    if normalized != "canonical":
         raise ConfigError(
-            f"Invalid CLUSTER_SIGNAL_SOURCE={raw!r}. Expected one of: {sorted(allowed)}."
+            f"Invalid CLUSTER_SIGNAL_SOURCE={raw!r}. Expected: canonical."
+        )
+    return normalized
+
+
+def _parse_cluster_tie_breaker(raw: str) -> str:
+    normalized = raw.strip().lower()
+    if normalized != "alpha":
+        raise ConfigError(
+            f"Invalid CLUSTER_TIE_BREAKER={raw!r}. Expected: alpha."
         )
     return normalized
 
@@ -501,7 +503,9 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         _require_value(source, name="CLUSTER_ID_ALGORITHM")
     )
     cluster_geo_filter = _require_value(source, name="CLUSTER_GEO_FILTER").strip().lower()
-    cluster_tie_breaker = _require_value(source, name="CLUSTER_TIE_BREAKER").strip().lower()
+    cluster_tie_breaker = _parse_cluster_tie_breaker(
+        _require_value(source, name="CLUSTER_TIE_BREAKER")
+    )
     cluster_type_resolution = _require_value(
         source, name="CLUSTER_TYPE_RESOLUTION"
     ).strip().lower()
