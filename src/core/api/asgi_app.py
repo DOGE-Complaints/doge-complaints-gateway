@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
 import os
+import logging
+import signal
 from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
@@ -12,6 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse  # pyright: ignore[repo
 
 from core.api.dependencies import ApiDependencies, build_api_dependencies
 from core.api.envelope import build_error_envelope, ensure_trace_id
+from core.api.idempotency import resolve_idempotency_key
 from core.api.handlers import (
     handle_health,
     handle_metrics,
@@ -21,7 +25,9 @@ from core.api.handlers import (
 )
 from core.api.security import UnauthorizedError
 from core.config import ConfigError
+from core.logging_setup import log_runtime_exception
 from core.scheduler import ClusterCronJob
+from core.logging_setup import configure_logging
 
 PUBLIC_ROUTES: tuple[str, ...] = (
     "/health",
@@ -31,10 +37,95 @@ PUBLIC_ROUTES: tuple[str, ...] = (
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
+_shutdown_reason = "unknown"
+
+
+def _install_signal_reason_hooks() -> dict[signal.Signals, Any]:
+    previous: dict[signal.Signals, Any] = {}
+
+    def _mark_reason(sig: signal.Signals) -> None:
+        global _shutdown_reason
+        if sig is signal.SIGINT:
+            _shutdown_reason = "sigint"
+        elif sig is signal.SIGTERM:
+            _shutdown_reason = "sigterm"
+        else:
+            _shutdown_reason = f"signal_{int(sig)}"
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            prev = signal.getsignal(sig)
+            previous[sig] = prev
+
+            def _handler(signum: int, frame: Any, *, _prev: Any = prev) -> None:
+                _mark_reason(signal.Signals(signum))
+                if callable(_prev):
+                    _prev(signum, frame)
+
+            signal.signal(sig, _handler)
+        except (ValueError, OSError):
+            continue
+    return previous
+
+
+def _restore_signal_reason_hooks(previous: dict[signal.Signals, Any]) -> None:
+    for sig, handler in previous.items():
+        try:
+            signal.signal(sig, handler)
+        except (ValueError, OSError):
+            continue
 
 @asynccontextmanager
 async def _lifespan(_: FastAPI):
+    global _shutdown_reason
+    _shutdown_reason = "unknown"
+    signal_hooks = _install_signal_reason_hooks()
     deps = get_api_dependencies()
+    configure_logging(
+        deps.config.log_level,
+        log_format=deps.config.log_format,
+        log_debug_dir=deps.config.log_debug_dir,
+    )
+    logging.getLogger(__name__).info(
+        "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s",
+        deps.config.db_backend,
+        deps.config.cluster_primary_lens,
+        deps.config.cluster_min_size,
+        deps.config.cluster_cron_enabled,
+        deps.config.cluster_cron_interval_s,
+        extra={
+            "db_backend": deps.config.db_backend,
+            "cluster_active_lenses": ",".join(deps.config.cluster_active_lenses),
+            "cluster_primary_lens": deps.config.cluster_primary_lens,
+            "cluster_min_size": deps.config.cluster_min_size,
+            "cluster_readiness_threshold": deps.config.cluster_readiness_threshold,
+            "log_level": deps.config.log_level,
+            "cron_enabled": deps.config.cluster_cron_enabled,
+            "cron_interval_s": deps.config.cluster_cron_interval_s,
+        },
+    )
+    logging.getLogger(__name__).info(
+        "startup.persistence_backend backend=%s db_ready=%s checks=%s",
+        deps.config.db_backend,
+        getattr(deps, "db_ready", False),
+        ",".join(
+            f"{key}:{'ok' if value else 'fail'}"
+            for key, value in sorted(getattr(deps, "db_checks", {}).items())
+        )
+        or "none",
+        extra={
+            "backend": deps.config.db_backend,
+            "db_ready": getattr(deps, "db_ready", False),
+            "db_checks": dict(getattr(deps, "db_checks", {})),
+            "stage": "api.startup",
+            "outcome": "success",
+        },
+    )
+    if deps.config.db_backend == "in_memory":
+        logging.getLogger(__name__).warning(
+            "startup.db_backend_in_memory",
+            extra={"hint": "set DB_BACKEND=supabase for persistent remote writes"},
+        )
     cron_job: ClusterCronJob | None = None
     if deps.config.cluster_cron_enabled:
         cron_job = ClusterCronJob(
@@ -45,12 +136,44 @@ async def _lifespan(_: FastAPI):
         cron_job.start()
     try:
         yield
+        if _shutdown_reason == "unknown":
+            _shutdown_reason = "graceful"
+    except Exception as exc:
+        log_runtime_exception(
+            logging.getLogger(__name__),
+            exc,
+            stage="api.lifespan",
+            shutdown_reason=_shutdown_reason,
+        )
+        raise
     finally:
         if cron_job is not None:
             cron_job.stop()
+        logging.getLogger(__name__).info(
+            "shutdown.lifecycle",
+            extra={"shutdown_reason": _shutdown_reason},
+        )
+        _restore_signal_reason_hooks(signal_hooks)
 
 
 app = FastAPI(title="doge-complaints-gateway", version="0.1.0", lifespan=_lifespan)
+
+
+@app.middleware("http")
+async def runtime_exception_diagnostics(request: Request, call_next: Any) -> Any:
+    trace_id = _read_trace_id(request)
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        log_runtime_exception(
+            logging.getLogger("core.api"),
+            exc,
+            stage="api.http",
+            trace_id=trace_id,
+            path=request.url.path,
+            method=request.method,
+        )
+        raise
 
 
 @lru_cache(maxsize=1)
@@ -160,11 +283,14 @@ async def intake_stories(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
-    payload = await request.json()
+    raw_body = await request.body()
+    payload = json.loads(raw_body)
     envelope, status_code = handle_story_intake(
         deps,
         payload=payload,
-        idempotency_key=request.headers.get("idempotency-key"),
+        idempotency_key=resolve_idempotency_key(
+            request.headers.get("idempotency-key"), raw_body
+        ),
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=envelope, status_code=status_code)

@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from core.api.dependencies import ApiDependencies
 from core.api.envelope import build_error_envelope, build_success_envelope, ensure_trace_id
 from core.api.logging import log_api_event, log_error
+from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
 from core.intake import IntakeValidationError, build_story_intake_response, parse_story_intake_request
 
@@ -127,11 +128,49 @@ def handle_story_intake(
     trace_id: str | None = None,
 ) -> tuple[dict[str, Any], int]:
     resolved_trace_id = ensure_trace_id(trace_id)
+    set_log_context(trace_id=resolved_trace_id)
     try:
         request = parse_story_intake_request(payload)
+        log_api_event(
+            logging.DEBUG,
+            "story_intake_received",
+            trace_id=resolved_trace_id,
+            schema_version=request.schema_version,
+            submitter=request.submitter.external_user_id,
+            lang=request.narrative.language,
+            session_language=request.narrative.session_language,
+            has_multilingual_title=all(
+                request.narrative.title[lang].strip() for lang in ("et", "ru", "en")
+            ),
+            has_location_query=bool((request.narrative.location_query or "").strip()),
+            canonical_labels_count=len(request.narrative.canonical_labels),
+            canonical_type=request.narrative.canonical_type,
+        )
+        log_api_event(
+            logging.INFO,
+            f"story.persistence_backend_selected backend={dependencies.db_backend}",
+            trace_id=resolved_trace_id,
+            backend=dependencies.db_backend,
+            repository_class=dependencies.story_intake_service.repository.__class__.__name__,
+            stage="api.intake",
+            outcome="selected",
+        )
         story = dependencies.story_intake_service.create_story(
             request,
             idempotency_key=idempotency_key,
+        )
+        set_log_context(story_id=story.story_id)
+        log_api_event(
+            logging.INFO,
+            "story.persistence_commit_ack "
+            f"backend={dependencies.db_backend} "
+            f"lifecycle_status={story.lifecycle_status.value}",
+            trace_id=resolved_trace_id,
+            story_id=story.story_id,
+            backend=dependencies.db_backend,
+            repository_class=dependencies.story_intake_service.repository.__class__.__name__,
+            stage="api.intake",
+            outcome="success",
         )
         log_api_event(
             logging.INFO,
@@ -142,12 +181,22 @@ def handle_story_intake(
         )
         # Intake path no longer clusters synchronously; emit explicit pending signal.
         log_api_event(
-            logging.DEBUG,
+            logging.INFO,
             "story_cluster_issue_pending",
             trace_id=resolved_trace_id,
             story_id=story.story_id,
             reason="cron_deferred",
             outcome="not_clustered",
+        )
+        log_api_event(
+            logging.INFO,
+            "story.pipeline_outcome",
+            trace_id=resolved_trace_id,
+            story_id=story.story_id,
+            lifecycle_status=story.lifecycle_status.value,
+            cluster_outcome="deferred",
+            error_code="none",
+            outcome="success",
         )
         return (
             build_story_intake_response(
@@ -155,19 +204,57 @@ def handle_story_intake(
                 status=story.lifecycle_status.value,
                 trace_id=resolved_trace_id,
             ),
-            200,
+            202,
         )
     except IntakeValidationError as exc:
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
+        log_api_event(
+            logging.DEBUG,
+            "story.pipeline_outcome",
+            trace_id=resolved_trace_id,
+            story_id="-",
+            lifecycle_status="rejected",
+            cluster_outcome="not_started",
+            error_code=envelope.error.code,
+            outcome="error",
+        )
         return envelope.as_dict(), 400
     except ValueError as exc:
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
+        log_api_event(
+            logging.INFO,
+            "story.pipeline_outcome",
+            trace_id=resolved_trace_id,
+            story_id="-",
+            lifecycle_status="rejected",
+            cluster_outcome="not_started",
+            error_code=envelope.error.code,
+            outcome="error",
+        )
         return envelope.as_dict(), 400
     except Exception as exc:  # noqa: BLE001
+        log_runtime_exception(
+            logging.getLogger("core.api"),
+            exc,
+            stage="api.intake",
+            trace_id=resolved_trace_id,
+        )
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
+        log_api_event(
+            logging.INFO,
+            "story.pipeline_outcome",
+            trace_id=resolved_trace_id,
+            story_id="-",
+            lifecycle_status="failed",
+            cluster_outcome="not_started",
+            error_code=envelope.error.code,
+            outcome="error",
+        )
         return envelope.as_dict(), 500
+    finally:
+        clear_log_context()
 
 
