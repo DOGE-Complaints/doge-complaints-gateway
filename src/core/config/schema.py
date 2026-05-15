@@ -37,6 +37,8 @@ class AppConfig:
     request_timeout_s: int
     flags: FeatureFlags
     log_level: str
+    log_debug_dir: str | None
+    log_format: str
     db_backend: str
     db_enabled: bool
     database_url: str | None
@@ -97,6 +99,18 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         required=False,
         default="INFO",
         description="Application log level: DEBUG, INFO, WARNING, ERROR, CRITICAL.",
+    ),
+    EnvSpec(
+        name="LOG_DEBUG_DIR",
+        required=False,
+        default=None,
+        description="Directory for per-story DEBUG log files.",
+    ),
+    EnvSpec(
+        name="LOG_FORMAT",
+        required=False,
+        default="text",
+        description="Stdout log format: text | json.",
     ),
     EnvSpec(
         name="SERVICE_API_TOKEN",
@@ -241,6 +255,17 @@ def _parse_log_level(raw: str | None) -> str:
     if normalized not in _LOG_LEVELS:
         raise ConfigError(
             f"Invalid LOG_LEVEL={raw!r}. Expected one of: {sorted(_LOG_LEVELS)}."
+        )
+    return normalized
+
+
+def _parse_log_format(raw: str | None) -> str:
+    if raw is None:
+        return "text"
+    normalized = raw.strip().lower()
+    if normalized not in {"text", "json"}:
+        raise ConfigError(
+            f"Invalid LOG_FORMAT={raw!r}. Expected one of: ['json', 'text']."
         )
     return normalized
 
@@ -404,6 +429,8 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     )
 
     log_level = _parse_log_level(_get_value(source, "LOG_LEVEL"))
+    log_debug_dir = _get_value(source, "LOG_DEBUG_DIR")
+    log_format = _parse_log_format(_get_value(source, "LOG_FORMAT"))
     service_api_token = _get_value(source, "SERVICE_API_TOKEN")
     if profile is DeploymentProfile.PILOT and service_api_token is None:
         raise ConfigError(
@@ -422,7 +449,12 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     if db_backend == "in_memory":
         if database_url is not None or supabase_url is not None or supabase_service_role is not None:
             raise ConfigError(
-                "DB_BACKEND='in_memory' does not allow DATABASE_URL/SUPABASE_URL/SUPABASE_SERVICE_ROLE."
+                "DB_BACKEND is 'in_memory' but DATABASE_URL or Supabase variables "
+                "(SUPABASE_URL / SUPABASE_SERVICE_ROLE) are set. That usually means a `.env` "
+                "or shell exports target Supabase while the process still defaults to in_memory "
+                "(for example `uvicorn` without loading `.env`). Fix: set DB_BACKEND=supabase "
+                "and keep the Supabase vars, or remove DATABASE_URL / SUPABASE_* from the "
+                "environment when you intend in_memory."
             )
     if db_backend == "sqlite":
         if database_url is None or not database_url.startswith("sqlite:///"):
@@ -488,6 +520,8 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         request_timeout_s=request_timeout_s,
         flags=flags,
         log_level=log_level,
+        log_debug_dir=log_debug_dir,
+        log_format=log_format,
         db_backend=db_backend,
         db_enabled=db_enabled,
         database_url=database_url,
