@@ -4,9 +4,15 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
 from core.api.envelope import build_success_envelope
+from core.domain.narrative_i18n import (
+    I18N_LANGS,
+    parse_optional_i18n_dict,
+    parse_required_i18n_dict,
+)
 
 
-INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v1"
+INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v2"
+INTAKE_SCHEMA_VERSION_V1 = "m2.story_intake_envelope.v1"
 INTAKE_RESPONSE_SCHEMA_VERSION = "m2.story_intake_response.v1"
 
 
@@ -17,17 +23,20 @@ class IntakeValidationError(ValueError):
 @dataclass(frozen=True)
 class Submitter:
     external_user_id: str
-    identity_issuer: str | None = None
+    identity_issuer: str
 
 
 @dataclass(frozen=True)
 class Narrative:
     original_text: str
     language: str
-    title_hint: str
+    title: dict[str, str]
+    description: dict[str, str]
+    session_language: str
     location_query: str | None = None
     canonical_type: str | None = None
     canonical_labels: tuple[str, ...] = ()
+    summary: dict[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -91,8 +100,22 @@ def _optional_bool(
     raise IntakeValidationError(f"Missing or invalid {parent}.{key}. Expected boolean.")
 
 
+def _parse_language_code(raw: str, *, field_name: str, parent: str) -> str:
+    normalized = raw.strip().lower()
+    if normalized not in I18N_LANGS:
+        raise IntakeValidationError(
+            f"Missing or invalid {parent}.{field_name}. Supported values: et, ru, en."
+        )
+    return normalized
+
+
 def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
     schema_version = _require_non_empty_string(payload, "schema_version")
+    if schema_version == INTAKE_SCHEMA_VERSION_V1:
+        raise IntakeValidationError(
+            f"Unsupported schema_version={schema_version!r}. "
+            f"Migrate clients to {INTAKE_SCHEMA_VERSION!r} (multilingual title/description)."
+        )
     if schema_version != INTAKE_SCHEMA_VERSION:
         raise IntakeValidationError(
             f"Unsupported schema_version={schema_version!r}. "
@@ -105,11 +128,8 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
     external_user_id = _require_non_empty_string(
         submitter_payload, "external_user_id", parent="submitter"
     )
-    identity_issuer_raw = submitter_payload.get("identity_issuer")
-    identity_issuer = (
-        identity_issuer_raw.strip()
-        if isinstance(identity_issuer_raw, str) and identity_issuer_raw.strip()
-        else None
+    identity_issuer = _require_non_empty_string(
+        submitter_payload, "identity_issuer", parent="submitter"
     )
 
     narrative_payload = payload.get("narrative")
@@ -118,17 +138,35 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
     original_text = _require_non_empty_string(
         narrative_payload, "original_text", parent="narrative"
     )
-    language_raw = _require_non_empty_string(
-        narrative_payload, "language", parent="narrative"
+    language = _parse_language_code(
+        _require_non_empty_string(narrative_payload, "language", parent="narrative"),
+        field_name="language",
+        parent="narrative",
     )
-    language = language_raw.lower()
-    if language not in {"et", "ru", "en"}:
-        raise IntakeValidationError(
-            "Missing or invalid narrative.language. Supported values: et, ru, en."
+    session_language = _parse_language_code(
+        _require_non_empty_string(
+            narrative_payload, "session_language", parent="narrative"
+        ),
+        field_name="session_language",
+        parent="narrative",
+    )
+    title_payload = narrative_payload.get("title")
+    if title_payload is None:
+        raise IntakeValidationError("Missing or invalid narrative.title.")
+    description_payload = narrative_payload.get("description")
+    if description_payload is None:
+        raise IntakeValidationError("Missing or invalid narrative.description.")
+    try:
+        title = parse_required_i18n_dict(title_payload, field_name="title", parent="narrative")
+        description = parse_required_i18n_dict(
+            description_payload, field_name="description", parent="narrative"
         )
-    title_hint = _require_non_empty_string(
-        narrative_payload, "title_hint", parent="narrative"
-    )
+        summary = parse_optional_i18n_dict(
+            narrative_payload.get("summary"), field_name="summary", parent="narrative"
+        )
+    except ValueError as exc:
+        raise IntakeValidationError(str(exc)) from exc
+
     location_query_raw = narrative_payload.get("location_query")
     location_query = (
         location_query_raw.strip()
@@ -215,10 +253,13 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         narrative=Narrative(
             original_text=original_text,
             language=language,
-            title_hint=title_hint,
+            title=title,
+            description=description,
+            session_language=session_language,
             location_query=location_query,
             canonical_type=canonical_type,
             canonical_labels=canonical_labels,
+            summary=summary,
         ),
         origin=origin,
         privacy=privacy,
@@ -238,4 +279,3 @@ def build_story_intake_response(
         status=status,
     )
     return build_success_envelope(data=contract.as_dict(), trace_id=trace_id).as_dict()
-

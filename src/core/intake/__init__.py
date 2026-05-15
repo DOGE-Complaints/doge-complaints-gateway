@@ -1,6 +1,7 @@
 from core.intake.contracts import (
     INTAKE_RESPONSE_SCHEMA_VERSION,
     INTAKE_SCHEMA_VERSION,
+    INTAKE_SCHEMA_VERSION_V1,
     IntakeValidationError,
     LiveStoryContext,
     Narrative,
@@ -23,6 +24,7 @@ from core.intake.observability import (
 
 __all__ = [
     "INTAKE_SCHEMA_VERSION",
+    "INTAKE_SCHEMA_VERSION_V1",
     "INTAKE_RESPONSE_SCHEMA_VERSION",
     "IntakeValidationError",
     "Submitter",
