@@ -7,7 +7,8 @@
 - `000_full_init.sql` — полный idempotent setup:
   - extension `vector`
   - core таблицы (`stories`, `idempotency_keys`, `story_embeddings`, `doge_issues`, `doge_issue_embeddings`)
-  - story-first расширения (`narrative_*`, `embedding_vector_json`, `embedding_policy_version`)
+  - story-first расширения (`narrative_*`, `stories` geo columns, `embedding_vector_json`, `embedding_policy_version`)
+  - колонка `embedding vector(8)` в `story_embeddings` / `doge_issue_embeddings` после bootstrap **nullable** (GAP-08 вариант A): рабочие вставки идут через `embedding_vector_json`; нативный vector оставлен для будущего pgvector-use
   - process/linkage таблицы (`issue_candidates`, `review_audit_log`, `issue_story_links`)
   - clustering persistence таблицы (`story_signals`, `cluster_memberships`)
   - view `issues_dashboard`

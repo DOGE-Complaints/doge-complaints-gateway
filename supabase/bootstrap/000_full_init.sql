@@ -9,7 +9,7 @@ create table if not exists public.stories (
     schema_version text not null,
     narrative_original_text text not null,
     submitter_external_user_id text not null,
-    submitter_identity_issuer text,
+    submitter_identity_issuer text not null,
     lifecycle_status text not null,
     created_at timestamptz not null,
     updated_at timestamptz not null,
@@ -25,6 +25,29 @@ alter table if exists public.stories
     add column if not exists narrative_title_hint text,
     add column if not exists narrative_canonical_type text,
     add column if not exists narrative_canonical_labels_json text not null default '[]';
+
+-- GAP-07: geo columns expected by _STORY_SELECT_FIELDS / _story_geo_supabase_fields (db_supabase.py)
+alter table if exists public.stories
+    add column if not exists geo_normalized_label text,
+    add column if not exists geo_latitude double precision,
+    add column if not exists geo_longitude double precision,
+    add column if not exists geo_confidence double precision,
+    add column if not exists geo_provider text,
+    add column if not exists geo_cluster_tags_json text not null default '[]';
+
+-- STORY-M2-02-06 §16: optional multilingual title hints, summary JSON, live_story consistency notes
+alter table if exists public.stories
+    add column if not exists narrative_title_hint_et text,
+    add column if not exists narrative_title_hint_ru text,
+    add column if not exists narrative_title_hint_en text,
+    add column if not exists narrative_summary_json text,
+    add column if not exists narrative_consistency_notes text;
+
+-- STORY-M2-02-07 / REQ-33: multilingual intake v2 narrative dict columns
+alter table if exists public.stories
+    add column if not exists narrative_title_json jsonb,
+    add column if not exists narrative_description_json jsonb,
+    add column if not exists narrative_session_language text;
 
 create table if not exists public.idempotency_keys (
     key text primary key,
@@ -44,6 +67,10 @@ create table if not exists public.story_embeddings (
 alter table if exists public.story_embeddings
     add column if not exists embedding_vector_json text,
     add column if not exists embedding_policy_version text not null default 'm2.story_embedding_policy.v1';
+
+-- GAP-08 variant A: gateway persists embedding_vector_json only; pgvector column kept optional (nullable)
+alter table if exists public.story_embeddings
+    alter column embedding drop not null;
 
 create index if not exists idx_story_embeddings_story_id on public.story_embeddings(story_id);
 
@@ -68,6 +95,10 @@ create table if not exists public.doge_issue_embeddings (
 alter table if exists public.doge_issue_embeddings
     add column if not exists embedding_vector_json text,
     add column if not exists embedding_policy_version text not null default 'm3.doge_issue_embedding_policy.v1';
+
+-- GAP-08 variant A (same as story_embeddings)
+alter table if exists public.doge_issue_embeddings
+    alter column embedding drop not null;
 
 create index if not exists idx_issue_embeddings_issue_id on public.doge_issue_embeddings(issue_id);
 
@@ -120,7 +151,7 @@ create table if not exists public.cluster_memberships (
 );
 create index if not exists idx_cluster_memberships_cluster on public.cluster_memberships(cluster_id);
 
--- SPA read model
+-- Issues read model
 create or replace view public.issues_dashboard as
 select
     p.issue_id,
