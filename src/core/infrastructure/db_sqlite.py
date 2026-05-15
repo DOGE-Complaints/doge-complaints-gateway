@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -8,7 +9,10 @@ from pathlib import Path
 from typing import Mapping
 
 from core.domain import IdempotencyRecord, StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
+from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json, i18n_dict_to_json
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
+
+logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
@@ -33,6 +37,58 @@ def _geo_bind(record: StoryRecord) -> tuple:
     )
 
 
+def _i18n_dict_from_sqlite_row(
+    row: sqlite3.Row,
+    keys: set[str],
+    *,
+    json_column: str,
+    legacy_hint_column: str = "narrative_title_hint",
+    legacy_lang_columns: tuple[tuple[str, str], ...] = (
+        ("et", "narrative_title_hint_et"),
+        ("ru", "narrative_title_hint_ru"),
+        ("en", "narrative_title_hint_en"),
+    ),
+) -> dict[str, str] | None:
+    if json_column in keys and row[json_column]:
+        return i18n_dict_from_json(str(row[json_column]))
+    legacy_values = {
+        lang: str(row[col]).strip()
+        for lang, col in legacy_lang_columns
+        if col in keys and row[col]
+    }
+    if legacy_values:
+        return {lang: legacy_values.get(lang, "") for lang in I18N_LANGS}
+    if legacy_hint_column in keys and row[legacy_hint_column]:
+        lang = str(row["narrative_language"] or "en")
+        base = {code: "" for code in I18N_LANGS}
+        if lang in base:
+            base[lang] = str(row[legacy_hint_column]).strip()
+        return base
+    return None
+
+
+def _summary_dict_from_sqlite_row(row: sqlite3.Row, keys: set[str]) -> dict[str, str] | None:
+    if "narrative_summary_json" not in keys or not row["narrative_summary_json"]:
+        return None
+    parsed = json.loads(str(row["narrative_summary_json"]))
+    if isinstance(parsed, dict):
+        return {str(key): str(value) for key, value in parsed.items()}
+    return None
+
+
+_STORY_SELECT_COLUMNS = """
+    story_id, schema_version, narrative_original_text, submitter_external_user_id,
+    narrative_language, narrative_title_json, narrative_description_json, narrative_session_language,
+    narrative_title_hint, narrative_title_hint_et, narrative_title_hint_ru, narrative_title_hint_en,
+    narrative_summary_json, narrative_consistency_notes,
+    narrative_canonical_type, narrative_canonical_labels_json,
+    submitter_identity_issuer, lifecycle_status, created_at, updated_at,
+    origin_source, origin_conversation_id, origin_tool_call_id,
+    privacy_contains_pii, privacy_redaction_requested,
+    geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+"""
+
+
 def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
     keys = set(row.keys())
     geo: StoryGeoSnapshot | None = None
@@ -45,16 +101,35 @@ def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
             provider=str(row["geo_provider"]),
             cluster_tags=tuple(json.loads(str(row["geo_cluster_tags_json"] or "[]"))),
         )
+    session_language = (
+        str(row["narrative_session_language"]).strip()
+        if "narrative_session_language" in keys and row["narrative_session_language"]
+        else None
+    )
     return StoryRecord(
         story_id=str(row["story_id"]),
         schema_version=str(row["schema_version"]),
         narrative_original_text=str(row["narrative_original_text"]),
         submitter_external_user_id=str(row["submitter_external_user_id"]),
         narrative_language=row["narrative_language"],
-        narrative_title_hint=row["narrative_title_hint"],
+        narrative_title=_i18n_dict_from_sqlite_row(
+            row, keys, json_column="narrative_title_json"
+        ),
+        narrative_description=_i18n_dict_from_sqlite_row(
+            row,
+            keys,
+            json_column="narrative_description_json",
+            legacy_hint_column="__none__",
+            legacy_lang_columns=(),
+        ),
+        narrative_summary=_summary_dict_from_sqlite_row(row, keys),
+        narrative_session_language=session_language,
+        narrative_consistency_notes=(
+            row["narrative_consistency_notes"] if "narrative_consistency_notes" in keys else None
+        ),
         narrative_canonical_type=row["narrative_canonical_type"],
         narrative_canonical_labels=tuple(json.loads(str(row["narrative_canonical_labels_json"]))),
-        submitter_identity_issuer=row["submitter_identity_issuer"],
+        submitter_identity_issuer=str(row["submitter_identity_issuer"] or ""),
         lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
         created_at=_parse_dt(str(row["created_at"])),
         updated_at=_parse_dt(str(row["updated_at"])),
@@ -98,7 +173,7 @@ class SqliteDatabase:
                 narrative_canonical_type TEXT,
                 narrative_canonical_labels_json TEXT NOT NULL DEFAULT '[]',
                 submitter_external_user_id TEXT NOT NULL,
-                submitter_identity_issuer TEXT,
+                submitter_identity_issuer TEXT NOT NULL,
                 lifecycle_status TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
@@ -201,6 +276,23 @@ class SqliteDatabase:
                 "geo_cluster_tags_json",
                 "ALTER TABLE stories ADD COLUMN geo_cluster_tags_json TEXT DEFAULT '[]'",
             ),
+            ("narrative_title_hint_et", "ALTER TABLE stories ADD COLUMN narrative_title_hint_et TEXT"),
+            ("narrative_title_hint_ru", "ALTER TABLE stories ADD COLUMN narrative_title_hint_ru TEXT"),
+            ("narrative_title_hint_en", "ALTER TABLE stories ADD COLUMN narrative_title_hint_en TEXT"),
+            ("narrative_summary_json", "ALTER TABLE stories ADD COLUMN narrative_summary_json TEXT"),
+            (
+                "narrative_consistency_notes",
+                "ALTER TABLE stories ADD COLUMN narrative_consistency_notes TEXT",
+            ),
+            ("narrative_title_json", "ALTER TABLE stories ADD COLUMN narrative_title_json TEXT"),
+            (
+                "narrative_description_json",
+                "ALTER TABLE stories ADD COLUMN narrative_description_json TEXT",
+            ),
+            (
+                "narrative_session_language",
+                "ALTER TABLE stories ADD COLUMN narrative_session_language TEXT",
+            ),
         ):
             if name not in cols:
                 self.connection.execute(ddl)
@@ -245,23 +337,45 @@ class SqliteStoryRepository:
     db: SqliteDatabase
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
+        logger.info(
+            "repo.sqlite.save_story_start story_id=%s",
+            record.story_id,
+            extra={
+                "story_id": record.story_id,
+                "backend": "sqlite",
+                "repository_class": self.__class__.__name__,
+                "stage": "repository.sqlite.save_story",
+                "outcome": "start",
+            },
+        )
         geo = _geo_bind(record)
-        self.db.connection.execute(
+        cursor = self.db.connection.execute(
             """
             INSERT INTO stories (
                 story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
+                narrative_language, narrative_title_json, narrative_description_json, narrative_session_language,
+                narrative_title_hint, narrative_title_hint_et, narrative_title_hint_ru,
+                narrative_title_hint_en, narrative_summary_json, narrative_consistency_notes,
+                narrative_canonical_type, narrative_canonical_labels_json,
                 submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                 origin_source, origin_conversation_id, origin_tool_call_id,
                 privacy_contains_pii, privacy_redaction_requested,
                 geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
                 submitter_external_user_id = excluded.submitter_external_user_id,
                 narrative_language = excluded.narrative_language,
+                narrative_title_json = excluded.narrative_title_json,
+                narrative_description_json = excluded.narrative_description_json,
+                narrative_session_language = excluded.narrative_session_language,
                 narrative_title_hint = excluded.narrative_title_hint,
+                narrative_title_hint_et = excluded.narrative_title_hint_et,
+                narrative_title_hint_ru = excluded.narrative_title_hint_ru,
+                narrative_title_hint_en = excluded.narrative_title_hint_en,
+                narrative_summary_json = excluded.narrative_summary_json,
+                narrative_consistency_notes = excluded.narrative_consistency_notes,
                 narrative_canonical_type = excluded.narrative_canonical_type,
                 narrative_canonical_labels_json = excluded.narrative_canonical_labels_json,
                 submitter_identity_issuer = excluded.submitter_identity_issuer,
@@ -285,7 +399,15 @@ class SqliteStoryRepository:
                 record.narrative_original_text,
                 record.submitter_external_user_id,
                 record.narrative_language,
-                record.narrative_title_hint,
+                i18n_dict_to_json(record.narrative_title),
+                i18n_dict_to_json(record.narrative_description),
+                record.narrative_session_language,
+                None,
+                None,
+                None,
+                None,
+                i18n_dict_to_json(record.narrative_summary),
+                record.narrative_consistency_notes,
                 record.narrative_canonical_type,
                 json.dumps(list(record.narrative_canonical_labels)),
                 record.submitter_identity_issuer,
@@ -301,17 +423,25 @@ class SqliteStoryRepository:
             ),
         )
         self.db.connection.commit()
+        logger.info(
+            "repo.sqlite.save_story_done story_id=%s rows_affected=%s",
+            record.story_id,
+            cursor.rowcount,
+            extra={
+                "story_id": record.story_id,
+                "rows_affected": cursor.rowcount,
+                "backend": "sqlite",
+                "repository_class": self.__class__.__name__,
+                "stage": "repository.sqlite.save_story",
+                "outcome": "success",
+            },
+        )
         return record
 
     def get_story(self, story_id: str) -> StoryRecord | None:
         row = self.db.connection.execute(
-            """
-            SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                   narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                   submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                   origin_source, origin_conversation_id, origin_tool_call_id,
-                   privacy_contains_pii, privacy_redaction_requested,
-                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+            f"""
+            SELECT {_STORY_SELECT_COLUMNS}
             FROM stories
             WHERE story_id = ?
             """,
@@ -323,13 +453,8 @@ class SqliteStoryRepository:
 
     def list_stories(self) -> list[StoryRecord]:
         rows = self.db.connection.execute(
-            """
-            SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                   narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                   submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                   origin_source, origin_conversation_id, origin_tool_call_id,
-                   privacy_contains_pii, privacy_redaction_requested,
-                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+            f"""
+            SELECT {_STORY_SELECT_COLUMNS}
             FROM stories
             ORDER BY created_at ASC
             """
@@ -338,13 +463,8 @@ class SqliteStoryRepository:
 
     def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
         rows = self.db.connection.execute(
-            """
-            SELECT story_id, schema_version, narrative_original_text, submitter_external_user_id,
-                   narrative_language, narrative_title_hint, narrative_canonical_type, narrative_canonical_labels_json,
-                   submitter_identity_issuer, lifecycle_status, created_at, updated_at,
-                   origin_source, origin_conversation_id, origin_tool_call_id,
-                   privacy_contains_pii, privacy_redaction_requested,
-                   geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+            f"""
+            SELECT {_STORY_SELECT_COLUMNS}
             FROM stories
             WHERE lifecycle_status = ?
             ORDER BY created_at ASC

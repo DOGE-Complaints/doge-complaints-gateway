@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Mapping
 
 from core.domain import IdempotencyRecord, StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
+from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
 try:
     import httpx  # pyright: ignore[reportMissingImports]
 except Exception:  # pragma: no cover - optional dependency in local envs
     httpx = None
+
+logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
@@ -22,13 +26,70 @@ def _parse_dt(value: str) -> datetime:
     return datetime.fromisoformat(value)
 
 
+def _coerce_jsonb_text_id_sequence(raw: Any) -> tuple[str, ...]:
+    """Normalize JSONB story-id lists from PostgREST (often Python list) or JSON strings."""
+    if raw is None:
+        return ()
+    if isinstance(raw, list):
+        return tuple(str(x) for x in raw)
+    if isinstance(raw, str):
+        return tuple(json.loads(raw))
+    return tuple(str(x) for x in list(raw))
+
+
 _STORY_SELECT_FIELDS = (
     "story_id,schema_version,narrative_original_text,submitter_external_user_id,"
-    "narrative_language,narrative_title_hint,narrative_canonical_type,narrative_canonical_labels_json,"
+    "narrative_language,narrative_title_json,narrative_description_json,narrative_session_language,"
+    "narrative_title_hint,narrative_title_hint_et,narrative_title_hint_ru,narrative_title_hint_en,"
+    "narrative_summary_json,narrative_consistency_notes,narrative_canonical_type,narrative_canonical_labels_json,"
     "submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,"
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
     "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json"
 )
+
+
+def _i18n_dict_from_supabase_row(
+    row: dict[str, Any],
+    *,
+    json_key: str,
+    legacy_hint_key: str = "narrative_title_hint",
+    legacy_lang_keys: tuple[tuple[str, str], ...] = (
+        ("et", "narrative_title_hint_et"),
+        ("ru", "narrative_title_hint_ru"),
+        ("en", "narrative_title_hint_en"),
+    ),
+) -> dict[str, str] | None:
+    raw_json = row.get(json_key)
+    if raw_json:
+        if isinstance(raw_json, dict):
+            return {str(k): str(v) for k, v in raw_json.items()}
+        return i18n_dict_from_json(str(raw_json))
+    legacy_values = {
+        lang: str(row[col]).strip()
+        for lang, col in legacy_lang_keys
+        if row.get(col)
+    }
+    if legacy_values:
+        return {lang: legacy_values.get(lang, "") for lang in I18N_LANGS}
+    if legacy_hint_key and row.get(legacy_hint_key):
+        lang = str(row.get("narrative_language") or "en")
+        base = {code: "" for code in I18N_LANGS}
+        if lang in base:
+            base[lang] = str(row[legacy_hint_key]).strip()
+        return base
+    return None
+
+
+def _summary_dict_from_supabase_row(row: dict[str, Any]) -> dict[str, str] | None:
+    raw = row.get("narrative_summary_json")
+    if not raw:
+        return None
+    if isinstance(raw, dict):
+        return {str(k): str(v) for k, v in raw.items()}
+    parsed = json.loads(str(raw))
+    if isinstance(parsed, dict):
+        return {str(k): str(v) for k, v in parsed.items()}
+    return None
 
 
 def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
@@ -69,12 +130,21 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
         narrative_original_text=str(row["narrative_original_text"]),
         submitter_external_user_id=str(row["submitter_external_user_id"]),
         narrative_language=row["narrative_language"],
-        narrative_title_hint=row["narrative_title_hint"],
+        narrative_title=_i18n_dict_from_supabase_row(row, json_key="narrative_title_json"),
+        narrative_description=_i18n_dict_from_supabase_row(
+            row,
+            json_key="narrative_description_json",
+            legacy_hint_key="",
+            legacy_lang_keys=(),
+        ),
+        narrative_summary=_summary_dict_from_supabase_row(row),
+        narrative_session_language=row.get("narrative_session_language"),
+        narrative_consistency_notes=row.get("narrative_consistency_notes"),
         narrative_canonical_type=row["narrative_canonical_type"],
         narrative_canonical_labels=tuple(
             json.loads(str(row["narrative_canonical_labels_json"]))
         ),
-        submitter_identity_issuer=row["submitter_identity_issuer"],
+        submitter_identity_issuer=str(row["submitter_identity_issuer"] or ""),
         lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
         created_at=_parse_dt(str(row["created_at"])),
         updated_at=_parse_dt(str(row["updated_at"])),
@@ -139,15 +209,47 @@ class SupabaseDatabase:
         json_body: Any = None,
         prefer: str | None = None,
     ) -> Any:
-        with self._client() as client:
-            response = client.request(
-                method=method,
-                url=f"{self.base_url}{path}",
-                headers=self._headers(prefer=prefer),
-                params=params,
-                json=json_body,
+        logger.debug(
+            "supabase.request",
+            extra={"method": method, "path": path, "has_params": bool(params)},
+        )
+        try:
+            with self._client() as client:
+                response = client.request(
+                    method=method,
+                    url=f"{self.base_url}{path}",
+                    headers=self._headers(prefer=prefer),
+                    params=params,
+                    json=json_body,
+                )
+            response.raise_for_status()
+        except Exception as exc:  # noqa: BLE001
+            status_code = None
+            error_body_preview = str(exc)
+            if httpx is not None and isinstance(exc, httpx.HTTPStatusError):
+                response = getattr(exc, "response", None)
+                if response is not None:
+                    status_code = getattr(response, "status_code", None)
+                    error_body_preview = (getattr(response, "text", "") or "").strip()[
+                        :300
+                    ]
+            logger.error(
+                "supabase.request_failed",
+                extra={
+                    "method": method,
+                    "path": path,
+                    "status_code": status_code,
+                    "error_body_preview": error_body_preview,
+                    "error_type": type(exc).__name__,
+                    "outcome": "error",
+                    "stage": "db.supabase",
+                },
             )
-        response.raise_for_status()
+            raise
+        logger.debug(
+            "supabase.response",
+            extra={"method": method, "path": path, "status_code": response.status_code},
+        )
         if response.text.strip():
             return response.json()
         return None
@@ -156,7 +258,7 @@ class SupabaseDatabase:
         return value.replace('"', '\\"')
 
     def _eq_filter(self, value: str) -> str:
-        return f'eq."{self._escape(value)}"'
+        return f"eq.{value}"
 
     def healthcheck(self) -> bool:
         try:
@@ -224,6 +326,42 @@ class SupabaseDatabase:
         except Exception:
             return False
 
+    def required_stories_intake_v2_columns_ready(self) -> bool:
+        """True when hosted DB has REQ-33 v2 narrative columns (migration 20260513_*)."""
+        columns = (
+            "narrative_title_json",
+            "narrative_description_json",
+            "narrative_session_language",
+        )
+        try:
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={"select": ",".join(sorted(columns)), "limit": "1"},
+            )
+            return True
+        except Exception:
+            return False
+
+    def required_stories_narrative_extension_columns_ready(self) -> bool:
+        """True when hosted DB has STORY-M2-02-06 narrative extension columns (migration 20260511_1200_*)."""
+        columns = (
+            "narrative_title_hint_et",
+            "narrative_title_hint_ru",
+            "narrative_title_hint_en",
+            "narrative_summary_json",
+            "narrative_consistency_notes",
+        )
+        try:
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={"select": ",".join(sorted(columns)), "limit": "1"},
+            )
+            return True
+        except Exception:
+            return False
+
     def service_role_policy_probe(self) -> bool:
         try:
             self._request(
@@ -241,13 +379,25 @@ class SupabaseStoryRepository:
     db: SupabaseDatabase
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
+        logger.debug(
+            "supabase.save_story_start",
+            extra={"story_id": record.story_id, "status": record.lifecycle_status.value},
+        )
         row: dict[str, Any] = {
             "story_id": record.story_id,
             "schema_version": record.schema_version,
             "narrative_original_text": record.narrative_original_text,
             "submitter_external_user_id": record.submitter_external_user_id,
             "narrative_language": record.narrative_language,
-            "narrative_title_hint": record.narrative_title_hint,
+            "narrative_title_json": record.narrative_title,
+            "narrative_description_json": record.narrative_description,
+            "narrative_session_language": record.narrative_session_language,
+            "narrative_title_hint": None,
+            "narrative_title_hint_et": None,
+            "narrative_title_hint_ru": None,
+            "narrative_title_hint_en": None,
+            "narrative_summary_json": record.narrative_summary,
+            "narrative_consistency_notes": record.narrative_consistency_notes,
             "narrative_canonical_type": record.narrative_canonical_type,
             "narrative_canonical_labels_json": json.dumps(list(record.narrative_canonical_labels)),
             "submitter_identity_issuer": record.submitter_identity_issuer,
@@ -261,13 +411,40 @@ class SupabaseStoryRepository:
             "privacy_redaction_requested": record.privacy_redaction_requested,
         }
         row.update(_story_geo_supabase_fields(record))
-        self.db._request(
-            method="POST",
-            path="/rest/v1/stories",
-            params={"on_conflict": "story_id"},
-            json_body=[row],
-            prefer="resolution=merge-duplicates,return=minimal",
+        try:
+            self.db._request(
+                method="POST",
+                path="/rest/v1/stories",
+                params={"on_conflict": "story_id"},
+                json_body=[row],
+                prefer="resolution=merge-duplicates,return=minimal",
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "repo.supabase.save_story_failed",
+                extra={
+                    "story_id": record.story_id,
+                    "path": "/rest/v1/stories",
+                    "error_type": type(exc).__name__,
+                    "backend": "supabase",
+                    "repository_class": self.__class__.__name__,
+                    "stage": "repository.supabase.save_story",
+                    "outcome": "error",
+                },
+            )
+            raise
+        logger.info(
+            "repo.supabase.save_story_done",
+            extra={
+                "story_id": record.story_id,
+                "path": "/rest/v1/stories",
+                "backend": "supabase",
+                "repository_class": self.__class__.__name__,
+                "stage": "repository.supabase.save_story",
+                "outcome": "success",
+            },
         )
+        logger.debug("supabase.save_story_done", extra={"story_id": record.story_id})
         return record
 
     def get_story(self, story_id: str) -> StoryRecord | None:
@@ -413,7 +590,7 @@ class SupabaseIssueProjectionStore:
                 {
                     "issue_id": issue_id,
                     "status": status,
-                    "payload_json": json.dumps(payload),
+                    "payload_json": payload,
                     "policy_version": policy_version,
                     "created_at": now,
                     "updated_at": now,
@@ -512,7 +689,7 @@ class SupabaseIssueCandidateStore:
             candidate_id=str(row["candidate_id"]),
             status=IssueCandidateStatus(str(row["status"])),
             cluster_id=str(row["cluster_id"]),
-            story_ids=tuple(json.loads(str(row["story_ids_json"]))),
+            story_ids=_coerce_jsonb_text_id_sequence(row["story_ids_json"]),
             readiness_score=int(row["readiness_score"]),
             title=str(row["title"]),
         )
@@ -535,7 +712,7 @@ class SupabaseIssueCandidateStore:
             candidate_id=str(row["candidate_id"]),
             status=IssueCandidateStatus(str(row["status"])),
             cluster_id=str(row["cluster_id"]),
-            story_ids=tuple(json.loads(str(row["story_ids_json"]))),
+            story_ids=_coerce_jsonb_text_id_sequence(row["story_ids_json"]),
             readiness_score=int(row["readiness_score"]),
             title=str(row["title"]),
         )
@@ -589,7 +766,7 @@ class SupabaseReviewAuditLogRepository:
                 decision=ReviewDecision(str(row["decision"])),
                 rationale=str(row["rationale"]),
                 related_cluster_id=str(row["related_cluster_id"]),
-                related_story_ids=tuple(json.loads(str(row["related_story_ids_json"]))),
+                related_story_ids=_coerce_jsonb_text_id_sequence(row["related_story_ids_json"]),
             )
             for row in rows
         )
