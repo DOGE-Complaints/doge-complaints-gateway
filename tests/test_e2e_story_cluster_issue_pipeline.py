@@ -23,18 +23,13 @@ from core.promotion.service import PromotionStateError
 
 
 def _story(story_id: str, text: str, title_hint: str) -> StoryRecord:
-    now = datetime.now(UTC)
-    return StoryRecord(
+    from tests.intake_v2_fixtures import make_story_record, narrative_dict
+
+    return make_story_record(
         story_id=story_id,
-        schema_version="v1",
         narrative_original_text=text,
         submitter_external_user_id=f"user-{story_id}",
-        submitter_identity_issuer=None,
-        lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
-        created_at=now,
-        updated_at=now,
-        narrative_language="en",
-        narrative_title_hint=title_hint,
+        narrative_title=narrative_dict(en=title_hint),
         narrative_canonical_type="improvement",
         narrative_canonical_labels=("roads", "broken_infrastructure"),
     )
@@ -107,18 +102,15 @@ def test_process_story_returns_none_when_story_not_found() -> None:
 def test_process_story_returns_none_when_story_not_ready_for_profile() -> None:
     stories = InMemoryStoryRepository()
     now = datetime.now(UTC)
+    from tests.intake_v2_fixtures import make_story_record, narrative_dict
+
     stories.save_story(
-        StoryRecord(
+        make_story_record(
             story_id="partial",
-            schema_version="v1",
             narrative_original_text="single report",
             submitter_external_user_id="user-partial",
-            submitter_identity_issuer=None,
             lifecycle_status=StoryLifecycleStatus.PARTIAL_READY,
-            created_at=now,
-            updated_at=now,
-            narrative_language="en",
-            narrative_title_hint="Partial",
+            narrative_title=narrative_dict(en="Partial"),
             narrative_canonical_type="improvement",
             narrative_canonical_labels=("roads", "broken_infrastructure"),
         )

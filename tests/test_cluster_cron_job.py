@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from time import sleep
 from typing import cast
+
+import pytest
 
 from core.application import StoryClusterOrchestrator
 from core.scheduler import ClusterCronJob
@@ -39,6 +42,25 @@ def test_cluster_cron_job_start_stop_runs_loop() -> None:
     sleep(1.2)
     job.stop()
     assert orchestrator.calls >= 1
+
+
+def test_cluster_cron_job_emits_start_end_events(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    repo = _Repo(ready_count=2)
+    orchestrator = _OrchestratorStub(repo)
+    job = ClusterCronJob(
+        orchestrator=cast(StoryClusterOrchestrator, orchestrator),
+        interval_s=1,
+        min_size_guard=2,
+    )
+    with caplog.at_level(logging.INFO, logger="core.scheduler.cluster_cron"):
+        job.start()
+        sleep(1.2)
+        job.stop()
+    records = caplog.records
+    assert any(r.getMessage().startswith("cluster.cron_run_start") for r in records)
+    assert any(r.getMessage().startswith("cluster.cron_run_end") for r in records)
 
 
 def test_cluster_cron_job_respects_min_size_guard() -> None:

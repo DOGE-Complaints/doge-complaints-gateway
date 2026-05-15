@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 @pytest.fixture()
@@ -24,11 +25,13 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 def _payload(user: str, text: str) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": user},
+        "submitter": {"external_user_id": user, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": text,
             "language": "en",
-            "title_hint": "Create story fullpath",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Create story fullpath"},
+            "description": {"et": "d", "ru": "d", "en": text},
         },
         "origin": {"source": "tc_p0_03"},
     }
@@ -53,9 +56,9 @@ def test_e2e_create_story_fullpath_with_idempotency_and_materialization(
         headers={"x-trace-id": "trace-fullpath-3", "idempotency-key": "tc-p0-03-idem-2"},
     )
 
-    assert response_1.status_code == 200
-    assert response_2.status_code == 200
-    assert response_3.status_code == 200
+    assert response_1.status_code == 202
+    assert response_2.status_code == 202
+    assert response_3.status_code == 202
 
     payload_1 = response_1.json()
     payload_2 = response_2.json()
@@ -97,7 +100,7 @@ def test_e2e_create_story_fullpath_with_idempotency_and_materialization(
 def test_e2e_create_story_fullpath_rejects_invalid_payload(client: TestClient) -> None:
     response = client.post(
         "/intake/stories",
-        json={"schema_version": INTAKE_SCHEMA_VERSION, "submitter": {"external_user_id": "bad"}},
+        json={"schema_version": INTAKE_SCHEMA_VERSION, "submitter": {"external_user_id": "bad", "identity_issuer": "https://idp.example.com/eid"}},
         headers={"x-trace-id": "trace-fullpath-bad"},
     )
     assert response.status_code == 400

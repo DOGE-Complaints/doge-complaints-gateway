@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 REQUIRED_DOGE_ISSUE_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
 
@@ -26,18 +27,22 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 def _intake_payload(external_user_id: str, text: str) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": external_user_id},
+        "submitter": {"external_user_id": external_user_id, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": text,
             "language": "en",
-            "title_hint": "Issue report",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Issue report"},
+            "description": {"et": "d", "ru": "d", "en": text},
+            "canonical_type": "infrastructure",
+            "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }
 
 
 def _create_story(client: TestClient, *, external_user_id: str, text: str) -> str:
     response = client.post("/intake/stories", json=_intake_payload(external_user_id, text))
-    assert response.status_code == 200
+    assert response.status_code == 202
     payload = response.json()
     assert payload["data"]["schema_version"] == "m2.story_intake_response.v1"
     return str(payload["data"]["story_id"])
@@ -82,7 +87,7 @@ def test_e2e_rejects_invalid_intake_payload(client: TestClient) -> None:
         "/intake/stories",
         json={
             "schema_version": "m2.story_intake_envelope.v1",
-            "submitter": {"external_user_id": "bad"},
+            "submitter": {"external_user_id": "bad", "identity_issuer": "https://idp.example.com/eid"},
             # narrative intentionally missing
         },
         headers={"x-trace-id": "trace-e2e-intake-bad"},

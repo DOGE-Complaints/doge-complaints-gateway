@@ -12,7 +12,9 @@ from core.infrastructure.repositories import (
     InMemoryIssueStoryLinkStore,
     InMemoryStoryRepository,
 )
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
@@ -32,11 +34,13 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
-                "submitter": {"external_user_id": f"user-{idx}"},
+                "submitter": {"external_user_id": f"user-{idx}", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
-                    "original_text": f"District lights outage report #{idx}.",
-                    "language": "en",
-                    "title_hint": "District lights outage",
+            "original_text": f"District lights outage report #{idx}.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "District lights outage"},
+            "description": {"et": "d", "ru": "d", "en": f"District lights outage report #{idx}."},
                 },
             }
         )

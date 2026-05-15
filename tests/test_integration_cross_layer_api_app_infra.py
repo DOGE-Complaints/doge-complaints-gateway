@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple
 
 
 @pytest.fixture()
@@ -25,6 +26,8 @@ def client(monkeypatch: pytest.MonkeyPatch, sqlite_db_url: str) -> Iterator[Test
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", sqlite_db_url)
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "")
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -36,16 +39,12 @@ def _sqlite_path_from_url(database_url: str) -> Path:
 
 
 def _intake_payload(user_idx: int) -> dict[str, object]:
-    return {
-        "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": f"cross-layer-user-{user_idx}"},
-        "narrative": {
-            "original_text": f"Cross-layer infra issue #{user_idx} in district center.",
-            "language": "en",
-            "title_hint": f"Cross-layer issue {user_idx}",
-        },
-        "origin": {"source": "tc_p1_03_cross_layer"},
-    }
+    return intake_payload_simple(
+        external_user_id=f"cross-layer-user-{user_idx}",
+        original_text=f"Cross-layer infra issue #{user_idx} in district center.",
+        title_en=f"Cross-layer issue {user_idx}",
+        origin={"source": "tc_p1_03_cross_layer"},
+    )
 
 
 def _count(connection: sqlite3.Connection, table: str) -> int:
@@ -64,8 +63,8 @@ def test_cross_layer_api_app_infra_side_effects_roundtrip(
         headers={"idempotency-key": "cross-bad"},
     )
 
-    assert ok_1.status_code == 200
-    assert ok_2.status_code == 200
+    assert ok_1.status_code == 202
+    assert ok_2.status_code == 202
     assert bad.status_code == 400
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 

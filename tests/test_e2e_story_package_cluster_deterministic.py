@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+
 from datetime import UTC, datetime
 
 from core.application.cluster_orchestrator import StoryClusterOrchestrator
@@ -30,7 +32,7 @@ def _story(story_id: str, text: str) -> StoryRecord:
         created_at=now,
         updated_at=now,
         narrative_language="en",
-        narrative_title_hint="District lighting issue",
+        narrative_title=narrative_dict(en="District lighting issue"),
         narrative_canonical_type="infrastructure",
         narrative_canonical_labels=("roads", "broken_infrastructure"),
     )

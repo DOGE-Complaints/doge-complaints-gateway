@@ -8,6 +8,8 @@ def test_sqlite_backend_uses_sqlite_repositories(monkeypatch) -> None:
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "")
 
     factory = provide_service_factory()
     assert factory.story_repository.__class__.__name__.startswith("Sqlite")

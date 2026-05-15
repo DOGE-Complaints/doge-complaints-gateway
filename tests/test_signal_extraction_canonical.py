@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+
 from datetime import UTC, datetime
 
 from core.domain import StoryLifecycleStatus, StoryRecord
@@ -25,7 +27,7 @@ def _story(
         created_at=now,
         updated_at=now,
         narrative_language=language,
-        narrative_title_hint="t",
+        narrative_title=narrative_dict(en="t"),
         narrative_canonical_type=canonical_type,
         narrative_canonical_labels=canonical_labels,
     )

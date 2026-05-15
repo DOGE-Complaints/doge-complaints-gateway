@@ -24,6 +24,11 @@ def test_story_write_read_roundtrip_via_supabase_http() -> None:
         supabase_url=supabase_url,
         service_role_key=service_role_key,
     )
+    if not db.required_stories_narrative_extension_columns_ready():
+        pytest.skip(
+            "Hosted stories schema missing narrative extension columns; apply "
+            "supabase/migrations/20260511_1200_m2_02_stories_narrative_extensions.sql"
+        )
     repo = SupabaseStoryRepository(db)
     now = datetime.now(UTC)
     story_id = f"story-{uuid4()}"

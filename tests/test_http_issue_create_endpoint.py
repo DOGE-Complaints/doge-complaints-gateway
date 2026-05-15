@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 @pytest.fixture()
@@ -23,11 +24,13 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 def _intake_payload(index: int) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": f"opaque-user-{index}"},
+        "submitter": {"external_user_id": f"opaque-user-{index}", "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": f"Street lights issue report #{index} near district center.",
             "language": "en",
-            "title_hint": f"Street lights #{index}",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": f"Street lights #{index}"},
+            "description": {"et": "d", "ru": "d", "en": f"Street lights issue report #{index} near district center."},
         },
     }
 

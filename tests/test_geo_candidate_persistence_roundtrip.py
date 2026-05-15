@@ -5,7 +5,9 @@ from core.domain import StoryGeoSnapshot
 from core.geo import GeoResolverChain, GeoResolverPolicy, GeoService, InMemoryGeoCacheRepository, InMemoryGeoMetrics
 from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateStore
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
 
 
@@ -47,11 +49,13 @@ def test_geo_snapshot_roundtrip_persists_on_story_record() -> None:
     request = parse_story_intake_request(
         {
             "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "geo-roundtrip-user"},
+            "submitter": {"external_user_id": "geo-roundtrip-user", "identity_issuer": "https://idp.example.com/eid"},
             "narrative": {
-                "original_text": "Street condition issue near center.",
-                "language": "en",
-                "title_hint": "Street condition issue",
+            "original_text": "Street condition issue near center.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Street condition issue"},
+            "description": {"et": "d", "ru": "d", "en": "Street condition issue near center."},
                 "location_query": "Tallinn",
             },
         }

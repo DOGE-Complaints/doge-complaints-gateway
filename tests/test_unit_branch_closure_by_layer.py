@@ -13,7 +13,7 @@ from core.application.services import StoryIntakeService
 from core.domain import StoryLifecycleStatus, StoryRecord
 from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateStore
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
@@ -34,17 +34,13 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 def test_api_branch_generates_trace_id_when_header_absent(client: TestClient) -> None:
     response = client.post(
         "/intake/stories",
-        json={
-            "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "branch-user"},
-            "narrative": {
-                "original_text": "Branch closure story",
-                "language": "en",
-                "title_hint": "Branch title",
-            },
-        },
+        json=intake_payload_simple(
+            external_user_id="branch-user",
+            original_text="Branch closure story",
+            title_en="Branch title",
+        ),
     )
-    assert response.status_code == 200
+    assert response.status_code == 202
     assert response.json()["trace_id"]
 
 
@@ -94,17 +90,11 @@ def test_domain_branch_disallows_ready_for_profile_regression() -> None:
     story_repo = InMemoryStoryRepository()
     now = datetime.now(UTC)
     story_repo.save_story(
-        StoryRecord(
+        make_story_record(
             story_id="story-ready",
-            schema_version="m2.story_intake_envelope.v1",
             narrative_original_text="Ready story",
             submitter_external_user_id="u1",
-            submitter_identity_issuer=None,
-            lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
-            created_at=now,
-            updated_at=now,
-            narrative_language="en",
-            narrative_title_hint="Ready",
+            narrative_title=narrative_dict(en="Ready"),
         )
     )
     service = StoryIntakeService(
@@ -126,31 +116,20 @@ def test_domain_branch_inmemory_list_stories_returns_all_items() -> None:
     repo = InMemoryStoryRepository()
     now = datetime.now(UTC)
     repo.save_story(
-        StoryRecord(
+        make_story_record(
             story_id="list-1",
-            schema_version="m2.story_intake_envelope.v1",
             narrative_original_text="Story one",
             submitter_external_user_id="u1",
-            submitter_identity_issuer=None,
-            lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
-            created_at=now,
-            updated_at=now,
-            narrative_language="en",
-            narrative_title_hint="One",
+            narrative_title=narrative_dict(en="One"),
         )
     )
     repo.save_story(
-        StoryRecord(
+        make_story_record(
             story_id="list-2",
-            schema_version="m2.story_intake_envelope.v1",
             narrative_original_text="Story two",
             submitter_external_user_id="u2",
-            submitter_identity_issuer=None,
             lifecycle_status=StoryLifecycleStatus.PARTIAL_READY,
-            created_at=now,
-            updated_at=now,
-            narrative_language="en",
-            narrative_title_hint="Two",
+            narrative_title=narrative_dict(en="Two"),
         )
     )
     stories = repo.list_stories()

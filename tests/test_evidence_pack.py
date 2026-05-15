@@ -9,7 +9,9 @@ from core.evidence import (
     VisibilityTier,
 )
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 def _snapshot() -> ClusterSnapshotRef:
@@ -123,9 +125,11 @@ def test_lineage_story_ids_allow_fetching_submitter_identity() -> None:
                 "identity_issuer": "idp://partner",
             },
             "narrative": {
-                "original_text": "Story for lineage proof.",
-                "language": "en",
-                "title_hint": "Lineage proof story",
+            "original_text": "Story for lineage proof.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Lineage proof story"},
+            "description": {"et": "d", "ru": "d", "en": "Story for lineage proof."},
             },
         }
     )

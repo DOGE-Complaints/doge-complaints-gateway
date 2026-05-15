@@ -7,8 +7,9 @@ from pathlib import Path
 import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
-from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies, get_api_dependencies
+from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 @pytest.fixture()
@@ -24,11 +25,13 @@ def _sqlite_path_from_url(database_url: str) -> Path:
 def _payload(idx: int) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": f"cluster-lens-user-{idx}"},
+        "submitter": {"external_user_id": f"cluster-lens-user-{idx}", "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": "Street lights are broken and unsafe in district center.",
             "language": "en",
-            "title_hint": "Street lights issue",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Street lights issue"},
+            "description": {"et": "d", "ru": "d", "en": "Street lights are broken and unsafe in district center."},
         },
     }
 
@@ -42,6 +45,8 @@ def _run_for_lens(
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", sqlite_db_url)
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "")
     monkeypatch.setenv("CLUSTER_ACTIVE_LENSES", cluster_active_lenses)
     primary = cluster_active_lenses.split(",")[0].strip()
     monkeypatch.setenv("CLUSTER_PRIMARY_LENS", primary)
@@ -51,8 +56,8 @@ def _run_for_lens(
         r1 = client.post("/intake/stories", json=_payload(1))
         r2 = client.post("/intake/stories", json=_payload(2))
     _clear_api_dependencies_cache()
-    assert r1.status_code == 200
-    assert r2.status_code == 200
+    assert r1.status_code == 202
+    assert r2.status_code == 202
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)

@@ -12,7 +12,9 @@ from core.infrastructure.repositories import (
     InMemoryStoryEmbeddingStore,
     InMemoryStoryRepository,
 )
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
@@ -25,11 +27,13 @@ from core.promotion.repositories import (
 def _intake_payload(*, text: str, title_hint: str, user_id: str) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": user_id},
+        "submitter": {"external_user_id": user_id, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": text,
             "language": "en",
-            "title_hint": title_hint,
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": title_hint},
+            "description": {"et": "d", "ru": "d", "en": text},
         },
     }
 

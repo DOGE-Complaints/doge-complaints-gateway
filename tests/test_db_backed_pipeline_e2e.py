@@ -9,7 +9,7 @@ import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
-from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, valid_v2_intake_payload
 
 
 @pytest.fixture()
@@ -26,6 +26,8 @@ def client(monkeypatch: pytest.MonkeyPatch, sqlite_db_url: str) -> Iterator[Test
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", sqlite_db_url)
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE", "")
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -37,15 +39,11 @@ def _sqlite_path_from_url(database_url: str) -> Path:
 
 
 def _intake_payload(index: int) -> dict[str, object]:
-    return {
-        "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": f"db-e2e-user-{index}"},
-        "narrative": {
-            "original_text": f"Infrastructure issue #{index} in district center with safety impact.",
-            "language": "en",
-            "title_hint": f"Issue #{index}",
-        },
-    }
+    return intake_payload_simple(
+        external_user_id=f"db-e2e-user-{index}",
+        original_text=f"Infrastructure issue #{index} in district center with safety impact.",
+        title_en=f"Issue #{index}",
+    )
 
 
 def test_db_backed_pipeline_persists_stories_projections_and_embeddings(
@@ -109,6 +107,19 @@ def test_readiness_reports_sqlite_backend(client: TestClient) -> None:
     assert payload["db"]["checks"]["connectivity"] is True
 
 
+def test_sqlite_intake_v2_narrative_i18n_roundtrip(client: TestClient) -> None:
+    payload = valid_v2_intake_payload()
+    response = client.post("/intake/stories", json=payload)
+    assert response.status_code == 202
+    story_id = response.json()["data"]["story_id"]
+
+    record = get_api_dependencies().story_intake_service.repository.get_story(story_id)
+    assert record is not None
+    assert record.narrative_title == payload["narrative"]["title"]
+    assert record.narrative_description == payload["narrative"]["description"]
+    assert record.narrative_session_language == payload["narrative"]["session_language"]
+
+
 def test_http_idempotency_deduplication_sqlite_same_key_different_payload(
     client: TestClient,
     sqlite_db_url: str,
@@ -123,8 +134,8 @@ def test_http_idempotency_deduplication_sqlite_same_key_different_payload(
         json=_intake_payload(202),
         headers={**headers, "x-trace-id": "tcr-p1-01-dedup-2"},
     )
-    assert r1.status_code == 200
-    assert r2.status_code == 200
+    assert r1.status_code == 202
+    assert r2.status_code == 202
     sid1 = r1.json()["data"]["story_id"]
     sid2 = r2.json()["data"]["story_id"]
     assert sid1 == sid2

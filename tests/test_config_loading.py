@@ -3,6 +3,19 @@ from __future__ import annotations
 import pytest  # pyright: ignore[reportMissingImports]
 
 from core.config import ConfigError, DeploymentProfile, ENV_SCHEMA, load_config_from_env
+from core.infrastructure.providers import provide_app_config
+
+
+def test_db_backend_env_default_matches_schema() -> None:
+    """GAP-11 §5.5: omitted DB_BACKEND must stay aligned with ENV_SCHEMA default (in_memory)."""
+    db_specs = [s for s in ENV_SCHEMA if s.name == "DB_BACKEND"]
+    assert len(db_specs) == 1
+    assert db_specs[0].default == "in_memory"
+    env = {"APP_PROFILE": "demo", "API_BASE_URL": "https://demo.example/api"}
+    assert "DB_BACKEND" not in env
+    config = load_config_from_env(env)
+    assert config.db_backend == "in_memory"
+    assert config.db_enabled is False
 
 
 def test_load_config_demo_defaults() -> None:
@@ -19,6 +32,8 @@ def test_load_config_demo_defaults() -> None:
     assert config.flags.blockchain_adapter is False
     assert config.flags.tokenization_pipeline is False
     assert config.log_level == "INFO"
+    assert config.log_debug_dir is None
+    assert config.log_format == "text"
     assert config.db_backend == "in_memory"
     assert config.db_enabled is False
     assert config.database_url is None
@@ -128,6 +143,28 @@ def test_invalid_log_level_raises() -> None:
         )
 
 
+def test_log_format_override() -> None:
+    config = load_config_from_env(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+            "LOG_FORMAT": "json",
+        }
+    )
+    assert config.log_format == "json"
+
+
+def test_invalid_log_format_raises() -> None:
+    with pytest.raises(ConfigError, match="Invalid LOG_FORMAT"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "LOG_FORMAT": "xml",
+            }
+        )
+
+
 def test_env_schema_contains_required_fields() -> None:
     names = {field.name for field in ENV_SCHEMA}
     assert "APP_PROFILE" in names
@@ -137,6 +174,8 @@ def test_env_schema_contains_required_fields() -> None:
     assert "FF_BLOCKCHAIN_ADAPTER" in names
     assert "FF_TOKENIZATION_PIPELINE" in names
     assert "LOG_LEVEL" in names
+    assert "LOG_DEBUG_DIR" in names
+    assert "LOG_FORMAT" in names
     assert "SERVICE_API_TOKEN" in names
     assert "DB_BACKEND" in names
     assert "DATABASE_URL" in names
@@ -198,8 +237,21 @@ def test_supabase_backend_requires_supabase_contract() -> None:
         )
 
 
+def test_in_memory_backend_rejects_supabase_env_with_operator_hint() -> None:
+    with pytest.raises(ConfigError, match="uvicorn"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "in_memory",
+                "SUPABASE_URL": "https://example.supabase.co",
+                "SUPABASE_SERVICE_ROLE": "secret",
+            }
+        )
+
+
 def test_in_memory_backend_rejects_database_url() -> None:
-    with pytest.raises(ConfigError, match="DB_BACKEND='in_memory' does not allow"):
+    with pytest.raises(ConfigError, match="DB_BACKEND is 'in_memory'"):
         load_config_from_env(
             {
                 "APP_PROFILE": "demo",
@@ -223,4 +275,50 @@ def test_sqlite_backend_rejects_supabase_keys() -> None:
                 "SUPABASE_URL": "https://example.supabase.co",
             }
         )
+
+
+def test_cluster_primary_lens_must_appear_in_cluster_active_lenses() -> None:
+    """H4: primary lens must be a member of CLUSTER_ACTIVE_LENSES (fail-fast contract)."""
+    with pytest.raises(
+        ConfigError,
+        match=r"CLUSTER_PRIMARY_LENS=.*must appear in CLUSTER_ACTIVE_LENSES=",
+    ):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "CLUSTER_ACTIVE_LENSES": "civic_domain_micro,failure_pattern_micro,civic_weight_systemic",
+                "CLUSTER_PRIMARY_LENS": "topic_micro",
+            }
+        )
+
+
+def test_provide_app_config_merges_dotenv_when_env_is_none(tmp_path, monkeypatch) -> None:
+    """GAP-02: cwd `.env` fills gaps; keys already in os.environ are not overridden."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("LOG_LEVEL=ERROR\n", encoding="utf-8")
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
+    cfg = provide_app_config(None)
+    assert cfg.log_level == "ERROR"
+
+
+def test_provide_app_config_os_environ_overrides_dotenv(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("LOG_LEVEL=ERROR\n", encoding="utf-8")
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+    cfg = provide_app_config(None)
+    assert cfg.log_level == "DEBUG"
+
+
+def test_provide_app_config_explicit_env_does_not_read_dotenv(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("LOG_LEVEL=ERROR\n", encoding="utf-8")
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
+    cfg = provide_app_config(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+        }
+    )
+    assert cfg.log_level == "INFO"
 

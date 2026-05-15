@@ -28,6 +28,11 @@ def test_story_embedding_write_roundtrip_via_supabase_http() -> None:
         supabase_url=supabase_url,
         service_role_key=service_role_key,
     )
+    if not db.required_stories_narrative_extension_columns_ready():
+        pytest.skip(
+            "Stories narrative extension migration not applied; see "
+            "supabase/migrations/20260511_1200_m2_02_stories_narrative_extensions.sql"
+        )
     story_repo = SupabaseStoryRepository(db)
     embedding_store = SupabaseStoryEmbeddingStore(db)
 

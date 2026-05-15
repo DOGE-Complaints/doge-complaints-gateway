@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
-from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies, get_api_dependencies
+from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.infrastructure.db_supabase import SupabaseDatabase
 from core.intake import INTAKE_SCHEMA_VERSION
 
@@ -69,8 +69,8 @@ def test_supabase_live_full_pipeline_roundtrip(client: TestClient) -> None:
         json=_payload(f"{run_id}-u2", f"{run_id} street lights issue"),
         headers={"idempotency-key": idem_b, "x-trace-id": f"{run_id}-trace-b"},
     )
-    assert response_a.status_code == 200
-    assert response_b.status_code == 200
+    assert response_a.status_code == 202
+    assert response_b.status_code == 202
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     story_id_a = str(response_a.json()["data"]["story_id"])

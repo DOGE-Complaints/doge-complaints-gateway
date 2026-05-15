@@ -5,10 +5,11 @@ from datetime import UTC, datetime
 import pytest
 
 from core.application import StoryIntakeService
-from core.domain import StoryLifecycleStatus, StoryRecord
+from core.domain import StoryLifecycleStatus
 from core.infrastructure.db_sqlite import SqliteDatabase, SqliteStoryRepository
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import make_story_record, narrative_dict, valid_v2_intake_payload
 
 
 def test_story_intake_service_persists_immutable_narrative_and_authorship() -> None:
@@ -18,27 +19,22 @@ def test_story_intake_service_persists_immutable_narrative_and_authorship() -> N
         idempotency_repository=InMemoryIdempotencyRepository(),
     )
     request = parse_story_intake_request(
-        {
-            "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {
+        valid_v2_intake_payload(
+            submitter={
                 "external_user_id": "user-opaque-42",
                 "identity_issuer": "idp://partner",
             },
-            "narrative": {
+            narrative={
                 "original_text": "Citizen reports repeated noise at night.",
-                "language": "en",
-                "title_hint": "Night noise",
+                "title": narrative_dict(en="Night noise"),
             },
-            "origin": {
+            origin={
                 "source": "openai_gpt_action",
                 "conversation_id": "conv-1",
                 "tool_call_id": "call-1",
             },
-            "privacy": {
-                "contains_pii": True,
-                "redaction_requested": True,
-            },
-        }
+            privacy={"contains_pii": True, "redaction_requested": True},
+        )
     )
 
     saved = service.create_story(request)
@@ -63,23 +59,21 @@ def test_story_intake_service_supports_readiness_transitions() -> None:
         repository=repository,
         idempotency_repository=InMemoryIdempotencyRepository(),
     )
-    request = parse_story_intake_request(
-        {
-            "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "user-opaque-42"},
-            "narrative": {
-                "original_text": "Needs clarification later.",
-                "language": "en",
-                "title_hint": "Needs clarification",
-            },
-        }
+    accepted = repository.save_story(
+        make_story_record(
+            lifecycle_status=StoryLifecycleStatus.ACCEPTED,
+            narrative_title={"et": "", "ru": "", "en": "Needs clarification"},
+        )
     )
+    assert accepted.lifecycle_status == StoryLifecycleStatus.ACCEPTED
 
-    saved = service.create_story(request)
-    assert saved.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE
+    partial = service.advance_story_readiness(
+        story_id=accepted.story_id, narrative_complete=False
+    )
+    assert partial.lifecycle_status == StoryLifecycleStatus.PARTIAL_READY
 
     advanced = service.advance_story_readiness(
-        story_id=saved.story_id, narrative_complete=True
+        story_id=accepted.story_id, narrative_complete=True
     )
     assert advanced.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE
 
@@ -90,17 +84,7 @@ def test_story_intake_service_rejects_readiness_regression() -> None:
         repository=repository,
         idempotency_repository=InMemoryIdempotencyRepository(),
     )
-    request = parse_story_intake_request(
-        {
-            "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "user-opaque-42"},
-            "narrative": {
-                "original_text": "Complete story.",
-                "language": "en",
-                "title_hint": "complete",
-            },
-        }
-    )
+    request = parse_story_intake_request(valid_v2_intake_payload())
 
     saved = service.create_story(request)
     assert saved.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE
@@ -124,18 +108,11 @@ def test_sqlite_story_repository_roundtrip_and_get_missing() -> None:
     db = SqliteDatabase.from_url("sqlite:///:memory:")
     db.ensure_schema()
     repo = SqliteStoryRepository(db)
-    now = datetime.now(UTC)
-    story = StoryRecord(
+    story = make_story_record(
         story_id="sqlite-story-1",
-        schema_version="m2.story_intake_envelope.v1",
         narrative_original_text="SQLite direct story roundtrip",
         submitter_external_user_id="sqlite-user",
-        submitter_identity_issuer=None,
-        lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
-        created_at=now,
-        updated_at=now,
-        narrative_language="en",
-        narrative_title_hint="SQLite roundtrip",
+        narrative_title=narrative_dict(en="SQLite roundtrip"),
         narrative_canonical_type="infrastructure",
         narrative_canonical_labels=("lighting",),
     )
@@ -148,7 +125,7 @@ def test_sqlite_story_repository_roundtrip_and_get_missing() -> None:
     assert fetched is not None
     assert fetched.story_id == "sqlite-story-1"
     assert fetched.narrative_canonical_labels == ("lighting",)
+    assert fetched.narrative_title is not None
+    assert fetched.narrative_title["en"] == "SQLite roundtrip"
     assert len(all_rows) == 1
-    assert all_rows[0].story_id == "sqlite-story-1"
     assert missing is None
-

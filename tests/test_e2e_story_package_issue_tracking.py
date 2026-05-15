@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 @pytest.fixture()
@@ -24,11 +25,15 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 def _payload(user: str, text: str) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": user},
+        "submitter": {"external_user_id": user, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": text,
             "language": "en",
-            "title_hint": "Story package issue tracking",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Story package issue tracking"},
+            "description": {"et": "d", "ru": "d", "en": text},
+            "canonical_type": "infrastructure",
+            "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }
 
@@ -42,8 +47,8 @@ def test_story_package_issue_tracking_materialization_and_audit(client: TestClie
         "/intake/stories",
         json=_payload("tracking-user-2", "Water supply issue in district C keeps repeating."),
     )
-    assert response_a.status_code == 200
-    assert response_b.status_code == 200
+    assert response_a.status_code == 202
+    assert response_b.status_code == 202
 
     story_id_a = response_a.json()["data"]["story_id"]
     story_id_b = response_b.json()["data"]["story_id"]

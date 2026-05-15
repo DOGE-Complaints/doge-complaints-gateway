@@ -3,7 +3,9 @@ from __future__ import annotations
 from core.application import StoryPromotionProjectionBridge
 from core.application.services import StoryIntakeService
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import I18nText, DOGEIssueStatus, StoryProjectionDraft
 
 
@@ -35,11 +37,13 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
-                "submitter": {"external_user_id": "u-1"},
+                "submitter": {"external_user_id": "u-1", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
-                    "original_text": "Broken street light and unsafe crossing near district center.",
-                    "language": "en",
-                    "title_hint": "Street light issue",
+            "original_text": "Broken street light and unsafe crossing near district center.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Street light issue"},
+            "description": {"et": "d", "ru": "d", "en": "Broken street light and unsafe crossing near district center."},
                 },
             }
         )
@@ -48,11 +52,13 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
-                "submitter": {"external_user_id": "u-2"},
+                "submitter": {"external_user_id": "u-2", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
-                    "original_text": "Road infrastructure needs urgent repair.",
-                    "language": "en",
-                    "title_hint": "Road repair request",
+            "original_text": "Road infrastructure needs urgent repair.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Road repair request"},
+            "description": {"et": "d", "ru": "d", "en": "Road infrastructure needs urgent repair."},
                 },
             }
         )
@@ -96,11 +102,13 @@ def test_bridge_derivation_rules_are_deterministic_for_type_and_labels() -> None
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
-                "submitter": {"external_user_id": "u-policy"},
+                "submitter": {"external_user_id": "u-policy", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
-                    "original_text": "Danger and unsafe road crossing with broken lights.",
-                    "language": "en",
-                    "title_hint": "Safety incident",
+            "original_text": "Danger and unsafe road crossing with broken lights.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Safety incident"},
+            "description": {"et": "d", "ru": "d", "en": "Danger and unsafe road crossing with broken lights."},
                 },
             }
         )
@@ -127,11 +135,13 @@ def test_bridge_supports_pluggable_projection_policy_boundary() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
-                "submitter": {"external_user_id": "u-custom"},
+                "submitter": {"external_user_id": "u-custom", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
-                    "original_text": "District services need predictable scheduling.",
-                    "language": "en",
-                    "title_hint": "Service schedule",
+            "original_text": "District services need predictable scheduling.",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Service schedule"},
+            "description": {"et": "d", "ru": "d", "en": "District services need predictable scheduling."},
                 },
             }
         )

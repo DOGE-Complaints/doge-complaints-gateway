@@ -13,7 +13,9 @@ from core.geo import (
     default_provider_chain,
 )
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
-from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from core.intake import INTAKE_SCHEMA_VERSION
+from core.intake import parse_story_intake_request
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 def _geo_service() -> tuple[GeoService, InMemoryGeoMetrics]:
@@ -63,11 +65,13 @@ def test_intake_attaches_geo_when_location_query_present() -> None:
     req = parse_story_intake_request(
         {
             "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "u1"},
+            "submitter": {"external_user_id": "u1", "identity_issuer": "https://idp.example.com/eid"},
             "narrative": {
-                "original_text": "Issue in capital",
-                "language": "en",
-                "title_hint": "Issue in capital",
+            "original_text": "Issue in capital",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "Issue in capital"},
+            "description": {"et": "d", "ru": "d", "en": "Issue in capital"},
                 "location_query": "Tallinn",
             },
         }

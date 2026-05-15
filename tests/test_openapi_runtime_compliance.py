@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
 @pytest.fixture()
@@ -65,15 +66,17 @@ def test_openapi_response_contract_matches_runtime_envelope_shape(
         "/intake/stories",
         json={
             "schema_version": INTAKE_SCHEMA_VERSION,
-            "submitter": {"external_user_id": "openapi-runtime-user"},
+            "submitter": {"external_user_id": "openapi-runtime-user", "identity_issuer": "https://idp.example.com/eid"},
             "narrative": {
-                "original_text": "OpenAPI runtime compliance check",
-                "language": "en",
-                "title_hint": "OpenAPI check",
+            "original_text": "OpenAPI runtime compliance check",
+            "language": "en",
+            "session_language": "en",
+            "title": {"et": "t", "ru": "t", "en": "OpenAPI check"},
+            "description": {"et": "d", "ru": "d", "en": "OpenAPI runtime compliance check"},
             },
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 202
     payload = response.json()
 
     # If OpenAPI response schema is empty, we still enforce runtime envelope contract.

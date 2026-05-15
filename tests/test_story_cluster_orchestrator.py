@@ -7,6 +7,7 @@ from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.application.issue_create import IssueCreateCommand, IssueCreateService, StoryPromotionProjectionBridge
 from core.cluster import ClusteringEngine, ClusterLens
 from core.domain import StoryLifecycleStatus, StoryRecord
+from tests.intake_v2_fixtures import narrative_dict
 from core.infrastructure.repositories import InMemoryStoryRepository, InMemoryStorySignalStore
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
@@ -21,18 +22,15 @@ def _ready_story(
     labels: tuple[str, ...] = ("roads", "broken_infrastructure"),
     lifecycle: StoryLifecycleStatus = StoryLifecycleStatus.READY_FOR_PROFILE,
 ) -> StoryRecord:
-    now = datetime.now(UTC)
-    return StoryRecord(
+    from tests.intake_v2_fixtures import make_story_record, narrative_dict
+
+    return make_story_record(
         story_id=story_id,
-        schema_version="v1",
         narrative_original_text=text,
         submitter_external_user_id=f"user-{story_id}",
-        submitter_identity_issuer=None,
         lifecycle_status=lifecycle,
-        created_at=now,
-        updated_at=now,
-        narrative_language="en",
-        narrative_title_hint="hint",
+        narrative_title=narrative_dict(en="hint"),
+        narrative_description=narrative_dict(en="hint description"),
         narrative_canonical_type="infrastructure",
         narrative_canonical_labels=labels,
     )
