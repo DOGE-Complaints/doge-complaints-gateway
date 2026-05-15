@@ -3,12 +3,13 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterator
 from copy import deepcopy
+from typing import Any
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
-from core.intake import INTAKE_SCHEMA_VERSION
+from tests.intake_v2_fixtures import valid_v2_intake_payload
 
 
 @pytest.fixture()
@@ -22,17 +23,25 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     _clear_api_dependencies_cache()
 
 
-def _valid_intake_payload() -> dict[str, object]:
-    return {
-        "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {"external_user_id": "opaque-user-001"},
-        "narrative": {
+def _valid_intake_payload() -> dict[str, Any]:
+    return valid_v2_intake_payload(
+        submitter={
+            "external_user_id": "opaque-user-001",
+            "identity_issuer": "https://idp.example.com/eid",
+        },
+        narrative={
             "original_text": "Street lights are off for two nights.",
             "language": "en",
-            "title_hint": "Street lights outage",
+            "session_language": "en",
+            "title": {"et": "Tuled väljas", "ru": "Свет выключен", "en": "Street lights outage"},
+            "description": {
+                "et": "Kirjeldus",
+                "ru": "Описание",
+                "en": "Lights off for two nights.",
+            },
         },
-        "origin": {"source": "spa_dashboard"},
-    }
+        origin={"source": "spa_dashboard"},
+    )
 
 
 def test_intake_stories_endpoint_returns_success_envelope(client: TestClient) -> None:
@@ -42,7 +51,7 @@ def test_intake_stories_endpoint_returns_success_envelope(client: TestClient) ->
         headers={"x-trace-id": "trace-intake-200", "idempotency-key": "idem-1"},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 202
     payload = response.json()
     assert payload["trace_id"] == "trace-intake-200"
     assert payload["data"]["schema_version"] == "m2.story_intake_response.v1"
@@ -90,13 +99,12 @@ def test_intake_does_not_trigger_sync_clustering_logs(
 
 
 def test_intake_emits_cluster_pending_observability_event(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     _clear_api_dependencies_cache()
-    caplog.set_level(logging.DEBUG, logger="core.api")
     try:
         with TestClient(app) as client:
             response = client.post(
@@ -104,16 +112,35 @@ def test_intake_emits_cluster_pending_observability_event(
                 json=_valid_intake_payload(),
                 headers={"x-trace-id": "trace-cluster-pending", "idempotency-key": "idem-pending"},
             )
-            assert response.status_code == 200
+            assert response.status_code == 202
     finally:
         _clear_api_dependencies_cache()
 
-    pending = [r for r in caplog.records if r.getMessage() == "story_cluster_issue_pending"]
-    assert pending
-    record = pending[-1]
-    assert getattr(record, "story_id", None)
-    assert getattr(record, "reason", None) == "cron_deferred"
-    assert getattr(record, "outcome", None) == "not_clustered"
+    captured = capsys.readouterr()
+    assert "story.persistence_backend_selected backend=in_memory" in captured.err
+    assert "story.persistence_commit_ack backend=in_memory lifecycle_status=ready_for_profile" in captured.err
+    assert "story_cluster_issue_pending" in captured.err
+    assert "trace-cluster-pending" in captured.err
+    assert "story.pipeline_outcome" in captured.err
+
+
+def test_intake_stories_endpoint_returns_400_for_unsupported_session_language(
+    client: TestClient,
+) -> None:
+    invalid_payload = _valid_intake_payload()
+    invalid_payload["narrative"]["session_language"] = "de"
+
+    response = client.post(
+        "/intake/stories",
+        json=invalid_payload,
+        headers={"x-trace-id": "trace-intake-session-lang-400"},
+    )
+
+    assert response.status_code == 400
+    payload = response.json()
+    assert payload["trace_id"] == "trace-intake-session-lang-400"
+    assert payload["error"]["code"] == "DOMAIN_ERROR"
+    assert "Supported values: et, ru, en" in payload["error"]["message"]
 
 
 def test_intake_stories_endpoint_returns_400_for_validation_error(
