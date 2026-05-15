@@ -52,6 +52,23 @@
 - `28-clustering-cron-scheduler.md` — **Cron-планировщик**: отвязка кластеризации от intake; новый метод `process_all_pending()`, `ClusterCronJob` на stdlib threading, lifespan-хук в ASGI, новые env vars `CLUSTER_CRON_INTERVAL_S` / `CLUSTER_CRON_ENABLED`.
 - `29-living-issues-cluster-growth-model.md` — **Living Issues**: один `cluster_id` → один активный `DOGEIssue`; новый `extend_candidate()` на `IssuePromotionService`; extend path в `IssueCreateService`; задействует существующий `find_promoted_by_cluster_id` из всех трёх backends.
 
+### Гражданский запуск: Таллинн MVP (civic launch blockers)
+
+- `31-citizen-data-rights-deletion-and-pii.md` — **Права гражданина**: `DELETE /intake/stories/{id}`, soft delete (`WITHDRAWN` статус), `data_notice` в intake response, эвристическая PII-детекция. Закрывает P0-T3, P0-T4 из MVP-аудита и req22 §D-10 ("позже").
+- `32-api-security-and-intake-protection.md` — **API Security**: production-grade token (замена demo-токена), `APP_PROFILE=pilot`, rate limiting на `POST /intake/stories` (slowapi), structured security event logging. Закрывает P0-T5, P0-T6 из MVP-аудита.
+
+### Gap-интервью 2026-05-13 — новые требования (пакет REQ-33…39)
+
+Сформированы по результатам gap-анализа и product-интервью. Источник: `docs/analysis/gap-interview-decisions-2026-05-13.md`.
+
+- `33-multilingual-story-intake-contract-v2.md` — **P0 demo**: breaking change контракта v1→v2; dict-формат `{et,ru,en}` для title/description/summary; новое обязательное поле `session_language`; eID gate (`identity_issuer` required); SHA-256 idempotency fallback. Cascade: `intake/contracts.py`, `domain/contracts.py`, DB migrations.
+- `34-civic-clustering-canonical-signal-pipeline.md` — **P1**: удаление legacy lenses и `infer_signals_from_narrative()`; civic-only signal extraction; исправление BUG с `_ = canonical_type`; `issue_type` из dominant story canonical, `labels` = union кластера. Cascade: `cluster/engine.py`, `profile/enrichment.py`, `issue_create.py`.
+- `35-geo-scope-node-architecture-and-filtering.md` — **P1**: реализация `CLUSTER_GEO_FILTER`; новый `CLUSTER_GEO_SCOPE` env var; `StoryGeoSnapshot` admin-уровни (district/settlement/region/country); rejection на intake для out-of-scope историй. Cascade: `domain/contracts.py`, `cluster/engine.py`, `geo/providers.py`.
+- `36-alpha-scoring-and-story-quality-gate.md` — **P1**: алгоритм `alpha_score()` (100 pts: classification 30 + narrative richness 40 + geo accuracy 30); `canonical_type` readiness gate в `promotion/gates.py`; eID как intake gate (не scoring). Новый модуль `cluster/alpha.py`.
+- `37-pipeline-observability-and-pii-safety.md` — **P2**: `StoryDebugLogger` с per-story JSON Lines файлами; `LOG_DEBUG_DIR` env var; `redact_pii(text, contains_pii)` функция; покрытие всех 5 этапов pipeline. Cascade: `logging_setup.py`, `api/logging.py`.
+- `38-data-integrity-issue-links-tests-validation.md` — **P2/P3**: `issue_story_links` N:M таблица (Supabase migration); e2e тесты `extend_candidate()` flow; Arweave txid regex validation. Cascade: bootstrap SQL, `db_supabase.py`, `projection/validation.py`.
+- `39-issue-management-api-endpoint.md` — **P2**: `GET /issues`, `GET /issues/{id}`, `POST /issues` — ни один не реализован; минимальный набор для demo SPA; openapi.yaml обновить. Cascade: `asgi_app.py`, `handlers.py`.
+
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
 - `20-post-demo-orchestration-and-scheduled-jobs.md` — оркестрация, cron/queue, единый use-case слой.
