@@ -42,12 +42,16 @@ class StoryRecord:
     schema_version: str
     narrative_original_text: str
     submitter_external_user_id: str
-    submitter_identity_issuer: str | None
+    submitter_identity_issuer: str
     lifecycle_status: StoryLifecycleStatus
     created_at: datetime
     updated_at: datetime
     narrative_language: str | None = None
-    narrative_title_hint: str | None = None
+    narrative_title: dict[str, str] | None = None
+    narrative_description: dict[str, str] | None = None
+    narrative_summary: dict[str, str] | None = None
+    narrative_session_language: str | None = None
+    narrative_consistency_notes: str | None = None
     narrative_canonical_type: str | None = None
     narrative_canonical_labels: tuple[str, ...] = ()
     geo: StoryGeoSnapshot | None = None

@@ -1,9 +1,11 @@
 from __future__ import annotations
 from os import environ
+import logging
 from typing import Mapping
 
 from core.application import ServiceFactory
 from core.config import AppConfig, load_config_from_env
+from core.config.env_file import merge_dotenv_from_cwd
 from core.domain import (
     HealthRepository,
     IdempotencyRepository,
@@ -61,6 +63,8 @@ from core.geo import (
 )
 from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryReviewAuditLogRepository
 
+logger = logging.getLogger(__name__)
+
 
 def provide_health_repository() -> HealthRepository:
     return InMemoryHealthRepository()
@@ -102,7 +106,12 @@ def provide_geo_service() -> GeoService:
 
 
 def provide_app_config(env: Mapping[str, str] | None = None) -> AppConfig:
-    source = dict(environ) if env is None else dict(env)
+    if env is None:
+        priority = dict(environ)
+        source = dict(priority)
+        merge_dotenv_from_cwd(source, priority=priority)
+    else:
+        source = dict(env)
     source.setdefault("APP_PROFILE", "demo")
     source.setdefault("API_BASE_URL", "https://demo.local")
     source.setdefault("REQUEST_TIMEOUT_S", "15")
@@ -111,6 +120,16 @@ def provide_app_config(env: Mapping[str, str] | None = None) -> AppConfig:
 
 def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     resolved_config = config or provide_app_config()
+    logger.info(
+        "factory.persistence_backend_selected backend=%s stage=%s",
+        resolved_config.db_backend,
+        "infrastructure.providers",
+        extra={
+            "backend": resolved_config.db_backend,
+            "stage": "infrastructure.providers",
+            "outcome": "selected",
+        },
+    )
     story_repository = provide_story_repository()
     idempotency_repository = provide_idempotency_repository()
     story_embedding_store = InMemoryStoryEmbeddingStore()
@@ -135,6 +154,16 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store = SqliteIssueStoryLinkStore(sqlite_db)
         story_signal_store = SqliteStorySignalStore(sqlite_db)
         cluster_membership_store = SqliteClusterMembershipStore(sqlite_db)
+        logger.info(
+            "factory.persistence_backend_selected backend=%s stage=%s",
+            "sqlite",
+            "infrastructure.providers.sqlite",
+            extra={
+                "backend": "sqlite",
+                "stage": "infrastructure.providers.sqlite",
+                "outcome": "selected",
+            },
+        )
     elif (
         resolved_config.db_backend == "supabase"
         and resolved_config.supabase_url is not None
@@ -157,6 +186,43 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store = SupabaseIssueStoryLinkStore(supabase_db)
         story_signal_store = SupabaseStorySignalStore(supabase_db)
         cluster_membership_store = SupabaseClusterMembershipStore(supabase_db)
+        logger.info(
+            "factory.persistence_backend_selected backend=%s stage=%s",
+            "supabase",
+            "infrastructure.providers.supabase",
+            extra={
+                "backend": "supabase",
+                "stage": "infrastructure.providers.supabase",
+                "outcome": "selected",
+            },
+        )
+    else:
+        logger.info(
+            "factory.persistence_backend_selected backend=%s stage=%s",
+            "in_memory",
+            "infrastructure.providers.in_memory",
+            extra={
+                "backend": "in_memory",
+                "stage": "infrastructure.providers.in_memory",
+                "outcome": "selected",
+            },
+        )
+
+    logger.info(
+        "factory.persistence_wiring backend=%s story_repository=%s idempotency_repository=%s story_embedding_store=%s",
+        resolved_config.db_backend,
+        story_repository.__class__.__name__,
+        idempotency_repository.__class__.__name__,
+        story_embedding_store.__class__.__name__,
+        extra={
+            "backend": resolved_config.db_backend,
+            "story_repository": story_repository.__class__.__name__,
+            "idempotency_repository": idempotency_repository.__class__.__name__,
+            "story_embedding_store": story_embedding_store.__class__.__name__,
+            "stage": "infrastructure.providers",
+            "outcome": "success",
+        },
+    )
 
     return DefaultServiceFactory(
         health_repository=provide_health_repository(),

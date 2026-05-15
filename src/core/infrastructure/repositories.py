@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+import logging
 from typing import Mapping
 
 from core.domain import (
@@ -11,6 +12,8 @@ from core.domain import (
     StoryLifecycleStatus,
     StoryRecord,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -32,6 +35,17 @@ class InMemoryStoryRepository:
     def save_story(self, record: StoryRecord) -> StoryRecord:
         assert self._records is not None
         self._records[record.story_id] = record
+        logger.info(
+            "repo.in_memory.save_story_done story_id=%s",
+            record.story_id,
+            extra={
+                "story_id": record.story_id,
+                "backend": "in_memory",
+                "repository_class": self.__class__.__name__,
+                "stage": "repository.in_memory.save_story",
+                "outcome": "success",
+            },
+        )
         return record
 
     def get_story(self, story_id: str) -> StoryRecord | None:
