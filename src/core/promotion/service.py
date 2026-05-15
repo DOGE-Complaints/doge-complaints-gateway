@@ -72,10 +72,19 @@ class IssuePromotionService:
         self.candidates.save(candidate)
         return candidate
 
-    def submit_for_review(self, candidate_id: str) -> IssueCandidateRecord:
+    def submit_for_review(
+        self,
+        candidate_id: str,
+        *,
+        cluster_canonical_types: tuple[str, ...] | None = None,
+    ) -> IssueCandidateRecord:
         current = self._get(candidate_id)
         _require_transition(current.status, IssueCandidateStatus.DRAFT)
-        gate = evaluate_promotion_gates(current, self.gate_policy)
+        gate = evaluate_promotion_gates(
+            current,
+            self.gate_policy,
+            cluster_canonical_types=cluster_canonical_types,
+        )
         if not gate.passed:
             raise PromotionStateError("Promotion gates failed: " + ",".join(gate.reasons))
 
