@@ -3,11 +3,99 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from core.projection.enums import DOGEIssueStatus, DOGEIssueType
+from core.domain import StoryRecord
+from core.projection.enums import DOGEIssueLabel, DOGEIssueStatus, DOGEIssueType
 from core.projection.i18n import I18nText
 from core.projection.input import ProjectionInput
 
-EXTRACTION_POLICY_VERSION = "m3.story_to_doge_issue_policy.v1"
+EXTRACTION_POLICY_VERSION = "m3.story_to_doge_issue_policy.v2"
+
+
+_CANONICAL_TYPE_TO_ISSUE_TYPE: dict[str, str] = {
+    "complaint": DOGEIssueType.INCIDENT.value,
+    "system_bug": DOGEIssueType.INCIDENT.value,
+    "observation": DOGEIssueType.IMPROVEMENT.value,
+    "absurdity": DOGEIssueType.IMPROVEMENT.value,
+    "service_request": DOGEIssueType.SERVICE_REQUEST.value,
+    "infrastructure": DOGEIssueType.IMPROVEMENT.value,
+    "improvement": DOGEIssueType.IMPROVEMENT.value,
+}
+
+
+def select_dominant_story(stories: tuple[StoryRecord, ...]) -> StoryRecord:
+    """Interim dominant-story picker until REQ-36 alpha_score() lands."""
+    if not stories:
+        raise ValueError("stories must be non-empty.")
+    return max(
+        stories,
+        key=lambda story: (
+            1 if story.narrative_canonical_type and story.narrative_canonical_type.strip() else 0,
+            len(story.narrative_canonical_labels),
+            story.story_id,
+        ),
+    )
+
+
+def canonical_issue_type_from_story(story: StoryRecord) -> str:
+    raw = (story.narrative_canonical_type or "observation").strip().lower()
+    return _CANONICAL_TYPE_TO_ISSUE_TYPE.get(raw, DOGEIssueType.IMPROVEMENT.value)
+
+
+def canonical_labels_from_cluster(stories: tuple[StoryRecord, ...]) -> tuple[str, ...]:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for story in stories:
+        for label in story.narrative_canonical_labels:
+            normalized = label.strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            ordered.append(normalized)
+    return tuple(ordered)
+
+
+_SPA_LABEL_VALUES = frozenset(label.value for label in DOGEIssueLabel)
+
+# Canonical GPT/taxonomy tokens → governed SPA board labels (REQ-34 §2.5 + SPA contract).
+_CANONICAL_TO_SPA_LABEL: dict[str, str] = {
+    "roads": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "broken_infrastructure": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "transport": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "parking": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "public_space": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "maintenance_gap": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "unsafe_condition": DOGEIssueLabel.SAFETY.value,
+    "access_blocked": DOGEIssueLabel.SAFETY.value,
+    "environment": DOGEIssueLabel.WASTE.value,
+    "housing": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "education": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "healthcare": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "digital_service": DOGEIssueLabel.INFRASTRUCTURE.value,
+    "accessibility": DOGEIssueLabel.SAFETY.value,
+    "district": DOGEIssueLabel.DISTRICT.value,
+}
+
+
+def spa_labels_from_canonical(labels: tuple[str, ...]) -> tuple[str, ...]:
+    """Map union of cluster canonical labels to governed SPA label vocabulary."""
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for label in labels:
+        normalized = label.strip().lower()
+        if not normalized:
+            continue
+        spa = (
+            normalized
+            if normalized in _SPA_LABEL_VALUES
+            else _CANONICAL_TO_SPA_LABEL.get(normalized, DOGEIssueLabel.INFRASTRUCTURE.value)
+        )
+        if spa in seen:
+            continue
+        seen.add(spa)
+        ordered.append(spa)
+    if not ordered:
+        return (DOGEIssueLabel.INFRASTRUCTURE.value,)
+    return tuple(ordered)
 
 
 @dataclass(frozen=True)
@@ -26,8 +114,10 @@ class StoryToProjectionPolicy(Protocol):
         *,
         promoted_title: str,
         aggregate_text: str,
+        dominant_story: StoryRecord,
+        cluster_stories: tuple[StoryRecord, ...],
     ) -> StoryProjectionDraft:
-        """Build policy-governed projection draft from story aggregate."""
+        """Build policy-governed projection draft from cluster stories."""
         ...
 
 
@@ -40,11 +130,13 @@ class DeterministicStoryToProjectionPolicy:
         *,
         promoted_title: str,
         aggregate_text: str,
+        dominant_story: StoryRecord,
+        cluster_stories: tuple[StoryRecord, ...],
     ) -> StoryProjectionDraft:
         summary_text = aggregate_text[:220].strip()
         description_text = aggregate_text if aggregate_text else promoted_title
-        issue_type = _derive_issue_type(promoted_title, aggregate_text)
-        labels = _derive_labels(promoted_title, aggregate_text)
+        issue_type = canonical_issue_type_from_story(dominant_story)
+        labels = spa_labels_from_canonical(canonical_labels_from_cluster(cluster_stories))
         return StoryProjectionDraft(
             issue_type=issue_type,
             labels=labels,
@@ -76,28 +168,3 @@ def _to_i18n(text: str) -> I18nText:
     if not normalized:
         normalized = "Issue details pending clarification"
     return I18nText(et=normalized, ru=normalized, en=normalized)
-
-
-def _derive_issue_type(title: str, aggregate_text: str) -> str:
-    corpus = f"{title} {aggregate_text}".lower()
-    if any(token in corpus for token in ("broken", "outage", "accident", "hazard", "danger")):
-        return DOGEIssueType.INCIDENT.value
-    if any(token in corpus for token in ("request", "need", "please", "could you")):
-        return DOGEIssueType.SERVICE_REQUEST.value
-    return DOGEIssueType.IMPROVEMENT.value
-
-
-def _derive_labels(title: str, aggregate_text: str) -> tuple[str, ...]:
-    corpus = f"{title} {aggregate_text}".lower()
-    labels: list[str] = []
-    if any(token in corpus for token in ("waste", "garbage", "trash")):
-        labels.append("waste")
-    if any(token in corpus for token in ("district", "neighborhood", "quarter")):
-        labels.append("district")
-    if any(token in corpus for token in ("road", "street", "light", "water", "bridge", "infrastructure")):
-        labels.append("infrastructure")
-    if any(token in corpus for token in ("danger", "unsafe", "hazard", "security", "safety")):
-        labels.append("safety")
-    if not labels:
-        labels.append("infrastructure")
-    return tuple(dict.fromkeys(labels))

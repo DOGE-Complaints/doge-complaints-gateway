@@ -12,6 +12,10 @@ from core.projection.extraction_policy import (
     StoryProjectionDraft,
     StoryToProjectionPolicy,
     build_projection_input_from_draft,
+    canonical_issue_type_from_story,
+    canonical_labels_from_cluster,
+    select_dominant_story,
+    spa_labels_from_canonical,
 )
 
 __all__ = [
@@ -28,6 +32,10 @@ __all__ = [
     "StoryToProjectionPolicy",
     "DeterministicStoryToProjectionPolicy",
     "build_projection_input_from_draft",
+    "select_dominant_story",
+    "canonical_issue_type_from_story",
+    "canonical_labels_from_cluster",
+    "spa_labels_from_canonical",
     "ProjectionContractError",
     "apply_summary_fallback",
     "project_distinct_issue",
