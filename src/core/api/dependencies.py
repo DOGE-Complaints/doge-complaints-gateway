@@ -66,6 +66,7 @@ def build_api_dependencies() -> ApiDependencies:
             "connectivity": health_db.healthcheck(),
             "schema": health_db.required_tables_ready(),
             "columns": health_db.required_columns_ready(),
+            "columns_v2": health_db.required_stories_intake_v2_columns_ready(),
             "policy_probe": health_db.service_role_policy_probe(),
         }
         db_ready = all(db_checks.values())

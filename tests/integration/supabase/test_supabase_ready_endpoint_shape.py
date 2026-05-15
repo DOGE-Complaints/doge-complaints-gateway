@@ -46,4 +46,5 @@ def test_supabase_ready_endpoint_reports_expected_db_checks(client: TestClient) 
     assert "connectivity" in checks
     assert "schema" in checks
     assert "columns" in checks
+    assert "columns_v2" in checks
     assert "policy_probe" in checks
