@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+from core.cluster.alpha import alpha_score
 from core.domain import StoryRecord
 from core.projection.enums import DOGEIssueLabel, DOGEIssueStatus, DOGEIssueType
 from core.projection.i18n import I18nText
@@ -23,17 +24,12 @@ _CANONICAL_TYPE_TO_ISSUE_TYPE: dict[str, str] = {
 
 
 def select_dominant_story(stories: tuple[StoryRecord, ...]) -> StoryRecord:
-    """Interim dominant-story picker until REQ-36 alpha_score() lands."""
+    """Pick dominant story by REQ-36 alpha_score; tie-break oldest created_at."""
     if not stories:
         raise ValueError("stories must be non-empty.")
-    return max(
-        stories,
-        key=lambda story: (
-            1 if story.narrative_canonical_type and story.narrative_canonical_type.strip() else 0,
-            len(story.narrative_canonical_labels),
-            story.story_id,
-        ),
-    )
+    best_score = max(alpha_score(story) for story in stories)
+    tied = tuple(story for story in stories if alpha_score(story) == best_score)
+    return min(tied, key=lambda story: story.created_at)
 
 
 def canonical_issue_type_from_story(story: StoryRecord) -> str:
