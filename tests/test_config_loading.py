@@ -105,6 +105,17 @@ def test_invalid_profile_raises() -> None:
         )
 
 
+def test_cluster_tie_breaker_non_alpha_raises() -> None:
+    with pytest.raises(ConfigError, match="Invalid CLUSTER_TIE_BREAKER"):
+        load_config_from_env(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "CLUSTER_TIE_BREAKER": "lexical",
+            }
+        )
+
+
 def test_invalid_timeout_raises() -> None:
     with pytest.raises(ConfigError, match="Invalid REQUEST_TIMEOUT_S"):
         load_config_from_env(
