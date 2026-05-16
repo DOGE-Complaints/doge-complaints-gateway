@@ -51,7 +51,8 @@ def test_load_config_demo_defaults() -> None:
     assert "topic_micro" not in config.cluster_active_lenses
     assert config.cluster_primary_lens == "civic_domain_micro"
     assert config.cluster_signal_source == "canonical"
-    assert config.cluster_geo_filter == "any"
+    assert config.cluster_geo_filter == "country"
+    assert config.cluster_geo_scope is None
     assert config.cluster_tie_breaker == "alpha"
     assert config.cluster_type_resolution == "canonical_priority"
     assert config.cluster_id_algorithm == "sha256"
