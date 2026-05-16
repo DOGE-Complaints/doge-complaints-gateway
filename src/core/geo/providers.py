@@ -29,6 +29,10 @@ class _TallinnOpenCageStub:
                 confidence=0.88,
                 provider=self.provider_id,
                 cluster_tags=("place:tallinn", "country:ee"),
+                admin_district="kalamaja",
+                admin_settlement="tallinn",
+                admin_region="harju maakond",
+                admin_country="EE",
             )
         return None
 
@@ -48,6 +52,10 @@ class _NarvaNominatimStub:
                 confidence=0.82,
                 provider=self.provider_id,
                 cluster_tags=("place:narva", "country:ee"),
+                admin_district="kesklinn",
+                admin_settlement="narva",
+                admin_region="ida-viru maakond",
+                admin_country="EE",
             )
         return None
 
