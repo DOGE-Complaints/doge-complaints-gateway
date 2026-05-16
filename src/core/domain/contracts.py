@@ -34,6 +34,10 @@ class StoryGeoSnapshot:
     confidence: float
     provider: str
     cluster_tags: tuple[str, ...] = ()
+    admin_district: str | None = None
+    admin_settlement: str | None = None
+    admin_region: str | None = None
+    admin_country: str | None = None
 
 
 @dataclass(frozen=True)
