@@ -167,6 +167,10 @@ def readiness_score_for_cluster(
 
 @dataclass(frozen=True)
 class ClusteringEngine:
+    """Cluster view builder. Product dominant StoryRecord selection uses
+    ``projection.extraction_policy.select_dominant_story`` (REQ-36 alpha_score).
+    ``tie_breaker`` is config contract only until signal-level dominant wiring."""
+
     active_lenses: tuple[ClusterLens, ...] = CIVIC_LENSES
     primary_lens: ClusterLens | None = None
     id_algorithm: str = "sha256"
