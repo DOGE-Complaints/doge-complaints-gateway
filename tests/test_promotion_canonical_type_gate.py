@@ -15,7 +15,8 @@ def _candidate() -> IssueCandidateRecord:
     )
 
 
-def test_gate_rejects_observation_only_cluster() -> None:
+def test_req36_gate_rejects_observation_only_cluster() -> None:
+    """REQ-36 §2.5 / §5: clusters without complaint/system_bug do not promote."""
     result = evaluate_promotion_gates(
         _candidate(),
         policy=PromotionGatePolicy(),
