@@ -3,7 +3,7 @@ from __future__ import annotations
 from core.application import StoryIntakeService
 from core.domain import StoryGeoSnapshot
 from core.geo import GeoResolverChain, GeoResolverPolicy, GeoService, InMemoryGeoCacheRepository, InMemoryGeoMetrics
-from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateStore
+from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateStore, SqliteStoryRepository
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
@@ -67,6 +67,35 @@ def test_geo_snapshot_roundtrip_persists_on_story_record() -> None:
     assert saved.geo.normalized_label == "Tallinn, EE"
     assert saved.geo.provider == "tc_geo_provider"
     assert saved.geo.cluster_tags == ("capital", "urban")
+
+
+def test_geo_admin_fields_survive_sqlite_roundtrip() -> None:
+    db = SqliteDatabase.from_url("sqlite:///:memory:")
+    db.ensure_schema()
+    repo = SqliteStoryRepository(db)
+    snapshot = StoryGeoSnapshot(
+        normalized_label="Tallinn, EE",
+        latitude=59.437,
+        longitude=24.7536,
+        confidence=0.88,
+        provider="stub",
+        cluster_tags=("place:tallinn",),
+        admin_district="kalamaja",
+        admin_settlement="tallinn",
+        admin_region="harju maakond",
+        admin_country="EE",
+    )
+    record = make_story_record(story_id="sqlite-geo-admin-roundtrip", geo=snapshot)
+
+    repo.save_story(record)
+    loaded = repo.get_story(record.story_id)
+
+    assert loaded is not None
+    assert loaded.geo is not None
+    assert loaded.geo.admin_settlement == "tallinn"
+    assert loaded.geo.admin_country == "EE"
+    assert loaded.geo.admin_district == "kalamaja"
+    assert loaded.geo.admin_region == "harju maakond"
 
 
 def test_issue_candidate_sqlite_roundtrip_and_delete() -> None:
