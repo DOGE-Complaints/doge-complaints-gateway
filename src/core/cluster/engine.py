@@ -14,6 +14,7 @@ from core.cluster.types import (
     StoryProfileSignals,
 )
 from core.domain import SignalDimension
+from core.geo.scope import geo_filter_bucket, parse_cluster_geo_filter
 
 
 CIVIC_LENSES: tuple[ClusterLens, ...] = (
@@ -66,18 +67,26 @@ def lens_dimension(lens: ClusterLens) -> SignalDimension:
     return mapping[lens]
 
 
-def cluster_key_for_lens(profile: StoryProfileSignals, lens: ClusterLens) -> str:
+def cluster_key_for_lens(
+    profile: StoryProfileSignals,
+    lens: ClusterLens,
+    *,
+    geo_filter: str = "country",
+) -> str:
     signals = merged_signals(profile)
     dimension = lens_dimension(lens)
     raw_value = str(signals.get(dimension.value, "unknown")).strip() or "unknown"
 
     if lens in _SYSTEMIC_LENSES:
-        return f"{lens.value}:{dimension.value}:{raw_value}:systemic"
-    if lens in _LOCAL_LENSES:
-        return f"{lens.value}:{dimension.value}:{raw_value}:local"
-    if lens in _MICRO_LENSES:
-        return f"{lens.value}:{dimension.value}:{raw_value}:micro"
-    return f"{lens.value}:{dimension.value}:{raw_value}:micro"
+        base = f"{lens.value}:{dimension.value}:{raw_value}:systemic"
+    elif lens in _LOCAL_LENSES:
+        base = f"{lens.value}:{dimension.value}:{raw_value}:local"
+    elif lens in _MICRO_LENSES:
+        base = f"{lens.value}:{dimension.value}:{raw_value}:micro"
+    else:
+        base = f"{lens.value}:{dimension.value}:{raw_value}:micro"
+    geo_part = geo_filter_bucket(profile.geo, geo_filter)
+    return f"{base}|{geo_part}"
 
 
 def stable_cluster_id(lens: ClusterLens, key: str, *, id_algorithm: str = "legacy_hash") -> str:
@@ -162,7 +171,7 @@ class ClusteringEngine:
     primary_lens: ClusterLens | None = None
     id_algorithm: str = "sha256"
     signal_source: str = "canonical"
-    geo_filter: str = "any"
+    geo_filter: str = "country"
     tie_breaker: str = "alpha"
     type_resolution: str = "canonical_priority"
 
@@ -190,9 +199,12 @@ class ClusteringEngine:
         id_algorithm: str | None = None,
     ) -> ClusterView:
         id_alg = self.id_algorithm if id_algorithm is None else id_algorithm
+        resolved_geo_filter = parse_cluster_geo_filter(self.geo_filter)
         buckets: dict[str, list[StoryProfileSignals]] = defaultdict(list)
         for profile in sorted(profiles, key=lambda item: item.story_id):
-            buckets[cluster_key_for_lens(profile, lens)].append(profile)
+            buckets[
+                cluster_key_for_lens(profile, lens, geo_filter=resolved_geo_filter)
+            ].append(profile)
 
         clusters: list[Cluster] = []
         for key in sorted(buckets.keys()):

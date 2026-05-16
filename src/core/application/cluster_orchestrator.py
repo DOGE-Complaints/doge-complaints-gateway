@@ -180,7 +180,11 @@ class StoryClusterOrchestrator:
         for story in ready_stories:
             inferred = self._get_or_compute_signals(story)
             profile_list.append(
-                StoryProfileSignals(story_id=story.story_id, signals=inferred)
+                StoryProfileSignals(
+                    story_id=story.story_id,
+                    signals=inferred,
+                    geo=story.geo,
+                )
             )
         profiles = tuple(profile_list)
         memberships = self.clustering_engine.memberships(

@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Mapping
 
+from core.domain import StoryGeoSnapshot
+
 
 class ClusterLens(StrEnum):
     """Civic clustering lenses (canonical_labels-based, multilingual-safe)."""
@@ -25,6 +27,7 @@ class ClusteringMode(StrEnum):
 class StoryProfileSignals:
     story_id: str
     signals: Mapping[str, str]
+    geo: StoryGeoSnapshot | None = None
 
 
 @dataclass(frozen=True)
