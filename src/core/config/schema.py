@@ -51,6 +51,7 @@ class AppConfig:
     cluster_signal_source: str
     cluster_id_algorithm: str
     cluster_geo_filter: str
+    cluster_geo_scope: tuple[str, str] | None
     cluster_tie_breaker: str
     cluster_type_resolution: str
     cluster_cron_interval_s: int
@@ -184,8 +185,14 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_GEO_FILTER",
         required=False,
-        default="any",
-        description="Geo filtering mode for clustering.",
+        default="country",
+        description="Geo filtering granularity for clustering: district|settlement|region|country.",
+    ),
+    EnvSpec(
+        name="CLUSTER_GEO_SCOPE",
+        required=False,
+        default=None,
+        description="Optional node responsibility zone, format <level>:<value> (e.g. settlement:tallinn).",
     ),
     EnvSpec(
         name="CLUSTER_TIE_BREAKER",
@@ -348,6 +355,26 @@ def _parse_cluster_id_algorithm(raw: str) -> str:
     return normalized
 
 
+def _parse_cluster_geo_filter(raw: str) -> str:
+    from core.geo.scope import parse_cluster_geo_filter
+
+    try:
+        return parse_cluster_geo_filter(raw)
+    except ValueError as exc:
+        raise ConfigError(str(exc)) from exc
+
+
+def _parse_cluster_geo_scope(raw: str | None) -> tuple[str, str] | None:
+    from core.geo.scope import parse_cluster_geo_scope
+
+    if raw is None or not str(raw).strip():
+        return None
+    try:
+        return parse_cluster_geo_scope(raw)
+    except ValueError as exc:
+        raise ConfigError(str(exc)) from exc
+
+
 def _parse_cluster_primary_lens(raw: str, active: tuple[str, ...]) -> str:
     normalized = raw.strip().lower()
     if normalized not in _all_cluster_lens_ids():
@@ -502,7 +529,12 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     cluster_id_algorithm = _parse_cluster_id_algorithm(
         _require_value(source, name="CLUSTER_ID_ALGORITHM")
     )
-    cluster_geo_filter = _require_value(source, name="CLUSTER_GEO_FILTER").strip().lower()
+    cluster_geo_filter = _parse_cluster_geo_filter(
+        _require_value(source, name="CLUSTER_GEO_FILTER")
+    )
+    cluster_geo_scope = _parse_cluster_geo_scope(
+        _get_value(source, "CLUSTER_GEO_SCOPE")
+    )
     cluster_tie_breaker = _parse_cluster_tie_breaker(
         _require_value(source, name="CLUSTER_TIE_BREAKER")
     )
@@ -538,6 +570,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_signal_source=cluster_signal_source,
         cluster_id_algorithm=cluster_id_algorithm,
         cluster_geo_filter=cluster_geo_filter,
+        cluster_geo_scope=cluster_geo_scope,
         cluster_tie_breaker=cluster_tie_breaker,
         cluster_type_resolution=cluster_type_resolution,
         cluster_cron_interval_s=cluster_cron_interval_s,
