@@ -8,6 +8,7 @@ from core.api.envelope import build_error_envelope, build_success_envelope, ensu
 from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
+from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
 from core.intake import IntakeValidationError, build_story_intake_response, parse_story_intake_request
 
 
@@ -155,6 +156,18 @@ def handle_story_intake(
             stage="api.intake",
             outcome="selected",
         )
+        geo_scope = dependencies.config.cluster_geo_scope
+        location_query = (request.narrative.location_query or "").strip()
+        if geo_scope is not None and location_query:
+            geo_service = dependencies.story_intake_service.geo_service
+            if geo_service is not None:
+                scope_level, scope_value = geo_scope
+                resolved_geo = geo_service.resolve_for_story(location_query)
+                assert_geo_in_scope(
+                    resolved_geo,
+                    level=scope_level,
+                    expected_value=scope_value,
+                )
         story = dependencies.story_intake_service.create_story(
             request,
             idempotency_key=idempotency_key,
@@ -206,6 +219,20 @@ def handle_story_intake(
             ),
             202,
         )
+    except GeoScopeMismatchError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        log_api_event(
+            logging.INFO,
+            "story.pipeline_outcome",
+            trace_id=resolved_trace_id,
+            story_id="-",
+            lifecycle_status="rejected",
+            cluster_outcome="not_started",
+            error_code=envelope.error.code,
+            outcome="error",
+        )
+        return envelope.as_dict(), 422
     except IntakeValidationError as exc:
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)

@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from core.api.security import UnauthorizedError
 from core.config import ConfigError
+from core.geo.scope import GeoScopeMismatchError
 
 
 @dataclass(frozen=True)
@@ -71,6 +72,17 @@ def build_error_envelope(
             error=ErrorBody(
                 code="UNAUTHORIZED",
                 type="auth",
+                message=str(exc),
+                details=payload,
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, GeoScopeMismatchError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="GEO_SCOPE_MISMATCH",
+                type="validation",
                 message=str(exc),
                 details=payload,
             ),
