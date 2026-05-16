@@ -25,7 +25,7 @@ def _parse_dt(value: str) -> datetime:
 
 def _geo_bind(record: StoryRecord) -> tuple:
     if record.geo is None:
-        return (None, None, None, None, None, "[]")
+        return (None, None, None, None, None, "[]", None, None, None, None)
     geo = record.geo
     return (
         geo.normalized_label,
@@ -34,6 +34,10 @@ def _geo_bind(record: StoryRecord) -> tuple:
         geo.confidence,
         geo.provider,
         json.dumps(list(geo.cluster_tags)),
+        geo.admin_district,
+        geo.admin_settlement,
+        geo.admin_region,
+        geo.admin_country,
     )
 
 
@@ -85,7 +89,8 @@ _STORY_SELECT_COLUMNS = """
     submitter_identity_issuer, lifecycle_status, created_at, updated_at,
     origin_source, origin_conversation_id, origin_tool_call_id,
     privacy_contains_pii, privacy_redaction_requested,
-    geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
+    geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
+    geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country
 """
 
 
@@ -100,6 +105,26 @@ def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
             confidence=float(row["geo_confidence"]),
             provider=str(row["geo_provider"]),
             cluster_tags=tuple(json.loads(str(row["geo_cluster_tags_json"] or "[]"))),
+            admin_district=(
+                str(row["geo_admin_district"])
+                if "geo_admin_district" in keys and row["geo_admin_district"]
+                else None
+            ),
+            admin_settlement=(
+                str(row["geo_admin_settlement"])
+                if "geo_admin_settlement" in keys and row["geo_admin_settlement"]
+                else None
+            ),
+            admin_region=(
+                str(row["geo_admin_region"])
+                if "geo_admin_region" in keys and row["geo_admin_region"]
+                else None
+            ),
+            admin_country=(
+                str(row["geo_admin_country"])
+                if "geo_admin_country" in keys and row["geo_admin_country"]
+                else None
+            ),
         )
     session_language = (
         str(row["narrative_session_language"]).strip()
@@ -276,6 +301,10 @@ class SqliteDatabase:
                 "geo_cluster_tags_json",
                 "ALTER TABLE stories ADD COLUMN geo_cluster_tags_json TEXT DEFAULT '[]'",
             ),
+            ("geo_admin_district", "ALTER TABLE stories ADD COLUMN geo_admin_district TEXT"),
+            ("geo_admin_settlement", "ALTER TABLE stories ADD COLUMN geo_admin_settlement TEXT"),
+            ("geo_admin_region", "ALTER TABLE stories ADD COLUMN geo_admin_region TEXT"),
+            ("geo_admin_country", "ALTER TABLE stories ADD COLUMN geo_admin_country TEXT"),
             ("narrative_title_hint_et", "ALTER TABLE stories ADD COLUMN narrative_title_hint_et TEXT"),
             ("narrative_title_hint_ru", "ALTER TABLE stories ADD COLUMN narrative_title_hint_ru TEXT"),
             ("narrative_title_hint_en", "ALTER TABLE stories ADD COLUMN narrative_title_hint_en TEXT"),
@@ -360,8 +389,9 @@ class SqliteStoryRepository:
                 submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                 origin_source, origin_conversation_id, origin_tool_call_id,
                 privacy_contains_pii, privacy_redaction_requested,
-                geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
+                geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
@@ -391,7 +421,11 @@ class SqliteStoryRepository:
                 geo_longitude = excluded.geo_longitude,
                 geo_confidence = excluded.geo_confidence,
                 geo_provider = excluded.geo_provider,
-                geo_cluster_tags_json = excluded.geo_cluster_tags_json
+                geo_cluster_tags_json = excluded.geo_cluster_tags_json,
+                geo_admin_district = excluded.geo_admin_district,
+                geo_admin_settlement = excluded.geo_admin_settlement,
+                geo_admin_region = excluded.geo_admin_region,
+                geo_admin_country = excluded.geo_admin_country
             """,
             (
                 record.story_id,

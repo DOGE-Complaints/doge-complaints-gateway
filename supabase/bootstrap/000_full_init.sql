@@ -35,6 +35,13 @@ alter table if exists public.stories
     add column if not exists geo_provider text,
     add column if not exists geo_cluster_tags_json text not null default '[]';
 
+-- REQ-35: structured admin levels for CLUSTER_GEO_FILTER / CLUSTER_GEO_SCOPE
+alter table if exists public.stories
+    add column if not exists geo_admin_district text,
+    add column if not exists geo_admin_settlement text,
+    add column if not exists geo_admin_region text,
+    add column if not exists geo_admin_country text;
+
 -- STORY-M2-02-06 §16: optional multilingual title hints, summary JSON, live_story consistency notes
 alter table if exists public.stories
     add column if not exists narrative_title_hint_et text,

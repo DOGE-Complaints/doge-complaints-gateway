@@ -44,7 +44,8 @@ _STORY_SELECT_FIELDS = (
     "narrative_summary_json,narrative_consistency_notes,narrative_canonical_type,narrative_canonical_labels_json,"
     "submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,"
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
-    "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json"
+    "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json,"
+    "geo_admin_district,geo_admin_settlement,geo_admin_region,geo_admin_country"
 )
 
 
@@ -101,6 +102,10 @@ def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
             "geo_confidence": None,
             "geo_provider": None,
             "geo_cluster_tags_json": "[]",
+            "geo_admin_district": None,
+            "geo_admin_settlement": None,
+            "geo_admin_region": None,
+            "geo_admin_country": None,
         }
     geo = record.geo
     return {
@@ -110,6 +115,10 @@ def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
         "geo_confidence": geo.confidence,
         "geo_provider": geo.provider,
         "geo_cluster_tags_json": json.dumps(list(geo.cluster_tags)),
+        "geo_admin_district": geo.admin_district,
+        "geo_admin_settlement": geo.admin_settlement,
+        "geo_admin_region": geo.admin_region,
+        "geo_admin_country": geo.admin_country,
     }
 
 
@@ -123,6 +132,10 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
             confidence=float(row["geo_confidence"]),
             provider=str(row["geo_provider"]),
             cluster_tags=tuple(json.loads(str(row.get("geo_cluster_tags_json") or "[]"))),
+            admin_district=row.get("geo_admin_district"),
+            admin_settlement=row.get("geo_admin_settlement"),
+            admin_region=row.get("geo_admin_region"),
+            admin_country=row.get("geo_admin_country"),
         )
     return StoryRecord(
         story_id=str(row["story_id"]),
@@ -305,6 +318,10 @@ class SupabaseDatabase:
                 "geo_confidence",
                 "geo_provider",
                 "geo_cluster_tags_json",
+                "geo_admin_district",
+                "geo_admin_settlement",
+                "geo_admin_region",
+                "geo_admin_country",
             },
             "story_embeddings": {
                 "embedding_vector_json",

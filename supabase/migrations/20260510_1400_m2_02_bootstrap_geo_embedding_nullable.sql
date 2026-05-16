@@ -7,7 +7,11 @@ alter table if exists public.stories
     add column if not exists geo_longitude double precision,
     add column if not exists geo_confidence double precision,
     add column if not exists geo_provider text,
-    add column if not exists geo_cluster_tags_json text not null default '[]';
+    add column if not exists geo_cluster_tags_json text not null default '[]',
+    add column if not exists geo_admin_district text,
+    add column if not exists geo_admin_settlement text,
+    add column if not exists geo_admin_region text,
+    add column if not exists geo_admin_country text;
 
 alter table if exists public.story_embeddings
     alter column embedding drop not null;
