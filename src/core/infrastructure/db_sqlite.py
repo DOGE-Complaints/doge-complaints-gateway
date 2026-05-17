@@ -718,12 +718,23 @@ class SqliteIssueCandidateStore:
     def find_promoted_by_cluster_id(self, cluster_id: str) -> IssueCandidateRecord | None:
         row = self.db.connection.execute(
             """
-            SELECT candidate_id, status, cluster_id, story_ids_json, readiness_score, title
-            FROM issue_candidates
-            WHERE cluster_id = ? AND status = ?
+            SELECT ic.candidate_id, ic.status, ic.cluster_id, ic.story_ids_json,
+                   ic.readiness_score, ic.title
+            FROM issue_candidates ic
+            WHERE ic.status = ?
+              AND (
+                ic.cluster_id = ?
+                OR ic.candidate_id IN (
+                    SELECT issue_id FROM issue_story_links WHERE cluster_id = ?
+                )
+              )
             LIMIT 1
             """,
-            (cluster_id, IssueCandidateStatus.PROMOTED.value),
+            (
+                IssueCandidateStatus.PROMOTED.value,
+                cluster_id,
+                cluster_id,
+            ),
         ).fetchone()
         if row is None:
             return None

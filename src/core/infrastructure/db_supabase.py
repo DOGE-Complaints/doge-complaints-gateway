@@ -712,6 +712,36 @@ class SupabaseIssueCandidateStore:
         )
 
     def find_promoted_by_cluster_id(self, cluster_id: str) -> IssueCandidateRecord | None:
+        link_rows = self.db._request(
+            method="GET",
+            path="/rest/v1/issue_story_links",
+            params={
+                "select": "issue_id",
+                "cluster_id": self.db._eq_filter(cluster_id),
+            },
+        )
+        for link_row in link_rows:
+            issue_id = str(link_row["issue_id"])
+            rows = self.db._request(
+                method="GET",
+                path="/rest/v1/issue_candidates",
+                params={
+                    "select": "candidate_id,status,cluster_id,story_ids_json,readiness_score,title",
+                    "candidate_id": self.db._eq_filter(issue_id),
+                    "status": self.db._eq_filter(IssueCandidateStatus.PROMOTED.value),
+                    "limit": "1",
+                },
+            )
+            if rows:
+                row = rows[0]
+                return IssueCandidateRecord(
+                    candidate_id=str(row["candidate_id"]),
+                    status=IssueCandidateStatus(str(row["status"])),
+                    cluster_id=str(row["cluster_id"]),
+                    story_ids=_coerce_jsonb_text_id_sequence(row["story_ids_json"]),
+                    readiness_score=int(row["readiness_score"]),
+                    title=str(row["title"]),
+                )
         rows = self.db._request(
             method="GET",
             path="/rest/v1/issue_candidates",
