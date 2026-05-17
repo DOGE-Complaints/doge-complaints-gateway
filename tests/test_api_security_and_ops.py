@@ -45,6 +45,8 @@ def _deps_base() -> dict[str, Any]:
         "health_service": _ok_health_service(),
         "story_intake_service": cast(Any, _DummyIntakeService()),
         "story_cluster_orchestrator": cast(Any, _DummyStoryClusterOrchestrator()),
+        "issue_create_service": cast(Any, object()),
+        "issue_projection_read_store": cast(Any, object()),
         "metrics": ApiMetrics(),
     }
 

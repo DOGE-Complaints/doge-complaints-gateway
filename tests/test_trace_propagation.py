@@ -31,11 +31,27 @@ class _DummyStoryClusterOrchestrator:
     pass
 
 
+@dataclass(frozen=True)
+class _DummyIssueCreateService:
+    pass
+
+
+@dataclass(frozen=True)
+class _DummyIssueProjectionReadStore:
+    def list_projections(self, **_kwargs: Any) -> list[dict[str, object]]:
+        return []
+
+    def get_projection(self, _issue_id: str) -> dict[str, object] | None:
+        return None
+
+
 def _deps_kwargs(health_service: Any) -> dict[str, Any]:
     return {
         "health_service": health_service,
         "story_intake_service": _DummyIntakeService(),
         "story_cluster_orchestrator": _DummyStoryClusterOrchestrator(),
+        "issue_create_service": _DummyIssueCreateService(),
+        "issue_projection_read_store": _DummyIssueProjectionReadStore(),
     }
 
 
