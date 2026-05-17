@@ -140,6 +140,7 @@ create table if not exists public.issue_story_links (
     primary key (issue_id, story_id)
 );
 create index if not exists idx_issue_story_links_issue on public.issue_story_links(issue_id);
+create index if not exists idx_issue_story_links_story on public.issue_story_links(story_id);
 create table if not exists public.story_signals (
     story_id text not null references public.stories(story_id) on delete cascade,
     extraction_policy text not null,
