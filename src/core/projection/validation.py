@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import re
+
 from core.projection.enums import DOGEIssueStatus, DOGEIssueType, DOGEIssueLabel
+
+ARWEAVE_TXID_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
 
 
 class ProjectionContractError(ValueError):
@@ -18,6 +22,11 @@ def validate_governed_enums(*, status: str, issue_type: str, labels: tuple[str, 
             raise ProjectionContractError(f"Unknown SPA label: {label!r}.")
 
 
+def validate_arweave_txid(txid: str) -> bool:
+    """Validate Arweave transaction ID format (43 chars base64url). REQ-38 §3."""
+    return bool(ARWEAVE_TXID_RE.match(txid))
+
+
 def validate_optional_tx_fields(
     *,
     arweave_txid: str | None,
@@ -33,3 +42,11 @@ def validate_optional_tx_fields(
         lowered = stripped.lower()
         if lowered in {"fake", "placeholder", "todo"} or stripped == "0x0":
             raise ProjectionContractError(f"{name} looks like a placeholder: {value!r}.")
+        if name == "arweave_txid" and not validate_arweave_txid(stripped):
+            raise ProjectionContractError(
+                f"{name} must be 43 base64url characters; got length {len(stripped)}."
+            )
+        if name == "image_txid" and not validate_arweave_txid(stripped):
+            raise ProjectionContractError(
+                f"{name} must be 43 base64url characters; got length {len(stripped)}."
+            )
