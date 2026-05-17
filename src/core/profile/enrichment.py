@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Mapping
+
 from core.cluster.vocabulary import (
     AFFECTED_GROUP_DEFAULT,
     AFFECTED_SCOPE_VOCABULARY,
@@ -10,6 +12,19 @@ from core.cluster.vocabulary import (
     FAILURE_PATTERN_VOCABULARY,
 )
 from core.domain import SignalDimension, StoryRecord
+
+if TYPE_CHECKING:
+    from core.logging_setup import StoryPipelineDebugLog
+
+
+def log_story_signals_inferred(
+    debug_logger: StoryPipelineDebugLog | None,
+    *,
+    signals: Mapping[str, str],
+) -> None:
+    if debug_logger is None:
+        return
+    debug_logger.log("signals", "inferred", {"signals": dict(signals)})
 
 
 def _normalize_canonical_type(canonical_type: str | None) -> str:

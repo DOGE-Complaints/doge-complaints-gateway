@@ -67,6 +67,7 @@ class DefaultServiceFactory:
             idempotency_repository=self.idempotency_repository,
             geo_service=self.geo_service,
             story_embedding_store=self.story_embedding_store,
+            log_debug_dir=self.config.log_debug_dir,
         )
 
     def get_signal_profile_service(self) -> SignalProfileService:
@@ -127,5 +128,6 @@ class DefaultServiceFactory:
             issue_create_service=self.get_issue_create_service(),
             story_signal_store=self.story_signal_store,
             cluster_membership_store=self.cluster_membership_store,
+            log_debug_dir=self.config.log_debug_dir,
         )
 

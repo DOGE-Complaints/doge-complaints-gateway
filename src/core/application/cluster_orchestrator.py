@@ -13,8 +13,12 @@ from core.domain import (
     StorySignalStore,
 )
 from core.domain.narrative_i18n import story_primary_title
+from core.logging_setup import StoryDebugLogger, open_story_debug_logger
 from core.profile import get_signals_for_story
+from core.profile.enrichment import log_story_signals_inferred
+from core.promotion.gates import evaluate_promotion_gates
 from core.promotion.service import PromotionStateError
+from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +32,19 @@ class StoryClusterOrchestrator:
     issue_create_service: IssueCreateService
     story_signal_store: StorySignalStore | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
+    log_debug_dir: str | None = None
 
-    def _get_or_compute_signals(self, story: StoryRecord) -> dict[str, str]:
+    def _cluster_key_from_signals(self, signals: dict[str, str]) -> str:
+        domain = signals.get("civic_domain", "unknown")
+        pattern = signals.get("failure_pattern", "unknown")
+        return f"{domain}_{pattern}"
+
+    def _get_or_compute_signals(
+        self,
+        story: StoryRecord,
+        *,
+        debug_logger: StoryDebugLogger | None = None,
+    ) -> dict[str, str]:
         if self.story_signal_store is not None:
             cached = self.story_signal_store.get_signals(
                 story.story_id, _CANONICAL_SIGNAL_POLICY
@@ -51,6 +66,7 @@ class StoryClusterOrchestrator:
                         "error": str(exc),
                     },
                 )
+        log_story_signals_inferred(debug_logger, signals=signals)
         return signals
 
     def process_story(self, story_id: str) -> str | None:
@@ -78,43 +94,64 @@ class StoryClusterOrchestrator:
         )
         if not ready_stories:
             return None
-        profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
-            ready_stories
-        )
-        if story_id not in memberships:
-            return None
+        with open_story_debug_logger(story_id, self.log_debug_dir) as debug_logger:
+            profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
+                ready_stories,
+                debug_logger=debug_logger,
+                trigger_story_id=story_id,
+            )
+            if story_id not in memberships:
+                return None
 
-        lens_key = primary.value
-        cluster_id = memberships[story_id].get(lens_key)
-        if cluster_id is None:
-            return None
+            lens_key = primary.value
+            cluster_id = memberships[story_id].get(lens_key)
+            if cluster_id is None:
+                return None
 
-        member_story_ids = tuple(
-            profile.story_id
-            for profile in profiles
-            if memberships.get(profile.story_id, {}).get(lens_key) == cluster_id
-        )
-        if not member_story_ids:
-            return None
-        logger.debug(
-            "cluster.members_resolved",
-            extra={
-                "story_id": story_id,
-                "cluster_id": cluster_id,
-                "member_count": len(member_story_ids),
-            },
-        )
+            member_story_ids = tuple(
+                profile.story_id
+                for profile in profiles
+                if memberships.get(profile.story_id, {}).get(lens_key) == cluster_id
+            )
+            if not member_story_ids:
+                return None
+            logger.debug(
+                "cluster.members_resolved",
+                extra={
+                    "story_id": story_id,
+                    "cluster_id": cluster_id,
+                    "member_count": len(member_story_ids),
+                },
+            )
+            trigger_signals = next(
+                (dict(p.signals) for p in profiles if p.story_id == story_id),
+                {},
+            )
+            min_size = self._resolve_min_size_guard()
+            is_new = len(member_story_ids) <= min_size
+            if isinstance(debug_logger, StoryDebugLogger):
+                debug_logger.log(
+                    "cluster",
+                    "assigned" if not is_new else "created",
+                    {
+                        "cluster_id": cluster_id,
+                        "lens": lens_key,
+                        "key": self._cluster_key_from_signals(trigger_signals),
+                        "is_new": is_new,
+                    },
+                )
 
-        return self._create_issue_for_cluster(
-            trigger_story_id=story_id,
-            target=target,
-            cluster_id=cluster_id,
-            member_story_ids=member_story_ids,
-            primary_lens=primary.value,
-            profiles=profiles,
-            id_algorithm=id_algorithm,
-            memberships=memberships,
-        )
+            return self._create_issue_for_cluster(
+                trigger_story_id=story_id,
+                target=target,
+                cluster_id=cluster_id,
+                member_story_ids=member_story_ids,
+                primary_lens=primary.value,
+                profiles=profiles,
+                id_algorithm=id_algorithm,
+                memberships=memberships,
+                debug_logger=debug_logger,
+            )
 
     def process_all_pending(self) -> list[str]:
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
@@ -168,7 +205,11 @@ class StoryClusterOrchestrator:
         return 1
 
     def _compute_cluster_inputs(
-        self, ready_stories: list[StoryRecord]
+        self,
+        ready_stories: list[StoryRecord],
+        *,
+        debug_logger: StoryDebugLogger | None = None,
+        trigger_story_id: str | None = None,
     ) -> tuple[
         tuple[StoryProfileSignals, ...],
         dict[str, dict[str, str]],
@@ -178,7 +219,12 @@ class StoryClusterOrchestrator:
         id_algorithm = getattr(self.clustering_engine, "id_algorithm", "legacy_hash")
         profile_list: list[StoryProfileSignals] = []
         for story in ready_stories:
-            inferred = self._get_or_compute_signals(story)
+            story_logger = (
+                debug_logger
+                if debug_logger is not None and story.story_id == trigger_story_id
+                else None
+            )
+            inferred = self._get_or_compute_signals(story, debug_logger=story_logger)
             profile_list.append(
                 StoryProfileSignals(
                     story_id=story.story_id,
@@ -218,6 +264,7 @@ class StoryClusterOrchestrator:
         profiles: tuple[StoryProfileSignals, ...],
         id_algorithm: str,
         memberships: dict[str, dict[str, str]],
+        debug_logger: StoryDebugLogger | None = None,
     ) -> str | None:
         readiness_score, readiness_factors = self.clustering_engine.readiness_for_story(
             story_id=target.story_id,
@@ -231,6 +278,52 @@ class StoryClusterOrchestrator:
             narrative_language=target.narrative_language,
         )
         issue_title = primary_title or f"cluster:{primary_lens}:{cluster_id}"
+        promotion_service = getattr(self.issue_create_service, "promotion_service", None)
+        gate_policy = getattr(promotion_service, "gate_policy", None)
+        if gate_policy is None:
+            from core.promotion.gates import PromotionGatePolicy
+
+            gate_policy = PromotionGatePolicy()
+        cluster_canonical_types = tuple(
+            record.narrative_canonical_type
+            for member_id in member_story_ids
+            if (record := self.story_repository.get_story(member_id)) is not None
+            and record.narrative_canonical_type
+        )
+        gate_preview = IssueCandidateRecord(
+            candidate_id="preview",
+            status=IssueCandidateStatus.DRAFT,
+            cluster_id=cluster_id,
+            story_ids=member_story_ids,
+            readiness_score=readiness_score,
+            title=issue_title,
+        )
+        gate_result = evaluate_promotion_gates(
+            gate_preview,
+            gate_policy,
+            cluster_canonical_types=cluster_canonical_types,
+        )
+        canonical_type_gate = (
+            "pass"
+            if "no_actionable_canonical_type" not in gate_result.reasons
+            else "fail"
+        )
+
+        def _log_promotion(*, promoted: bool, issue_id: str | None = None) -> None:
+            if not isinstance(debug_logger, StoryDebugLogger):
+                return
+            debug_logger.log(
+                "promotion",
+                "gate_result",
+                {
+                    "readiness_score": readiness_score,
+                    "threshold": gate_policy.min_readiness_score,
+                    "canonical_type_gate": canonical_type_gate,
+                    "promoted": promoted,
+                    "issue_id": issue_id,
+                },
+            )
+
         try:
             result = self.issue_create_service.create_issue(
                 IssueCreateCommand(
@@ -241,6 +334,7 @@ class StoryClusterOrchestrator:
                 )
             )
         except (ValueError, PromotionStateError) as exc:
+            _log_promotion(promoted=False)
             logger.info(
                 "story_cluster_issue_pending",
                 extra={
@@ -255,6 +349,7 @@ class StoryClusterOrchestrator:
             )
             return None
         issue_id = result.issue_id
+        _log_promotion(promoted=True, issue_id=issue_id)
         for member_id in member_story_ids:
             try:
                 self.story_repository.update_lifecycle_status(

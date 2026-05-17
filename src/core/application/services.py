@@ -18,9 +18,11 @@ from core.domain import (
     StoryRecord,
     StoryRepository,
 )
+from core.redaction import redact_pii
 from core.geo import GeoService
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
 from core.intake import StoryIntakeRequest
+from core.logging_setup import StoryDebugLogger, open_story_debug_logger
 from core.profile import (
     infer_signals_from_canonical,
     normalize_signal_map,
@@ -69,11 +71,17 @@ class StoryIntakeService:
     idempotency_repository: IdempotencyRepository
     geo_service: GeoService | None = None
     story_embedding_store: StoryEmbeddingStore | None = None
+    log_debug_dir: str | None = None
 
     def create_story(
         self, request: StoryIntakeRequest, *, idempotency_key: str | None = None
     ) -> StoryRecord:
-        text_preview = request.narrative.original_text.strip()[:50]
+        contains_pii = (
+            request.privacy.contains_pii if request.privacy is not None else False
+        )
+        text_preview = redact_pii(
+            request.narrative.original_text.strip()[:50], contains_pii
+        )
         logger.debug(
             "intake.create_story_start",
             extra={
@@ -104,29 +112,36 @@ class StoryIntakeService:
                 )
 
         now = datetime.now(UTC)
-        geo = (
-            self.geo_service.resolve_for_story(request.narrative.location_query)
-            if self.geo_service is not None
-            else None
-        )
-        if geo is None:
-            logger.debug("intake.geo_skip", extra={"reason": "no_geo_or_not_resolved"})
-        else:
-            logger.debug(
-                "intake.geo_resolved",
-                extra={
-                    "geo_label": geo.normalized_label,
-                    "geo_provider": geo.provider,
-                    "geo_confidence": geo.confidence,
-                },
+        story_id = str(uuid4())
+        with open_story_debug_logger(story_id, self.log_debug_dir) as debug_logger:
+            geo = (
+                self.geo_service.resolve_for_story(
+                    request.narrative.location_query,
+                    debug_logger=debug_logger,
+                )
+                if self.geo_service is not None
+                else None
             )
-        consistency_notes = (
-            request.live_story_context.consistency_notes
-            if request.live_story_context is not None
-            else None
-        )
-        record = StoryRecord(
-            story_id=str(uuid4()),
+            if geo is None and debug_logger is not None and self.geo_service is None:
+                debug_logger.log("geo", "skipped", {"reason": "geo_service_disabled"})
+            if geo is None:
+                logger.debug("intake.geo_skip", extra={"reason": "no_geo_or_not_resolved"})
+            else:
+                logger.debug(
+                    "intake.geo_resolved",
+                    extra={
+                        "geo_label": geo.normalized_label,
+                        "geo_provider": geo.provider,
+                        "geo_confidence": geo.confidence,
+                    },
+                )
+            consistency_notes = (
+                request.live_story_context.consistency_notes
+                if request.live_story_context is not None
+                else None
+            )
+            record = StoryRecord(
+                story_id=story_id,
             schema_version=request.schema_version,
             narrative_original_text=request.narrative.original_text,
             submitter_external_user_id=request.submitter.external_user_id,
@@ -154,105 +169,114 @@ class StoryIntakeService:
             origin_tool_call_id=(
                 request.origin.tool_call_id if request.origin is not None else None
             ),
-            privacy_contains_pii=(
-                request.privacy.contains_pii if request.privacy is not None else False
-            ),
+            privacy_contains_pii=contains_pii,
             privacy_redaction_requested=(
                 request.privacy.redaction_requested
                 if request.privacy is not None
                 else False
             ),
-        )
-        repository_class = self.repository.__class__.__name__
-        backend_hint = _backend_from_repository_name(repository_class)
-        logger.info(
-            "intake.persistence_save_start backend=%s repository_class=%s stage=%s",
-            backend_hint,
-            repository_class,
-            "application.intake.save_story",
-            extra={
-                "story_id": record.story_id,
-                "backend": backend_hint,
-                "repository_class": repository_class,
-                "stage": "application.intake.save_story",
-                "outcome": "start",
-            },
-        )
-        saved = self.repository.save_story(record)
-        logger.info(
-            "intake.persistence_save_done backend=%s repository_class=%s stage=%s",
-            backend_hint,
-            repository_class,
-            "application.intake.save_story",
-            extra={
-                "story_id": saved.story_id,
-                "status": saved.lifecycle_status.value,
-                "backend": backend_hint,
-                "repository_class": repository_class,
-                "stage": "application.intake.save_story",
-                "outcome": "success",
-            },
-        )
-        logger.debug(
-            "intake.story_saved",
-            extra={"story_id": saved.story_id, "status": saved.lifecycle_status.value},
-        )
-        if idempotency_key:
-            self.idempotency_repository.save(
-                IdempotencyRecord(
-                    key=idempotency_key, story_id=saved.story_id, created_at=now
-                )
             )
+            repository_class = self.repository.__class__.__name__
+            backend_hint = _backend_from_repository_name(repository_class)
             logger.info(
-                "intake.idempotency_save_done backend=%s repository_class=%s stage=%s",
+                "intake.persistence_save_start backend=%s repository_class=%s stage=%s",
                 backend_hint,
-                self.idempotency_repository.__class__.__name__,
-                "application.intake.idempotency",
+                repository_class,
+                "application.intake.save_story",
+                extra={
+                    "story_id": record.story_id,
+                    "backend": backend_hint,
+                    "repository_class": repository_class,
+                    "stage": "application.intake.save_story",
+                    "outcome": "start",
+                },
+            )
+            saved = self.repository.save_story(record)
+            logger.info(
+                "intake.persistence_save_done backend=%s repository_class=%s stage=%s",
+                backend_hint,
+                repository_class,
+                "application.intake.save_story",
                 extra={
                     "story_id": saved.story_id,
-                    "idempotency_key": idempotency_key,
+                    "status": saved.lifecycle_status.value,
                     "backend": backend_hint,
-                    "repository_class": self.idempotency_repository.__class__.__name__,
-                    "stage": "application.intake.idempotency",
+                    "repository_class": repository_class,
+                    "stage": "application.intake.save_story",
                     "outcome": "success",
                 },
             )
-        final_story = self.advance_story_readiness(
-            story_id=saved.story_id,
-            narrative_complete=narrative_v2_complete(
-                original_text=saved.narrative_original_text,
-                language=request.narrative.language,
-                title=request.narrative.title,
-                description=request.narrative.description,
-                session_language=request.narrative.session_language,
-            ),
-        )
-        logger.debug(
-            "intake.lifecycle_advance_done",
-            extra={
-                "story_id": final_story.story_id,
-                "status": final_story.lifecycle_status.value,
-            },
-        )
-        if self.story_embedding_store is not None:
-            canonical_source = _canonical_story_embedding_source(final_story)
-            checksum = sha256(canonical_source.encode("utf-8")).hexdigest()
-            self.story_embedding_store.save_story_embedding(
-                story_id=final_story.story_id,
-                model_name="deterministic-baseline-v1",
-                embedding_vector=_build_embedding_vector(canonical_source),
-                source_checksum=checksum,
-                embedding_policy_version=STORY_EMBEDDING_POLICY_VERSION,
+            logger.debug(
+                "intake.story_saved",
+                extra={"story_id": saved.story_id, "status": saved.lifecycle_status.value},
+            )
+            if idempotency_key:
+                self.idempotency_repository.save(
+                    IdempotencyRecord(
+                        key=idempotency_key, story_id=saved.story_id, created_at=now
+                    )
+                )
+                logger.info(
+                    "intake.idempotency_save_done backend=%s repository_class=%s stage=%s",
+                    backend_hint,
+                    self.idempotency_repository.__class__.__name__,
+                    "application.intake.idempotency",
+                    extra={
+                        "story_id": saved.story_id,
+                        "idempotency_key": idempotency_key,
+                        "backend": backend_hint,
+                        "repository_class": self.idempotency_repository.__class__.__name__,
+                        "stage": "application.intake.idempotency",
+                        "outcome": "success",
+                    },
+                )
+            final_story = self.advance_story_readiness(
+                story_id=saved.story_id,
+                narrative_complete=narrative_v2_complete(
+                    original_text=saved.narrative_original_text,
+                    language=request.narrative.language,
+                    title=request.narrative.title,
+                    description=request.narrative.description,
+                    session_language=request.narrative.session_language,
+                ),
             )
             logger.debug(
-                "intake.embedding_computed",
+                "intake.lifecycle_advance_done",
                 extra={
                     "story_id": final_story.story_id,
-                    "model": "deterministic-baseline-v1",
-                    "checksum8": checksum[:8],
+                    "status": final_story.lifecycle_status.value,
                 },
             )
-        return final_story
+            if isinstance(debug_logger, StoryDebugLogger):
+                debug_logger.log(
+                    "intake",
+                    "story_accepted",
+                    {
+                        "lifecycle": final_story.lifecycle_status.value,
+                        "language": final_story.narrative_language or "",
+                        "session_language": final_story.narrative_session_language or "",
+                        "has_canonical_type": bool(final_story.narrative_canonical_type),
+                    },
+                )
+            if self.story_embedding_store is not None:
+                canonical_source = _canonical_story_embedding_source(final_story)
+                checksum = sha256(canonical_source.encode("utf-8")).hexdigest()
+                self.story_embedding_store.save_story_embedding(
+                    story_id=final_story.story_id,
+                    model_name="deterministic-baseline-v1",
+                    embedding_vector=_build_embedding_vector(canonical_source),
+                    source_checksum=checksum,
+                    embedding_policy_version=STORY_EMBEDDING_POLICY_VERSION,
+                )
+                logger.debug(
+                    "intake.embedding_computed",
+                    extra={
+                        "story_id": final_story.story_id,
+                        "model": "deterministic-baseline-v1",
+                        "checksum8": checksum[:8],
+                    },
+                )
+            return final_story
 
     def advance_story_readiness(
         self, *, story_id: str, narrative_complete: bool
@@ -399,6 +423,9 @@ STORY_EMBEDDING_POLICY_VERSION = "m2.story_embedding_policy.v1"
 
 def _canonical_story_embedding_source(story: StoryRecord) -> str:
     labels = ",".join(story.narrative_canonical_labels)
+    redacted_text = redact_pii(
+        story.narrative_original_text.strip(), story.privacy_contains_pii
+    )
     return "|".join(
         [
             f"story_id={story.story_id}",
@@ -406,7 +433,7 @@ def _canonical_story_embedding_source(story: StoryRecord) -> str:
             f"title={story_primary_title(narrative_title=story.narrative_title, narrative_session_language=story.narrative_session_language, narrative_language=story.narrative_language)}",
             f"type={story.narrative_canonical_type or ''}",
             f"labels={labels}",
-            f"text={story.narrative_original_text.strip()}",
+            f"text={redacted_text}",
         ]
     )
 
