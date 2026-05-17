@@ -6,7 +6,11 @@ from typing import Any
 from core.api.envelope import ErrorEnvelope
 
 
+from core.redaction import PII_REDACTED, redact_pii
+
 LOGGER = logging.getLogger("core.api")
+
+__all__ = ["PII_REDACTED", "redact_pii", "log_error", "log_api_event"]
 
 
 def log_error(envelope: ErrorEnvelope) -> None:

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import json
 import logging
 from contextvars import ContextVar
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import Any, Protocol
 
 _current_trace_id: ContextVar[str | None] = ContextVar("trace_id", default=None)
 _current_story_id: ContextVar[str | None] = ContextVar("story_id", default=None)
+
+
+class StoryPipelineDebugLog(Protocol):
+    def log(self, stage: str, event: str, data: dict[str, Any]) -> None: ...
 
 
 class _ContextDefaultsFilter(logging.Filter):
@@ -20,29 +25,49 @@ class _ContextDefaultsFilter(logging.Filter):
         return True
 
 
-class StoryDebugFileHandler(logging.Handler):
-    """Writes log records into story-scoped DEBUG files."""
+class StoryDebugLogger:
+    """REQ-37: per-story JSON Lines debug trace at {debug_dir}/{story_id}.jsonl."""
 
-    def __init__(self, log_debug_dir: Path) -> None:
-        super().__init__(level=logging.DEBUG)
-        self._base_dir = log_debug_dir
+    def __init__(self, story_id: str, debug_dir: str | None) -> None:
+        self._story_id = story_id
+        self._debug_dir = debug_dir.strip() if debug_dir and debug_dir.strip() else None
+        self._file = None
         self._lock = Lock()
-        self._format = logging.Formatter(
-            "%(asctime)s %(levelname)-8s %(name)s %(message)s [trace_id=%(trace_id)s story_id=%(story_id)s]"
-        )
 
-    def emit(self, record: logging.LogRecord) -> None:
-        story_id = _current_story_id.get()
-        trace_id = _current_trace_id.get()
-        if not story_id or not trace_id:
+    def log(self, stage: str, event: str, data: dict[str, Any]) -> None:
+        if self._debug_dir is None or self._file is None:
             return
-        date_dir = self._base_dir / "stories" / datetime.now(UTC).date().isoformat()
-        date_dir.mkdir(parents=True, exist_ok=True)
-        file_path = date_dir / f"{trace_id[:8]}-{story_id[:8]}.log"
-        line = self._format.format(record)
+        record = {
+            "ts": datetime.now(UTC).isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "stage": stage,
+            "event": event,
+            "story_id": self._story_id,
+            "data": data,
+        }
+        line = json.dumps(record, ensure_ascii=False) + "\n"
         with self._lock:
-            with file_path.open("a", encoding="utf-8") as fp:
-                fp.write(f"{line}\n")
+            self._file.write(line)
+            self._file.flush()
+
+    def __enter__(self) -> StoryDebugLogger:
+        if self._debug_dir is not None:
+            path = Path(self._debug_dir)
+            path.mkdir(parents=True, exist_ok=True)
+            self._file = (path / f"{self._story_id}.jsonl").open(
+                "a", encoding="utf-8"
+            )
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        if self._file is not None:
+            self._file.close()
+            self._file = None
+
+
+def open_story_debug_logger(story_id: str, debug_dir: str | None) -> StoryDebugLogger:
+    return StoryDebugLogger(story_id, debug_dir)
 
 
 def set_log_context(*, trace_id: str | None = None, story_id: str | None = None) -> None:
@@ -85,6 +110,7 @@ def log_runtime_exception(
 
 def configure_logging(log_level: str, *, log_format: str = "text", log_debug_dir: str | None = None) -> None:
     # Pytest often skips ASGI lifespan → this may not run; see docs/runtime-docs/testing/pytest-logging-without-asgi-lifespan.md
+    del log_debug_dir  # per-story JSONL via StoryDebugLogger; independent of LOG_LEVEL (REQ-37)
     level = getattr(logging, log_level.upper(), logging.INFO)
     if log_format.strip().lower() == "json":
         fmt = '{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s","trace_id":"%(trace_id)s","story_id":"%(story_id)s"}'
@@ -101,11 +127,6 @@ def configure_logging(log_level: str, *, log_format: str = "text", log_debug_dir
     stream_handler.setFormatter(logging.Formatter(fmt))
     stream_handler.addFilter(_ContextDefaultsFilter())
     root.addHandler(stream_handler)
-
-    if log_level.upper() == "DEBUG" and log_debug_dir:
-        debug_handler = StoryDebugFileHandler(Path(log_debug_dir))
-        debug_handler.addFilter(_ContextDefaultsFilter())
-        root.addHandler(debug_handler)
 
     logging.getLogger("uvicorn.access").propagate = False
     logging.getLogger(__name__).info(
