@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from core.cluster.alpha import alpha_score
-from core.domain import StoryRecord
+from core.domain import StoryGeoSnapshot, StoryRecord
 from core.projection.enums import DOGEIssueLabel, DOGEIssueStatus, DOGEIssueType
 from core.projection.i18n import I18nText
 from core.projection.input import ProjectionInput
@@ -147,6 +147,7 @@ def build_projection_input_from_draft(
     *,
     issue_id: str,
     draft: StoryProjectionDraft,
+    geo_snapshot: StoryGeoSnapshot | None = None,
 ) -> ProjectionInput:
     return ProjectionInput(
         issue_id=issue_id,
@@ -156,6 +157,13 @@ def build_projection_input_from_draft(
         title=draft.title,
         summary=draft.summary,
         description=draft.description,
+        geo_lat=geo_snapshot.latitude if geo_snapshot else None,
+        geo_lon=geo_snapshot.longitude if geo_snapshot else None,
+        geo_normalized_label=geo_snapshot.normalized_label if geo_snapshot else None,
+        geo_admin_district=geo_snapshot.admin_district if geo_snapshot else None,
+        geo_admin_settlement=geo_snapshot.admin_settlement if geo_snapshot else None,
+        geo_admin_region=geo_snapshot.admin_region if geo_snapshot else None,
+        geo_admin_country=geo_snapshot.admin_country if geo_snapshot else None,
     )
 
 

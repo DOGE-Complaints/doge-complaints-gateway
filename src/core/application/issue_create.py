@@ -118,7 +118,11 @@ class StoryPromotionProjectionBridge:
             dominant_story=dominant_story,
             cluster_stories=cluster_stories,
         )
-        return build_projection_input_from_draft(issue_id=issue_id, draft=draft)
+        return build_projection_input_from_draft(
+            issue_id=issue_id,
+            draft=draft,
+            geo_snapshot=dominant_story.geo,
+        )
 
 
 @dataclass(frozen=True)

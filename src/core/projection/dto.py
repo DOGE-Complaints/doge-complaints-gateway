@@ -20,6 +20,7 @@ class DOGEIssue:
     arweave_txid: str | None = None
     image_txid: str | None = None
     image_hash: str | None = None
+    geo: dict[str, object] | None = None
 
     def to_public_dict(self) -> dict[str, Any]:
         """JSON-serializable shape for contract tests and API mapping."""
@@ -42,4 +43,6 @@ class DOGEIssue:
             out["image_txid"] = self.image_txid
         if self.image_hash is not None:
             out["image_hash"] = self.image_hash
+        if self.geo is not None:
+            out["geo"] = self.geo
         return out

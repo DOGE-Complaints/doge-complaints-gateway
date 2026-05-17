@@ -24,6 +24,23 @@ def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
 
     summary = apply_summary_fallback(data.title, data.summary)
 
+    geo: dict[str, object] | None = None
+    if data.geo_lat is not None and data.geo_lon is not None:
+        geo = {
+            "lat": data.geo_lat,
+            "lon": data.geo_lon,
+        }
+        if data.geo_normalized_label:
+            geo["label"] = data.geo_normalized_label
+        if data.geo_admin_district:
+            geo["district"] = data.geo_admin_district
+        if data.geo_admin_settlement:
+            geo["settlement"] = data.geo_admin_settlement
+        if data.geo_admin_region:
+            geo["region"] = data.geo_admin_region
+        if data.geo_admin_country:
+            geo["country"] = data.geo_admin_country
+
     return DOGEIssue(
         id=data.issue_id,
         status=data.status,
@@ -37,4 +54,5 @@ def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
         arweave_txid=data.arweave_txid,
         image_txid=data.image_txid,
         image_hash=data.image_hash,
+        geo=geo,
     )

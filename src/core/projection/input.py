@@ -21,3 +21,10 @@ class ProjectionInput:
     arweave_txid: str | None = None
     image_txid: str | None = None
     image_hash: str | None = None
+    geo_lat: float | None = None
+    geo_lon: float | None = None
+    geo_normalized_label: str | None = None
+    geo_admin_district: str | None = None
+    geo_admin_settlement: str | None = None
+    geo_admin_region: str | None = None
+    geo_admin_country: str | None = None
