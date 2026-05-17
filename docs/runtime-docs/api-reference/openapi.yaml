@@ -397,6 +397,107 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /tallinn/issues:
+    get:
+      tags: [Intake]
+      summary: List clustered issues for Tallinn SPA read model
+      description: |
+        Runtime state:
+        - implemented in `src/core/api/asgi_app.py` (`GET /tallinn/issues`);
+        - public route; reads `doge_issues` projections via `IssueProjectionReadStore`.
+      operationId: listTallinnIssues
+      x-runtime-state: as-is-active-fastapi-route
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: labels
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - in: query
+          name: geo_lat_min
+          schema:
+            type: number
+        - in: query
+          name: geo_lat_max
+          schema:
+            type: number
+        - in: query
+          name: geo_lon_min
+          schema:
+            type: number
+        - in: query
+          name: geo_lon_max
+          schema:
+            type: number
+        - in: query
+          name: geo_district
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Issue list envelope
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      tags: [Intake]
+      summary: Manually create issue (operator)
+      description: |
+        Runtime state:
+        - implemented in `src/core/api/asgi_app.py` (`POST /tallinn/issues`);
+        - Bearer protected via `require_service_auth`.
+      operationId: createTallinnIssue
+      x-runtime-state: as-is-active-fastapi-route
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created issue id
+        '401':
+          description: Unauthorized
+  /tallinn/issues/{issue_id}:
+    get:
+      tags: [Intake]
+      summary: Get single issue projection by id
+      operationId: getTallinnIssueById
+      x-runtime-state: as-is-active-fastapi-route
+      parameters:
+        - in: path
+          name: issue_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Issue envelope
+        '404':
+          description: Not found
   /demo/auth-page:
     get:
       tags: [Ops]

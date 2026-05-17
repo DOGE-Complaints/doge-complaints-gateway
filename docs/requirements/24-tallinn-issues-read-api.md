@@ -1,10 +1,12 @@
-# Requirements: Tallinn Issues Read API
+# Requirements: Tallinn Issues API
 
-Дата: 2026-04-28 (обновлён 2026-04-29)  
+Дата: 2026-04-28 (обновлён 2026-05-17)  
 Статус: requirements — ready for tasking  
-Фокус: чтение уже кластеризованных issues из таблицы через HTTP  
-Связано: `docs/analysis/api-demo-tallinn-issues-read-endpoints.md` (исходный анализ)  
-Потребитель: `spa-app` в режиме `VITE_LIFE_REALITY_MODE=GFL-DRIVEN`
+Фокус: чтение кластеризованных issues + расширенная фильтрация + ручное создание issue оператором  
+Связано: `docs/analysis/api-demo-tallinn-issues-read-endpoints.md` (исходный анализ); поглощает REQ-39 (gap 2026-05-17)  
+Потребитель: `spa-app` в режиме `VITE_LIFE_REALITY_MODE=GFL-DRIVEN`; оператор (demo curation)
+
+**Зависимость: REQ-40** (`40-geo-propagation-to-issue-projection.md`) — geo-фильтры (§4.4, AC-14 – AC-19) требуют наличия `geo` в `payload_json`. REQ-40 должен быть выполнен до реализации geo-фильтров.
 
 ---
 
@@ -21,11 +23,13 @@ HTTP-эндпоинтов для чтения issues — нет ни одног�
 ### 1.3 Что должно появиться
 
 ```
-GET /tallinn/issues                — список кластеризованных issues, фильтры по статусу / типу / меткам
-GET /tallinn/issues/{issue_id}     — один issue по ID
+GET  /tallinn/issues                — список кластеризованных issues, фильтры по статусу / типу / меткам
+GET  /tallinn/issues/{issue_id}     — один issue по ID
+POST /tallinn/issues                — ручное создание issue оператором (Bearer protected)
 ```
 
-Оба эндпоинта — **публичные** (без авторизации), читают данные напрямую из таблицы `tallinn_issues_projections`.
+GET-эндпоинты — **публичные** (без авторизации), читают данные из `doge_issues` (см. §2.1 / REQ-27).  
+`POST /tallinn/issues` — **protected** (Bearer token), оператор создаёт issue напрямую без clustering pipeline.
 
 ---
 
@@ -33,48 +37,30 @@ GET /tallinn/issues/{issue_id}     — один issue по ID
 
 ### 2.1 Переименование таблицы
 
-Таблица `spa_issue_projections` переименовывается в `tallinn_issues_projections`.
+> ⚠️ **Superseded by REQ-27** (`27-doge-issue-domain-rename.md`, 2026-05-05).  
+> Финальное имя таблицы — **`doge_issues`**, не `tallinn_issues_projections`.  
+> Rationale: `doge_issues` — доменный объект первого класса, не технический слой. Подробнее: REQ-27 §1.  
+> Endpoint namespace `/tallinn/issues` **остаётся** — это публичный URL, не имя таблицы (REQ-27 §5).
 
-**Почему:** название `spa_issue_projections` — артефакт ранней реализации, отражающий технический слой, а не домен. `tallinn_issues_projections` согласуется с namespace `/tallinn/issues` и отражает назначение: projection кластеризованных issues для Таллинна.
-
-**Почему view не нужен:**
-
-Gateway читает через Python с ключом `service_role`, который обходит RLS на любой таблице. SPA не ходит в Supabase напрямую — только через gateway HTTP API. View давал бы пользу только при прямом JS-клиентском доступе с `anon` ключом, который не предусмотрен в нашей архитектуре. Читаем прямо из `tallinn_issues_projections`.
+Таблица `spa_issue_projections` переименована в **`doge_issues`** (реализовано в `20260505_1258_rename_to_doge_issues.sql`).
 
 **Схема таблицы (не изменяется, только имя):**
 
 ```sql
-CREATE TABLE tallinn_issues_projections (
+CREATE TABLE doge_issues (
     issue_id        TEXT PRIMARY KEY,
     status          TEXT NOT NULL,
-    payload_json    TEXT NOT NULL,  -- полный JSON от SpaIssueProjection.to_public_dict()
+    payload_json    TEXT NOT NULL,  -- полный JSON от DOGEIssue.to_public_dict()
     policy_version  TEXT NOT NULL,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
 )
 ```
 
-В Supabase: `payload_json` — тип `jsonb`. RLS включён, доступ — только `service_role`.
+В Supabase: `payload_json` — тип `jsonb`. RLS включён, доступ — только `service_role`.  
+Политика: `doge_issues_service_role_all` (создана в миграции `20260505_1258_rename_to_doge_issues.sql`).
 
-**Supabase migration (rename):**
-
-```sql
--- supabase/migrations/YYYYMMDD_rename_spa_issue_projections.sql
-alter table public.spa_issue_projections rename to tallinn_issues_projections;
-
--- обновить RLS политику
-drop policy if exists projections_service_role_all on public.spa_issue_projections;
-create policy tallinn_projections_service_role_all
-    on public.tallinn_issues_projections
-    for all
-    to service_role
-    using (true)
-    with check (true);
-```
-
-**Bootstrap (`000_full_init.sql`):** заменить все вхождения `spa_issue_projections` на `tallinn_issues_projections`, включая `CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE ... enable row level security`, `CREATE POLICY`.
-
-**SQLite (`db_sqlite.py` — `ensure_schema()`):** заменить `spa_issue_projections` → `tallinn_issues_projections` в DDL и во всех SQL-запросах (write-методы тоже затрагиваются).
+**Статус реализации:** выполнено. SQLite DDL — `db_sqlite.py:ensure_schema()`. Supabase — `/rest/v1/doge_issues`.
 
 ### 2.2 View `issues_dashboard` — zombie, запланировать удаление
 
@@ -101,19 +87,72 @@ class IssueProjectionReadStore(Protocol):
     def list_projections(
         self,
         *,
+        # Категориальные фильтры
         status: list[str] | None = None,
         issue_type: str | None = None,
         labels: list[str] | None = None,
+        institution: str | None = None,
+        # Временны́е фильтры
+        created_after: str | None = None,   # ISO8601; включительно
+        created_before: str | None = None,  # ISO8601; включительно
+        # Geo — пространственный (bbox)
+        geo_lat_min: float | None = None,
+        geo_lat_max: float | None = None,
+        geo_lon_min: float | None = None,
+        geo_lon_max: float | None = None,
+        # Geo — идентификаторы адреса
+        geo_district: list[str] | None = None,
+        geo_settlement: list[str] | None = None,
+        geo_region: list[str] | None = None,
+        geo_country: list[str] | None = None,
+        geo_postal_code: list[str] | None = None,
     ) -> list[dict[str, object]]:
-        """Return list of projection payloads matching filters.
+        """Return list of projection payloads matching all active filters.
 
-        Each item is SpaIssueProjection.to_public_dict() shape.
-        No filters → return all. status: OR. labels: OR (any match).
+        Each item is DOGEIssue.to_public_dict() shape (REQ-40: includes geo sub-object).
+        No filters → return all.
+        status / labels / geo_district / geo_settlement / geo_region / geo_country /
+        geo_postal_code: OR within each parameter.
+        issue_type / institution: exact match.
+        bbox (geo_lat_min/max + geo_lon_min/max): AND with each other and with address filters.
+        Issues without geo field: excluded when any geo filter is active.
         """
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
         """Return single projection payload by issue_id, or None."""
 ```
+
+### 3.1.1 Порядок применения фильтров
+
+```
+1. status          → SQL WHERE status IN (...)                   — эффективно
+2. created_after   → SQL WHERE created_at >= ?                  — лексикографический ISO8601
+3. created_before  → SQL WHERE created_at <= ?                  — лексикографический ISO8601
+4. Python post-fetch loop (per-item):
+   a. issue_type     — payload.get("type") != issue_type
+   b. labels         — OR: any(l in payload["labels"] for l in labels)
+   c. institution    — payload.get("institution") != institution
+   d. geo_district   — OR: normalize_geo_token(payload["geo"]["district"])
+   e. geo_settlement — OR: normalize_geo_token
+   f. geo_region     — OR: normalize_geo_token
+   g. geo_country    — OR: normalize_geo_token
+   h. geo_postal_code— OR: normalize_geo_token
+   i. bbox           — AND: geo_lat_min ≤ lat ≤ geo_lat_max AND geo_lon_min ≤ lon ≤ geo_lon_max
+   j. null-safety    — issue без поля "geo" → исключить при любом активном geo-фильтре
+```
+
+### 3.1.2 Нормализация geo-строк
+
+Использовать `normalize_geo_token()` из `src/core/geo/scope.py:15`:
+
+```python
+def normalize_geo_token(value: str | None) -> str:
+    if value is None:
+        return ""
+    return "".join(ch for ch in value.strip().lower() if ch.isalnum())
+```
+
+Пример: `?geo_district=põhja-tallinn` → `"phjatallinn"` совпадает с `geo.district = "Põhja-Tallinn"` → `"phjatallinn"`.
 
 ### 3.2 `InMemoryIssueProjectionStore` — добавить методы
 
@@ -148,7 +187,9 @@ def get_projection(self, issue_id: str) -> dict[str, object] | None:
 
 ### 3.3 `SqliteIssueProjectionStore` — добавить методы
 
-Файл: `src/core/infrastructure/db_sqlite.py`. Читает напрямую из `tallinn_issues_projections`.
+Файл: `src/core/infrastructure/db_sqlite.py`. Читает напрямую из **`doge_issues`** (REQ-27).
+
+> Псевдокод ниже исторический; в runtime заменить `tallinn_issues_projections` → `doge_issues`.
 
 ```python
 def list_projections(
@@ -192,7 +233,9 @@ def get_projection(self, issue_id: str) -> dict[str, object] | None:
 
 ### 3.4 `SupabaseIssueProjectionStore` — добавить методы
 
-Файл: `src/core/infrastructure/db_supabase.py`. Читает напрямую из `tallinn_issues_projections`.
+Файл: `src/core/infrastructure/db_supabase.py`. Читает напрямую из **`doge_issues`** (REST `/rest/v1/doge_issues`).
+
+> Псевдокод ниже исторический; в runtime заменить `tallinn_issues_projections` → `doge_issues`.
 
 ```python
 def list_projections(
@@ -294,6 +337,39 @@ def handle_tallinn_issue_get(
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
         return envelope.as_dict(), 500
+
+
+def handle_tallinn_issue_create(
+    dependencies: ApiDependencies,
+    *,
+    body: dict[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """Manual operator creation. Bearer protected (enforced at route level)."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        cluster_id = body.get("cluster_id", "")
+        story_ids = body.get("story_ids", [])
+        title = body.get("title", {})
+        issue_type = body.get("type", "complaint")
+        issue_id = dependencies.issue_create_service.create_manual_issue(
+            cluster_id=cluster_id,
+            story_ids=story_ids,
+            title=title,
+            issue_type=issue_type,
+        )
+        return (
+            build_success_envelope(
+                data={"issue_id": issue_id}, trace_id=resolved_trace_id
+            ).as_dict(),
+            201,
+        )
+    except (KeyError, ValueError) as exc:
+        return build_error_envelope(exc, trace_id=resolved_trace_id).as_dict(), 400
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
 ```
 
 ### 4.2 Routes — `asgi_app.py`
@@ -306,8 +382,8 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],        # для demo/pilot; в production — конкретный origin
-    allow_methods=["GET"],
-    allow_headers=["x-trace-id"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["x-trace-id", "authorization"],
 )
 ```
 
@@ -319,28 +395,56 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/ready",
     "/demo/auth-page",
     "/intake/stories",
-    "/tallinn/issues",           # NEW
+    "/tallinn/issues",           # NEW — GET только; POST через require_service_auth
 )
 ```
 
 Новые маршруты:
 
 ```python
-from core.api.handlers import handle_tallinn_issues_list, handle_tallinn_issue_get
+from core.api.handlers import handle_tallinn_issues_list, handle_tallinn_issue_get, handle_tallinn_issue_create
 
 @app.get("/tallinn/issues")
 async def tallinn_issues_list(
     request: Request,
+    # категориальные
     status: list[str] | None = Query(default=None),
     type: str | None = Query(default=None),
     labels: list[str] | None = Query(default=None),
+    institution: str | None = Query(default=None),
+    # временны́е
+    created_after: str | None = Query(default=None),
+    created_before: str | None = Query(default=None),
+    # geo — bbox
+    geo_lat_min: float | None = Query(default=None),
+    geo_lat_max: float | None = Query(default=None),
+    geo_lon_min: float | None = Query(default=None),
+    geo_lon_max: float | None = Query(default=None),
+    # geo — address
+    geo_district: list[str] | None = Query(default=None),
+    geo_settlement: list[str] | None = Query(default=None),
+    geo_region: list[str] | None = Query(default=None),
+    geo_country: list[str] | None = Query(default=None),
+    geo_postal_code: list[str] | None = Query(default=None),
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
     payload = handle_tallinn_issues_list(
         deps,
         status=status,
-        issue_type=type,      # query param 'type' → внутренний 'issue_type'
+        issue_type=type,          # query param 'type' → внутренний 'issue_type'
         labels=labels,
+        institution=institution,
+        created_after=created_after,
+        created_before=created_before,
+        geo_lat_min=geo_lat_min,
+        geo_lat_max=geo_lat_max,
+        geo_lon_min=geo_lon_min,
+        geo_lon_max=geo_lon_max,
+        geo_district=geo_district,
+        geo_settlement=geo_settlement,
+        geo_region=geo_region,
+        geo_country=geo_country,
+        geo_postal_code=geo_postal_code,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=200)
@@ -358,17 +462,89 @@ async def tallinn_issue_get(
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.post("/tallinn/issues", dependencies=[Depends(require_service_auth)])
+async def tallinn_issue_create(
+    request: Request,
+    body: dict[str, Any],
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload, status_code = handle_tallinn_issue_create(
+        deps,
+        body=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
 ```
 
 ### 4.3 Query parameter контракт
 
+#### Категориальные фильтры
+
 | Параметр | Тип FastAPI | Повторяется | Пример | Логика |
 |----------|-------------|-------------|--------|--------|
-| `status` | `list[str]` | да | `?status=NEW&status=VERIFIED` | OR |
-| `type`   | `str`       | нет | `?type=complaint` | точное совпадение |
-| `labels` | `list[str]` | да | `?labels=bureaucracy&labels=infrastructure` | OR |
+| `status` | `list[str]` | да | `?status=NEW&status=PUBLISHED` | OR |
+| `type`   | `str`       | нет | `?type=INCIDENT` | exact match |
+| `labels` | `list[str]` | да | `?labels=infrastructure&labels=waste` | OR |
+| `institution` | `str` | нет | `?institution=Tallinna Kommunaalamet` | exact match, case-sensitive |
 
-Без параметров — возвращает все issues.
+#### Временны́е фильтры
+
+| Параметр | Тип FastAPI | Пример | Логика |
+|----------|-------------|--------|--------|
+| `created_after`  | `str` | `?created_after=2026-01-01T00:00:00Z` | `created_at >= value` (ISO8601 лексикографически) |
+| `created_before` | `str` | `?created_before=2026-12-31T23:59:59Z` | `created_at <= value` |
+
+#### Geo-фильтры — режим A: пространственный (bbox)
+
+Прямоугольник координат WGS84 — аналог «зума» Google Maps.
+
+| Параметр | Тип FastAPI | Пример | Логика |
+|----------|-------------|--------|--------|
+| `geo_lat_min` | `float` | `?geo_lat_min=59.43` | нижняя граница широты (south) |
+| `geo_lat_max` | `float` | `?geo_lat_max=59.46` | верхняя граница широты (north) |
+| `geo_lon_min` | `float` | `?geo_lon_min=24.72` | левая граница долготы (west) |
+| `geo_lon_max` | `float` | `?geo_lon_max=24.77` | правая граница долготы (east) |
+
+Условие: `geo_lat_min ≤ issue.geo.lat ≤ geo_lat_max AND geo_lon_min ≤ issue.geo.lon ≤ geo_lon_max`
+
+#### Geo-фильтры — режим B: идентификаторы адреса
+
+Фильтрация по admin-иерархии из `StoryGeoSnapshot` (REQ-40). Нормализация через `normalize_geo_token()`.
+
+| Параметр | Тип FastAPI | Повторяется | Соответствует | Логика |
+|----------|-------------|-------------|---------------|--------|
+| `geo_district`    | `list[str]` | да | `geo.district`    | OR |
+| `geo_settlement`  | `list[str]` | да | `geo.settlement`  | OR |
+| `geo_region`      | `list[str]` | да | `geo.region`      | OR |
+| `geo_country`     | `list[str]` | да | `geo.country`     | OR |
+| `geo_postal_code` | `list[str]` | да | `geo.postal_code` (Phase 3) | OR |
+
+#### Комбинирование и null-safety
+
+- Все указанные параметры — AND между группами (режим A AND режим B AND категориальные AND временны́е).
+- Issues без поля `"geo"` в payload — **исключаются** при любом активном geo-фильтре.
+- Пустое значение (`?geo_district=`) — игнорируется как отсутствующий параметр.
+- Без параметров — возвращает все issues.
+
+**Полный пример запроса:**
+```
+GET /tallinn/issues
+  ?status=NEW&status=PUBLISHED
+  &type=INCIDENT
+  &labels=infrastructure&labels=waste
+  &institution=Tallinna%20Kommunaalamet
+  &created_after=2026-01-01T00:00:00Z
+  &created_before=2026-12-31T23:59:59Z
+  &geo_lat_min=59.43&geo_lat_max=59.46
+  &geo_lon_min=24.72&geo_lon_max=24.77
+  &geo_district=Kalamaja
+  &geo_settlement=Tallinn
+  &geo_region=Harju%20maakond
+  &geo_country=EE
+  &geo_postal_code=10411
+```
 
 ### 4.4 Response envelope
 
@@ -379,16 +555,42 @@ async def tallinn_issue_get(
   "data": {
     "issues": [
       {
-        "id": "...", "status": "NEW", "type": "complaint",
-        "labels": ["infrastructure"],
+        "id": "issue:abc123",
+        "status": "PUBLISHED",
+        "type": "INCIDENT",
+        "labels": ["infrastructure", "safety"],
+        "title": {"et": "Katki tänav", "ru": "Сломанная дорога", "en": "Broken road"},
+        "summary": {"et": "...", "ru": "...", "en": "..."},
+        "description": {"et": "...", "ru": "...", "en": "..."},
+        "institution": null,
+        "created_at": "2026-05-17T10:00:00Z",
+        "geo": {
+          "lat": 59.4372,
+          "lon": 24.7453,
+          "label": "Kalamaja, Tallinn",
+          "district": "Põhja-Tallinn",
+          "settlement": "Tallinn",
+          "region": "Harju maakond",
+          "country": "EE"
+        }
+      },
+      {
+        "id": "issue:xyz999",
+        "status": "NEW",
+        "type": "IMPROVEMENT",
+        "labels": ["waste"],
         "title": {"et": "...", "ru": "...", "en": "..."},
         "summary": {"et": "...", "ru": "...", "en": "..."},
         "description": {"et": "...", "ru": "...", "en": "..."}
+        // поле "geo" отсутствует — story была без location_query
       }
     ]
   }
 }
 ```
+
+> `"geo"` присутствует только если у доминантной истории кластера был `location_query` (REQ-40). Поле отсутствует — не `null`. SPA проверяет: `if (issue.geo)`.
+
 
 **Один issue (GET /tallinn/issues/{id}, 200):**
 ```json
@@ -404,6 +606,19 @@ async def tallinn_issue_get(
   "trace_id": "uuid",
   "error": { "code": "DOMAIN_ERROR", "type": "domain", "message": "Issue not found: ..." }
 }
+```
+
+**Создан POST /tallinn/issues (201):**
+```json
+{
+  "trace_id": "uuid",
+  "data": { "issue_id": "issue:..." }
+}
+```
+
+**POST без Bearer (401):**
+```json
+{ "detail": "Unauthorized" }
 ```
 
 ---
@@ -447,8 +662,8 @@ issue_projection_read_store = service_factory.get_issue_projection_store()
 
 | # | Задача | Файлы | Проверка |
 |---|--------|-------|---------|
-| 1 | Rename: `spa_issue_projections` → `tallinn_issues_projections` в bootstrap + SQLite DDL + все write-методы store | `000_full_init.sql`, `db_sqlite.py`, `db_supabase.py`, `repositories.py` | сервис стартует, write-путь (`POST /intake/stories`) работает |
-| 2 | Supabase migration: rename таблицы + пересоздать RLS policy | `supabase/migrations/YYYYMMDD_rename_spa_issue_projections.sql` | migration применяется без ошибок |
+| 1 | Rename: `spa_issue_projections` → **`doge_issues`** (REQ-27 supersedes промежуточное имя `tallinn_issues_projections`) | `20260505_1258_rename_to_doge_issues.sql`, `db_sqlite.py`, `db_supabase.py`, `repositories.py` | AC-1, AC-2; write-путь (`POST /intake/stories`) |
+| 2 | Supabase migration: rename + RLS policy для `doge_issues` | `supabase/migrations/20260505_1258_rename_to_doge_issues.sql` | migration применяется без ошибок |
 | 3 | Protocol: добавить `IssueProjectionReadStore` | `issue_create.py` | mypy/pyright не ругается |
 | 4 | InMemory store: `list_projections`, `get_projection` | `repositories.py` | unit test: empty → [], after save → item |
 | 5 | SQLite store: `list_projections`, `get_projection` | `db_sqlite.py` | unit test с реальным SQLite файлом |
@@ -456,36 +671,49 @@ issue_projection_read_store = service_factory.get_issue_projection_store()
 | 7 | Factory: `get_issue_projection_store()` | `factory.py`, `service_factory.py` | нет ошибок импорта |
 | 8 | Dependencies: провести `issue_projection_read_store` | `dependencies.py` | тест `build_api_dependencies()` |
 | 9 | Handlers: `handle_tallinn_issues_list`, `handle_tallinn_issue_get` | `handlers.py` | unit test с mock deps |
-| 10 | Routes + CORS: зарегистрировать маршруты | `asgi_app.py` | `GET /tallinn/issues` → HTTP 200 |
+| 10 | Routes + CORS: зарегистрировать GET маршруты | `asgi_app.py` | `GET /tallinn/issues` → HTTP 200 |
+| 11 | `IssueCreateService.create_manual_issue()` + `POST /tallinn/issues` route (Bearer) | `issue_create.py`, `handlers.py`, `asgi_app.py` | POST без Bearer → 401; POST с Bearer + payload → 201 |
+| 12 | OpenAPI spec: добавить все три эндпоинта | `docs/runtime-docs/api-reference/openapi.yaml` | spec валидируется |
+| **Phase 2: Geo filters (требует REQ-40)** | | | |
+| 13 | `IssueProjectionReadStore` Protocol — расширить сигнатуру (все geo + time параметры) | `issue_create.py` | mypy не ругается |
+| 14 | InMemory store: `list_projections()` — добавить все фильтры (§3.1.1) | `repositories.py` | unit tests geo-фильтров |
+| 15 | SQLite store: то же | `db_sqlite.py` | unit tests |
+| 16 | Supabase store: то же | `db_supabase.py` | integration test (skip без env) |
+| 17 | Handler `handle_tallinn_issues_list()` — принять все параметры | `handlers.py` | |
+| 18 | Route `GET /tallinn/issues` — добавить все Query параметры | `asgi_app.py` | `?geo_lat_min=59.43&geo_lat_max=59.46&...` работает |
 
 **Шаг 1 — самый опасный** (rename затрагивает write-путь). Делать в одном PR с шагом 2 миграцией. Smoke test write-пути после каждого backend-перехода.
+
+**Phase 2 (шаги 13–18) начинать только после выполнения REQ-40** (geo в payload).
 
 ---
 
 ## 7. Acceptance criteria
 
-### AC-1: таблица `tallinn_issues_projections` существует
+### AC-1: таблица `doge_issues` существует
+
+> ℹ️ Имя таблицы изменено per REQ-27 (`doge_issues`, не `tallinn_issues_projections`).
 
 SQLite:
 ```python
 row = conn.execute(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='tallinn_issues_projections'"
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='doge_issues'"
 ).fetchone()
 assert row is not None
 ```
 
 Supabase:
 ```sql
-SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename='tallinn_issues_projections';
+SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename='doge_issues';
 -- 1 строка
 ```
 
-### AC-2: write-путь не сломан после rename
+### AC-2: write-путь работает с таблицей `doge_issues`
 
 ```
 POST /intake/stories  (с CLUSTER_MIN_SIZE=1)
-→ 200 { "story_id": "..." }
-# нет ошибок "no such table: spa_issue_projections"
+→ 202 { "data": { "story_id": "..." } }
+# запись появляется в doge_issues; нет ошибок "no such table"
 ```
 
 ### AC-3: GET /tallinn/issues — пустой store
@@ -541,6 +769,99 @@ Origin: http://localhost:5173
 → 200 с Access-Control-Allow-Origin: *
 ```
 
+### AC-10: POST /tallinn/issues без Bearer → 401
+
+```
+POST /tallinn/issues
+Content-Type: application/json
+(без Authorization header)
+→ 401
+```
+
+### AC-11: POST /tallinn/issues с Bearer + валидным payload → 201 + issue_id
+
+```json
+POST /tallinn/issues
+Authorization: Bearer <token>
+{
+  "cluster_id": "cluster:test-1",
+  "story_ids": ["story-a", "story-b"],
+  "title": {"et": "Katki tänav", "ru": "Сломанная дорога", "en": "Broken road"},
+  "type": "complaint"
+}
+→ 201 { "data": { "issue_id": "issue:..." }, "trace_id": "..." }
+```
+
+### AC-12: Issue созданный через POST появляется в GET /tallinn/issues
+
+```
+POST /tallinn/issues (Bearer, valid payload) → issue_id
+GET /tallinn/issues
+→ issue с этим issue_id присутствует в data.issues
+```
+
+### AC-13: OpenAPI spec содержит все три эндпоинта
+
+```
+docs/runtime-docs/api-reference/openapi.yaml
+→ paths содержит /tallinn/issues (GET), /tallinn/issues/{issue_id} (GET), /tallinn/issues (POST)
+→ POST помечен securitySchemes: Bearer
+```
+
+### AC-14: Bbox-фильтр возвращает только issues в зоне (требует REQ-40)
+
+```
+GET /tallinn/issues?geo_lat_min=59.43&geo_lat_max=59.46&geo_lon_min=24.72&geo_lon_max=24.77
+→ все issues в ответе имеют geo.lat ∈ [59.43, 59.46] и geo.lon ∈ [24.72, 24.77]
+→ issues вне bbox не возвращаются
+→ issues без поля "geo" не возвращаются
+```
+
+### AC-15: Issues без geo исключаются при активном geo-фильтре (требует REQ-40)
+
+```
+GET /tallinn/issues?geo_district=Kesklinn
+→ ответ не содержит issues без поля "geo"
+```
+
+### AC-16: Address-фильтр по district — case-insensitive нормализованный (требует REQ-40)
+
+```
+GET /tallinn/issues?geo_district=põhja-tallinn
+→ возвращает issues с geo.district == "Põhja-Tallinn"
+   (normalize_geo_token("põhja-tallinn") == normalize_geo_token("Põhja-Tallinn"))
+```
+
+### AC-17: Множественные значения geo_district — OR (требует REQ-40)
+
+```
+GET /tallinn/issues?geo_district=Kalamaja&geo_district=Kesklinn
+→ issues из обоих районов в ответе
+```
+
+### AC-18: Комбинирование bbox + address — AND (требует REQ-40)
+
+```
+GET /tallinn/issues?geo_lat_min=59.43&geo_lat_max=59.46&geo_lon_min=24.72&geo_lon_max=24.77&geo_district=Kesklinn
+→ только issues удовлетворяющие ОБОИМ условиям
+```
+
+### AC-19: created_after / created_before
+
+```
+GET /tallinn/issues?created_after=2026-05-01T00:00:00Z&created_before=2026-05-31T23:59:59Z
+→ только issues с created_at в мае 2026
+→ issues до и после — не возвращаются
+```
+
+### AC-20: Пустые geo-параметры игнорируются
+
+```
+GET /tallinn/issues?geo_district=
+→ эквивалентно GET /tallinn/issues (без фильтра)
+→ возвращает все issues
+```
+
 ---
 
 ## 8. Wire format issue payload
@@ -568,10 +889,16 @@ Origin: http://localhost:5173
 
 | Что | Почему |
 |-----|--------|
-| Авторизация на эндпоинтах | публичный read, no auth required |
+| Авторизация на GET-эндпоинтах | публичный read, no auth required (POST защищён отдельно через Bearer) |
 | Пагинация | не нужна в MVP |
 | Полнотекстовый поиск | client-side в SPA |
 | `GRANT SELECT to anon` на таблицу | gateway читает через `service_role`, прямой JS-клиентский доступ не предусмотрен |
 | Удаление `issues_dashboard` view | отдельный cleanup task, не блокирует этот feature |
 | Удаление `spa_issue_projection_embeddings` | отдельный cleanup task (см. `docs/analysis/api-demo-tallinn-issues-read-endpoints.md` раздел 11) |
 | Изменение SPA-кода | покрыто `spa-app/docs/analysis/reality-mode-data-source-switch.md` |
+| `POST /issues` (путь без `/tallinn/`) | REQ-39 использовал этот путь с Bearer — конфликт с namespace; canonical путь — `/tallinn/issues` |
+| Geo propagation pipeline | REQ-40 (`40-geo-propagation-to-issue-projection.md`) |
+| Пространственный SQL-индекс (PostGIS, R-tree) | не нужен при demo-масштабе |
+| Centroid geo по всем story кластера | Phase 2 post-demo (в REQ-40 §2) |
+| `geo_postal_code` наполнение данными | Phase 3 post-demo (в REQ-40 §6) |
+| GeoJSON / Polygon boundaries | beyond MVP |
