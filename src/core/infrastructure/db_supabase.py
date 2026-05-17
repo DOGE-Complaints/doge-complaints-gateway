@@ -616,6 +616,79 @@ class SupabaseIssueProjectionStore:
             prefer="resolution=merge-duplicates,return=minimal",
         )
 
+    def list_projections(
+        self,
+        *,
+        status: list[str] | None = None,
+        issue_type: str | None = None,
+        labels: list[str] | None = None,
+        institution: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        geo_lat_min: float | None = None,
+        geo_lat_max: float | None = None,
+        geo_lon_min: float | None = None,
+        geo_lon_max: float | None = None,
+        geo_district: list[str] | None = None,
+        geo_settlement: list[str] | None = None,
+        geo_region: list[str] | None = None,
+        geo_country: list[str] | None = None,
+        geo_postal_code: list[str] | None = None,
+    ) -> list[dict[str, object]]:
+        from core.projection.read_filters import filter_projection_rows, parse_payload_json
+
+        rows_data = self.db._request(
+            method="GET",
+            path="/rest/v1/doge_issues",
+            params={
+                "select": "status,payload_json,created_at",
+                "order": "created_at.desc",
+            },
+        )
+        rows: list[tuple[str, dict[str, object], str]] = []
+        for row in rows_data:
+            rows.append(
+                (
+                    str(row["status"]),
+                    parse_payload_json(row["payload_json"]),
+                    str(row["created_at"]),
+                )
+            )
+        return filter_projection_rows(
+            rows,
+            status=status,
+            issue_type=issue_type,
+            labels=labels,
+            institution=institution,
+            created_after=created_after,
+            created_before=created_before,
+            geo_lat_min=geo_lat_min,
+            geo_lat_max=geo_lat_max,
+            geo_lon_min=geo_lon_min,
+            geo_lon_max=geo_lon_max,
+            geo_district=geo_district,
+            geo_settlement=geo_settlement,
+            geo_region=geo_region,
+            geo_country=geo_country,
+            geo_postal_code=geo_postal_code,
+        )
+
+    def get_projection(self, issue_id: str) -> dict[str, object] | None:
+        from core.projection.read_filters import parse_payload_json
+
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/doge_issues",
+            params={
+                "select": "payload_json",
+                "issue_id": self.db._eq_filter(issue_id),
+                "limit": "1",
+            },
+        )
+        if not rows:
+            return None
+        return parse_payload_json(rows[0]["payload_json"])
+
 
 @dataclass
 class SupabaseIssueProjectionEmbeddingStore:

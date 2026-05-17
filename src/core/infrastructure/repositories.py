@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+
+from core.projection.read_filters import filter_projection_rows, parse_payload_json
 import logging
 from typing import Mapping
 
@@ -163,13 +165,74 @@ class InMemoryIssueProjectionStore:
         policy_version: str,
     ) -> None:
         assert self._rows is not None
+        now = datetime.now(UTC)
         self._rows[issue_id] = {
             "issue_id": issue_id,
             "status": status,
             "payload": dict(payload),
             "policy_version": policy_version,
-            "updated_at": datetime.now(UTC),
+            "created_at": now,
+            "updated_at": now,
         }
+
+    def list_projections(
+        self,
+        *,
+        status: list[str] | None = None,
+        issue_type: str | None = None,
+        labels: list[str] | None = None,
+        institution: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        geo_lat_min: float | None = None,
+        geo_lat_max: float | None = None,
+        geo_lon_min: float | None = None,
+        geo_lon_max: float | None = None,
+        geo_district: list[str] | None = None,
+        geo_settlement: list[str] | None = None,
+        geo_region: list[str] | None = None,
+        geo_country: list[str] | None = None,
+        geo_postal_code: list[str] | None = None,
+    ) -> list[dict[str, object]]:
+        assert self._rows is not None
+        rows: list[tuple[str, dict[str, object], str]] = []
+        for row in self._rows.values():
+            created_at = row.get("created_at")
+            created_at_text = (
+                created_at.isoformat()
+                if isinstance(created_at, datetime)
+                else str(created_at or row.get("updated_at", ""))
+            )
+            payload = row["payload"]
+            assert isinstance(payload, dict)
+            rows.append((str(row["status"]), payload, created_at_text))
+        ordered = sorted(rows, key=lambda item: item[2], reverse=True)
+        return filter_projection_rows(
+            ordered,
+            status=status,
+            issue_type=issue_type,
+            labels=labels,
+            institution=institution,
+            created_after=created_after,
+            created_before=created_before,
+            geo_lat_min=geo_lat_min,
+            geo_lat_max=geo_lat_max,
+            geo_lon_min=geo_lon_min,
+            geo_lon_max=geo_lon_max,
+            geo_district=geo_district,
+            geo_settlement=geo_settlement,
+            geo_region=geo_region,
+            geo_country=geo_country,
+            geo_postal_code=geo_postal_code,
+        )
+
+    def get_projection(self, issue_id: str) -> dict[str, object] | None:
+        assert self._rows is not None
+        row = self._rows.get(issue_id)
+        if row is None:
+            return None
+        payload = row["payload"]
+        return dict(payload) if isinstance(payload, dict) else None
 
 
 @dataclass

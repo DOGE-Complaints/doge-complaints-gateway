@@ -285,3 +285,114 @@ def handle_story_intake(
         clear_log_context()
 
 
+def handle_tallinn_issues_list(
+    dependencies: ApiDependencies,
+    *,
+    status: list[str] | None = None,
+    issue_type: str | None = None,
+    labels: list[str] | None = None,
+    institution: str | None = None,
+    created_after: str | None = None,
+    created_before: str | None = None,
+    geo_lat_min: float | None = None,
+    geo_lat_max: float | None = None,
+    geo_lon_min: float | None = None,
+    geo_lon_max: float | None = None,
+    geo_district: list[str] | None = None,
+    geo_settlement: list[str] | None = None,
+    geo_region: list[str] | None = None,
+    geo_country: list[str] | None = None,
+    geo_postal_code: list[str] | None = None,
+    trace_id: str | None = None,
+) -> dict[str, Any]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        issues = dependencies.issue_projection_read_store.list_projections(
+            status=status,
+            issue_type=issue_type,
+            labels=labels,
+            institution=institution,
+            created_after=created_after,
+            created_before=created_before,
+            geo_lat_min=geo_lat_min,
+            geo_lat_max=geo_lat_max,
+            geo_lon_min=geo_lon_min,
+            geo_lon_max=geo_lon_max,
+            geo_district=geo_district,
+            geo_settlement=geo_settlement,
+            geo_region=geo_region,
+            geo_country=geo_country,
+            geo_postal_code=geo_postal_code,
+        )
+        return build_success_envelope(
+            data={"issues": issues}, trace_id=resolved_trace_id
+        ).as_dict()
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict()
+
+
+def handle_tallinn_issue_get(
+    dependencies: ApiDependencies,
+    *,
+    issue_id: str,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        projection = dependencies.issue_projection_read_store.get_projection(issue_id)
+        if projection is None:
+            return (
+                build_error_envelope(
+                    ValueError(f"Issue not found: {issue_id}"),
+                    trace_id=resolved_trace_id,
+                ).as_dict(),
+                404,
+            )
+        return (
+            build_success_envelope(
+                data={"issue": projection}, trace_id=resolved_trace_id
+            ).as_dict(),
+            200,
+        )
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
+def handle_tallinn_issue_create(
+    dependencies: ApiDependencies,
+    *,
+    body: dict[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        story_ids = body.get("story_ids", [])
+        if not isinstance(story_ids, list):
+            raise ValueError("story_ids must be a list.")
+        title = body.get("title", {})
+        if not isinstance(title, dict):
+            raise ValueError("title must be an object.")
+        issue_id = dependencies.issue_create_service.create_manual_issue(
+            cluster_id=str(body.get("cluster_id", "")),
+            story_ids=story_ids,
+            title=title,
+            issue_type=str(body.get("type", "complaint")),
+        )
+        return (
+            build_success_envelope(
+                data={"issue_id": issue_id}, trace_id=resolved_trace_id
+            ).as_dict(),
+            201,
+        )
+    except (KeyError, ValueError) as exc:
+        return build_error_envelope(exc, trace_id=resolved_trace_id).as_dict(), 400
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+

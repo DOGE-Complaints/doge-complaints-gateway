@@ -12,6 +12,7 @@ from core.application import (
 )
 from core.application.issue_create import (
     IssueProjectionEmbeddingStore,
+    IssueProjectionReadStore,
     IssueProjectionStore,
     IssueStoryLinkStore,
 )
@@ -107,6 +108,11 @@ class DefaultServiceFactory:
 
     def get_geo_service(self) -> GeoService:
         return self.geo_service
+
+    def get_issue_projection_read_store(self) -> IssueProjectionReadStore:
+        if self.issue_projection_store is None:
+            raise ValueError("issue_projection_store is not configured.")
+        return self.issue_projection_store
 
     def get_issue_create_service(self) -> IssueCreateService:
         return IssueCreateService(

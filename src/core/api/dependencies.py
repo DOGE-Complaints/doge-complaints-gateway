@@ -6,9 +6,11 @@ from core.api.metrics import ApiMetrics
 from core.api.security import ServiceTokenAuth, build_service_auth_from_env
 from core.application import (
     HealthService,
+    IssueCreateService,
     StoryClusterOrchestrator,
     StoryIntakeService,
 )
+from core.application.issue_create import IssueProjectionReadStore
 from core.config import AppConfig, load_config_from_env
 from core.infrastructure import provide_service_factory
 
@@ -18,6 +20,8 @@ class ApiDependencies:
     health_service: HealthService
     story_intake_service: StoryIntakeService
     story_cluster_orchestrator: StoryClusterOrchestrator
+    issue_create_service: IssueCreateService
+    issue_projection_read_store: IssueProjectionReadStore
     config: AppConfig = field(
         default_factory=lambda: load_config_from_env(
             {
@@ -74,6 +78,8 @@ def build_api_dependencies() -> ApiDependencies:
         health_service=service_factory.get_health_service(),
         story_intake_service=service_factory.get_story_intake_service(),
         story_cluster_orchestrator=service_factory.get_story_cluster_orchestrator(),
+        issue_create_service=service_factory.get_issue_create_service(),
+        issue_projection_read_store=service_factory.get_issue_projection_read_store(),
         config=service_factory.config,
         service_auth=build_service_auth_from_env(),
         metrics=ApiMetrics(),

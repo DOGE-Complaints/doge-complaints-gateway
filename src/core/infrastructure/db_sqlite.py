@@ -610,6 +610,79 @@ class SqliteIssueProjectionStore:
         )
         self.db.connection.commit()
 
+    def list_projections(
+        self,
+        *,
+        status: list[str] | None = None,
+        issue_type: str | None = None,
+        labels: list[str] | None = None,
+        institution: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        geo_lat_min: float | None = None,
+        geo_lat_max: float | None = None,
+        geo_lon_min: float | None = None,
+        geo_lon_max: float | None = None,
+        geo_district: list[str] | None = None,
+        geo_settlement: list[str] | None = None,
+        geo_region: list[str] | None = None,
+        geo_country: list[str] | None = None,
+        geo_postal_code: list[str] | None = None,
+    ) -> list[dict[str, object]]:
+        from core.projection.read_filters import filter_projection_rows, parse_payload_json
+
+        query = (
+            "SELECT status, payload_json, created_at FROM doge_issues WHERE 1=1"
+        )
+        params: list[object] = []
+        if status:
+            placeholders = ",".join("?" for _ in status)
+            query += f" AND status IN ({placeholders})"
+            params.extend(status)
+        if created_after:
+            query += " AND created_at >= ?"
+            params.append(created_after)
+        if created_before:
+            query += " AND created_at <= ?"
+            params.append(created_before)
+        query += " ORDER BY created_at DESC"
+        cursor = self.db.connection.execute(query, tuple(params))
+        rows: list[tuple[str, dict[str, object], str]] = []
+        for row_status, payload_json, created_at in cursor.fetchall():
+            rows.append(
+                (str(row_status), parse_payload_json(payload_json), str(created_at))
+            )
+        return filter_projection_rows(
+            rows,
+            status=status,
+            issue_type=issue_type,
+            labels=labels,
+            institution=institution,
+            created_after=created_after,
+            created_before=created_before,
+            geo_lat_min=geo_lat_min,
+            geo_lat_max=geo_lat_max,
+            geo_lon_min=geo_lon_min,
+            geo_lon_max=geo_lon_max,
+            geo_district=geo_district,
+            geo_settlement=geo_settlement,
+            geo_region=geo_region,
+            geo_country=geo_country,
+            geo_postal_code=geo_postal_code,
+        )
+
+    def get_projection(self, issue_id: str) -> dict[str, object] | None:
+        from core.projection.read_filters import parse_payload_json
+
+        cursor = self.db.connection.execute(
+            "SELECT payload_json FROM doge_issues WHERE issue_id = ?",
+            (issue_id,),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return parse_payload_json(row[0])
+
 
 @dataclass
 class SqliteIssueProjectionEmbeddingStore:

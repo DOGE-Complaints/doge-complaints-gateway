@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Any
 from typing import Protocol
+from uuid import uuid4
 
 from core.domain import StoryRecord, StoryRepository
 from core.promotion.types import IssueCandidateRecord
@@ -81,6 +82,32 @@ class IssueStoryLinkStore(Protocol):
         story_ids: tuple[str, ...],
     ) -> None:
         """Persist explicit issue->stories linkage for process recovery."""
+
+
+class IssueProjectionReadStore(Protocol):
+    def list_projections(
+        self,
+        *,
+        status: list[str] | None = None,
+        issue_type: str | None = None,
+        labels: list[str] | None = None,
+        institution: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        geo_lat_min: float | None = None,
+        geo_lat_max: float | None = None,
+        geo_lon_min: float | None = None,
+        geo_lon_max: float | None = None,
+        geo_district: list[str] | None = None,
+        geo_settlement: list[str] | None = None,
+        geo_region: list[str] | None = None,
+        geo_country: list[str] | None = None,
+        geo_postal_code: list[str] | None = None,
+    ) -> list[dict[str, object]]:
+        """Return projection payloads matching all active filters (DOGEIssue.to_public_dict shape)."""
+
+    def get_projection(self, issue_id: str) -> dict[str, object] | None:
+        """Return single projection payload by issue_id, or None."""
 
 
 @dataclass(frozen=True)
@@ -210,7 +237,7 @@ class IssueCreateService:
         if self.issue_projection_store is not None:
             self.issue_projection_store.save_projection(
                 issue_id=promoted.candidate_id,
-                status=promoted.status.value,
+                status=str(projection_payload.get("status", projection.status)),
                 payload=projection_payload,
                 policy_version=DERIVATION_POLICY_VERSION,
             )
@@ -315,6 +342,66 @@ class IssueCreateService:
             status=updated.status.value,
             projection=projection_payload,
         )
+
+    def create_manual_issue(
+        self,
+        *,
+        cluster_id: str,
+        story_ids: list[str] | object,
+        title: dict[str, object],
+        issue_type: str,
+    ) -> str:
+        if not cluster_id.strip():
+            raise ValueError("cluster_id must be non-empty.")
+        if not isinstance(story_ids, list) or not story_ids:
+            raise ValueError("story_ids must contain at least one story id.")
+        if not isinstance(title, dict) or not title:
+            raise ValueError("title must be a non-empty i18n object.")
+        if not issue_type.strip():
+            raise ValueError("type must be non-empty.")
+
+        normalized_story_ids = tuple(
+            story_id.strip() for story_id in story_ids if str(story_id).strip()
+        )
+        if not normalized_story_ids:
+            raise ValueError("story_ids must contain at least one story id.")
+
+        promoted_title = _promoted_title_from_i18n(title)
+        issue_id = str(uuid4())
+        projection_input = self.bridge.build_projection_input(
+            issue_id=issue_id,
+            promoted_title=promoted_title,
+            story_ids=normalized_story_ids,
+        )
+        projection = self.projection_service.project(projection_input)
+        projection_payload = projection.to_public_dict()
+        projection_payload["type"] = issue_type.strip()
+        if self.issue_projection_store is None:
+            raise ValueError("issue_projection_store is not configured.")
+        self.issue_projection_store.save_projection(
+            issue_id=issue_id,
+            status=projection.status,
+            payload=projection_payload,
+            policy_version=DERIVATION_POLICY_VERSION,
+        )
+        if self.issue_story_link_store is not None:
+            self.issue_story_link_store.save_issue_story_links(
+                issue_id=issue_id,
+                cluster_id=cluster_id.strip(),
+                story_ids=normalized_story_ids,
+            )
+        return issue_id
+
+
+def _promoted_title_from_i18n(title: dict[str, object]) -> str:
+    for locale in ("en", "et", "ru"):
+        value = title.get(locale)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    for value in title.values():
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    raise ValueError("title must contain at least one non-empty locale value.")
 
 
 def _build_embedding_vector_from_projection(

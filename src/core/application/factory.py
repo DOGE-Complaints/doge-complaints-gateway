@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from core.application.services import HealthService, SignalProfileService, StoryIntakeService
-from core.application.issue_create import IssueCreateService
+from core.application.issue_create import IssueCreateService, IssueProjectionReadStore
 from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.cluster import ClusteringEngine
 from core.evidence import EvidencePackService
@@ -59,6 +59,10 @@ class ServiceFactory(Protocol):
 
     def get_issue_create_service(self) -> IssueCreateService:
         """Build and return issue create orchestration service."""
+        ...
+
+    def get_issue_projection_read_store(self) -> IssueProjectionReadStore:
+        """Build and return issue projection read store (same backend as write store)."""
         ...
 
     def get_story_cluster_orchestrator(self) -> StoryClusterOrchestrator:

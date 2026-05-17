@@ -10,8 +10,13 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn  # pyright: ignore[reportMissingImports]
-from fastapi import Depends, FastAPI, Request  # pyright: ignore[reportMissingImports]
-from fastapi.responses import FileResponse, JSONResponse  # pyright: ignore[reportMissingImports]
+from fastapi import Depends, FastAPI, Query, Request  # pyright: ignore[reportMissingImports]
+from fastapi.middleware.cors import CORSMiddleware  # pyright: ignore[reportMissingImports]
+from fastapi.responses import (  # pyright: ignore[reportMissingImports]
+    FileResponse,
+    JSONResponse,
+    Response,
+)
 
 from core.api.dependencies import ApiDependencies, build_api_dependencies
 from core.api.envelope import build_error_envelope, ensure_trace_id
@@ -22,6 +27,9 @@ from core.api.handlers import (
     handle_protected_status,
     handle_readiness,
     handle_story_intake,
+    handle_tallinn_issue_create,
+    handle_tallinn_issue_get,
+    handle_tallinn_issues_list,
 )
 from core.api.security import UnauthorizedError
 from core.config import ConfigError
@@ -34,6 +42,7 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/ready",
     "/demo/auth-page",
     "/intake/stories",
+    "/tallinn/issues",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
@@ -158,6 +167,13 @@ async def _lifespan(_: FastAPI):
 
 app = FastAPI(title="doge-complaints-gateway", version="0.1.0", lifespan=_lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["x-trace-id", "authorization"],
+)
+
 
 @app.middleware("http")
 async def runtime_exception_diagnostics(request: Request, call_next: Any) -> Any:
@@ -276,6 +292,88 @@ async def demo_auth_page() -> FileResponse:
 @app.get("/demo/auth-page/styles.css")
 async def demo_auth_styles() -> FileResponse:
     return FileResponse(_DEMO_DIR / "styles.css", media_type="text/css")
+
+
+@app.options("/tallinn/issues")
+async def tallinn_issues_options() -> Response:
+    return Response(status_code=200)
+
+
+@app.options("/tallinn/issues/{issue_id}")
+async def tallinn_issue_options() -> Response:
+    return Response(status_code=200)
+
+
+@app.get("/tallinn/issues")
+async def tallinn_issues_list(
+    request: Request,
+    status: list[str] | None = Query(default=None),
+    type: str | None = Query(default=None),
+    labels: list[str] | None = Query(default=None),
+    institution: str | None = Query(default=None),
+    created_after: str | None = Query(default=None),
+    created_before: str | None = Query(default=None),
+    geo_lat_min: float | None = Query(default=None),
+    geo_lat_max: float | None = Query(default=None),
+    geo_lon_min: float | None = Query(default=None),
+    geo_lon_max: float | None = Query(default=None),
+    geo_district: list[str] | None = Query(default=None),
+    geo_settlement: list[str] | None = Query(default=None),
+    geo_region: list[str] | None = Query(default=None),
+    geo_country: list[str] | None = Query(default=None),
+    geo_postal_code: list[str] | None = Query(default=None),
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload = handle_tallinn_issues_list(
+        deps,
+        status=status,
+        issue_type=type,
+        labels=labels,
+        institution=institution,
+        created_after=created_after,
+        created_before=created_before,
+        geo_lat_min=geo_lat_min,
+        geo_lat_max=geo_lat_max,
+        geo_lon_min=geo_lon_min,
+        geo_lon_max=geo_lon_max,
+        geo_district=geo_district,
+        geo_settlement=geo_settlement,
+        geo_region=geo_region,
+        geo_country=geo_country,
+        geo_postal_code=geo_postal_code,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=_json_http_status(payload))
+
+
+@app.get("/tallinn/issues/{issue_id}")
+async def tallinn_issue_get(
+    issue_id: str,
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload, status_code = handle_tallinn_issue_get(
+        deps,
+        issue_id=issue_id,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.post("/tallinn/issues", dependencies=[Depends(require_service_auth)])
+async def tallinn_issue_create(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_tallinn_issue_create(
+        deps,
+        body=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
 
 
 @app.post("/intake/stories")
