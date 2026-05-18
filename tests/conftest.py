@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 import pytest
@@ -41,3 +42,12 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_PRIMARY_LENS", "civic_domain_micro")
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
+
+
+@pytest.fixture
+def configured_logging() -> None:
+    """REQ-39 F-04: opt-in DEBUG logging for tests that assert on log output."""
+    configure_logging("DEBUG", log_format="text")
+    yield
+    logging.getLogger().handlers.clear()
+    logging.getLogger().setLevel(logging.WARNING)

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from core.infrastructure.db_supabase import _STORY_SELECT_FIELDS
 
-# Roadmap: fuller cross-layer suite — docs/requirements/req-cross-layer-contract-testing.md (C-xx).
+# Roadmap: fuller cross-layer suite — docs/requirements/39-cross-layer-contract-testing.md (zones A–I).
 
 
 def test_story_select_field_names_exist_in_bootstrap_sql() -> None:

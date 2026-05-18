@@ -13,11 +13,11 @@ from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueProjectionS
 from core.infrastructure.repositories import InMemoryIssueProjectionStore
 from core.projection.read_filters import filter_projection_rows, normalize_geo_token
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
-from tests.test_req40_geo_propagation import (
-    _build_orchestrator,
-    _geo_kalamaja,
-    _geo_mustamae,
-    _story,
+from tests.geo_propagation_fixtures import (
+    build_orchestrator,
+    geo_kalamaja,
+    geo_mustamae,
+    story_record,
 )
 
 
@@ -222,11 +222,11 @@ def test_req24_ac10_post_without_bearer_returns_401(client: TestClient) -> None:
 def test_req24_ac11_post_with_bearer_creates_issue(client: TestClient) -> None:
     story_id = "manual-s1"
     _app_story_repository().save_story(
-        _story(
+        story_record(
             story_id,
             text="manual story for operator create",
             title_hint="Manual",
-            geo=_geo_kalamaja(),
+            geo=geo_kalamaja(),
         )
     )
     response = client.post(
@@ -246,11 +246,11 @@ def test_req24_ac11_post_with_bearer_creates_issue(client: TestClient) -> None:
 
 def test_req24_ac12_manual_issue_appears_in_list(client: TestClient) -> None:
     _app_story_repository().save_story(
-        _story(
+        story_record(
             "manual-s2",
             text="second manual path",
             title_hint="Manual two",
-            geo=_geo_kalamaja(),
+            geo=geo_kalamaja(),
         )
     )
     create = client.post(
@@ -273,19 +273,19 @@ def test_req24_ac14_bbox_filter(client: TestClient) -> None:
     deps = get_api_dependencies()
     stories = deps.story_cluster_orchestrator.story_repository
     stories.save_story(
-        _story(
+        story_record(
             "geo-in",
             text="unique kalamaja bbox seed alpha",
             title_hint="In",
-            geo=_geo_kalamaja(),
+            geo=geo_kalamaja(),
         )
     )
     stories.save_story(
-        _story(
+        story_record(
             "geo-out",
             text="unique mustamae bbox seed beta",
             title_hint="Out",
-            geo=_geo_mustamae(),
+            geo=geo_mustamae(),
         )
     )
     deps.story_cluster_orchestrator.process_all_pending()
@@ -319,11 +319,11 @@ def test_req24_ac15_geo_less_excluded_when_bbox_active(client: TestClient) -> No
 
 def test_req24_ac16_district_normalized(client: TestClient) -> None:
     _app_story_repository().save_story(
-        _story(
+        story_record(
             "dist-1",
             text="district filter unique seed gamma",
             title_hint="District",
-            geo=_geo_kalamaja(),
+            geo=geo_kalamaja(),
         )
     )
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()

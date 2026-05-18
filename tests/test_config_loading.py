@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import inspect
+
 import pytest  # pyright: ignore[reportMissingImports]
 
 from core.config import ConfigError, DeploymentProfile, ENV_SCHEMA, load_config_from_env
-from core.infrastructure.providers import provide_app_config
+from core.config import schema as config_schema
+from core.infrastructure.providers import provide_app_config, provide_service_factory
+from core.infrastructure.repositories import InMemoryStoryRepository
 
 
 def test_db_backend_env_default_matches_schema() -> None:
@@ -324,6 +328,46 @@ def test_provide_app_config_os_environ_overrides_dotenv(tmp_path, monkeypatch) -
     monkeypatch.setenv("LOG_LEVEL", "DEBUG")
     cfg = provide_app_config(None)
     assert cfg.log_level == "DEBUG"
+
+
+def test_db_backend_defaults_to_in_memory_via_provide_app_config() -> None:
+    """REQ-39 I-01: empty explicit env → in_memory backend."""
+    config = provide_app_config(env={})
+    assert config.db_backend == "in_memory"
+    assert config.db_enabled is False
+
+
+def test_db_backend_supabase_from_env() -> None:
+    """REQ-39 I-02: DB_BACKEND=supabase with contract env keys."""
+    config = provide_app_config(
+        env={
+            "DB_BACKEND": "supabase",
+            "SUPABASE_URL": "https://example.supabase.co",
+            "SUPABASE_SERVICE_ROLE": "service-role-secret",
+        }
+    )
+    assert config.db_backend == "supabase"
+    assert config.db_enabled is True
+
+
+def test_factory_in_memory_uses_inmemory_repos() -> None:
+    """REQ-39 I-03: provide_service_factory wires InMemoryStoryRepository."""
+    config = provide_app_config(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+            "DB_BACKEND": "in_memory",
+        }
+    )
+    factory = provide_service_factory(config)
+    service = factory.get_story_intake_service()
+    assert isinstance(service.repository, InMemoryStoryRepository)
+
+
+def test_in_memory_default_is_explicit_in_config_schema() -> None:
+    """REQ-39 I-04: default backend literal visible in config schema source."""
+    src = inspect.getsource(config_schema)
+    assert '"in_memory"' in src or "'in_memory'" in src
 
 
 def test_provide_app_config_explicit_env_does_not_read_dotenv(tmp_path, monkeypatch) -> None:

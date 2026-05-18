@@ -25,17 +25,17 @@ dev = [
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "tests"]
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
 
 # Pylance/Pyright/Basedpyright: resolve `core.*` imports (package root is `src/`, same as pytest).
 [tool.pyright]
 include = ["src", "tests"]
-extraPaths = ["src"]
+extraPaths = ["src", "tests"]
 pythonVersion = "3.11"
 
 [tool.basedpyright]
 include = ["src", "tests"]
-extraPaths = ["src"]
+extraPaths = ["src", "tests"]
 pythonVersion = "3.11"
