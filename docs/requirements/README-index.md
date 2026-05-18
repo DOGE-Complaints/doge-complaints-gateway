@@ -67,7 +67,7 @@
 - `36-alpha-scoring-and-story-quality-gate.md` — **P1**: алгоритм `alpha_score()` (100 pts: classification 30 + narrative richness 40 + geo accuracy 30); `canonical_type` readiness gate в `promotion/gates.py`; eID как intake gate (не scoring). Новый модуль `cluster/alpha.py`.
 - `37-pipeline-observability-and-pii-safety.md` — **P2**: `StoryDebugLogger` с per-story JSON Lines файлами; `LOG_DEBUG_DIR` env var; `redact_pii(text, contains_pii)` функция; покрытие всех 5 этапов pipeline. Cascade: `logging_setup.py`, `api/logging.py`.
 - `38-data-integrity-issue-links-tests-validation.md` — **P2/P3**: `issue_story_links` N:M таблица (Supabase migration); e2e тесты `extend_candidate()` flow; Arweave txid regex validation. Cascade: bootstrap SQL, `db_supabase.py`, `projection/validation.py`.
-- `39-issue-management-api-endpoint.md` — **P2**: `GET /issues`, `GET /issues/{id}`, `POST /issues` — ни один не реализован; минимальный набор для demo SPA; openapi.yaml обновить. Cascade: `asgi_app.py`, `handlers.py`.
+- `39-cross-layer-contract-testing.md` — **P2**: offline contract suite zones A–N (bootstrap↔Python, PostgREST coercion, intake mapping, repository parity, API facade, logging, store parity, factory wiring). EPIC-M2-18; complements REQ-24/40 acceptance tests.
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
