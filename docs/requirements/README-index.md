@@ -68,6 +68,7 @@
 - `37-pipeline-observability-and-pii-safety.md` — **P2**: `StoryDebugLogger` с per-story JSON Lines файлами; `LOG_DEBUG_DIR` env var; `redact_pii(text, contains_pii)` функция; покрытие всех 5 этапов pipeline. Cascade: `logging_setup.py`, `api/logging.py`.
 - `38-data-integrity-issue-links-tests-validation.md` — **P2/P3**: `issue_story_links` N:M таблица (Supabase migration); e2e тесты `extend_candidate()` flow; Arweave txid regex validation. Cascade: bootstrap SQL, `db_supabase.py`, `projection/validation.py`.
 - `39-cross-layer-contract-testing.md` — **P2**: offline contract suite zones A–N (bootstrap↔Python, PostgREST coercion, intake mapping, repository parity, API facade, logging, store parity, factory wiring). EPIC-M2-18; complements REQ-24/40 acceptance tests.
+- `41-testing-production-coverage-target-state.md` — **P0–P2**: целевое покрытие 25 продакшн-сценариев (PS-01..PS-25): Layer 6 smoke (`LOCAL_SERVER_URL`), cron timing, concurrent intake, env-only config, CI `integration-live` + матрица в [`13-testing-and-quality-architecture.md`](../solution%20architecture/13-testing-and-quality-architecture.md) §6. Исполнение: EPIC-M2-18 stories M2-18-03..05, [`pkg-000021`](../tasks/gateway-active-packages/pkg-000021-20260518-req41-production-test-coverage.yaml).
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
