@@ -1,0 +1,82 @@
+"""REQ-41 GAP-41-03: concurrent intake contract (CC-01..02)."""
+
+from __future__ import annotations
+
+from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import pytest
+from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
+
+from core.api.asgi_app import _clear_api_dependencies_cache, app
+from tests.intake_v2_fixtures import intake_payload_simple
+
+
+@pytest.fixture()
+def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    monkeypatch.setenv("APP_PROFILE", "demo")
+    monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
+    monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
+    monkeypatch.setenv("CLUSTER_CRON_ENABLED", "false")
+    _clear_api_dependencies_cache()
+    with TestClient(app) as test_client:
+        yield test_client
+    _clear_api_dependencies_cache()
+
+
+def _post_intake(
+    client: TestClient,
+    *,
+    worker_id: int,
+    idempotency_key: str | None = None,
+) -> tuple[int, str | None]:
+    key = idempotency_key or f"cc-worker-{worker_id}"
+    payload = intake_payload_simple(
+        external_user_id=f"cc-user-{worker_id}",
+        original_text=f"Concurrent intake worker {worker_id} Kalamaja district",
+        title_en=f"CC {worker_id}",
+    )
+    payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
+    response = client.post(
+        "/intake/stories",
+        json=payload,
+        headers={"idempotency-key": key},
+    )
+    story_id = None
+    if response.status_code == 202:
+        story_id = response.json()["data"]["story_id"]
+    return response.status_code, story_id
+
+
+def test_cc01_parallel_intake_returns_five_unique_story_ids(client: TestClient) -> None:
+    """CC-01: five parallel intakes → five unique story_ids."""
+    for _ in range(3):
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = [pool.submit(_post_intake, client, worker_id=i) for i in range(5)]
+            results = [future.result() for future in as_completed(futures)]
+        statuses, story_ids = zip(*results, strict=True)
+        assert all(status == 202 for status in statuses)
+        assert len(story_ids) == 5
+        assert len(set(story_ids)) == 5
+
+
+def test_cc02_parallel_same_idempotency_key_creates_one_story(client: TestClient) -> None:
+    """CC-02: five parallel intakes with one idempotency-key → one story."""
+    shared_key = "cc-shared-idempotency"
+    for _ in range(3):
+        _clear_api_dependencies_cache()
+        with TestClient(app) as fresh_client:
+            with ThreadPoolExecutor(max_workers=5) as pool:
+                futures = [
+                    pool.submit(
+                        _post_intake,
+                        fresh_client,
+                        worker_id=i,
+                        idempotency_key=shared_key,
+                    )
+                    for i in range(5)
+                ]
+                results = [future.result() for future in as_completed(futures)]
+        statuses, story_ids = zip(*results, strict=True)
+        assert all(status == 202 for status in statuses)
+        assert len(set(story_ids)) == 1

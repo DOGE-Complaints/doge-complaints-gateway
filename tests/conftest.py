@@ -10,6 +10,15 @@ import pytest
 from core.logging_setup import configure_logging
 
 
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """REQ-41 GAP-41-05: tag Layer 5 Supabase tests for `pytest -m live_integration`."""
+    marker = pytest.mark.live_integration
+    for item in items:
+        path = str(item.path).replace("\\", "/")
+        if "/tests/integration/supabase/" in path:
+            item.add_marker(marker)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _pytest_session_logging() -> None:
     """Without ASGI lifespan, tests still get predictable log levels (see GAP-10 / §16)."""
