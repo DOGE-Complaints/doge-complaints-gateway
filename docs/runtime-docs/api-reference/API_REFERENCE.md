@@ -18,8 +18,9 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Public/protected policy is declared in route definitions and validated by transport smoke tests.
-3. Demo static routes are also active in the same ASGI process:
+2. Intake (`POST /intake/stories`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
+3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
+4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
    - `GET /demo/auth-page/`
    - `GET /demo/auth-page/styles.css`
@@ -133,39 +134,315 @@ Validated in:
 
 ### `POST /intake/stories`
 
-- **Contract**: `src/core/intake/contracts.py`
-- **HTTP binding state**: implemented — `asgi_app.py:140-152` → `handle_story_intake` (`handlers.py:114-154`)
-- **Schema version**: `m2.story_intake_envelope.v1`
-- **Narrative required fields**:
-  - `narrative.original_text`
-  - `narrative.language` (`et | ru | en`)
-  - `narrative.title_hint`
-- **Narrative optional canonical fields**:
-  - `narrative.canonical_type`
-  - `narrative.canonical_labels` (array of strings)
-- **Submitter identity fields**:
-  - `submitter.external_user_id` (required, non-empty string)
-  - `submitter.identity_issuer` (optional string)
+- **Contract**: `src/core/intake/contracts.py`, `src/core/application/services.py`
+- **HTTP binding**: `asgi_app.py:394-409` → `handle_story_intake` (`handlers.py:124-280`)
+- **HTTP status on success**: `202 Accepted`
+- **Request Content-Type**: `application/json`
 
-The response contract is envelope-based with payload schema version:
+---
 
-- `m2.story_intake_response.v1`
+### 6.1 Request Headers
 
-### Identity linkage for stories (as-is data path)
+| Header | Required | Notes |
+|--------|----------|-------|
+| `Content-Type` | yes | Must be `application/json` |
+| `X-Trace-Id` | no | Propagated into response `trace_id`; generated if absent |
+| `Idempotency-Key` | no | If absent, SHA-256 of raw request body bytes is used as key |
 
-The runtime data path for submitter identity is already implemented in core logic:
+**Idempotency semantics**: if the key matches an existing record, the original story is returned without creating a duplicate. The key must be a non-empty string after `.strip()`.
 
-1. Intake parser validates `submitter.external_user_id` in `parse_story_intake_request`.
-2. `StoryIntakeService.create_story` maps submitter data to `StoryRecord`.
-3. `StoryRecord` persists:
-   - `submitter_external_user_id`
-   - `submitter_identity_issuer`
+---
 
-Code sources:
+### 6.2 Request body schema
 
-- `src/core/intake/contracts.py`
-- `src/core/application/services.py`
-- `src/core/domain/contracts.py`
+```json
+{
+  "schema_version": "m2.story_intake_envelope.v2",
+  "submitter": {
+    "external_user_id": "<string>",
+    "identity_issuer": "<string>"
+  },
+  "narrative": {
+    "original_text": "<string>",
+    "language": "et | ru | en",
+    "session_language": "et | ru | en",
+    "title": { "et": "<string>", "ru": "<string>", "en": "<string>" },
+    "description": { "et": "<string>", "ru": "<string>", "en": "<string>" },
+    "summary": { "et": "<string>", "ru": "<string>", "en": "<string>" },
+    "location_query": "<string>",
+    "canonical_type": "<string>",
+    "canonical_labels": ["<string>", "..."]
+  },
+  "origin": {
+    "source": "<string>",
+    "conversation_id": "<string>",
+    "tool_call_id": "<string>"
+  },
+  "privacy": {
+    "contains_pii": false,
+    "redaction_requested": false
+  },
+  "live_story_context": {
+    "consistency_notes": "<string>"
+  },
+  "gpt_signals": {
+    "severity": "HIGH",
+    "impact_estimation": "DISTRICT",
+    "problem_status": "ONGOING"
+  }
+}
+```
+
+Optional `gpt_signals` is persisted to `story_signals` with `extraction_policy = "gpt.story_classifier.v1"`; it is **not** copied into `StoryRecord`.
+
+---
+
+### 6.3 Field reference
+
+#### `schema_version` — string, **required**
+
+Exact value: `"m2.story_intake_envelope.v2"`
+
+`"m2.story_intake_envelope.v1"` is explicitly rejected with a 400 and a migration message. Any other value is also rejected.
+
+Source: `contracts.py:14-15`, `parse_story_intake_request:113-123`
+
+---
+
+#### `submitter` — object, **required**
+
+| Field | Type | Required | Validation |
+|-------|------|----------|-----------|
+| `external_user_id` | string | **yes** | Non-empty after `.strip()` |
+| `identity_issuer` | string | **yes** | Non-empty after `.strip()` |
+
+Both fields must be present and non-empty strings. Missing or empty → `400 IntakeValidationError`.
+
+Mapped to `StoryRecord.submitter_external_user_id` and `StoryRecord.submitter_identity_issuer`.
+
+Source: `contracts.py:24-27`, `parse_story_intake_request:125-133`
+
+---
+
+#### `narrative` — object, **required**
+
+| Field | Type | Required | Validation | Normalization |
+|-------|------|----------|-----------|--------------|
+| `original_text` | string | **yes** | Non-empty after `.strip()` | stored as-is (stripped) |
+| `language` | string | **yes** | One of `et`, `ru`, `en` | lowercased |
+| `session_language` | string | **yes** | One of `et`, `ru`, `en` | lowercased |
+| `title` | object | **yes** | All three keys `et`, `ru`, `en` must be non-empty strings | each value stripped |
+| `description` | object | **yes** | All three keys `et`, `ru`, `en` must be non-empty strings | each value stripped |
+| `summary` | object | no | If present: must have all three `et`, `ru`, `en` non-empty strings | each value stripped |
+| `location_query` | string | no | Empty/whitespace-only string → stored as `None` | stripped |
+| `canonical_type` | string | no | Empty/whitespace-only → stored as `None`; no enum validation at intake | stripped |
+| `canonical_labels` | string[] | no | If present: must be a JSON array; each element a non-empty string | `.strip().lower()`; deduplicated preserving first-occurrence order |
+
+**`language` vs `session_language`**: `language` is the language of `original_text`; `session_language` is the language the user is interacting in (may differ if GPT translated the story). Both validated against `I18N_LANGS = ("et", "ru", "en")`.
+
+**`canonical_type`** — semantics from GPT taxonomy (no enum enforcement at intake):
+- `"complaint"` — actionable civic complaint
+- `"observation"` — observation without explicit ask
+- `"system_bug"` — digital/system malfunction
+- `"absurdity"` — absurd bureaucratic situation
+
+Only stories with `canonical_type` in `{"complaint", "system_bug"}` pass the promotion gate for issue creation (REQ-34). All values accepted at intake; absent `canonical_type` reduces the story's `alpha_score` by 12 points.
+
+**`canonical_labels`** — free-form tag strings produced by GPT. Normalized: `.strip().lower()`, deduped preserving order. Drive cluster key derivation for civic lenses.
+
+Source: `contracts.py:30-40`, `narrative_i18n.py`, `parse_story_intake_request:135-196`
+
+---
+
+#### `origin` — object, optional
+
+If present, must be a JSON object (even with all inner fields absent).
+
+| Field | Type | Normalization |
+|-------|------|--------------|
+| `source` | string | stripped; empty/whitespace → `None` |
+| `conversation_id` | string | stripped; empty/whitespace → `None` |
+| `tool_call_id` | string | stripped; empty/whitespace → `None` |
+
+Mapped to `StoryRecord.origin_source`, `.origin_conversation_id`, `.origin_tool_call_id`.
+
+Source: `contracts.py:44-47`, `parse_story_intake_request:198-216`
+
+---
+
+#### `privacy` — object, optional
+
+If present, must be a JSON object.
+
+| Field | Type | Default | Validation |
+|-------|------|---------|-----------|
+| `contains_pii` | boolean | `false` | Must be a JSON boolean; non-boolean → `400` |
+| `redaction_requested` | boolean | `false` | Must be a JSON boolean; non-boolean → `400` |
+
+If `contains_pii=true`, the first 50 chars of `original_text` are redacted in logs.
+
+Mapped to `StoryRecord.privacy_contains_pii`, `.privacy_redaction_requested`.
+
+Source: `contracts.py:51-53`, `parse_story_intake_request:218-234`, `services.py:79-83`
+
+---
+
+#### `live_story_context` — object, optional
+
+| Field | Type | Normalization |
+|-------|------|--------------|
+| `consistency_notes` | string | stripped; empty/whitespace → `None` |
+
+Mapped to `StoryRecord.narrative_consistency_notes`.
+
+Source: `contracts.py:56-58`, `parse_story_intake_request:236-246`
+
+---
+
+#### `gpt_signals` — object, optional (REQ-42)
+
+If the key is **absent**, no `story_signals` row is written for policy `gpt.story_classifier.v1`.
+
+If the key is **present** (including `{}`), each supplied field is validated and persisted via `StorySignalStore.save_signals()` after the story is saved. Invalid enum values → `400 IntakeValidationError`.
+
+| Field | Type | Required when block present | Allowed values |
+|-------|------|----------------------------|----------------|
+| `severity` | string | no | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` (case-insensitive input, stored uppercase) |
+| `impact_estimation` | string | no | `LOCAL`, `DISTRICT`, `CITY`, `NATIONAL` |
+| `problem_status` | string | no | `ONGOING`, `RESOLVED`, `RECURRING`, `UNKNOWN` |
+
+Persisted `signals_json` always includes `"source": "gpt_intake_v1"`. A failure to persist signals is logged and does **not** change HTTP `202` for the intake.
+
+Source: `contracts.py` (`GptSignalsBlock`, `parse_story_intake_request`), `services.py` (`GPT_CLASSIFIER_POLICY_VERSION`, `_persist_gpt_classifier_signals`)
+
+---
+
+### 6.4 Full request example
+
+```json
+{
+  "schema_version": "m2.story_intake_envelope.v2",
+  "submitter": {
+    "external_user_id": "telegram:123456789",
+    "identity_issuer": "telegram"
+  },
+  "narrative": {
+    "original_text": "Kesklinna linnaosas on Tartu mnt 80 ees suur auk kõnniteel, mis on ohtlik jalakäijatele.",
+    "language": "et",
+    "session_language": "et",
+    "title": {
+      "et": "Ohtlik auk kõnniteel",
+      "ru": "Опасная яма на тротуаре",
+      "en": "Dangerous pothole on sidewalk"
+    },
+    "description": {
+      "et": "Tartu mnt 80 ees on suur auk, mis ohustab jalakäijaid.",
+      "ru": "Перед домом по адресу Tartu mnt 80 яма, представляющая угрозу для пешеходов.",
+      "en": "A large pothole in front of Tartu mnt 80 poses danger to pedestrians."
+    },
+    "summary": {
+      "et": "Auk kõnniteel Kesklinna linnaosas.",
+      "ru": "Яма на тротуаре в Центральном районе.",
+      "en": "Pothole on sidewalk in Kesklinn district."
+    },
+    "location_query": "Tartu mnt 80, Tallinn",
+    "canonical_type": "complaint",
+    "canonical_labels": ["pothole", "road_maintenance", "pedestrian_safety"]
+  },
+  "origin": {
+    "source": "telegram_bot",
+    "conversation_id": "conv-abc-123",
+    "tool_call_id": "call-xyz-456"
+  },
+  "privacy": {
+    "contains_pii": false,
+    "redaction_requested": false
+  }
+}
+```
+
+---
+
+### 6.5 Lifecycle after intake
+
+After persisting, the service immediately advances the story lifecycle:
+
+| Condition (`narrative_v2_complete()`) | Resulting `lifecycle_status` |
+|---------------------------------------|------------------------------|
+| All required text fields non-empty (`original_text`, `language`, `session_language`, all `title.*`, all `description.*`) | `ready_for_profile` |
+| Any required field empty or missing | `partial_ready` |
+
+Stories in `ready_for_profile` are picked up by the clustering cron. Stories in `partial_ready` are not clustered.
+
+Source: `services.py:233-241`, `narrative_i18n.py:91-105`
+
+---
+
+### 6.6 Response (202 Accepted)
+
+```json
+{
+  "data": {
+    "schema_version": "m2.story_intake_response.v1",
+    "story_id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "ready_for_profile"
+  },
+  "trace_id": "abc123"
+}
+```
+
+`status` is `"ready_for_profile"` or `"partial_ready"` depending on completeness of narrative fields.
+
+---
+
+### 6.7 Error responses
+
+| HTTP | Condition |
+|------|-----------|
+| `400` | `schema_version` wrong, required field missing/empty, `canonical_labels` not array, boolean field not bool |
+| `422` | `location_query` resolved to geo outside `CLUSTER_GEO_SCOPE` (when scope is configured) |
+| `500` | Unexpected internal error |
+
+---
+
+### 6.8 Mapping: request → StoryRecord
+
+| Request field | StoryRecord field |
+|---------------|------------------|
+| `schema_version` | `schema_version` |
+| `submitter.external_user_id` | `submitter_external_user_id` |
+| `submitter.identity_issuer` | `submitter_identity_issuer` |
+| `narrative.original_text` | `narrative_original_text` |
+| `narrative.language` | `narrative_language` |
+| `narrative.session_language` | `narrative_session_language` |
+| `narrative.title` | `narrative_title` (dict) |
+| `narrative.description` | `narrative_description` (dict) |
+| `narrative.summary` | `narrative_summary` (dict or `None`) |
+| `narrative.location_query` | resolved → `geo` (`StoryGeoSnapshot`) |
+| `narrative.canonical_type` | `narrative_canonical_type` |
+| `narrative.canonical_labels` | `narrative_canonical_labels` (tuple) |
+| `origin.source` | `origin_source` |
+| `origin.conversation_id` | `origin_conversation_id` |
+| `origin.tool_call_id` | `origin_tool_call_id` |
+| `privacy.contains_pii` | `privacy_contains_pii` |
+| `privacy.redaction_requested` | `privacy_redaction_requested` |
+| `live_story_context.consistency_notes` | `narrative_consistency_notes` |
+| — (server-generated) | `story_id` (UUID4) |
+| — (server-generated) | `created_at`, `updated_at` (UTC) |
+| — (server-generated) | `lifecycle_status` → `ready_for_profile` or `partial_ready` |
+
+Source: `services.py:143-178`
+
+---
+
+### 6.9 Code sources
+
+- `src/core/intake/contracts.py` — `StoryIntakeRequest`, `parse_story_intake_request()`, schema version constants
+- `src/core/domain/narrative_i18n.py` — `I18N_LANGS`, `parse_required_i18n_dict()`, `narrative_v2_complete()`
+- `src/core/application/services.py` — `StoryIntakeService.create_story()`, `advance_story_readiness()`
+- `src/core/domain/contracts.py` — `StoryRecord`, `StoryLifecycleStatus`
+- `src/core/api/idempotency.py` — `resolve_idempotency_key()`
+- `src/core/geo/scope.py` — `GeoScopeMismatchError`, `assert_geo_in_scope()`
 
 Test evidence:
 
@@ -173,7 +450,167 @@ Test evidence:
 - `tests/test_story_repository_lifecycle.py`
 - `tests/test_story_intake_idempotency.py`
 
-## 7. Observability Notes
+## 7. Issues API (as-is behavior, active HTTP binding)
+
+All three `POST /tallinn/issues` endpoints are registered in `asgi_app.py` and routable in the current runtime.
+
+### `GET /tallinn/issues`
+
+- **HTTP binding state**: implemented — `asgi_app.py:322-361` → `handle_tallinn_issues_list` (`handlers.py:281-333`)
+- **Auth**: public (no token required)
+- **Returns**: `200` with `data.issues` — list of `DOGEIssue.to_public_dict()` shapes
+
+#### Query parameters
+
+All parameters are optional and can be combined.
+
+| Parameter | Type | Semantics |
+|-----------|------|-----------|
+| `status` | `string[]` | Multi-value OR filter: `DRAFT`, `PUBLISHED` |
+| `type` | `string` | Exact match: `complaint`, `system_bug`, `observation`, `absurdity` |
+| `labels` | `string[]` | Multi-value OR — issue must carry at least one of the supplied labels |
+| `institution` | `string` | Exact match on institution name |
+| `created_after` | `string` | ISO 8601 lower bound on `created_at` (inclusive) |
+| `created_before` | `string` | ISO 8601 upper bound on `created_at` (inclusive) |
+| `geo_lat_min` | `float` | Bounding-box south edge (latitude) |
+| `geo_lat_max` | `float` | Bounding-box north edge (latitude) |
+| `geo_lon_min` | `float` | Bounding-box west edge (longitude) |
+| `geo_lon_max` | `float` | Bounding-box east edge (longitude) |
+| `geo_district` | `string[]` | Multi-value OR on `geo.admin_district` |
+| `geo_settlement` | `string[]` | Multi-value OR on `geo.admin_settlement` |
+| `geo_region` | `string[]` | Multi-value OR on `geo.admin_region` |
+| `geo_country` | `string[]` | Multi-value OR on `geo.admin_country` |
+| `geo_postal_code` | `string[]` | Multi-value OR on `geo.admin_postal_code` |
+
+Multi-value parameters are supplied as repeated query params: `?geo_district=Kesklinn&geo_district=Põhja-Tallinn`
+
+#### Success example
+
+```json
+{
+  "data": {
+    "issues": [
+      {
+        "id": "a1b2c3d4-...",
+        "status": "PUBLISHED",
+        "type": "complaint",
+        "labels": ["pothole", "road_maintenance"],
+        "title": { "et": "Katki läinud tänav", "en": "Broken street" },
+        "summary": { "et": "...", "en": "..." },
+        "description": { "et": "...", "en": "..." },
+        "institution": "Tallinna Linnavalitsus",
+        "created_at": "2026-05-01T10:00:00Z",
+        "geo": {
+          "admin_district": "Kesklinn",
+          "admin_settlement": "tallinn",
+          "admin_country": "ee",
+          "lat": 59.437,
+          "lon": 24.753
+        }
+      }
+    ]
+  },
+  "trace_id": "trace-001"
+}
+```
+
+---
+
+### `GET /tallinn/issues/{issue_id}`
+
+- **HTTP binding state**: implemented — `asgi_app.py:364-375` → `handle_tallinn_issue_get` (`handlers.py:336-362`)
+- **Auth**: public (no token required)
+- **Returns**: `200` with `data.issue` on success, `404` if no issue with that `issue_id` exists
+
+#### Success example
+
+```json
+{
+  "data": {
+    "issue": {
+      "id": "a1b2c3d4-...",
+      "status": "PUBLISHED",
+      "type": "complaint",
+      "labels": ["pothole"],
+      "title": { "et": "Katki läinud tänav", "en": "Broken street" },
+      "summary": { "et": "...", "en": "..." },
+      "description": { "et": "...", "en": "..." },
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  "trace_id": "trace-002"
+}
+```
+
+#### Not-found example
+
+```json
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "type": "internal",
+    "message": "Issue not found: a1b2c3d4-...",
+    "details": {}
+  },
+  "trace_id": "trace-002"
+}
+```
+
+---
+
+### `POST /tallinn/issues`
+
+- **HTTP binding state**: implemented — `asgi_app.py:378-391` → `handle_tallinn_issue_create` (`handlers.py:365-396`)
+- **Auth required**: Bearer token or `X-Service-Token` — same service-auth gate as `/protected/status`
+- **Purpose**: operator-initiated manual issue creation from a set of story IDs
+- **Returns**: `201` on success, `400` on validation error, `401` on auth failure
+
+#### Request body
+
+```json
+{
+  "cluster_id": "sha256-cluster-key-...",
+  "story_ids": ["story-uuid-1", "story-uuid-2"],
+  "title": { "et": "Käsitsi loodud probleem", "en": "Manually created issue" },
+  "type": "complaint"
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `cluster_id` | string | yes | Cluster the issue belongs to |
+| `story_ids` | string[] | yes | Must be a JSON array |
+| `title` | object | yes | Multilingual title map (language code → text) |
+| `type` | string | no | Defaults to `"complaint"` |
+
+#### Success example
+
+```json
+{
+  "data": {
+    "issue_id": "a1b2c3d4-..."
+  },
+  "trace_id": "trace-003"
+}
+```
+
+#### Validation error example
+
+```json
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "type": "internal",
+    "message": "story_ids must be a list.",
+    "details": {}
+  },
+  "trace_id": "trace-003"
+}
+```
+
+---
+
+## 8. Observability Notes
 
 - `trace_id` is preserved or generated in API envelopes (`ensure_trace_id`).
 - Auth failure metrics are exposed via `ApiMetrics` and can be checked by `alert_contract`.
@@ -185,7 +622,7 @@ Sources:
 - `tests/test_api_security_and_ops.py`
 - `tests/test_trace_propagation.py`
 
-## 8. As-is vs Planned Summary
+## 9. As-is vs Planned Summary
 
 ### As-is
 
@@ -194,24 +631,27 @@ Sources:
 - Service-token gate on protected operations:
   - `GET /protected/status`
   - `GET /metrics`
+  - `POST /tallinn/issues`
 - Public operations (no auth required):
   - `GET /health`
   - `GET /ready`
-  - `POST /intake/stories`
+  - `POST /intake/stories` (202 Accepted — clustering deferred to cron)
+  - `GET /tallinn/issues` (15-parameter filter API)
+  - `GET /tallinn/issues/{issue_id}`
 
 ### Planned
 
-- Fully enforced server auth for protected business operations:
-  - route-level centralized auth enforcement on all future protected endpoints,
-  - pilot/production-like fail-fast when `SERVICE_API_TOKEN` is missing,
-  - explicit public/protected operation map in API docs and tests.
-- Extended API surface for downstream domain modules.
+- Formal key lifecycle policy (rotation/revocation/audit procedures).
+- Optional multi-key/keyset strategy for higher-assurance environments.
+- `PATCH /tallinn/issues/{issue_id}` — status transitions (DRAFT → PUBLISHED) by operator.
 
-## 9. Compatibility Guidance
+## 10. Compatibility Guidance
 
 For integrators:
 
 1. Treat `openapi.yaml` as the normative reference format.
-2. Read operation descriptions for runtime-state markers (`as-is` vs `planned`).
-3. Assume only endpoints listed in section 5 are routable today; other endpoints remain planned.
-4. Demo static routes are active and routable in current runtime (`/demo/auth-page*`).
+2. All endpoints listed in sections 5, 6, and 7 are routable in the current runtime.
+3. `POST /intake/stories` returns `202 Accepted` — the story is queued for clustering; do not retry on 202.
+4. `GET /tallinn/issues` multi-value filters use repeated query params, not comma-separated strings.
+5. Demo static routes are active and routable in current runtime (`/demo/auth-page*`).
+6. `POST /tallinn/issues` is for operator use only and requires `SERVICE_API_TOKEN`.

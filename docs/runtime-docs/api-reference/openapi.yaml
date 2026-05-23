@@ -195,13 +195,29 @@ components:
         consistency_notes:
           type: string
           nullable: true
+    GptSignals:
+      type: object
+      description: Optional GPT classifier signals (REQ-42). Not stored on StoryRecord.
+      properties:
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        impact_estimation:
+          type: string
+          enum: [LOCAL, DISTRICT, CITY, NATIONAL]
+        problem_status:
+          type: string
+          enum: [ONGOING, RESOLVED, RECURRING, UNKNOWN]
     StoryIntakeRequest:
       type: object
       required: [schema_version, submitter, narrative]
       properties:
         schema_version:
           type: string
-          enum: [m2.story_intake_envelope.v1]
+          enum:
+            - m2.story_intake_envelope.v1
+            - m2.story_intake_envelope.v2
+          description: Runtime accepts v2 only; v1 is rejected with 400.
         submitter:
           $ref: '#/components/schemas/Submitter'
         narrative:
@@ -212,6 +228,8 @@ components:
           $ref: '#/components/schemas/Privacy'
         live_story_context:
           $ref: '#/components/schemas/LiveStoryContext'
+        gpt_signals:
+          $ref: '#/components/schemas/GptSignals'
     StoryIntakeResponseData:
       type: object
       required: [schema_version, story_id, status]
