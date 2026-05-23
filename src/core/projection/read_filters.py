@@ -131,6 +131,17 @@ def _matches_geo_filters(
     return True
 
 
+def _institution_payload_matches(payload_institution: object, filter_value: str) -> bool:
+    """Match list filter string against i18n dict or legacy scalar payload."""
+    if isinstance(payload_institution, dict):
+        normalized = filter_value.strip()
+        return any(
+            str(payload_institution.get(lang, "")).strip() == normalized
+            for lang in ("et", "ru", "en")
+        )
+    return payload_institution == filter_value
+
+
 def _matches_post_fetch_filters(
     payload: dict[str, object],
     *,
@@ -156,7 +167,9 @@ def _matches_post_fetch_filters(
             return False
         if not any(label in payload_labels for label in label_values):
             return False
-    if institution is not None and payload.get("institution") != institution:
+    if institution is not None and not _institution_payload_matches(
+        payload.get("institution"), institution
+    ):
         return False
     return _matches_geo_filters(
         payload,

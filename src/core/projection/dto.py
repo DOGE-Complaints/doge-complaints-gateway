@@ -15,7 +15,7 @@ class DOGEIssue:
     title: dict[str, str]
     summary: dict[str, str]
     description: dict[str, str]
-    institution: str | None = None
+    institution: dict[str, str] | None = None
     created_at: str | None = None
     arweave_txid: str | None = None
     image_txid: str | None = None
@@ -34,7 +34,7 @@ class DOGEIssue:
             "description": dict(self.description),
         }
         if self.institution is not None:
-            out["institution"] = self.institution
+            out["institution"] = dict(self.institution)
         if self.created_at is not None:
             out["created_at"] = self.created_at
         if self.arweave_txid is not None:

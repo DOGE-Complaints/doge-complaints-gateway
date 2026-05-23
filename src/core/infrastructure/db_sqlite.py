@@ -80,11 +80,17 @@ def _summary_dict_from_sqlite_row(row: sqlite3.Row, keys: set[str]) -> dict[str,
     return None
 
 
+def _institution_dict_from_sqlite_row(row: sqlite3.Row, keys: set[str]) -> dict[str, str] | None:
+    if "institution_json" not in keys or not row["institution_json"]:
+        return None
+    return i18n_dict_from_json(str(row["institution_json"]))
+
+
 _STORY_SELECT_COLUMNS = """
     story_id, schema_version, narrative_original_text, submitter_external_user_id,
     narrative_language, narrative_title_json, narrative_description_json, narrative_session_language,
     narrative_title_hint, narrative_title_hint_et, narrative_title_hint_ru, narrative_title_hint_en,
-    narrative_summary_json, narrative_consistency_notes,
+    narrative_summary_json, institution_json, narrative_consistency_notes,
     narrative_canonical_type, narrative_canonical_labels_json,
     submitter_identity_issuer, lifecycle_status, created_at, updated_at,
     origin_source, origin_conversation_id, origin_tool_call_id,
@@ -148,6 +154,7 @@ def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
             legacy_lang_columns=(),
         ),
         narrative_summary=_summary_dict_from_sqlite_row(row, keys),
+        narrative_institution=_institution_dict_from_sqlite_row(row, keys),
         narrative_session_language=session_language,
         narrative_consistency_notes=(
             row["narrative_consistency_notes"] if "narrative_consistency_notes" in keys else None
@@ -322,6 +329,10 @@ class SqliteDatabase:
                 "narrative_session_language",
                 "ALTER TABLE stories ADD COLUMN narrative_session_language TEXT",
             ),
+            (
+                "institution_json",
+                "ALTER TABLE stories ADD COLUMN institution_json TEXT",
+            ),
         ):
             if name not in cols:
                 self.connection.execute(ddl)
@@ -384,14 +395,15 @@ class SqliteStoryRepository:
                 story_id, schema_version, narrative_original_text, submitter_external_user_id,
                 narrative_language, narrative_title_json, narrative_description_json, narrative_session_language,
                 narrative_title_hint, narrative_title_hint_et, narrative_title_hint_ru,
-                narrative_title_hint_en, narrative_summary_json, narrative_consistency_notes,
+                narrative_title_hint_en, narrative_summary_json, institution_json,
+                narrative_consistency_notes,
                 narrative_canonical_type, narrative_canonical_labels_json,
                 submitter_identity_issuer, lifecycle_status, created_at, updated_at,
                 origin_source, origin_conversation_id, origin_tool_call_id,
                 privacy_contains_pii, privacy_redaction_requested,
                 geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
                 geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
@@ -405,6 +417,7 @@ class SqliteStoryRepository:
                 narrative_title_hint_ru = excluded.narrative_title_hint_ru,
                 narrative_title_hint_en = excluded.narrative_title_hint_en,
                 narrative_summary_json = excluded.narrative_summary_json,
+                institution_json = excluded.institution_json,
                 narrative_consistency_notes = excluded.narrative_consistency_notes,
                 narrative_canonical_type = excluded.narrative_canonical_type,
                 narrative_canonical_labels_json = excluded.narrative_canonical_labels_json,
@@ -441,6 +454,7 @@ class SqliteStoryRepository:
                 None,
                 None,
                 i18n_dict_to_json(record.narrative_summary),
+                i18n_dict_to_json(record.narrative_institution),
                 record.narrative_consistency_notes,
                 record.narrative_canonical_type,
                 json.dumps(list(record.narrative_canonical_labels)),

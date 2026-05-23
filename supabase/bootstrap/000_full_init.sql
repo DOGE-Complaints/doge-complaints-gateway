@@ -56,6 +56,10 @@ alter table if exists public.stories
     add column if not exists narrative_description_json jsonb,
     add column if not exists narrative_session_language text;
 
+-- STORY-M2-02-09 / REQ-43: optional institution i18n on stories
+alter table if exists public.stories
+    add column if not exists institution_json jsonb;
+
 create table if not exists public.idempotency_keys (
     key text primary key,
     story_id text not null references public.stories(story_id) on delete cascade,

@@ -85,6 +85,8 @@ class IssueStoryLinkStore(Protocol):
 
 
 class IssueProjectionReadStore(Protocol):
+    """Read issue projections for Tallinn list/get APIs."""
+
     def list_projections(
         self,
         *,
@@ -103,11 +105,15 @@ class IssueProjectionReadStore(Protocol):
         geo_region: list[str] | None = None,
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
-    ) -> list[dict[str, object]]:
-        """Return projection payloads matching all active filters (DOGEIssue.to_public_dict shape)."""
+    ) -> list[dict[str, object]]: ...
 
-    def get_projection(self, issue_id: str) -> dict[str, object] | None:
-        """Return single projection payload by issue_id, or None."""
+    def get_projection(self, issue_id: str) -> dict[str, object] | None: ...
+
+
+class IssueProjectionReadWriteStore(
+    IssueProjectionStore, IssueProjectionReadStore, Protocol
+):
+    """Runtime store implementing both write (clustering) and read (Tallinn API)."""
 
 
 @dataclass(frozen=True)
@@ -149,6 +155,7 @@ class StoryPromotionProjectionBridge:
             issue_id=issue_id,
             draft=draft,
             geo_snapshot=dominant_story.geo,
+            institution=dominant_story.narrative_institution,
         )
 
 

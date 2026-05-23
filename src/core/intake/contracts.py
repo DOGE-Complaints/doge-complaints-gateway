@@ -37,6 +37,7 @@ class Narrative:
     canonical_type: str | None = None
     canonical_labels: tuple[str, ...] = ()
     summary: dict[str, str] | None = None
+    institution: dict[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -238,6 +239,11 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         summary = parse_optional_i18n_dict(
             narrative_payload.get("summary"), field_name="summary", parent="narrative"
         )
+        institution = parse_optional_i18n_dict(
+            narrative_payload.get("institution"),
+            field_name="institution",
+            parent="narrative",
+        )
     except ValueError as exc:
         raise IntakeValidationError(str(exc)) from exc
 
@@ -340,6 +346,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
             canonical_type=canonical_type,
             canonical_labels=canonical_labels,
             summary=summary,
+            institution=institution,
         ),
         origin=origin,
         privacy=privacy,

@@ -148,6 +148,7 @@ def build_projection_input_from_draft(
     issue_id: str,
     draft: StoryProjectionDraft,
     geo_snapshot: StoryGeoSnapshot | None = None,
+    institution: dict[str, str] | None = None,
 ) -> ProjectionInput:
     return ProjectionInput(
         issue_id=issue_id,
@@ -157,6 +158,7 @@ def build_projection_input_from_draft(
         title=draft.title,
         summary=draft.summary,
         description=draft.description,
+        institution=institution,
         geo_lat=geo_snapshot.latitude if geo_snapshot else None,
         geo_lon=geo_snapshot.longitude if geo_snapshot else None,
         geo_normalized_label=geo_snapshot.normalized_label if geo_snapshot else None,

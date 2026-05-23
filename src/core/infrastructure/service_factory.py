@@ -13,7 +13,7 @@ from core.application import (
 from core.application.issue_create import (
     IssueProjectionEmbeddingStore,
     IssueProjectionReadStore,
-    IssueProjectionStore,
+    IssueProjectionReadWriteStore,
     IssueStoryLinkStore,
 )
 from core.application.services import StoryEmbeddingStore
@@ -53,7 +53,7 @@ class DefaultServiceFactory:
     geo_service: GeoService
     config: AppConfig
     story_embedding_store: StoryEmbeddingStore | None = None
-    issue_projection_store: IssueProjectionStore | None = None
+    issue_projection_store: IssueProjectionReadWriteStore | None = None
     issue_projection_embedding_store: IssueProjectionEmbeddingStore | None = None
     issue_story_link_store: IssueStoryLinkStore | None = None
     story_signal_store: StorySignalStore | None = None

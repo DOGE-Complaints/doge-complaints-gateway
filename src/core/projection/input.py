@@ -16,7 +16,7 @@ class ProjectionInput:
     title: I18nText
     summary: I18nText | None
     description: I18nText
-    institution: str | None = None
+    institution: dict[str, str] | None = None
     created_at: str | None = None
     arweave_txid: str | None = None
     image_txid: str | None = None

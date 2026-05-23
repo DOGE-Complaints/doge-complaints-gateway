@@ -195,6 +195,11 @@ class StoryIntakeService:
                 if request.narrative.summary is not None
                 else None
             ),
+            narrative_institution=(
+                dict(request.narrative.institution)
+                if request.narrative.institution is not None
+                else None
+            ),
             narrative_session_language=request.narrative.session_language,
             narrative_consistency_notes=consistency_notes,
             narrative_canonical_type=request.narrative.canonical_type,
@@ -393,6 +398,7 @@ class StoryIntakeService:
             narrative_title=current.narrative_title,
             narrative_description=current.narrative_description,
             narrative_summary=current.narrative_summary,
+            narrative_institution=current.narrative_institution,
             narrative_session_language=current.narrative_session_language,
             narrative_consistency_notes=current.narrative_consistency_notes,
             narrative_canonical_type=current.narrative_canonical_type,

@@ -54,6 +54,7 @@ class StoryRecord:
     narrative_title: dict[str, str] | None = None
     narrative_description: dict[str, str] | None = None
     narrative_summary: dict[str, str] | None = None
+    narrative_institution: dict[str, str] | None = None
     narrative_session_language: str | None = None
     narrative_consistency_notes: str | None = None
     narrative_canonical_type: str | None = None

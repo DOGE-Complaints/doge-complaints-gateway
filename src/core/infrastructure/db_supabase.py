@@ -41,7 +41,7 @@ _STORY_SELECT_FIELDS = (
     "story_id,schema_version,narrative_original_text,submitter_external_user_id,"
     "narrative_language,narrative_title_json,narrative_description_json,narrative_session_language,"
     "narrative_title_hint,narrative_title_hint_et,narrative_title_hint_ru,narrative_title_hint_en,"
-    "narrative_summary_json,narrative_consistency_notes,narrative_canonical_type,narrative_canonical_labels_json,"
+    "narrative_summary_json,institution_json,narrative_consistency_notes,narrative_canonical_type,narrative_canonical_labels_json,"
     "submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,"
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
     "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json,"
@@ -83,6 +83,18 @@ def _i18n_dict_from_supabase_row(
 
 def _summary_dict_from_supabase_row(row: dict[str, Any]) -> dict[str, str] | None:
     raw = row.get("narrative_summary_json")
+    if not raw:
+        return None
+    if isinstance(raw, dict):
+        return {str(k): str(v) for k, v in raw.items()}
+    parsed = json.loads(str(raw))
+    if isinstance(parsed, dict):
+        return {str(k): str(v) for k, v in parsed.items()}
+    return None
+
+
+def _institution_dict_from_supabase_row(row: dict[str, Any]) -> dict[str, str] | None:
+    raw = row.get("institution_json")
     if not raw:
         return None
     if isinstance(raw, dict):
@@ -151,6 +163,7 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
             legacy_lang_keys=(),
         ),
         narrative_summary=_summary_dict_from_supabase_row(row),
+        narrative_institution=_institution_dict_from_supabase_row(row),
         narrative_session_language=row.get("narrative_session_language"),
         narrative_consistency_notes=row.get("narrative_consistency_notes"),
         narrative_canonical_type=row["narrative_canonical_type"],
@@ -414,6 +427,7 @@ class SupabaseStoryRepository:
             "narrative_title_hint_ru": None,
             "narrative_title_hint_en": None,
             "narrative_summary_json": record.narrative_summary,
+            "institution_json": record.narrative_institution,
             "narrative_consistency_notes": record.narrative_consistency_notes,
             "narrative_canonical_type": record.narrative_canonical_type,
             "narrative_canonical_labels_json": json.dumps(list(record.narrative_canonical_labels)),
