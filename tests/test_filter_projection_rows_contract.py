@@ -11,7 +11,7 @@ def _row(
     status: str = "PUBLISHED",
     issue_type: str = "INCIDENT",
     labels: list[str] | None = None,
-    institution: str | None = None,
+    institution: str | dict[str, str] | None = None,
     geo: dict[str, object] | None = None,
     created_at: str = "2026-05-01T00:00:00+00:00",
 ) -> tuple[str, dict[str, object], str]:
@@ -20,7 +20,7 @@ def _row(
         "status": status,
         "type": issue_type,
         "labels": labels or [],
-        "institution": institution or "",
+        "institution": institution if institution is not None else "",
     }
     if geo is not None:
         payload["geo"] = geo
@@ -59,8 +59,22 @@ def test_m03_labels_filter_or_semantics() -> None:
 
 def test_m04_institution_filter_exact_match() -> None:
     rows = [
-        _row("a", institution="tallinn-city"),
-        _row("b", institution="state-roads"),
+        _row(
+            "a",
+            institution={
+                "et": "tallinn-city",
+                "ru": "tallinn-city",
+                "en": "tallinn-city",
+            },
+        ),
+        _row(
+            "b",
+            institution={
+                "et": "state-roads",
+                "ru": "state-roads",
+                "en": "state-roads",
+            },
+        ),
     ]
     result = filter_projection_rows(rows, institution="tallinn-city")
     ids = {str(r["id"]) for r in result}
