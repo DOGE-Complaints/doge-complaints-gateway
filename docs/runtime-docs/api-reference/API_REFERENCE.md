@@ -234,6 +234,7 @@ Source: `contracts.py:24-27`, `parse_story_intake_request:125-133`
 | `title` | object | **yes** | All three keys `et`, `ru`, `en` must be non-empty strings | each value stripped |
 | `description` | object | **yes** | All three keys `et`, `ru`, `en` must be non-empty strings | each value stripped |
 | `summary` | object | no | If present: must have all three `et`, `ru`, `en` non-empty strings | each value stripped |
+| `institution` | object | no | If present: must have all three `et`, `ru`, `en` non-empty strings | each value stripped; persisted as `stories.institution_json` |
 | `location_query` | string | no | Empty/whitespace-only string → stored as `None` | stripped |
 | `canonical_type` | string | no | Empty/whitespace-only → stored as `None`; no enum validation at intake | stripped |
 | `canonical_labels` | string[] | no | If present: must be a JSON array; each element a non-empty string | `.strip().lower()`; deduplicated preserving first-occurrence order |
@@ -418,6 +419,7 @@ Source: `services.py:233-241`, `narrative_i18n.py:91-105`
 | `narrative.title` | `narrative_title` (dict) |
 | `narrative.description` | `narrative_description` (dict) |
 | `narrative.summary` | `narrative_summary` (dict or `None`) |
+| `narrative.institution` | `narrative_institution` (dict or `None`; column `institution_json`) |
 | `narrative.location_query` | resolved → `geo` (`StoryGeoSnapshot`) |
 | `narrative.canonical_type` | `narrative_canonical_type` |
 | `narrative.canonical_labels` | `narrative_canonical_labels` (tuple) |
@@ -469,7 +471,7 @@ All parameters are optional and can be combined.
 | `status` | `string[]` | Multi-value OR filter: `DRAFT`, `PUBLISHED` |
 | `type` | `string` | Exact match: `complaint`, `system_bug`, `observation`, `absurdity` |
 | `labels` | `string[]` | Multi-value OR — issue must carry at least one of the supplied labels |
-| `institution` | `string` | Exact match on institution name |
+| `institution` | `string` | Exact match on `payload_json.institution`: compares against any of `et`, `ru`, `en` when stored as i18n object (REQ-43) |
 | `created_after` | `string` | ISO 8601 lower bound on `created_at` (inclusive) |
 | `created_before` | `string` | ISO 8601 upper bound on `created_at` (inclusive) |
 | `geo_lat_min` | `float` | Bounding-box south edge (latitude) |
@@ -498,7 +500,11 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
         "title": { "et": "Katki läinud tänav", "en": "Broken street" },
         "summary": { "et": "...", "en": "..." },
         "description": { "et": "...", "en": "..." },
-        "institution": "Tallinna Linnavalitsus",
+        "institution": {
+          "et": "Tallinna Linnavalitsus",
+          "ru": "Таллинская городская управа",
+          "en": "Tallinn City Government"
+        },
         "created_at": "2026-05-01T10:00:00Z",
         "geo": {
           "admin_district": "Kesklinn",

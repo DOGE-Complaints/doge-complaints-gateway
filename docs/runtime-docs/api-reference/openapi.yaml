@@ -168,6 +168,18 @@ components:
           type: array
           items:
             type: string
+        institution:
+          type: object
+          nullable: true
+          description: Optional i18n institution name (REQ-43); all of et, ru, en required when present
+          properties:
+            et:
+              type: string
+            ru:
+              type: string
+            en:
+              type: string
+          required: [et, ru, en]
     Origin:
       type: object
       properties:
