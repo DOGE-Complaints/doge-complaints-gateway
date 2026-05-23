@@ -68,6 +68,7 @@ class DefaultServiceFactory:
             idempotency_repository=self.idempotency_repository,
             geo_service=self.geo_service,
             story_embedding_store=self.story_embedding_store,
+            story_signal_store=self.story_signal_store,
             log_debug_dir=self.config.log_debug_dir,
         )
 

@@ -57,6 +57,29 @@ class LiveStoryContext:
     consistency_notes: str | None = None
 
 
+GPT_SIGNAL_SEVERITY_VALUES = frozenset({"LOW", "MEDIUM", "HIGH", "CRITICAL"})
+GPT_SIGNAL_IMPACT_VALUES = frozenset({"LOCAL", "DISTRICT", "CITY", "NATIONAL"})
+GPT_SIGNAL_PROBLEM_STATUS_VALUES = frozenset(
+    {"ONGOING", "RESOLVED", "RECURRING", "UNKNOWN"}
+)
+
+
+@dataclass(frozen=True)
+class GptSignalsBlock:
+    severity: str | None = None
+    impact_estimation: str | None = None
+    problem_status: str | None = None
+
+
+def gpt_signals_block_has_values(block: GptSignalsBlock) -> bool:
+    """True when at least one classifier field is set (REQ-42 §2.2 — no empty row)."""
+    return (
+        block.severity is not None
+        or block.impact_estimation is not None
+        or block.problem_status is not None
+    )
+
+
 @dataclass(frozen=True)
 class StoryIntakeRequest:
     schema_version: str
@@ -65,6 +88,7 @@ class StoryIntakeRequest:
     origin: Origin | None = None
     privacy: Privacy | None = None
     live_story_context: LiveStoryContext | None = None
+    gpt_signals: GptSignalsBlock | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -98,6 +122,56 @@ def _optional_bool(
     if isinstance(raw_value, bool):
         return raw_value
     raise IntakeValidationError(f"Missing or invalid {parent}.{key}. Expected boolean.")
+
+
+def _parse_gpt_signal_enum(
+    raw_value: object,
+    *,
+    field_name: str,
+    parent: str,
+    allowed: frozenset[str],
+) -> str | None:
+    if raw_value is None:
+        return None
+    if not isinstance(raw_value, str) or not raw_value.strip():
+        raise IntakeValidationError(
+            f"Missing or invalid {parent}.{field_name}. Expected one of: "
+            f"{', '.join(sorted(allowed))}."
+        )
+    normalized = raw_value.strip().upper()
+    if normalized not in allowed:
+        raise IntakeValidationError(
+            f"Missing or invalid {parent}.{field_name}. Expected one of: "
+            f"{', '.join(sorted(allowed))}."
+        )
+    return normalized
+
+
+def _parse_gpt_signals_block(gpt_payload: object) -> GptSignalsBlock:
+    if gpt_payload is None:
+        return GptSignalsBlock()
+    if not isinstance(gpt_payload, Mapping):
+        raise IntakeValidationError("Missing or invalid root.gpt_signals.")
+    return GptSignalsBlock(
+        severity=_parse_gpt_signal_enum(
+            gpt_payload.get("severity"),
+            field_name="severity",
+            parent="gpt_signals",
+            allowed=GPT_SIGNAL_SEVERITY_VALUES,
+        ),
+        impact_estimation=_parse_gpt_signal_enum(
+            gpt_payload.get("impact_estimation"),
+            field_name="impact_estimation",
+            parent="gpt_signals",
+            allowed=GPT_SIGNAL_IMPACT_VALUES,
+        ),
+        problem_status=_parse_gpt_signal_enum(
+            gpt_payload.get("problem_status"),
+            field_name="problem_status",
+            parent="gpt_signals",
+            allowed=GPT_SIGNAL_PROBLEM_STATUS_VALUES,
+        ),
+    )
 
 
 def _parse_language_code(raw: str, *, field_name: str, parent: str) -> str:
@@ -245,6 +319,12 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
             else None
         )
 
+    gpt_signals: GptSignalsBlock | None = None
+    if "gpt_signals" in payload:
+        parsed_gpt_signals = _parse_gpt_signals_block(payload.get("gpt_signals"))
+        if gpt_signals_block_has_values(parsed_gpt_signals):
+            gpt_signals = parsed_gpt_signals
+
     return StoryIntakeRequest(
         schema_version=schema_version,
         submitter=Submitter(
@@ -264,6 +344,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         origin=origin,
         privacy=privacy,
         live_story_context=live_story_context,
+        gpt_signals=gpt_signals,
     )
 
 

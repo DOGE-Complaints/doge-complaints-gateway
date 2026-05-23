@@ -17,11 +17,12 @@ from core.domain import (
     StoryLifecycleStatus,
     StoryRecord,
     StoryRepository,
+    StorySignalStore,
 )
 from core.redaction import redact_pii
 from core.geo import GeoService
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
-from core.intake import StoryIntakeRequest
+from core.intake import GptSignalsBlock, StoryIntakeRequest
 from core.logging_setup import StoryDebugLogger, open_story_debug_logger
 from core.profile import (
     infer_signals_from_canonical,
@@ -65,13 +66,50 @@ class StoryEmbeddingStore(Protocol):
         """Persist deterministic story-level embedding payload."""
 
 
+GPT_CLASSIFIER_POLICY_VERSION = "gpt.story_classifier.v1"
+GPT_SIGNALS_SOURCE = "gpt_intake_v1"
+
+
+def _gpt_signals_json(gpt_signals: GptSignalsBlock) -> dict[str, str]:
+    payload: dict[str, str] = {"source": GPT_SIGNALS_SOURCE}
+    if gpt_signals.severity is not None:
+        payload["severity"] = gpt_signals.severity
+    if gpt_signals.impact_estimation is not None:
+        payload["impact_estimation"] = gpt_signals.impact_estimation
+    if gpt_signals.problem_status is not None:
+        payload["problem_status"] = gpt_signals.problem_status
+    return payload
+
+
 @dataclass(frozen=True)
 class StoryIntakeService:
     repository: StoryRepository
     idempotency_repository: IdempotencyRepository
     geo_service: GeoService | None = None
     story_embedding_store: StoryEmbeddingStore | None = None
+    story_signal_store: StorySignalStore | None = None
     log_debug_dir: str | None = None
+
+    def _persist_gpt_classifier_signals(
+        self, *, story_id: str, gpt_signals: GptSignalsBlock
+    ) -> None:
+        if self.story_signal_store is None:
+            return
+        try:
+            self.story_signal_store.save_signals(
+                story_id,
+                GPT_CLASSIFIER_POLICY_VERSION,
+                _gpt_signals_json(gpt_signals),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "intake.gpt_signals_persist_failed",
+                extra={
+                    "story_id": story_id,
+                    "policy": GPT_CLASSIFIER_POLICY_VERSION,
+                    "error": str(exc),
+                },
+            )
 
     def create_story(
         self, request: StoryIntakeRequest, *, idempotency_key: str | None = None
@@ -275,6 +313,11 @@ class StoryIntakeService:
                         "model": "deterministic-baseline-v1",
                         "checksum8": checksum[:8],
                     },
+                )
+            if request.gpt_signals is not None:
+                self._persist_gpt_classifier_signals(
+                    story_id=final_story.story_id,
+                    gpt_signals=request.gpt_signals,
                 )
             return final_story
 
