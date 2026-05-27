@@ -101,7 +101,8 @@ def log_runtime_exception(
         extra={
             "stage": stage,
             "exception_type": type(exc).__name__,
-            "message": str(exc),
+            # LogRecord reserves "message"; use exception_message in extra.
+            "exception_message": str(exc),
             "stack": True,
             **extra_fields,
         },

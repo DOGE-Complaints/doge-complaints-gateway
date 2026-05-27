@@ -43,4 +43,6 @@ pythonVersion = "3.11"
 [tool.basedpyright]
 include = ["src", "tests"]
 extraPaths = ["src", "tests"]
+venvPath = "."
+venv = ".venv"
 pythonVersion = "3.11"

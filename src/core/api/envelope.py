@@ -9,6 +9,10 @@ from core.config import ConfigError
 from core.geo.scope import GeoScopeMismatchError
 
 
+class DatabaseNotReadyError(RuntimeError):
+    """Persistence backend failed startup readiness checks (e.g. schema drift)."""
+
+
 @dataclass(frozen=True)
 class ErrorBody:
     code: str
@@ -83,6 +87,17 @@ def build_error_envelope(
             error=ErrorBody(
                 code="GEO_SCOPE_MISMATCH",
                 type="validation",
+                message=str(exc),
+                details=payload,
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, DatabaseNotReadyError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="SERVICE_UNAVAILABLE",
+                type="infrastructure",
                 message=str(exc),
                 details=payload,
             ),

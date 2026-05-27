@@ -317,6 +317,37 @@ class SupabaseDatabase:
         except Exception:
             return False
 
+    _STORIES_GEO_ADMIN_COLUMNS = frozenset(
+        {
+            "geo_admin_district",
+            "geo_admin_settlement",
+            "geo_admin_region",
+            "geo_admin_country",
+        }
+    )
+
+    def required_stories_geo_admin_columns_ready(self) -> bool:
+        """True when migration 20260510_* geo_admin_* columns exist on hosted stories."""
+        try:
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={
+                    "select": ",".join(sorted(self._STORIES_GEO_ADMIN_COLUMNS)),
+                    "limit": "1",
+                },
+            )
+            return True
+        except Exception:
+            return False
+
+    def stories_geo_admin_columns_ready(self) -> bool:
+        cached = getattr(self, "_stories_geo_admin_columns_ready", None)
+        if cached is None:
+            cached = self.required_stories_geo_admin_columns_ready()
+            self._stories_geo_admin_columns_ready = cached
+        return cached
+
     def required_columns_ready(self) -> bool:
         required: dict[str, set[str]] = {
             "stories": {
@@ -331,10 +362,6 @@ class SupabaseDatabase:
                 "geo_confidence",
                 "geo_provider",
                 "geo_cluster_tags_json",
-                "geo_admin_district",
-                "geo_admin_settlement",
-                "geo_admin_region",
-                "geo_admin_country",
             },
             "story_embeddings": {
                 "embedding_vector_json",
@@ -404,6 +431,18 @@ class SupabaseDatabase:
             return False
 
 
+def _story_select_fields_for_db(db: SupabaseDatabase) -> str:
+    """SELECT list for hosted DB; omits geo_admin_* when migration 20260510_* not applied."""
+    if db.stories_geo_admin_columns_ready():
+        return _STORY_SELECT_FIELDS
+    parts = [
+        field.strip()
+        for field in _STORY_SELECT_FIELDS.split(",")
+        if field.strip() and field.strip() not in SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS
+    ]
+    return ",".join(parts)
+
+
 @dataclass
 class SupabaseStoryRepository:
     db: SupabaseDatabase
@@ -442,6 +481,9 @@ class SupabaseStoryRepository:
             "privacy_redaction_requested": record.privacy_redaction_requested,
         }
         row.update(_story_geo_supabase_fields(record))
+        if not self.db.stories_geo_admin_columns_ready():
+            for key in SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS:
+                row.pop(key, None)
         try:
             self.db._request(
                 method="POST",
@@ -483,7 +525,7 @@ class SupabaseStoryRepository:
             method="GET",
             path="/rest/v1/stories",
             params={
-                "select": _STORY_SELECT_FIELDS,
+                "select": _story_select_fields_for_db(self.db),
                 "story_id": self.db._eq_filter(story_id),
                 "limit": "1",
             },
@@ -497,7 +539,7 @@ class SupabaseStoryRepository:
             method="GET",
             path="/rest/v1/stories",
             params={
-                "select": _STORY_SELECT_FIELDS,
+                "select": _story_select_fields_for_db(self.db),
                 "order": "created_at.asc",
             },
         )
@@ -508,7 +550,7 @@ class SupabaseStoryRepository:
             method="GET",
             path="/rest/v1/stories",
             params={
-                "select": _STORY_SELECT_FIELDS,
+                "select": _story_select_fields_for_db(self.db),
                 "lifecycle_status": self.db._eq_filter(
                     StoryLifecycleStatus.READY_FOR_PROFILE.value
                 ),

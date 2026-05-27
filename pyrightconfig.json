@@ -1,5 +1,13 @@
 {
   "include": ["src", "tests"],
-  "extraPaths": ["src"],
-  "pythonVersion": "3.11"
+  "extraPaths": ["src", "tests"],
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.11",
+  "executionEnvironments": [
+    {
+      "root": "tests/smoke",
+      "extraPaths": ["../../src", "../../tests", "."]
+    }
+  ]
 }

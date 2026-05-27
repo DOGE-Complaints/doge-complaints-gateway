@@ -11,8 +11,62 @@ from typing import Any
 import httpx
 import pytest
 
-_CANVAS_PATH = Path(__file__).resolve().parent.parent / "sandbox" / "dogestonia_simulation_canvas_v0_1.json"
-_SCENARIO_GROUPS = ("infrastructure", "environment", "digital", "conflict")
+_SMOKE_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _SMOKE_DIR.parent.parent
+_CANVAS_PATH = _SMOKE_DIR.parent / "sandbox" / "dogestonia_simulation_canvas_v0_1.json"
+SCENARIO_GROUPS = ("infrastructure", "environment", "digital", "conflict")
+_ENV_TEST_LOADED = False
+
+
+def _load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def _load_dotenv_test() -> None:
+    global _ENV_TEST_LOADED
+    if _ENV_TEST_LOADED:
+        return
+    _load_env_file(_REPO_ROOT / ".env.test")
+    _load_env_file(_REPO_ROOT / ".env")
+    _ENV_TEST_LOADED = True
+
+
+def intake_auth_token() -> str | None:
+    """Bearer token from .env.test — GATEWAY_API_TOKEN or SERVICE_API_TOKEN."""
+    _load_dotenv_test()
+    for name in ("GATEWAY_API_TOKEN", "SERVICE_API_TOKEN"):
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return None
+
+
+def build_intake_headers(
+    *,
+    idempotency_key: str,
+    trace_id: str | None = None,
+    bearer_token: str | None = None,
+) -> dict[str, str]:
+    headers: dict[str, str] = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "idempotency-key": idempotency_key,
+    }
+    if trace_id is not None:
+        headers["x-trace-id"] = trace_id
+    if bearer_token:
+        headers["Authorization"] = f"Bearer {bearer_token}"
+    return headers
 
 
 def load_simulation_canvas() -> list[dict[str, Any]]:

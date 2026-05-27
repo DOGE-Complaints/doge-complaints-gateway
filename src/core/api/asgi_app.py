@@ -137,12 +137,27 @@ async def _lifespan(_: FastAPI):
         )
     cron_job: ClusterCronJob | None = None
     if deps.config.cluster_cron_enabled:
-        cron_job = ClusterCronJob(
-            orchestrator=deps.story_cluster_orchestrator,
-            interval_s=deps.config.cluster_cron_interval_s,
-            min_size_guard=deps.config.cluster_min_size,
-        )
-        cron_job.start()
+        if deps.config.db_backend == "supabase" and not deps.db_ready:
+            logging.getLogger(__name__).warning(
+                "startup.cluster_cron_skipped db_ready=False checks=%s",
+                ",".join(
+                    f"{k}:{'ok' if v else 'fail'}"
+                    for k, v in sorted(deps.db_checks.items())
+                ),
+                extra={
+                    "stage": "api.startup",
+                    "db_ready": False,
+                    "db_checks": dict(deps.db_checks),
+                    "hint": "fix SUPABASE_URL/secrets or apply migrations; or CLUSTER_CRON_ENABLED=false",
+                },
+            )
+        else:
+            cron_job = ClusterCronJob(
+                orchestrator=deps.story_cluster_orchestrator,
+                interval_s=deps.config.cluster_cron_interval_s,
+                min_size_guard=deps.config.cluster_min_size,
+            )
+            cron_job.start()
     try:
         yield
         if _shutdown_reason == "unknown":

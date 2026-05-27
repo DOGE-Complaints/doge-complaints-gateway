@@ -7,8 +7,8 @@ import asyncio
 import httpx
 import pytest
 
+from conftest import build_intake_headers, load_simulation_canvas
 from simulation_runner import _scenario_to_payload
-from tests.smoke.conftest import first_scenario_for_group, load_simulation_canvas
 
 
 @pytest.fixture(scope="module")
@@ -21,7 +21,7 @@ def seeded_issue_list_base(http_client: httpx.Client, local_server_url: str) -> 
         response = http_client.post(
             "/intake/stories",
             json=payload,
-            headers={"idempotency-key": f"async-seed-{idx}"},
+            headers=build_intake_headers(idempotency_key=f"async-seed-{idx}"),
         )
         assert response.status_code == 202, response.text
     return local_server_url

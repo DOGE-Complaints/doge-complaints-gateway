@@ -1,0 +1,51 @@
+{
+  "schema_version": "m2.story_intake_envelope.v2",
+  "submitter": {
+    "external_user_id": "test_user_pirita_demo",
+    "identity_issuer": "dogestonia.gpt.v1"
+  },
+  "narrative": {
+    "original_text": "В прибрежной парковой зоне Pirita в Таллине, где гуляют семьи с детьми и пожилые люди, по прогулочным дорожкам регулярно ездят электровелосипеды и электросамокаты на высокой скорости. Это создаёт ощущение опасности и постоянного стресса: пешеходам приходится уворачиваться, дети могут внезапно выбежать на дорожку, а пожилым людям сложно быстро реагировать. Нужны понятные ограничения скорости, разделение потоков или контроль в этой зоне, чтобы парк у моря оставался безопасным местом для прогулок.",
+    "language": "ru",
+    "session_language": "ru",
+    "title": {
+      "et": "Kiired elektrirattad ja tõukerattad Pirita mereäärses pargialas",
+      "ru": "Быстрые электровелосипеды и самокаты в парковой зоне Pirita у моря",
+      "en": "Fast e-bikes and scooters in Pirita seaside park area"
+    },
+    "description": {
+      "et": "Tallinnas Pirita mereäärses pargialas sõidavad elektrirattad ja elektritõukerattad jalutusteedel sageli suure kiirusega. Samas liiguvad seal pered lastega ja eakad inimesed. See tekitab praktilise ohu ja pideva stressi: jalakäijad peavad kõrvale põikama, lapsed võivad ootamatult rajale joosta ning eakatel on raske kiiresti reageerida. Soovitud olukord on selgem kiiruspiirang, liikumisvoogude eraldamine või nähtav kontroll, et mereäärne park jääks turvaliseks jalutuskohaks.",
+      "ru": "В прибрежной парковой зоне Pirita в Таллине, где гуляют семьи с детьми и пожилые люди, по прогулочным дорожкам регулярно ездят электровелосипеды и электросамокаты на высокой скорости. Это создаёт ощущение опасности и постоянного стресса: пешеходам приходится уворачиваться, дети могут внезапно выбежать на дорожку, а пожилым людям сложно быстро реагировать. Нужны понятные ограничения скорости, разделение потоков или контроль в этой зоне, чтобы парк у моря оставался безопасным местом для прогулок.",
+      "en": "In the seaside park area of Pirita in Tallinn, e-bikes and e-scooters often move at high speed along walking paths. Families with children and older people also walk there. This creates practical danger and constant stress: pedestrians have to dodge, children may suddenly run onto the path, and older people may not be able to react quickly. The desired state is clearer speed limits, separated flows, or visible control so that the seaside park remains a safe place for walking."
+    },
+    "summary": {
+      "et": "Pirita mereäärsetel jalutusteedel liiguvad elektrirattad ja tõukerattad liiga kiiresti, tekitades ohtu lastele, eakatele ja jalakäijatele.",
+      "ru": "На прогулочных дорожках Pirita у моря электровелосипеды и самокаты едут слишком быстро, создавая риск для детей, пожилых людей и пешеходов.",
+      "en": "On Pirita seaside walking paths, e-bikes and scooters move too fast, creating risk for children, older people, and pedestrians."
+    },
+    "location_query": "Pirita seaside park area, Tallinn",
+    "canonical_type": "complaint",
+    "canonical_labels": [
+      "public_space",
+      "transport",
+      "safety",
+      "unsafe_condition",
+      "recurring_issue",
+      "city_for_people"
+    ]
+  },
+  "origin": {
+    "source": "chatgpt_demo",
+    "conversation_id": "demo_pirita_e_scooters",
+    "tool_call_id": "manual_story_intake_test_retry_correct_actions_config"
+  },
+  "privacy": {
+    "contains_pii": false,
+    "redaction_requested": false
+  },
+  "gpt_signals": {
+    "severity": "HIGH",
+    "impact_estimation": "DISTRICT",
+    "problem_status": "RECURRING"
+  }
+}

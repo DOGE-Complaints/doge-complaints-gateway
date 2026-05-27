@@ -4,7 +4,12 @@ import logging
 from typing import Any, Mapping
 
 from core.api.dependencies import ApiDependencies
-from core.api.envelope import build_error_envelope, build_success_envelope, ensure_trace_id
+from core.api.envelope import (
+    DatabaseNotReadyError,
+    build_error_envelope,
+    build_success_envelope,
+    ensure_trace_id,
+)
 from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
@@ -130,6 +135,30 @@ def handle_story_intake(
 ) -> tuple[dict[str, Any], int]:
     resolved_trace_id = ensure_trace_id(trace_id)
     set_log_context(trace_id=resolved_trace_id)
+    if dependencies.db_backend == "supabase" and not dependencies.db_ready:
+        envelope = build_error_envelope(
+            DatabaseNotReadyError(
+                "Persistence backend is not ready; fix schema drift or configuration."
+            ),
+            trace_id=resolved_trace_id,
+            details={
+                "db": {
+                    "backend": dependencies.db_backend,
+                    "ready": dependencies.db_ready,
+                    "checks": dict(dependencies.db_checks),
+                }
+            },
+        )
+        log_error(envelope)
+        log_api_event(
+            logging.WARNING,
+            "story_intake_rejected_db_not_ready",
+            trace_id=resolved_trace_id,
+            backend=dependencies.db_backend,
+            checks=dict(dependencies.db_checks),
+            outcome="error",
+        )
+        return envelope.as_dict(), 503
     try:
         request = parse_story_intake_request(payload)
         log_api_event(

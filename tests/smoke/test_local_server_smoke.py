@@ -8,15 +8,8 @@ from typing import Any
 import httpx
 import pytest
 
+from conftest import SCENARIO_GROUPS, build_intake_headers, first_scenario_for_group
 from simulation_runner import _scenario_to_payload
-from tests.smoke.conftest import _SCENARIO_GROUPS, first_scenario_for_group
-
-
-def _intake_headers(*, idempotency_key: str, trace_id: str | None = None) -> dict[str, str]:
-    headers = {"idempotency-key": idempotency_key}
-    if trace_id is not None:
-        headers["x-trace-id"] = trace_id
-    return headers
 
 
 def _assert_error_envelope(body: dict[str, Any]) -> None:
@@ -36,7 +29,7 @@ def test_ls02_intake_infrastructure_scenario_returns_story_id(http_client: httpx
     response = http_client.post(
         "/intake/stories",
         json=payload,
-        headers=_intake_headers(idempotency_key="ls02-infra"),
+        headers=build_intake_headers(idempotency_key="ls02-infra"),
     )
     assert response.status_code == 202
     body = response.json()
@@ -44,13 +37,13 @@ def test_ls02_intake_infrastructure_scenario_returns_story_id(http_client: httpx
 
 
 def test_ls03_intake_all_four_canvas_groups_accepted(http_client: httpx.Client) -> None:
-    for idx, group in enumerate(_SCENARIO_GROUPS):
+    for idx, group in enumerate(SCENARIO_GROUPS):
         scenario = first_scenario_for_group(group)
         payload = _scenario_to_payload(scenario)
         response = http_client.post(
             "/intake/stories",
             json=payload,
-            headers=_intake_headers(idempotency_key=f"ls03-{group}-{idx}"),
+            headers=build_intake_headers(idempotency_key=f"ls03-{group}-{idx}"),
         )
         assert response.status_code == 202, f"group={group} body={response.text}"
 
@@ -70,7 +63,7 @@ def test_ls05_invalid_payload_returns_client_error_envelope(http_client: httpx.C
     response = http_client.post(
         "/intake/stories",
         json=invalid,
-        headers=_intake_headers(idempotency_key="ls05-invalid"),
+        headers=build_intake_headers(idempotency_key="ls05-invalid"),
     )
     assert response.status_code in (400, 422)
     _assert_error_envelope(response.json())
@@ -83,7 +76,9 @@ def test_ls06_intake_response_has_trace_correlation(http_client: httpx.Client) -
     response = http_client.post(
         "/intake/stories",
         json=payload,
-        headers=_intake_headers(idempotency_key="ls06-trace", trace_id=trace_id),
+        headers=build_intake_headers(
+            idempotency_key="ls06-trace", trace_id=trace_id
+        ),
     )
     assert response.status_code == 202
     request_id = response.headers.get("x-request-id") or response.headers.get("X-Request-Id")
@@ -105,7 +100,7 @@ def test_ls_p1_server_header_uvicorn_when_present(
         response = http_client.post(
             "/intake/stories",
             json=_scenario_to_payload(scenario),
-            headers=_intake_headers(idempotency_key=f"ls-p1-{path.strip('/')}"),
+            headers=build_intake_headers(idempotency_key=f"ls-p1-{path.strip('/')}"),
         )
     server = response.headers.get("server", "")
     if server:
