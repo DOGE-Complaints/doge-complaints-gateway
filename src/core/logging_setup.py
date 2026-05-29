@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
 from pathlib import Path
@@ -23,6 +24,13 @@ class _ContextDefaultsFilter(logging.Filter):
         if not hasattr(record, "story_id"):
             record.story_id = _current_story_id.get() or "-"
         return True
+
+
+class _LevelBelowWarningFilter(logging.Filter):
+    """Pass only DEBUG/INFO records for stdout split stream."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno < logging.WARNING
 
 
 class StoryDebugLogger:
@@ -110,8 +118,10 @@ def log_runtime_exception(
 
 
 def configure_logging(log_level: str, *, log_format: str = "text", log_debug_dir: str | None = None) -> None:
-    # Pytest often skips ASGI lifespan → this may not run; see docs/runtime-docs/testing/pytest-logging-without-asgi-lifespan.md
-    del log_debug_dir  # per-story JSONL via StoryDebugLogger; independent of LOG_LEVEL (REQ-37)
+    # log_debug_dir is passed from app config for API symmetry.
+    # configure_logging itself does not write per-story files; those are produced
+    # by StoryDebugLogger in services/orchestrator flow (REQ-37).
+    del log_debug_dir
     level = getattr(logging, log_level.upper(), logging.INFO)
     if log_format.strip().lower() == "json":
         fmt = '{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s","trace_id":"%(trace_id)s","story_id":"%(story_id)s"}'
@@ -123,13 +133,24 @@ def configure_logging(log_level: str, *, log_format: str = "text", log_debug_dir
     for handler in list(root.handlers):
         root.removeHandler(handler)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(level)
-    stream_handler.setFormatter(logging.Formatter(fmt))
-    stream_handler.addFilter(_ContextDefaultsFilter())
-    root.addHandler(stream_handler)
+    formatter = logging.Formatter(fmt)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(level)
+    stdout_handler.addFilter(_LevelBelowWarningFilter())
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.addFilter(_ContextDefaultsFilter())
+    root.addHandler(stdout_handler)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    stderr_handler.setFormatter(formatter)
+    stderr_handler.addFilter(_ContextDefaultsFilter())
+    root.addHandler(stderr_handler)
 
     logging.getLogger("uvicorn.access").propagate = False
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger(__name__).info(
         "logging.configured",
         extra={"configured_level": log_level.upper(), "log_format": log_format.lower()},
