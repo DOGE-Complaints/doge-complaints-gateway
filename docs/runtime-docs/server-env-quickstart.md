@@ -55,6 +55,22 @@ python -m pip install -e '.[dev]'
 - `FF_TOKENIZATION_PIPELINE` (optional override)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
 
+### Production logging — рекомендации
+
+| Переменная | Production значение | Почему |
+|-----------|--------------------|--------|
+| `LOG_LEVEL` | `INFO` | При `DEBUG` `httpx`/`httpcore` генерируют шум на каждый Supabase запрос |
+| `LOG_FORMAT` | `json` | Structured logs для Railway / Datadog / Loki / любого log-агрегатора |
+| `LOG_DEBUG_DIR` | *(не задавать)* | Только для краткосрочной диагностики |
+
+`LOG_FORMAT=json` переводит каждую строку в структурированный JSON-лог:
+
+```json
+{"ts":"2026-05-25T10:01:23","level":"INFO","logger":"core.api","msg":"story_intake_created","trace_id":"abc","story_id":"def"}
+```
+
+`LOG_DEBUG_DIR` на Railway пишет файлы в ephemeral filesystem контейнера, поэтому они исчезают после redeploy/restart. Используйте это как временную диагностику, а не постоянное хранилище.
+
 Источник: `src/core/config/schema.py`, `src/core/api/security.py`.
 
 ### Пример для demo
