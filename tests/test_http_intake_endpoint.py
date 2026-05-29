@@ -117,11 +117,11 @@ def test_intake_emits_cluster_pending_observability_event(
         _clear_api_dependencies_cache()
 
     captured = capsys.readouterr()
-    assert "story.persistence_backend_selected backend=in_memory" in captured.err
-    assert "story.persistence_commit_ack backend=in_memory lifecycle_status=ready_for_profile" in captured.err
-    assert "story_cluster_issue_pending" in captured.err
-    assert "trace-cluster-pending" in captured.err
-    assert "story.pipeline_outcome" in captured.err
+    assert "story.persistence_backend_selected backend=in_memory" in captured.out
+    assert "story.persistence_commit_ack backend=in_memory lifecycle_status=ready_for_profile" in captured.out
+    assert "story_cluster_issue_pending" in captured.out
+    assert "trace-cluster-pending" in captured.out
+    assert "story.pipeline_outcome" in captured.out
 
 
 def test_intake_stories_endpoint_returns_400_for_unsupported_session_language(

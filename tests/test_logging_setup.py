@@ -44,8 +44,8 @@ def test_configure_logging_removes_old_handlers() -> None:
     root.addHandler(logging.NullHandler())
     configure_logging("INFO")
     try:
-        assert len(root.handlers) == 1
-        assert isinstance(root.handlers[0], logging.StreamHandler)
+        assert len(root.handlers) == 2
+        assert all(isinstance(h, logging.StreamHandler) for h in root.handlers)
     finally:
         root.handlers.clear()
         root.setLevel(logging.WARNING)

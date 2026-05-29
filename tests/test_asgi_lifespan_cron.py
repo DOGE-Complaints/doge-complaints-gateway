@@ -80,7 +80,7 @@ def test_lifespan_emits_shutdown_reason_log(
         pass
     asgi_app._clear_api_dependencies_cache()
     captured = capsys.readouterr()
-    assert "shutdown.lifecycle" in captured.err
+    assert "shutdown.lifecycle" in captured.out
 
 
 def test_lifespan_emits_startup_persistence_backend_log_in_memory(
@@ -96,7 +96,7 @@ def test_lifespan_emits_startup_persistence_backend_log_in_memory(
         pass
     asgi_app._clear_api_dependencies_cache()
     captured = capsys.readouterr()
-    assert "startup.persistence_backend backend=in_memory" in captured.err
+    assert "startup.persistence_backend backend=in_memory" in captured.out
 
 
 def test_lifespan_emits_startup_persistence_backend_log_supabase(
@@ -112,5 +112,5 @@ def test_lifespan_emits_startup_persistence_backend_log_supabase(
         pass
     asgi_app._clear_api_dependencies_cache()
     captured = capsys.readouterr()
-    assert "startup.persistence_backend backend=supabase" in captured.err
+    assert "startup.persistence_backend backend=supabase" in captured.out
 
