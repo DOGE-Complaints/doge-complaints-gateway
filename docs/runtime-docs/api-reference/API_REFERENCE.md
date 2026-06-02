@@ -386,13 +386,24 @@ Source: `services.py:233-241`, `narrative_i18n.py:91-105`
   "data": {
     "schema_version": "m2.story_intake_response.v1",
     "story_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "ready_for_profile"
+    "status": "ready_for_profile",
+    "intake_notes": {
+      "geo_resolved": true,
+      "gpt_signals_persisted": true
+    }
   },
   "trace_id": "abc123"
 }
 ```
 
 `status` is `"ready_for_profile"` or `"partial_ready"` depending on completeness of narrative fields.
+
+`intake_notes` (REQ-46): transparency flags for the intake path (not persisted on `StoryRecord`).
+
+| Field | Meaning |
+|-------|---------|
+| `geo_resolved` | `true` when `location_query` was resolved to a geo snapshot |
+| `gpt_signals_persisted` | `true` when there were no `gpt_signals` to save, or when the signal store accepted the block; `false` when signals were present but not stored (missing store or persist error) |
 
 ---
 

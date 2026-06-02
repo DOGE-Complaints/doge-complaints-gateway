@@ -242,6 +242,16 @@ components:
           $ref: '#/components/schemas/LiveStoryContext'
         gpt_signals:
           $ref: '#/components/schemas/GptSignals'
+    IntakeNotes:
+      type: object
+      required: [geo_resolved, gpt_signals_persisted]
+      properties:
+        geo_resolved:
+          type: boolean
+          description: True if location_query was resolved to geo coordinates
+        gpt_signals_persisted:
+          type: boolean
+          description: True if gpt_signals block was successfully saved to story_signals
     StoryIntakeResponseData:
       type: object
       required: [schema_version, story_id, status]
@@ -253,6 +263,8 @@ components:
           type: string
         status:
           type: string
+        intake_notes:
+          $ref: '#/components/schemas/IntakeNotes'
     SuccessEnvelope_StoryIntake:
       type: object
       required: [data, trace_id]
