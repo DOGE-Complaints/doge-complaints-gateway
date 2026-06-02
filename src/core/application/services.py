@@ -70,6 +70,13 @@ GPT_CLASSIFIER_POLICY_VERSION = "gpt.story_classifier.v1"
 GPT_SIGNALS_SOURCE = "gpt_intake_v1"
 
 
+@dataclass(frozen=True)
+class StoryIntakeResult:
+    story: StoryRecord
+    geo_resolved: bool
+    gpt_signals_persisted: bool
+
+
 def _gpt_signals_json(gpt_signals: GptSignalsBlock) -> dict[str, str]:
     payload: dict[str, str] = {"source": GPT_SIGNALS_SOURCE}
     if gpt_signals.severity is not None:
@@ -92,15 +99,25 @@ class StoryIntakeService:
 
     def _persist_gpt_classifier_signals(
         self, *, story_id: str, gpt_signals: GptSignalsBlock
-    ) -> None:
+    ) -> bool:
         if self.story_signal_store is None:
-            return
+            logger.warning(
+                "intake.gpt_signals_drop story_id=%s reason=signal_store_not_configured",
+                story_id,
+                extra={
+                    "story_id": story_id,
+                    "reason": "signal_store_not_configured",
+                    "outcome": "dropped",
+                },
+            )
+            return False
         try:
             self.story_signal_store.save_signals(
                 story_id,
                 GPT_CLASSIFIER_POLICY_VERSION,
                 _gpt_signals_json(gpt_signals),
             )
+            return True
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "intake.gpt_signals_persist_failed",
@@ -110,10 +127,25 @@ class StoryIntakeService:
                     "error": str(exc),
                 },
             )
+            return False
+
+    def _gpt_signals_persisted_on_replay(
+        self, *, story_id: str, request: StoryIntakeRequest
+    ) -> bool:
+        if request.gpt_signals is None:
+            return True
+        if self.story_signal_store is None:
+            return False
+        return (
+            self.story_signal_store.get_signals(
+                story_id, GPT_CLASSIFIER_POLICY_VERSION
+            )
+            is not None
+        )
 
     def create_story(
         self, request: StoryIntakeRequest, *, idempotency_key: str | None = None
-    ) -> StoryRecord:
+    ) -> StoryIntakeResult:
         contains_pii = (
             request.privacy.contains_pii if request.privacy is not None else False
         )
@@ -142,7 +174,14 @@ class StoryIntakeService:
                 )
                 existing_story = self.repository.get_story(existing_key.story_id)
                 if existing_story is not None:
-                    return existing_story
+                    return StoryIntakeResult(
+                        story=existing_story,
+                        geo_resolved=existing_story.geo is not None,
+                        gpt_signals_persisted=self._gpt_signals_persisted_on_replay(
+                            story_id=existing_story.story_id,
+                            request=request,
+                        ),
+                    )
             else:
                 logger.debug(
                     "intake.idempotency_check",
@@ -162,8 +201,21 @@ class StoryIntakeService:
             )
             if geo is None and debug_logger is not None and self.geo_service is None:
                 debug_logger.log("geo", "skipped", {"reason": "geo_service_disabled"})
+            location_query = (request.narrative.location_query or "").strip()
             if geo is None:
-                logger.debug("intake.geo_skip", extra={"reason": "no_geo_or_not_resolved"})
+                if location_query:
+                    logger.info(
+                        "intake.geo_not_resolved location_query=%s",
+                        location_query[:60],
+                        extra={
+                            "reason": "provider_miss",
+                            "location_query_len": len(location_query),
+                        },
+                    )
+                else:
+                    logger.debug(
+                        "intake.geo_skip", extra={"reason": "no_location_query"}
+                    )
             else:
                 logger.debug(
                     "intake.geo_resolved",
@@ -180,44 +232,50 @@ class StoryIntakeService:
             )
             record = StoryRecord(
                 story_id=story_id,
-            schema_version=request.schema_version,
-            narrative_original_text=request.narrative.original_text,
-            submitter_external_user_id=request.submitter.external_user_id,
-            submitter_identity_issuer=request.submitter.identity_issuer,
-            lifecycle_status=StoryLifecycleStatus.ACCEPTED,
-            created_at=now,
-            updated_at=now,
-            narrative_language=request.narrative.language,
-            narrative_title=dict(request.narrative.title),
-            narrative_description=dict(request.narrative.description),
-            narrative_summary=(
-                dict(request.narrative.summary)
-                if request.narrative.summary is not None
-                else None
-            ),
-            narrative_institution=(
-                dict(request.narrative.institution)
-                if request.narrative.institution is not None
-                else None
-            ),
-            narrative_session_language=request.narrative.session_language,
-            narrative_consistency_notes=consistency_notes,
-            narrative_canonical_type=request.narrative.canonical_type,
-            narrative_canonical_labels=request.narrative.canonical_labels,
-            geo=geo,
-            origin_source=request.origin.source if request.origin is not None else None,
-            origin_conversation_id=(
-                request.origin.conversation_id if request.origin is not None else None
-            ),
-            origin_tool_call_id=(
-                request.origin.tool_call_id if request.origin is not None else None
-            ),
-            privacy_contains_pii=contains_pii,
-            privacy_redaction_requested=(
-                request.privacy.redaction_requested
-                if request.privacy is not None
-                else False
-            ),
+                schema_version=request.schema_version,
+                narrative_original_text=request.narrative.original_text,
+                submitter_external_user_id=request.submitter.external_user_id,
+                submitter_identity_issuer=request.submitter.identity_issuer,
+                lifecycle_status=StoryLifecycleStatus.ACCEPTED,
+                created_at=now,
+                updated_at=now,
+                narrative_language=request.narrative.language,
+                narrative_title=dict(request.narrative.title),
+                narrative_description=dict(request.narrative.description),
+                narrative_summary=(
+                    dict(request.narrative.summary)
+                    if request.narrative.summary is not None
+                    else None
+                ),
+                narrative_institution=(
+                    dict(request.narrative.institution)
+                    if request.narrative.institution is not None
+                    else None
+                ),
+                narrative_session_language=request.narrative.session_language,
+                narrative_consistency_notes=consistency_notes,
+                narrative_canonical_type=request.narrative.canonical_type,
+                narrative_canonical_labels=request.narrative.canonical_labels,
+                geo=geo,
+                origin_source=(
+                    request.origin.source if request.origin is not None else None
+                ),
+                origin_conversation_id=(
+                    request.origin.conversation_id
+                    if request.origin is not None
+                    else None
+                ),
+                origin_tool_call_id=(
+                    request.origin.tool_call_id
+                    if request.origin is not None
+                    else None
+                ),
+                privacy_contains_pii=contains_pii,
+                privacy_redaction_requested=(
+                    request.privacy.redaction_requested
+                    if request.privacy is not None
+                    else False
+                ),
             )
             repository_class = self.repository.__class__.__name__
             backend_hint = _backend_from_repository_name(repository_class)
@@ -319,12 +377,17 @@ class StoryIntakeService:
                         "checksum8": checksum[:8],
                     },
                 )
+            gpt_signals_persisted = True
             if request.gpt_signals is not None:
-                self._persist_gpt_classifier_signals(
+                gpt_signals_persisted = self._persist_gpt_classifier_signals(
                     story_id=final_story.story_id,
                     gpt_signals=request.gpt_signals,
                 )
-            return final_story
+            return StoryIntakeResult(
+                story=final_story,
+                geo_resolved=geo is not None,
+                gpt_signals_persisted=gpt_signals_persisted,
+            )
 
     def advance_story_readiness(
         self, *, story_id: str, narrative_complete: bool

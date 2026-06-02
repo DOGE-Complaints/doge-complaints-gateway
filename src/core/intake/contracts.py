@@ -96,13 +96,33 @@ class StoryIntakeRequest:
 
 
 @dataclass(frozen=True)
+class IntakeNotes:
+    geo_resolved: bool
+    gpt_signals_persisted: bool
+
+    def as_dict(self) -> dict[str, bool]:
+        return {
+            "geo_resolved": self.geo_resolved,
+            "gpt_signals_persisted": self.gpt_signals_persisted,
+        }
+
+
+@dataclass(frozen=True)
 class StoryIntakeResponse:
     schema_version: str
     story_id: str
     status: str
+    intake_notes: IntakeNotes | None = None
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        payload: dict[str, Any] = {
+            "schema_version": self.schema_version,
+            "story_id": self.story_id,
+            "status": self.status,
+        }
+        if self.intake_notes is not None:
+            payload["intake_notes"] = self.intake_notes.as_dict()
+        return payload
 
 
 def _require_non_empty_string(
@@ -360,10 +380,19 @@ def build_story_intake_response(
     story_id: str,
     status: str,
     trace_id: str,
+    geo_resolved: bool = False,
+    gpt_signals_persisted: bool | None = None,
 ) -> dict[str, Any]:
+    notes = IntakeNotes(
+        geo_resolved=geo_resolved,
+        gpt_signals_persisted=(
+            gpt_signals_persisted if gpt_signals_persisted is not None else True
+        ),
+    )
     contract = StoryIntakeResponse(
         schema_version=INTAKE_RESPONSE_SCHEMA_VERSION,
         story_id=story_id,
         status=status,
+        intake_notes=notes,
     )
     return build_success_envelope(data=contract.as_dict(), trace_id=trace_id).as_dict()

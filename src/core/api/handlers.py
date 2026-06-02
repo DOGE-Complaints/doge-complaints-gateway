@@ -197,10 +197,11 @@ def handle_story_intake(
                     level=scope_level,
                     expected_value=scope_value,
                 )
-        story = dependencies.story_intake_service.create_story(
+        intake_result = dependencies.story_intake_service.create_story(
             request,
             idempotency_key=idempotency_key,
         )
+        story = intake_result.story
         set_log_context(story_id=story.story_id)
         log_api_event(
             logging.INFO,
@@ -245,6 +246,8 @@ def handle_story_intake(
                 story_id=story.story_id,
                 status=story.lifecycle_status.value,
                 trace_id=resolved_trace_id,
+                geo_resolved=intake_result.geo_resolved,
+                gpt_signals_persisted=intake_result.gpt_signals_persisted,
             ),
             202,
         )
