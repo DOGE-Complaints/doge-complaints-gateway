@@ -123,7 +123,7 @@ def test_issue_embedding_persists_policy_version() -> None:
     service.create_issue(
         IssueCreateCommand(
             cluster_id="cluster:test:1",
-            story_ids=(s1.story_id, s2.story_id),
+            story_ids=(s1.story.story_id, s2.story.story_id),
             readiness_score=90,
             title="Road safety incident",
         )

@@ -133,7 +133,7 @@ def test_lineage_story_ids_allow_fetching_submitter_identity() -> None:
             },
         }
     )
-    story = intake_service.create_story(req)
+    story = intake_service.create_story(req).story
 
     repo = InMemoryEvidencePackRepository()
     svc = EvidencePackService(repository=repo)

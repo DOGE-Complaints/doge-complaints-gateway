@@ -23,7 +23,7 @@ def test_story_intake_service_deduplicates_by_idempotency_key() -> None:
     first = service.create_story(request, idempotency_key="idem-key-1")
     second = service.create_story(request, idempotency_key="idem-key-1")
 
-    assert first.story_id == second.story_id
+    assert first.story.story_id == second.story.story_id
 
 
 def test_story_intake_service_creates_new_story_for_different_idempotency_keys() -> None:
@@ -37,7 +37,7 @@ def test_story_intake_service_creates_new_story_for_different_idempotency_keys()
     first = service.create_story(request, idempotency_key="idem-key-a")
     second = service.create_story(request, idempotency_key="idem-key-b")
 
-    assert first.story_id != second.story_id
+    assert first.story.story_id != second.story.story_id
 
 
 def test_http_intake_sha256_idempotency_without_header(monkeypatch) -> None:

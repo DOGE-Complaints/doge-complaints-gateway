@@ -37,7 +37,7 @@ def test_story_intake_service_persists_immutable_narrative_and_authorship() -> N
         )
     )
 
-    saved = service.create_story(request)
+    saved = service.create_story(request).story
     fetched = repository.get_story(saved.story_id)
 
     assert fetched is not None
@@ -86,7 +86,7 @@ def test_story_intake_service_rejects_readiness_regression() -> None:
     )
     request = parse_story_intake_request(valid_v2_intake_payload())
 
-    saved = service.create_story(request)
+    saved = service.create_story(request).story
     assert saved.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE
 
     with pytest.raises(ValueError, match="Cannot regress"):

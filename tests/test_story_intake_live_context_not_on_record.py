@@ -29,7 +29,7 @@ def test_intake_persists_live_story_context_consistency_notes() -> None:
                 live_story_context={"consistency_notes": "User clarified scope."},
             )
         )
-    )
+    ).story
     assert saved.narrative_consistency_notes == "User clarified scope."
 
 
@@ -60,7 +60,7 @@ def test_intake_service_persists_multilingual_fields() -> None:
                 }
             )
         )
-    )
+    ).story
     assert saved.narrative_title is not None
     assert saved.narrative_title["ru"] == "RU title"
     assert saved.narrative_summary == {"ru": "Sum ru", "et": "Sum et", "en": "Sum en"}

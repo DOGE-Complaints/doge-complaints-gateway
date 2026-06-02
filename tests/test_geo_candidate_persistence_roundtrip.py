@@ -61,7 +61,7 @@ def test_geo_snapshot_roundtrip_persists_on_story_record() -> None:
         }
     )
 
-    saved = service.create_story(request)
+    saved = service.create_story(request).story
 
     assert saved.geo is not None
     assert saved.geo.normalized_label == "Tallinn, EE"

@@ -44,8 +44,8 @@ def test_resolver_falls_back_to_second_provider_for_narva() -> None:
     svc, metrics = _geo_service()
     snap = svc.resolve_for_story("Narva old town")
     assert snap is not None
-    assert snap.provider == "nominatim_stub"
-    assert metrics.provider_successes.get("nominatim_stub") == 1
+    assert snap.provider == "estonia_lookup_stub"
+    assert metrics.provider_successes.get("estonia_lookup_stub") == 1
 
 
 def test_unknown_location_does_not_break_and_records_degraded() -> None:
@@ -76,7 +76,7 @@ def test_intake_attaches_geo_when_location_query_present() -> None:
             },
         }
     )
-    saved = service.create_story(req)
+    saved = service.create_story(req).story
     assert saved.geo is not None
     assert saved.geo.normalized_label == "Tallinn, EE"
     assert saved.geo.cluster_tags

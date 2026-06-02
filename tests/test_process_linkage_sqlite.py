@@ -44,7 +44,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
             }
         )
     )
-    return story.story_id
+    return story.story.story_id
 
 
 def test_sqlite_process_linkage_persists_candidate_audit_and_issue_story_links() -> None:

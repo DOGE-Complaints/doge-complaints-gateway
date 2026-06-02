@@ -82,7 +82,7 @@ def test_intake_debug_jsonl_five_stages(tmp_path: Path, monkeypatch: pytest.Monk
     payload["narrative"]["canonical_type"] = "complaint"
     payload["narrative"]["canonical_labels"] = ["roads", "broken_infrastructure"]
     created = intake.create_story(parse_story_intake_request(payload))
-    story_id = created.story_id
+    story_id = created.story.story_id
 
     stories.save_story(
         make_story_record(
@@ -129,7 +129,7 @@ def test_intake_no_debug_file_when_dir_unset(tmp_path: Path) -> None:
     created = intake.create_story(
         parse_story_intake_request(intake_payload_simple())
     )
-    assert not (tmp_path / f"{created.story_id}.jsonl").exists()
+    assert not (tmp_path / f"{created.story.story_id}.jsonl").exists()
 
 
 def test_debug_jsonl_independent_of_log_level(tmp_path: Path) -> None:

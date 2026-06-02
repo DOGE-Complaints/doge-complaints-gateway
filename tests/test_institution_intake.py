@@ -116,7 +116,9 @@ def test_bridge_projection_institution_roundtrip_from_dominant_story() -> None:
         idempotency_repository=InMemoryIdempotencyRepository(),
         geo_service=None,
     )
-    story = intake_service.create_story(parse_story_intake_request(_payload_with_institution()))
+    story = intake_service.create_story(
+        parse_story_intake_request(_payload_with_institution())
+    ).story
     bridge = StoryPromotionProjectionBridge(story_repository=story_repository)
     projection_input = bridge.build_projection_input(
         issue_id="issue-inst-1",

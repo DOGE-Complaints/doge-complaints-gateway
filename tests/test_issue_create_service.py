@@ -47,7 +47,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
             }
         )
     )
-    return story.story_id
+    return story.story.story_id
 
 
 def test_issue_create_service_create_then_extend_reuses_issue_id() -> None:

@@ -51,7 +51,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
                 },
             }
         )
-    )
+    ).story
     story_b = intake_service.create_story(
         parse_story_intake_request(
             {
@@ -68,7 +68,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
                 },
             }
         )
-    )
+    ).story
 
     bridge = StoryPromotionProjectionBridge(story_repository=story_repository)
     projection_input = bridge.build_projection_input(
@@ -121,7 +121,7 @@ def test_bridge_derivation_rules_are_deterministic_for_type_and_labels() -> None
                 },
             }
         )
-    )
+    ).story
     bridge = StoryPromotionProjectionBridge(story_repository=story_repository)
     projection_input = bridge.build_projection_input(
         issue_id="issue-policy-1",
@@ -154,7 +154,7 @@ def test_bridge_supports_pluggable_projection_policy_boundary() -> None:
                 },
             }
         )
-    )
+    ).story
 
     bridge = StoryPromotionProjectionBridge(
         story_repository=story_repository,

@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.cluster import ClusterLens, ClusteringEngine, StoryProfileSignals
 from core.domain import StoryGeoSnapshot
-from core.geo.providers import _NarvaNominatimStub, _TallinnOpenCageStub
+from core.geo.providers import _EstoniaGeoLookup
 from core.geo.scope import geo_filter_bucket, parse_cluster_geo_filter
 from tests.intake_v2_fixtures import valid_v2_intake_payload
 
@@ -25,12 +25,20 @@ def _civic_signals() -> dict[str, str]:
     }
 
 
+def _lookup() -> _EstoniaGeoLookup:
+    return _EstoniaGeoLookup()
+
+
 def _tallinn_geo() -> StoryGeoSnapshot:
-    return _TallinnOpenCageStub().resolve("Tallinn", canonical_key="tallinn")  # type: ignore[return-value]
+    snap = _lookup().resolve("Tallinn", canonical_key="tallinn")
+    assert snap is not None
+    return snap
 
 
 def _narva_geo() -> StoryGeoSnapshot:
-    return _NarvaNominatimStub().resolve("Narva", canonical_key="narva")  # type: ignore[return-value]
+    snap = _lookup().resolve("Narva", canonical_key="narva")
+    assert snap is not None
+    return snap
 
 
 def test_demo_stubs_expose_admin_levels() -> None:

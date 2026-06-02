@@ -32,7 +32,7 @@ def test_consistency_notes_mapped_to_storyrecord_field(intake_service: StoryInta
             live_story_context={"consistency_notes": "duplicate of #123"},
         )
     )
-    saved = intake_service.create_story(request)
+    saved = intake_service.create_story(request).story
     assert saved.narrative_consistency_notes == "duplicate of #123"
 
 
@@ -117,5 +117,5 @@ def test_no_location_query_results_in_none_geo(intake_service: StoryIntakeServic
     """REQ-39 C-04: without location_query and geo_service, StoryRecord.geo stays None."""
     request = parse_story_intake_request(valid_v2_intake_payload())
     assert request.narrative.location_query is None
-    saved = intake_service.create_story(request)
+    saved = intake_service.create_story(request).story
     assert saved.geo is None

@@ -199,6 +199,10 @@ def test_build_story_intake_response_contract_shape() -> None:
             "schema_version": INTAKE_RESPONSE_SCHEMA_VERSION,
             "story_id": "story-001",
             "status": "accepted",
+            "intake_notes": {
+                "geo_resolved": False,
+                "gpt_signals_persisted": True,
+            },
         },
         "trace_id": "trace-001",
     }
