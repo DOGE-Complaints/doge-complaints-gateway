@@ -40,7 +40,6 @@ def _coerce_jsonb_text_id_sequence(raw: Any) -> tuple[str, ...]:
 _STORY_SELECT_FIELDS = (
     "story_id,schema_version,narrative_original_text,submitter_external_user_id,"
     "narrative_language,narrative_title_json,narrative_description_json,narrative_session_language,"
-    "narrative_title_hint,narrative_title_hint_et,narrative_title_hint_ru,narrative_title_hint_en,"
     "narrative_summary_json,institution_json,narrative_consistency_notes,narrative_canonical_type,narrative_canonical_labels_json,"
     "submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,"
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
@@ -49,36 +48,13 @@ _STORY_SELECT_FIELDS = (
 )
 
 
-def _i18n_dict_from_supabase_row(
-    row: dict[str, Any],
-    *,
-    json_key: str,
-    legacy_hint_key: str = "narrative_title_hint",
-    legacy_lang_keys: tuple[tuple[str, str], ...] = (
-        ("et", "narrative_title_hint_et"),
-        ("ru", "narrative_title_hint_ru"),
-        ("en", "narrative_title_hint_en"),
-    ),
-) -> dict[str, str] | None:
+def _i18n_dict_from_supabase_row(row: dict[str, Any], *, json_key: str) -> dict[str, str] | None:
     raw_json = row.get(json_key)
-    if raw_json:
-        if isinstance(raw_json, dict):
-            return {str(k): str(v) for k, v in raw_json.items()}
-        return i18n_dict_from_json(str(raw_json))
-    legacy_values = {
-        lang: str(row[col]).strip()
-        for lang, col in legacy_lang_keys
-        if row.get(col)
-    }
-    if legacy_values:
-        return {lang: legacy_values.get(lang, "") for lang in I18N_LANGS}
-    if legacy_hint_key and row.get(legacy_hint_key):
-        lang = str(row.get("narrative_language") or "en")
-        base = {code: "" for code in I18N_LANGS}
-        if lang in base:
-            base[lang] = str(row[legacy_hint_key]).strip()
-        return base
-    return None
+    if not raw_json:
+        return None
+    if isinstance(raw_json, dict):
+        return {str(k): str(v) for k, v in raw_json.items()}
+    return i18n_dict_from_json(str(raw_json))
 
 
 def _summary_dict_from_supabase_row(row: dict[str, Any]) -> dict[str, str] | None:
@@ -156,12 +132,7 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
         submitter_external_user_id=str(row["submitter_external_user_id"]),
         narrative_language=row["narrative_language"],
         narrative_title=_i18n_dict_from_supabase_row(row, json_key="narrative_title_json"),
-        narrative_description=_i18n_dict_from_supabase_row(
-            row,
-            json_key="narrative_description_json",
-            legacy_hint_key="",
-            legacy_lang_keys=(),
-        ),
+        narrative_description=_i18n_dict_from_supabase_row(row, json_key="narrative_description_json"),
         narrative_summary=_summary_dict_from_supabase_row(row),
         narrative_institution=_institution_dict_from_supabase_row(row),
         narrative_session_language=row.get("narrative_session_language"),
@@ -353,7 +324,6 @@ class SupabaseDatabase:
             "stories": {
                 "story_id",
                 "narrative_language",
-                "narrative_title_hint",
                 "narrative_canonical_type",
                 "narrative_canonical_labels_json",
                 "geo_normalized_label",
@@ -403,9 +373,6 @@ class SupabaseDatabase:
     def required_stories_narrative_extension_columns_ready(self) -> bool:
         """True when hosted DB has STORY-M2-02-06 narrative extension columns (migration 20260511_1200_*)."""
         columns = (
-            "narrative_title_hint_et",
-            "narrative_title_hint_ru",
-            "narrative_title_hint_en",
             "narrative_summary_json",
             "narrative_consistency_notes",
         )
@@ -461,10 +428,6 @@ class SupabaseStoryRepository:
             "narrative_title_json": record.narrative_title,
             "narrative_description_json": record.narrative_description,
             "narrative_session_language": record.narrative_session_language,
-            "narrative_title_hint": None,
-            "narrative_title_hint_et": None,
-            "narrative_title_hint_ru": None,
-            "narrative_title_hint_en": None,
             "narrative_summary_json": record.narrative_summary,
             "institution_json": record.narrative_institution,
             "narrative_consistency_notes": record.narrative_consistency_notes,

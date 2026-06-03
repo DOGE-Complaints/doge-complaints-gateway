@@ -22,7 +22,6 @@ create table if not exists public.stories (
 
 alter table if exists public.stories
     add column if not exists narrative_language text,
-    add column if not exists narrative_title_hint text,
     add column if not exists narrative_canonical_type text,
     add column if not exists narrative_canonical_labels_json text not null default '[]';
 
@@ -42,11 +41,8 @@ alter table if exists public.stories
     add column if not exists geo_admin_region text,
     add column if not exists geo_admin_country text;
 
--- STORY-M2-02-06 §16: optional multilingual title hints, summary JSON, live_story consistency notes
+-- STORY-M2-02-06 §16: summary JSON, live_story consistency notes
 alter table if exists public.stories
-    add column if not exists narrative_title_hint_et text,
-    add column if not exists narrative_title_hint_ru text,
-    add column if not exists narrative_title_hint_en text,
     add column if not exists narrative_summary_json text,
     add column if not exists narrative_consistency_notes text;
 
