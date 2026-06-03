@@ -60,7 +60,7 @@ def test_supabase_missing_adapters_live_roundtrip() -> None:
             created_at=now,
             updated_at=now,
             narrative_language="en",
-            narrative_title_hint="TC100 H01 story",
+            narrative_title={"en": "TC100 H01 story", "et": "", "ru": ""},
             narrative_canonical_type="infrastructure",
             narrative_canonical_labels=("lighting",),
         )

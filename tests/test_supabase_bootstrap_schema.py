@@ -62,8 +62,9 @@ def test_migration_bootstrap_geo_embedding_file_present_gap07_gap08() -> None:
 
 def test_bootstrap_stories_narrative_extension_columns_m2_02_06() -> None:
     sql = _BOOTSTRAP_SQL.read_text(encoding="utf-8")
-    assert "narrative_title_hint_et" in sql
+    assert "narrative_summary_json" in sql
     assert "narrative_consistency_notes" in sql
+    assert "narrative_title_hint" not in sql
 
 
 def test_migration_stories_narrative_extensions_file_exists() -> None:

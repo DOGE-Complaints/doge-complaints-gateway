@@ -43,7 +43,7 @@ def test_story_write_read_roundtrip_via_supabase_http() -> None:
         created_at=now,
         updated_at=now,
         narrative_language="en",
-        narrative_title_hint="Roundtrip title",
+        narrative_title={"en": "Roundtrip title", "et": "", "ru": ""},
         narrative_canonical_type="infrastructure",
         narrative_canonical_labels=("lighting", "safety"),
         origin_source="tc_p0_01_live_contract",
@@ -60,7 +60,7 @@ def test_story_write_read_roundtrip_via_supabase_http() -> None:
     assert fetched.story_id == story_id
     assert fetched.narrative_original_text == record.narrative_original_text
     assert fetched.narrative_language == "en"
-    assert fetched.narrative_title_hint == "Roundtrip title"
+    assert fetched.narrative_title == {"en": "Roundtrip title", "et": "", "ru": ""}
     assert fetched.narrative_canonical_type == "infrastructure"
     assert fetched.narrative_canonical_labels == ("lighting", "safety")
     assert fetched.lifecycle_status == StoryLifecycleStatus.READY_FOR_PROFILE

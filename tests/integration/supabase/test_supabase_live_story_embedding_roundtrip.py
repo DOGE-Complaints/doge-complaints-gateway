@@ -51,7 +51,7 @@ def test_story_embedding_write_roundtrip_via_supabase_http() -> None:
             created_at=now,
             updated_at=now,
             narrative_language="en",
-            narrative_title_hint="Embedding contract title",
+            narrative_title={"en": "Embedding contract title", "et": "", "ru": ""},
             narrative_canonical_type="infrastructure",
             narrative_canonical_labels=("lighting",),
             origin_source="tc_p0_02_live_contract",
