@@ -71,16 +71,7 @@ Source: `domain/contracts.py:20-25`, `services.py:281-338`
 | `narrative_canonical_type` | `text` | нет | Тип из GPT: `complaint`, `observation`, `system_bug`, `absurdity` (без enum-валидации при intake) |
 | `narrative_canonical_labels_json` | `text NOT NULL default '[]'` | да | JSON-массив строк: canonical labels из GPT, нормализованные (`.strip().lower()`, deduped) |
 
-**Легаси-поля title (deprecated, сохраняются пустыми при v2 intake):**
-
-| Колонка | Примечание |
-|---------|-----------|
-| `narrative_title_hint` | Старый единственный hint-заголовок. При v2 intake: `None`. При чтении — fallback если `narrative_title_json` пуст |
-| `narrative_title_hint_et` | Старая колонка отдельно для `et`. При v2 intake: `None` |
-| `narrative_title_hint_ru` | При v2 intake: `None` |
-| `narrative_title_hint_en` | При v2 intake: `None` |
-
-Fallback-логика при чтении (`_i18n_dict_from_supabase_row`): приоритет `narrative_title_json` → `narrative_title_hint_*` → `narrative_title_hint` (проставляет в нужный lang-слот).
+**Легаси `narrative_title_hint*` (REQ-46 §2.4, STORY-M2-02-12 T11–T13):** колонки удалены из bootstrap и persistence; hosted purge — `supabase/migrations/20260603_1200_req46_title_hint_test_purge_and_column_drop.sql`. Чтение/запись title — только через `narrative_title_json`.
 
 ---
 
