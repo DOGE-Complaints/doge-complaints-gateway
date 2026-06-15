@@ -324,6 +324,16 @@ class SqliteDatabase:
             CREATE INDEX IF NOT EXISTS idx_cluster_memberships_cluster ON cluster_memberships(cluster_id);
             CREATE INDEX IF NOT EXISTS idx_cluster_memberships_lens ON cluster_memberships(lens);
 
+            CREATE TABLE IF NOT EXISTS label_translation_misses (
+                label_key TEXT NOT NULL,
+                locale TEXT NOT NULL CHECK (locale IN ('et', 'ru', 'en')),
+                miss_count INTEGER NOT NULL DEFAULT 1 CHECK (miss_count >= 1),
+                last_seen_at TEXT NOT NULL,
+                PRIMARY KEY (label_key, locale)
+            );
+            CREATE INDEX IF NOT EXISTS idx_label_translation_misses_locale_count
+                ON label_translation_misses (locale, miss_count DESC, last_seen_at DESC);
+
             CREATE INDEX IF NOT EXISTS idx_issue_candidates_cluster_status
                 ON issue_candidates(cluster_id, status);
             CREATE INDEX IF NOT EXISTS idx_issue_story_links_cluster ON issue_story_links(cluster_id);
@@ -928,3 +938,35 @@ class SqliteClusterMembershipStore:
             (cluster_id, lens),
         ).fetchall()
         return [str(row["story_id"]) for row in rows]
+
+
+@dataclass
+class SqliteLabelTranslationMissStore:
+    db: SqliteDatabase
+
+    def record_miss(self, label_key: str, locale: str) -> None:
+        now = _utcnow().isoformat()
+        self.db.connection.execute(
+            """
+            INSERT INTO label_translation_misses (label_key, locale, miss_count, last_seen_at)
+            VALUES (?, ?, 1, ?)
+            ON CONFLICT(label_key, locale) DO UPDATE SET
+                miss_count = miss_count + 1,
+                last_seen_at = excluded.last_seen_at
+            """,
+            (label_key, locale, now),
+        )
+        self.db.connection.commit()
+
+    def get_miss_count(self, label_key: str, locale: str) -> int:
+        row = self.db.connection.execute(
+            """
+            SELECT miss_count FROM label_translation_misses
+            WHERE label_key = ? AND locale = ?
+            """,
+            (label_key, locale),
+        ).fetchone()
+        if row is None:
+            return 0
+        return int(row["miss_count"])
+

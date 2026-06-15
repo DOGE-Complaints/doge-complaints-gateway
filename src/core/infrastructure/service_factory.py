@@ -22,6 +22,7 @@ from core.domain import (
     ClusterMembershipStore,
     HealthRepository,
     IdempotencyRepository,
+    LabelTranslationMissStore,
     SignalProfileRepository,
     StoryRepository,
     StorySignalStore,
@@ -58,6 +59,7 @@ class DefaultServiceFactory:
     issue_story_link_store: IssueStoryLinkStore | None = None
     story_signal_store: StorySignalStore | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
+    label_translation_miss_store: LabelTranslationMissStore | None = None
 
     def get_health_service(self) -> HealthService:
         return HealthService(repository=self.health_repository)

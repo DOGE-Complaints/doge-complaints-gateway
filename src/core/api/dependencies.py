@@ -12,6 +12,7 @@ from core.application import (
 )
 from core.application.issue_create import IssueProjectionReadStore
 from core.config import AppConfig, load_config_from_env
+from core.domain import LabelTranslationMissStore
 from core.infrastructure import provide_service_factory
 
 
@@ -36,6 +37,7 @@ class ApiDependencies:
     db_backend: str = "in_memory"
     db_ready: bool = True
     db_checks: dict[str, bool] = field(default_factory=dict)
+    label_translation_miss_store: LabelTranslationMissStore | None = None
 
 
 # Backward-compatible name used in tests and story docs
@@ -87,4 +89,5 @@ def build_api_dependencies() -> ApiDependencies:
         db_backend=db_backend,
         db_ready=db_ready,
         db_checks=db_checks,
+        label_translation_miss_store=service_factory.label_translation_miss_store,
     )

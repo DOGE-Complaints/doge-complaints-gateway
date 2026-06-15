@@ -12,7 +12,7 @@ from core.domain import (
     SignalProfileRepository,
     StoryRepository,
 )
-from core.domain import ClusterMembershipStore, StorySignalStore
+from core.domain import ClusterMembershipStore, StorySignalStore, LabelTranslationMissStore
 from core.infrastructure.repositories import (
     InMemoryClusterMembershipStore,
     InMemoryHealthRepository,
@@ -20,6 +20,7 @@ from core.infrastructure.repositories import (
     InMemoryIssueProjectionEmbeddingStore,
     InMemoryIssueProjectionStore,
     InMemoryIssueStoryLinkStore,
+    InMemoryLabelTranslationMissStore,
     InMemorySignalProfileRepository,
     InMemoryStoryEmbeddingStore,
     InMemoryStoryRepository,
@@ -33,6 +34,7 @@ from core.infrastructure.db_sqlite import (
     SqliteIssueStoryLinkStore,
     SqliteIssueProjectionEmbeddingStore,
     SqliteIssueProjectionStore,
+    SqliteLabelTranslationMissStore,
     SqliteReviewAuditLogRepository,
     SqliteStoryEmbeddingStore,
     SqliteStoryRepository,
@@ -46,6 +48,7 @@ from core.infrastructure.db_supabase import (
     SupabaseIssueStoryLinkStore,
     SupabaseIssueProjectionEmbeddingStore,
     SupabaseIssueProjectionStore,
+    SupabaseLabelTranslationMissStore,
     SupabaseReviewAuditLogRepository,
     SupabaseStoryEmbeddingStore,
     SupabaseStoryRepository,
@@ -140,6 +143,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     review_audit_log_repository = provide_review_audit_log_repository()
     story_signal_store: StorySignalStore = InMemoryStorySignalStore()
     cluster_membership_store: ClusterMembershipStore = InMemoryClusterMembershipStore()
+    label_translation_miss_store: LabelTranslationMissStore = InMemoryLabelTranslationMissStore()
 
     if resolved_config.db_backend == "sqlite" and resolved_config.database_url is not None:
         sqlite_db = SqliteDatabase.from_url(resolved_config.database_url)
@@ -154,6 +158,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store = SqliteIssueStoryLinkStore(sqlite_db)
         story_signal_store = SqliteStorySignalStore(sqlite_db)
         cluster_membership_store = SqliteClusterMembershipStore(sqlite_db)
+        label_translation_miss_store = SqliteLabelTranslationMissStore(sqlite_db)
         logger.info(
             "factory.persistence_backend_selected backend=%s stage=%s",
             "sqlite",
@@ -186,6 +191,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store = SupabaseIssueStoryLinkStore(supabase_db)
         story_signal_store = SupabaseStorySignalStore(supabase_db)
         cluster_membership_store = SupabaseClusterMembershipStore(supabase_db)
+        label_translation_miss_store = SupabaseLabelTranslationMissStore(supabase_db)
         logger.info(
             "factory.persistence_backend_selected backend=%s stage=%s",
             "supabase",
@@ -240,5 +246,6 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_story_link_store=issue_story_link_store,
         story_signal_store=story_signal_store,
         cluster_membership_store=cluster_membership_store,
+        label_translation_miss_store=label_translation_miss_store,
     )
 

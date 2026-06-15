@@ -326,3 +326,23 @@ class InMemoryClusterMembershipStore:
             if ln == lens and cid == cluster_id
         )
 
+
+@dataclass
+class InMemoryLabelTranslationMissStore:
+    _rows: dict[tuple[str, str], tuple[int, str]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = {}
+
+    def record_miss(self, label_key: str, locale: str) -> None:
+        assert self._rows is not None
+        key = (label_key, locale)
+        count, _ = self._rows.get(key, (0, ""))
+        self._rows[key] = (count + 1, datetime.now(UTC).isoformat())
+
+    def get_miss_count(self, label_key: str, locale: str) -> int:
+        assert self._rows is not None
+        row = self._rows.get((label_key, locale))
+        return row[0] if row is not None else 0
+

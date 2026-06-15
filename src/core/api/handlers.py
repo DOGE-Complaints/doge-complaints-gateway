@@ -15,6 +15,7 @@ from core.logging_setup import clear_log_context, log_runtime_exception, set_log
 from core.api.security import UnauthorizedError
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
 from core.intake import IntakeValidationError, build_story_intake_response, parse_story_intake_request
+from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
 
 
 def _require_service_auth(
@@ -427,4 +428,47 @@ def handle_tallinn_issue_create(
         log_error(envelope)
         return envelope.as_dict(), 500
 
+
+def handle_label_miss_telemetry(
+    dependencies: ApiDependencies,
+    *,
+    body: dict[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        label_key, locale = parse_label_miss_payload(body)
+    except LabelMissValidationError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 400
+
+    store = dependencies.label_translation_miss_store
+    accepted = False
+    if store is not None:
+        try:
+            store.record_miss(label_key, locale)
+            accepted = True
+        except Exception as exc:  # noqa: BLE001
+            log_api_event(
+                logging.WARNING,
+                "label_miss_store_failed",
+                trace_id=resolved_trace_id,
+                label_key=label_key,
+                locale=locale,
+                outcome="degraded",
+            )
+            log_runtime_exception(
+                logging.getLogger("core.api"),
+                exc,
+                stage="api.telemetry.label_miss",
+                trace_id=resolved_trace_id,
+            )
+
+    return (
+        build_success_envelope(
+            data={"accepted": accepted}, trace_id=resolved_trace_id
+        ).as_dict(),
+        202,
+    )
 

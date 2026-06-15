@@ -7,6 +7,7 @@ from uuid import uuid4
 from core.api.security import UnauthorizedError
 from core.config import ConfigError
 from core.geo.scope import GeoScopeMismatchError
+from core.telemetry.label_miss import LabelMissValidationError
 
 
 class DatabaseNotReadyError(RuntimeError):
@@ -67,6 +68,17 @@ def build_error_envelope(
                 type="validation",
                 message=str(exc),
                 details=payload,
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, LabelMissValidationError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="VALIDATION_ERROR",
+                type="validation",
+                message="Invalid request",
+                details={},
             ),
             trace_id=resolved_trace_id,
         )

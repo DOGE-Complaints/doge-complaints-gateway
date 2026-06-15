@@ -148,6 +148,16 @@ class ClusterMembershipStore(Protocol):
         ...
 
 
+class LabelTranslationMissStore(Protocol):
+    def record_miss(self, label_key: str, locale: str) -> None:
+        """Increment aggregate miss counter for label_key + locale."""
+        ...
+
+    def get_miss_count(self, label_key: str, locale: str) -> int:
+        """Return current miss_count for label_key + locale (0 if absent)."""
+        ...
+
+
 @dataclass(frozen=True)
 class SignalProfileRecord:
     story_id: str

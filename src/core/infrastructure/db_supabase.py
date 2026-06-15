@@ -17,6 +17,23 @@ except Exception:  # pragma: no cover - optional dependency in local envs
 
 logger = logging.getLogger(__name__)
 
+# Critical-path PostgREST tables for gateway readiness (intake, projection, clustering).
+# Non-critical sinks (e.g. label miss telemetry) are intentionally excluded — GW-L10N-03 / D-L10N-3.
+REQUIRED_READINESS_TABLES: frozenset[str] = frozenset(
+    {
+        "stories",
+        "idempotency_keys",
+        "story_embeddings",
+        "doge_issues",
+        "doge_issue_embeddings",
+        "issue_candidates",
+        "review_audit_log",
+        "issue_story_links",
+        "story_signals",
+        "cluster_memberships",
+    }
+)
+
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
@@ -265,20 +282,8 @@ class SupabaseDatabase:
             return False
 
     def required_tables_ready(self) -> bool:
-        required = {
-            "stories",
-            "idempotency_keys",
-            "story_embeddings",
-            "doge_issues",
-            "doge_issue_embeddings",
-            "issue_candidates",
-            "review_audit_log",
-            "issue_story_links",
-            "story_signals",
-            "cluster_memberships",
-        }
         try:
-            for table_name in required:
+            for table_name in REQUIRED_READINESS_TABLES:
                 self._request(
                     method="GET",
                     path=f"/rest/v1/{table_name}",
@@ -1014,3 +1019,63 @@ class SupabaseClusterMembershipStore:
             },
         )
         return [str(row["story_id"]) for row in rows]
+
+
+@dataclass
+class SupabaseLabelTranslationMissStore:
+    db: SupabaseDatabase
+
+    def record_miss(self, label_key: str, locale: str) -> None:
+        now = _utcnow().isoformat()
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/label_translation_misses",
+            params={
+                "select": "miss_count",
+                "label_key": self.db._eq_filter(label_key),
+                "locale": self.db._eq_filter(locale),
+                "limit": "1",
+            },
+        )
+        if rows:
+            current = int(rows[0]["miss_count"])
+            self.db._request(
+                method="PATCH",
+                path="/rest/v1/label_translation_misses",
+                params={
+                    "label_key": self.db._eq_filter(label_key),
+                    "locale": self.db._eq_filter(locale),
+                },
+                json_body={"miss_count": current + 1, "last_seen_at": now},
+                prefer="return=minimal",
+            )
+            return
+        self.db._request(
+            method="POST",
+            path="/rest/v1/label_translation_misses",
+            json_body=[
+                {
+                    "label_key": label_key,
+                    "locale": locale,
+                    "miss_count": 1,
+                    "last_seen_at": now,
+                }
+            ],
+            prefer="return=minimal",
+        )
+
+    def get_miss_count(self, label_key: str, locale: str) -> int:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/label_translation_misses",
+            params={
+                "select": "miss_count",
+                "label_key": self.db._eq_filter(label_key),
+                "locale": self.db._eq_filter(locale),
+                "limit": "1",
+            },
+        )
+        if not rows:
+            return 0
+        return int(rows[0]["miss_count"])
+

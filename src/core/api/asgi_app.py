@@ -23,6 +23,7 @@ from core.api.envelope import build_error_envelope, ensure_trace_id
 from core.api.idempotency import resolve_idempotency_key
 from core.api.handlers import (
     handle_health,
+    handle_label_miss_telemetry,
     handle_metrics,
     handle_protected_status,
     handle_readiness,
@@ -42,6 +43,7 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/ready",
     "/demo/auth-page",
     "/intake/stories",
+    "/telemetry/label-misses",
     "/tallinn/issues",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
@@ -407,6 +409,22 @@ async def intake_stories(
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=envelope, status_code=status_code)
+
+
+@app.post("/telemetry/label-misses")
+async def telemetry_label_misses(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_label_miss_telemetry(
+        deps,
+        body=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
 
 
 def _parse_port(raw: str | None) -> int:
