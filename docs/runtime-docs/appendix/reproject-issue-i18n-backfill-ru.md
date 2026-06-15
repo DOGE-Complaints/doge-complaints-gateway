@@ -70,13 +70,16 @@ python3 scripts/reproject_issue_i18n.py --issue-id <uuid>
 - `type` из существующего payload (скрипт L153–154).
 - `status` — из payload или row, fallback `PUBLISHED` (`_issue_status`).
 
-## 8. Out of scope
+## 8. GW-L10N-02 (`original_locale`)
 
-- Не добавляет `original_locale` (scope **GW-L10N-02**).
+С GW-L10N-02 тот же скрипт пересчитывает **`original_locale`** в `payload_json` — уникальные `narrative_language` linked stories в каноническом порядке `et`, `ru`, `en`. Поле опускается, если язык неизвестен.
+
+## 9. Out of scope
+
 - Не cron и не автоматический re-project при каждом story update.
 - Не миграция DDL (`payload_json` остаётся JSON blob).
 
-## 9. Связанные артефакты
+## 10. Связанные артефакты
 
 - Story: STORY-GW-L10N-01 T03 (скрипт), T07 (автотесты)
 - Тесты: `tests/test_reproject_issue_i18n.py`

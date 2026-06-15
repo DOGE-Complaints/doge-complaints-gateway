@@ -151,7 +151,7 @@ components:
       required: [et, ru, en]
       description: >-
         Multilingual text object — all three keys required in intake contracts; in issue
-        projections locale values may differ (GW-L10N-01). Planned `original_locale` hint — GW-L10N-02.
+        projections locale values may differ (GW-L10N-01). `original_locale` on issue projections — GW-L10N-02.
       properties:
         et:
           type: string
@@ -247,7 +247,7 @@ components:
           type: object
           description: >-
             Multilingual title map (et/ru/en). Locales may differ on stored projections (GW-L10N-01).
-            See STORY-GW-L10N-02 for planned `original_locale` metadata.
+            Response includes `original_locale` when linked stories declare submitter languages (GW-L10N-02).
           additionalProperties:
             type: string
         type:
@@ -328,6 +328,15 @@ components:
           allOf:
             - $ref: '#/components/schemas/IssueProjectionGeo'
           nullable: true
+        original_locale:
+          type: array
+          items:
+            type: string
+            enum: [et, ru, en]
+          description: >-
+            Unique submitter narrative languages from all linked cluster stories, in canonical
+            order et, ru, en. Omitted when unknown. Locales outside this list are treated as MT
+            by the SPA (GW-L10N-02).
     SuccessEnvelope_IssueList:
       type: object
       required: [data, trace_id]

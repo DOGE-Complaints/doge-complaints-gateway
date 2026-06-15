@@ -471,9 +471,9 @@ All three `POST /tallinn/issues` endpoints are registered in `asgi_app.py` and r
 
 Public issue fields `title`, `summary`, and `description` are stored as `{ et, ru, en }` objects. **Locale values may differ** — the gateway preserves per-locale text from the dominant linked story (cluster projection) or from the operator-supplied title on manual `POST /tallinn/issues`; identical copies across all three keys are not required when source narratives differ.
 
-Planned: `original_locale` metadata on the projection (which locale reflects the submitter's original narrative) — see backlog **STORY-GW-L10N-02** (`original_locale`); not yet exposed in the public API.
+**`original_locale`** (GW-L10N-02): optional `string[]` on list/get responses. Unique `narrative_language` values from all linked stories in canonical order `et`, `ru`, `en`. Omitted when no known language. SPA treats locales outside the list as machine-translated.
 
-Source: `extraction_policy.py` (`DeterministicStoryToProjectionPolicy.build_draft`), `issue_create.py` (`create_manual_issue`).
+Source: `extraction_policy.py` (`DeterministicStoryToProjectionPolicy.build_draft`), `issue_create.py` (`StoryPromotionProjectionBridge`, `create_manual_issue`), `i18n.py` (`original_locale_from_languages`).
 
 ---
 
