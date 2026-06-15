@@ -95,8 +95,8 @@ def test_issue_create_service_create_then_extend_reuses_issue_id() -> None:
     assert promoted is not None
     assert promoted.story_ids == tuple(sorted((story_1, story_2, story_3)))
     assert promoted.readiness_score == 90
-    assert second_description != first_description
-    assert "report #3" in second_description
+    # GW-L10N-01: description follows dominant_story i18n; dominant unchanged → same en text.
+    assert second_description == first_description == "District lights outage report #1."
     assert link_store._rows is not None
     assert set(link_store._rows[first.issue_id][1]) == {story_1, story_2, story_3}
     audit = audit_store.list_for_candidate(first.issue_id)
