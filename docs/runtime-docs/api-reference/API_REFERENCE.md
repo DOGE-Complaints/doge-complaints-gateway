@@ -467,6 +467,16 @@ Test evidence:
 
 All three `POST /tallinn/issues` endpoints are registered in `asgi_app.py` and routable in the current runtime.
 
+### Issue projection i18n (GW-L10N-01)
+
+Public issue fields `title`, `summary`, and `description` are stored as `{ et, ru, en }` objects. **Locale values may differ** — the gateway preserves per-locale text from the dominant linked story (cluster projection) or from the operator-supplied title on manual `POST /tallinn/issues`; identical copies across all three keys are not required when source narratives differ.
+
+Planned: `original_locale` metadata on the projection (which locale reflects the submitter's original narrative) — see backlog **STORY-GW-L10N-02** (`original_locale`); not yet exposed in the public API.
+
+Source: `extraction_policy.py` (`DeterministicStoryToProjectionPolicy.build_draft`), `issue_create.py` (`create_manual_issue`).
+
+---
+
 ### `GET /tallinn/issues`
 
 - **HTTP binding state**: implemented — `asgi_app.py:322-361` → `handle_tallinn_issues_list` (`handlers.py:281-333`)
@@ -597,7 +607,7 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 |-------|------|----------|-------|
 | `cluster_id` | string | yes | Cluster the issue belongs to |
 | `story_ids` | string[] | yes | Must be a JSON array |
-| `title` | object | yes | Multilingual title map (language code → text) |
+| `title` | object | yes | Multilingual title map (`et`, `ru`, `en`); **locales may differ** (GW-L10N-01) |
 | `type` | string | no | Defaults to `"complaint"` |
 
 #### Success example

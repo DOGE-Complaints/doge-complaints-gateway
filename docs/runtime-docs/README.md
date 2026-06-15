@@ -57,6 +57,7 @@
 - [Architecture deep dive (RU)](./appendix/architecture-deep-dive-ru.md)
 - [Security operational scenarios (RU)](./appendix/security-operational-scenarios-ru.md)
 - [Testing rationale (RU)](./appendix/testing-rationale-ru.md)
+- [Reproject issue i18n backfill (RU)](./appendix/reproject-issue-i18n-backfill-ru.md)
 
 ## English API reference package
 

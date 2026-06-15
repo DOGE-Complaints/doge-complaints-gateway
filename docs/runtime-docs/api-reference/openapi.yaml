@@ -11,7 +11,7 @@ info:
     Important:
     The current runtime is FastAPI/ASGI-based and exposes operational routes directly.
 servers:
-  - url: https://runtime.example
+  - url: dogestonia-tallinn.up.railway.app
     description: Illustrative server URL for reference only
 tags:
   - name: Ops
@@ -140,46 +140,70 @@ components:
           type: string
     Submitter:
       type: object
-      required: [external_user_id]
+      required: [external_user_id, identity_issuer]
       properties:
         external_user_id:
           type: string
         identity_issuer:
           type: string
-          nullable: true
+    I18nObject:
+      type: object
+      required: [et, ru, en]
+      description: >-
+        Multilingual text object — all three keys required in intake contracts; in issue
+        projections locale values may differ (GW-L10N-01). Planned `original_locale` hint — GW-L10N-02.
+      properties:
+        et:
+          type: string
+        ru:
+          type: string
+        en:
+          type: string
+      additionalProperties: false
     Narrative:
       type: object
-      required: [original_text, language, title_hint]
+      required: [original_text, language, session_language, title, description]
       properties:
         original_text:
           type: string
+          description: Raw user-submitted text; language of this text is declared in `language`.
         language:
           type: string
           enum: [et, ru, en]
-        title_hint:
+          description: Language of `original_text` (auto-detected by GPT layer, may differ from session_language).
+        session_language:
           type: string
+          enum: [et, ru, en]
+          description: Language the user is interacting in (UI session language).
+        title:
+          $ref: '#/components/schemas/I18nObject'
+          description: Multilingual title — all three et/ru/en required.
+        description:
+          $ref: '#/components/schemas/I18nObject'
+          description: Multilingual description — all three et/ru/en required.
+        summary:
+          allOf:
+            - $ref: '#/components/schemas/I18nObject'
+          nullable: true
+          description: Optional multilingual summary. If present, all three et/ru/en required.
+        institution:
+          allOf:
+            - $ref: '#/components/schemas/I18nObject'
+          nullable: true
+          description: Optional i18n institution name (REQ-43); all of et, ru, en required when present.
         location_query:
           type: string
           nullable: true
+          description: Freeform location string resolved to geo by the server. Empty/whitespace stored as null.
         canonical_type:
           type: string
           nullable: true
+          description: "GPT taxonomy label — no enum enforcement at intake. Known values: complaint, observation, system_bug, absurdity."
         canonical_labels:
           type: array
           items:
             type: string
-        institution:
-          type: object
-          nullable: true
-          description: Optional i18n institution name (REQ-43); all of et, ru, en required when present
-          properties:
-            et:
-              type: string
-            ru:
-              type: string
-            en:
-              type: string
-          required: [et, ru, en]
+          description: Free-form tag strings. Each normalized to .strip().lower(); deduplicated preserving order.
     Origin:
       type: object
       properties:
@@ -207,6 +231,141 @@ components:
         consistency_notes:
           type: string
           nullable: true
+    TallinnIssueCreateRequest:
+      type: object
+      required: [cluster_id, story_ids, title]
+      properties:
+        cluster_id:
+          type: string
+          description: Cluster the issue belongs to.
+        story_ids:
+          type: array
+          items:
+            type: string
+          description: Story UUIDs that form this issue.
+        title:
+          type: object
+          description: >-
+            Multilingual title map (et/ru/en). Locales may differ on stored projections (GW-L10N-01).
+            See STORY-GW-L10N-02 for planned `original_locale` metadata.
+          additionalProperties:
+            type: string
+        type:
+          type: string
+          default: complaint
+          enum: [complaint, system_bug, observation, absurdity]
+          description: Issue type — defaults to "complaint".
+    IssueProjectionGeo:
+      type: object
+      description: Geo snapshot attached to the issue (from dominant story geo resolution).
+      properties:
+        admin_district:
+          type: string
+          nullable: true
+        admin_settlement:
+          type: string
+          nullable: true
+        admin_region:
+          type: string
+          nullable: true
+        admin_country:
+          type: string
+          nullable: true
+        admin_postal_code:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          nullable: true
+        lon:
+          type: number
+          nullable: true
+    IssueProjection:
+      type: object
+      description: Public issue shape returned by GET /tallinn/issues and GET /tallinn/issues/{issue_id}. Source — DOGEIssue.to_public_dict().
+      required: [id, status, type, labels, title, summary, description]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+        type:
+          type: string
+          enum: [complaint, system_bug, observation, absurdity]
+        labels:
+          type: array
+          items:
+            type: string
+        title:
+          $ref: '#/components/schemas/I18nObject'
+          description: Per-locale title; values may differ across et/ru/en (GW-L10N-01).
+        summary:
+          $ref: '#/components/schemas/I18nObject'
+          description: Per-locale summary; values may differ across et/ru/en (GW-L10N-01).
+        description:
+          $ref: '#/components/schemas/I18nObject'
+          description: Per-locale description; values may differ across et/ru/en (GW-L10N-01).
+        institution:
+          allOf:
+            - $ref: '#/components/schemas/I18nObject'
+          nullable: true
+          description: Present only when story carries institution data (REQ-43).
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        arweave_txid:
+          type: string
+          nullable: true
+        image_txid:
+          type: string
+          nullable: true
+        image_hash:
+          type: string
+          nullable: true
+        geo:
+          allOf:
+            - $ref: '#/components/schemas/IssueProjectionGeo'
+          nullable: true
+    SuccessEnvelope_IssueList:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          type: object
+          required: [issues]
+          properties:
+            issues:
+              type: array
+              items:
+                $ref: '#/components/schemas/IssueProjection'
+        trace_id:
+          type: string
+    SuccessEnvelope_IssueGet:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          type: object
+          required: [issue]
+          properties:
+            issue:
+              $ref: '#/components/schemas/IssueProjection'
+        trace_id:
+          type: string
+    SuccessEnvelope_IssueCreate:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          type: object
+          required: [issue_id]
+          properties:
+            issue_id:
+              type: string
+        trace_id:
+          type: string
     GptSignals:
       type: object
       description: Optional GPT classifier signals (REQ-42). Not stored on StoryRecord.
@@ -227,9 +386,8 @@ components:
         schema_version:
           type: string
           enum:
-            - m2.story_intake_envelope.v1
             - m2.story_intake_envelope.v2
-          description: Runtime accepts v2 only; v1 is rejected with 400.
+          description: "Only v2 is accepted at runtime. Sending v1 (m2.story_intake_envelope.v1) returns 400 with a migration message."
         submitter:
           $ref: '#/components/schemas/Submitter'
         narrative:
@@ -263,6 +421,7 @@ components:
           type: string
         status:
           type: string
+          enum: [ready_for_profile, partial_ready]
         intake_notes:
           $ref: '#/components/schemas/IntakeNotes'
     SuccessEnvelope_StoryIntake:
@@ -427,19 +586,42 @@ paths:
             schema:
               $ref: '#/components/schemas/StoryIntakeRequest'
       responses:
-        '200':
-          description: Story intake success envelope
+        '202':
+          description: Story accepted — clustering deferred to cron. Do not retry on 202.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessEnvelope_StoryIntake'
         '400':
-          description: Intake validation error
+          description: Intake validation error (DOMAIN_ERROR) or schema_version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: location_query resolved to geo outside CLUSTER_GEO_SCOPE (GEO_SCOPE_MISMATCH)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
   /tallinn/issues:
+    options:
+      tags: [Ops]
+      summary: CORS preflight for issues list endpoint
+      description: |
+        Registered in asgi_app.py as @app.options("/tallinn/issues").
+        Returns 200. Not intended for direct API use — handled by CORS middleware.
+      operationId: optionsTallinnIssues
+      x-runtime-state: as-is-active-fastapi-route
+      responses:
+        '200':
+          description: CORS preflight accepted
     get:
       tags: [Intake]
       summary: List clustered issues for Tallinn SPA read model
@@ -487,6 +669,23 @@ paths:
           schema:
             type: number
         - in: query
+          name: institution
+          schema:
+            type: string
+          description: Exact match on payload_json.institution — compared against et, ru, en values.
+        - in: query
+          name: created_after
+          schema:
+            type: string
+            format: date-time
+          description: ISO 8601 lower bound on created_at (inclusive).
+        - in: query
+          name: created_before
+          schema:
+            type: string
+            format: date-time
+          description: ISO 8601 upper bound on created_at (inclusive).
+        - in: query
           name: geo_district
           schema:
             type: array
@@ -494,13 +693,56 @@ paths:
               type: string
           style: form
           explode: true
+          description: Multi-value OR filter on geo.admin_district.
+        - in: query
+          name: geo_settlement
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Multi-value OR filter on geo.admin_settlement.
+        - in: query
+          name: geo_region
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Multi-value OR filter on geo.admin_region.
+        - in: query
+          name: geo_country
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Multi-value OR filter on geo.admin_country.
+        - in: query
+          name: geo_postal_code
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Multi-value OR filter on geo.admin_postal_code.
       responses:
         '200':
           description: Issue list envelope
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/SuccessEnvelope_IssueList'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
     post:
       tags: [Intake]
       summary: Manually create issue (operator)
@@ -517,13 +759,50 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              $ref: '#/components/schemas/TallinnIssueCreateRequest'
       responses:
         '201':
           description: Created issue id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_IssueCreate'
+        '400':
+          description: Validation error (story_ids must be a list; title must be an object)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
         '401':
-          description: Unauthorized
+          description: Missing or invalid service token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /tallinn/issues/{issue_id}:
+    options:
+      tags: [Ops]
+      summary: CORS preflight for single issue endpoint
+      description: |
+        Registered in asgi_app.py as @app.options("/tallinn/issues/{issue_id}").
+        Returns 200. Not intended for direct API use — handled by CORS middleware.
+      operationId: optionsTallinnIssueById
+      x-runtime-state: as-is-active-fastapi-route
+      parameters:
+        - in: path
+          name: issue_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CORS preflight accepted
     get:
       tags: [Intake]
       summary: Get single issue projection by id
@@ -537,9 +816,23 @@ paths:
             type: string
       responses:
         '200':
-          description: Issue envelope
+          description: Issue projection envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_IssueGet'
         '404':
-          description: Not found
+          description: Issue not found — error.code is DOMAIN_ERROR, error.type is domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /demo/auth-page:
     get:
       tags: [Ops]
@@ -549,6 +842,22 @@ paths:
         - as-is behavior is implemented and routable via FastAPI (`GET /demo/auth-page`);
         - static HTML is served from `demo/auth-page/index.html`.
       operationId: getDemoAuthPage
+      x-runtime-state: as-is-active-fastapi-route
+      responses:
+        '200':
+          description: Demo auth HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+  /demo/auth-page/:
+    get:
+      tags: [Ops]
+      summary: Return demo auth mock page (trailing slash alias)
+      description: |
+        Registered in asgi_app.py as a second route @app.get("/demo/auth-page/").
+        Identical response to GET /demo/auth-page — serves demo/auth-page/index.html.
+      operationId: getDemoAuthPageSlash
       x-runtime-state: as-is-active-fastapi-route
       responses:
         '200':
