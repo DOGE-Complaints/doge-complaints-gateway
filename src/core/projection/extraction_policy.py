@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from core.cluster.alpha import alpha_score
-from core.domain import StoryGeoSnapshot, StoryRecord
 from core.projection.enums import DOGEIssueLabel, DOGEIssueStatus, DOGEIssueType
-from core.projection.i18n import I18nText
+from core.projection.i18n import I18nText, i18n_text_from_optional_dict, i18n_text_from_plain_text
 from core.projection.input import ProjectionInput
+
+from ..domain.contracts import StoryGeoSnapshot, StoryRecord
 
 EXTRACTION_POLICY_VERSION = "m3.story_to_doge_issue_policy.v2"
 
@@ -133,12 +134,22 @@ class DeterministicStoryToProjectionPolicy:
         description_text = aggregate_text if aggregate_text else promoted_title
         issue_type = canonical_issue_type_from_story(dominant_story)
         labels = spa_labels_from_canonical(canonical_labels_from_cluster(cluster_stories))
+        summary_fallback = summary_text if summary_text else promoted_title
         return StoryProjectionDraft(
             issue_type=issue_type,
             labels=labels,
-            title=_to_i18n(promoted_title),
-            summary=_to_i18n(summary_text if summary_text else promoted_title),
-            description=_to_i18n(description_text),
+            title=i18n_text_from_optional_dict(
+                dominant_story.narrative_title,
+                fallback_text=promoted_title,
+            ),
+            summary=i18n_text_from_optional_dict(
+                dominant_story.narrative_summary,
+                fallback_text=summary_fallback,
+            ),
+            description=i18n_text_from_optional_dict(
+                dominant_story.narrative_description,
+                fallback_text=description_text,
+            ),
             policy_version=self.policy_version,
         )
 
@@ -170,7 +181,4 @@ def build_projection_input_from_draft(
 
 
 def _to_i18n(text: str) -> I18nText:
-    normalized = text.strip()
-    if not normalized:
-        normalized = "Issue details pending clarification"
-    return I18nText(et=normalized, ru=normalized, en=normalized)
+    return i18n_text_from_plain_text(text)

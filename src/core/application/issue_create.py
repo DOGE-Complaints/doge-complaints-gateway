@@ -18,6 +18,7 @@ from core.projection import (
     build_projection_input_from_draft,
     select_dominant_story,
 )
+from core.projection.i18n import i18n_text_from_optional_dict
 from core.promotion import IssuePromotionService, ReviewDecision
 
 DERIVATION_POLICY_VERSION = "m3.doge_issue_derivation.v1"
@@ -382,6 +383,7 @@ class IssueCreateService:
         )
         projection = self.projection_service.project(projection_input)
         projection_payload = projection.to_public_dict()
+        projection_payload["title"] = _manual_title_i18n(title, promoted_title=promoted_title)
         projection_payload["type"] = issue_type.strip()
         if self.issue_projection_store is None:
             raise ValueError("issue_projection_store is not configured.")
@@ -398,6 +400,18 @@ class IssueCreateService:
                 story_ids=normalized_story_ids,
             )
         return issue_id
+
+
+def _manual_title_i18n(title: dict[str, object], *, promoted_title: str) -> dict[str, str]:
+    normalized: dict[str, str] = {}
+    for locale in ("et", "ru", "en"):
+        value = title.get(locale)
+        if value is not None and str(value).strip():
+            normalized[locale] = str(value).strip()
+    return i18n_text_from_optional_dict(
+        normalized or None,
+        fallback_text=promoted_title,
+    ).as_dict()
 
 
 def _promoted_title_from_i18n(title: dict[str, object]) -> str:
