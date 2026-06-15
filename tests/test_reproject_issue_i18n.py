@@ -1,4 +1,4 @@
-"""Tests for GW-L10N-01 backfill script (audit G1)."""
+"""Tests for GW-L10N-01/GW-L10N-02 backfill script (audit G1)."""
 
 from __future__ import annotations
 
@@ -149,6 +149,52 @@ def test_reproject_write_updates_per_locale_title_from_dominant_story(
     assert title["en"] == "EN rich"
     assert title["et"] != title["en"]
     assert saved["type"] == "observation"
+
+
+def test_reproject_write_sets_original_locale_from_cluster_stories(
+    sqlite_reproject_stores: tuple[
+        SqliteStoryRepository,
+        SqliteIssueProjectionStore,
+        SqliteIssueStoryLinkStore,
+    ],
+) -> None:
+    story_repo, projection_store, link_store = sqlite_reproject_stores
+    issue_id = "issue-original-locale-1"
+    et_story = make_story_record(
+        story_id="story-et-reproject",
+        narrative_language="et",
+        narrative_title=narrative_dict(et="ET reproject"),
+        narrative_canonical_labels=("roads",),
+    )
+    ru_story = make_story_record(
+        story_id="story-ru-reproject",
+        narrative_language="ru",
+        narrative_title=narrative_dict(ru="RU reproject"),
+        narrative_canonical_labels=("roads",),
+    )
+    story_repo.save_story(et_story)
+    story_repo.save_story(ru_story)
+    projection_store.save_projection(
+        issue_id=issue_id,
+        status=DOGEIssueStatus.PUBLISHED.value,
+        payload=_flat_title_payload(issue_id=issue_id),
+        policy_version=DERIVATION_POLICY_VERSION,
+    )
+    link_store.save_issue_story_links(
+        issue_id=issue_id,
+        cluster_id="cluster:original-locale",
+        story_ids=(ru_story.story_id, et_story.story_id),
+    )
+
+    run_reproject(
+        projection_store=projection_store,
+        link_store=link_store,
+        story_repository=story_repo,
+        dry_run=False,
+    )
+    saved = projection_store.get_projection(issue_id)
+    assert saved is not None
+    assert saved.get("original_locale") == ["et", "ru"]
 
 
 def test_reproject_write_is_idempotent(
