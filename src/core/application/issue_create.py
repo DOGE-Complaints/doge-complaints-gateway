@@ -18,7 +18,7 @@ from core.projection import (
     build_projection_input_from_draft,
     select_dominant_story,
 )
-from core.projection.i18n import i18n_text_from_optional_dict
+from core.projection.i18n import i18n_text_from_optional_dict, original_locale_from_languages
 from core.promotion import IssuePromotionService, ReviewDecision
 
 DERIVATION_POLICY_VERSION = "m3.doge_issue_derivation.v1"
@@ -152,11 +152,15 @@ class StoryPromotionProjectionBridge:
             dominant_story=dominant_story,
             cluster_stories=cluster_stories,
         )
+        original_locale = original_locale_from_languages(
+            story.narrative_language for story in cluster_stories
+        )
         return build_projection_input_from_draft(
             issue_id=issue_id,
             draft=draft,
             geo_snapshot=dominant_story.geo,
             institution=dominant_story.narrative_institution,
+            original_locale=original_locale,
         )
 
 

@@ -160,6 +160,7 @@ def build_projection_input_from_draft(
     draft: StoryProjectionDraft,
     geo_snapshot: StoryGeoSnapshot | None = None,
     institution: dict[str, str] | None = None,
+    original_locale: tuple[str, ...] = (),
 ) -> ProjectionInput:
     return ProjectionInput(
         issue_id=issue_id,
@@ -177,6 +178,7 @@ def build_projection_input_from_draft(
         geo_admin_settlement=geo_snapshot.admin_settlement if geo_snapshot else None,
         geo_admin_region=geo_snapshot.admin_region if geo_snapshot else None,
         geo_admin_country=geo_snapshot.admin_country if geo_snapshot else None,
+        original_locale=original_locale,
     )
 
 

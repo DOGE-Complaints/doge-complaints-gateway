@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Mapping
 
 _I18N_LANGS: tuple[str, ...] = ("et", "ru", "en")
+CANONICAL_LOCALES: tuple[str, ...] = _I18N_LANGS
 
 
 @dataclass(frozen=True)
@@ -52,3 +54,13 @@ def _locale_or_fallback(source: Mapping[str, str], lang: str, fallback: str) -> 
     if isinstance(raw, str) and raw.strip():
         return raw.strip()
     return fallback
+
+
+def original_locale_from_languages(languages: Iterable[str | None]) -> tuple[str, ...]:
+    """Unique submitter languages in canonical order et, ru, en (GW-L10N-02)."""
+    present = {
+        lang.strip()
+        for lang in languages
+        if isinstance(lang, str) and lang.strip() in _I18N_LANGS
+    }
+    return tuple(lang for lang in _I18N_LANGS if lang in present)

@@ -55,4 +55,5 @@ def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
         image_txid=data.image_txid,
         image_hash=data.image_hash,
         geo=geo,
+        original_locale=data.original_locale,
     )
