@@ -441,6 +441,35 @@ components:
           $ref: '#/components/schemas/StoryIntakeResponseData'
         trace_id:
           type: string
+    LabelMissRequest:
+      type: object
+      required: [label_key, locale]
+      properties:
+        label_key:
+          type: string
+          minLength: 1
+          description: Canonical label key that had no dictionary translation (humanize-miss).
+        locale:
+          type: string
+          enum: [et, ru, en]
+          description: UI locale where translation was missing.
+    LabelMissAcceptedData:
+      type: object
+      required: [accepted]
+      properties:
+        accepted:
+          type: boolean
+          description: >-
+            True when the event was persisted; false on best-effort degrade when store is
+            unavailable. No PII is collected (GW-L10N-03).
+    SuccessEnvelope_LabelMiss:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/LabelMissAcceptedData'
+        trace_id:
+          type: string
 paths:
   /health:
     get:
@@ -615,6 +644,37 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '500':
           description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /telemetry/label-misses:
+    post:
+      tags: [Telemetry]
+      summary: Report anonymous label translation miss (humanize fallback)
+      description: |
+        Runtime state:
+        - public route (no service token); anonymous telemetry only — `label_key` + `locale`;
+        - no cookies, session ids, or PII;
+        - handler: `handle_label_miss_telemetry` in `src/core/api/handlers.py`;
+        - MVP: no rate-limit (see STORY-GW-L10N-03 risks).
+      operationId: postLabelMissTelemetry
+      x-runtime-state: as-is-active-fastapi-route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelMissRequest'
+      responses:
+        '202':
+          description: Event accepted (best-effort persist; `accepted` may be false if store degraded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_LabelMiss'
+        '400':
+          description: Invalid payload (generic validation error, no field details)
           content:
             application/json:
               schema:

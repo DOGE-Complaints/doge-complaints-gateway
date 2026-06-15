@@ -463,6 +463,26 @@ Test evidence:
 - `tests/test_story_repository_lifecycle.py`
 - `tests/test_story_intake_idempotency.py`
 
+## 6.5 Label miss telemetry (GW-L10N-03)
+
+Anonymous sink when SPA humanize cannot find a label translation. **No auth**, **no PII** — only canonical `label_key` and `locale`.
+
+### `POST /telemetry/label-misses`
+
+- **HTTP binding:** `asgi_app.py` → `handle_label_miss_telemetry` (`handlers.py`)
+- **Auth:** public (no `SERVICE_API_TOKEN`)
+- **Body:** `{ "label_key": string, "locale": "et"|"ru"|"en" }`
+- **Success:** `202 Accepted` — `{ "data": { "accepted": true|false }, "trace_id": "..." }`
+  - `accepted: true` when persisted to `label_translation_misses`
+  - `accepted: false` on store degrade (endpoint still returns 202; process stable)
+- **Validation error:** `400` — generic `VALIDATION_ERROR` / `"Invalid request"` (no field leak)
+- **Storage:** aggregate table `label_translation_misses` (`label_key`, `locale`, `miss_count`, `last_seen_at`)
+- **Operator queries:** [`appendix/label-translation-misses-operator-ru.md`](../appendix/label-translation-misses-operator-ru.md)
+
+Test evidence: `tests/test_gw_l10n_03_label_miss_telemetry.py`
+
+---
+
 ## 7. Issues API (as-is behavior, active HTTP binding)
 
 All three `POST /tallinn/issues` endpoints are registered in `asgi_app.py` and routable in the current runtime.
@@ -663,6 +683,7 @@ Sources:
   - `GET /health`
   - `GET /ready`
   - `POST /intake/stories` (202 Accepted — clustering deferred to cron)
+  - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
   - `GET /tallinn/issues` (15-parameter filter API)
   - `GET /tallinn/issues/{issue_id}`
 
