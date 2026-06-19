@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from core.projection.read_filters import (
+    canonicalize_issue_type_on_read,
     filter_projection_rows,
     merge_projection_columns,
     normalize_geo_token,
@@ -43,7 +44,7 @@ def test_m01_empty_status_list_returns_all() -> None:
 def test_m02_issue_type_filter_exact_match() -> None:
     rows = [
         _row("a", issue_type="IMPROVEMENT"),
-        _row("b", issue_type="BUG"),
+        _row("b", issue_type="SERVICE_REQUEST"),
     ]
     result = filter_projection_rows(rows, issue_type="IMPROVEMENT")
     ids = {str(r["id"]) for r in result}
@@ -228,7 +229,7 @@ def test_merge_projection_columns_overrides_payload_fields() -> None:
     assert merged["id"] == "col-id"
     assert merged["status"] == "PUBLISHED"
     assert merged["created_at"] == "2026-05-01T00:00:00+00:00"
-    assert merged["type"] == "BUG"
+    assert merged["type"] == "IMPROVEMENT"
 
 
 def test_merge_projection_columns_always_includes_created_at_key() -> None:
@@ -240,3 +241,59 @@ def test_merge_projection_columns_always_includes_created_at_key() -> None:
     )
     assert "created_at" in merged
     assert merged["created_at"] == ""
+    assert merged["type"] == "IMPROVEMENT"
+
+
+def test_canonicalize_issue_type_on_read_lowercase_legacy() -> None:
+    assert canonicalize_issue_type_on_read("improvement", log_unknown=False) == "IMPROVEMENT"
+    assert (
+        canonicalize_issue_type_on_read("service_request", log_unknown=False)
+        == "SERVICE_REQUEST"
+    )
+
+
+def test_canonicalize_issue_type_on_read_unknown_defaults_to_improvement() -> None:
+    assert canonicalize_issue_type_on_read("CUSTOM", log_unknown=False) == "IMPROVEMENT"
+    assert canonicalize_issue_type_on_read("", log_unknown=False) == "IMPROVEMENT"
+    assert canonicalize_issue_type_on_read(None, log_unknown=False) == "IMPROVEMENT"
+
+
+def test_type_filter_matches_legacy_lowercase_payload() -> None:
+    rows = [
+        (
+            "legacy-improvement",
+            "PUBLISHED",
+            {"type": "improvement", "labels": []},
+            "2026-05-01T00:00:00+00:00",
+        ),
+        (
+            "other-type",
+            "PUBLISHED",
+            {"type": "INCIDENT", "labels": []},
+            "2026-05-01T00:00:00+00:00",
+        ),
+    ]
+    result = filter_projection_rows(rows, issue_type="IMPROVEMENT")
+    ids = {str(item["id"]) for item in result}
+    assert ids == {"legacy-improvement"}
+    assert result[0]["type"] == "IMPROVEMENT"
+
+
+def test_type_filter_matches_legacy_lowercase_query_param() -> None:
+    rows = [
+        (
+            "legacy-improvement",
+            "PUBLISHED",
+            {"type": "improvement", "labels": []},
+            "2026-05-01T00:00:00+00:00",
+        ),
+        (
+            "other-type",
+            "PUBLISHED",
+            {"type": "INCIDENT", "labels": []},
+            "2026-05-01T00:00:00+00:00",
+        ),
+    ]
+    result = filter_projection_rows(rows, issue_type="improvement")
+    ids = {str(item["id"]) for item in result}
+    assert ids == {"legacy-improvement"}

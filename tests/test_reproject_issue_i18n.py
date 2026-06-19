@@ -148,7 +148,7 @@ def test_reproject_write_updates_per_locale_title_from_dominant_story(
     assert title["et"] == "ET rich"
     assert title["en"] == "EN rich"
     assert title["et"] != title["en"]
-    assert saved["type"] == "observation"
+    assert saved["type"] == "IMPROVEMENT"
 
 
 def test_reproject_write_sets_original_locale_from_cluster_stories(
