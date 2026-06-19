@@ -614,7 +614,7 @@ class SqliteIssueProjectionStore:
         from core.projection.read_filters import filter_projection_rows, parse_payload_json
 
         query = (
-            "SELECT status, payload_json, created_at FROM doge_issues WHERE 1=1"
+            "SELECT issue_id, status, payload_json, created_at FROM doge_issues WHERE 1=1"
         )
         params: list[object] = []
         if status:
@@ -629,10 +629,15 @@ class SqliteIssueProjectionStore:
             params.append(created_before)
         query += " ORDER BY created_at DESC"
         cursor = self.db.connection.execute(query, tuple(params))
-        rows: list[tuple[str, dict[str, object], str]] = []
-        for row_status, payload_json, created_at in cursor.fetchall():
+        rows: list[tuple[str, str, dict[str, object], str]] = []
+        for issue_id, row_status, payload_json, created_at in cursor.fetchall():
             rows.append(
-                (str(row_status), parse_payload_json(payload_json), str(created_at))
+                (
+                    str(issue_id),
+                    str(row_status),
+                    parse_payload_json(payload_json),
+                    str(created_at),
+                )
             )
         return filter_projection_rows(
             rows,
@@ -654,16 +659,22 @@ class SqliteIssueProjectionStore:
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
-        from core.projection.read_filters import parse_payload_json
+        from core.projection.read_filters import merge_projection_columns, parse_payload_json
 
         cursor = self.db.connection.execute(
-            "SELECT payload_json FROM doge_issues WHERE issue_id = ?",
+            "SELECT issue_id, status, payload_json, created_at FROM doge_issues WHERE issue_id = ?",
             (issue_id,),
         )
         row = cursor.fetchone()
         if row is None:
             return None
-        return parse_payload_json(row[0])
+        row_issue_id, row_status, payload_json, created_at = row
+        return merge_projection_columns(
+            issue_id=str(row_issue_id),
+            row_status=str(row_status),
+            payload=parse_payload_json(payload_json),
+            created_at=str(created_at),
+        )
 
 
 @dataclass

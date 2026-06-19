@@ -185,8 +185,23 @@ def _matches_post_fetch_filters(
     )
 
 
+def merge_projection_columns(
+    *,
+    issue_id: str,
+    row_status: str,
+    payload: dict[str, object],
+    created_at: str | None = None,
+) -> dict[str, object]:
+    """Column-as-truth merge: DB columns override payload_json for id/status/created_at."""
+    out = dict(payload)
+    out["id"] = issue_id
+    out["status"] = row_status
+    out["created_at"] = created_at or ""
+    return out
+
+
 def filter_projection_rows(
-    rows: list[tuple[str, dict[str, object], str]],
+    rows: list[tuple[str, str, dict[str, object], str]],
     *,
     status: list[str] | None = None,
     issue_type: str | None = None,
@@ -206,11 +221,9 @@ def filter_projection_rows(
 ) -> list[dict[str, object]]:
     status_values = _clean_str_list(status)
     result: list[dict[str, object]] = []
-    for _row_status, payload, created_at in rows:
-        if status_values:
-            payload_status = str(payload.get("status", ""))
-            if payload_status not in status_values:
-                continue
+    for issue_id, row_status, payload, created_at in rows:
+        if status_values and row_status not in status_values:
+            continue
         if created_after and created_at < created_after:
             continue
         if created_before and created_at > created_before:
@@ -231,7 +244,14 @@ def filter_projection_rows(
             geo_postal_code=geo_postal_code,
         ):
             continue
-        result.append(dict(payload))
+        result.append(
+            merge_projection_columns(
+                issue_id=issue_id,
+                row_status=row_status,
+                payload=payload,
+                created_at=created_at,
+            )
+        )
     return result
 
 

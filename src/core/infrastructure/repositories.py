@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
-from core.projection.read_filters import filter_projection_rows, parse_payload_json
+from core.projection.read_filters import (
+    filter_projection_rows,
+    merge_projection_columns,
+    parse_payload_json,
+)
 import logging
 from typing import Mapping
 
@@ -16,6 +20,18 @@ from core.domain import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _row_created_at_text(row: dict[str, object]) -> str:
+    created_at = row.get("created_at")
+    if isinstance(created_at, datetime):
+        return created_at.isoformat()
+    if created_at:
+        return str(created_at)
+    updated_at = row.get("updated_at")
+    if isinstance(updated_at, datetime):
+        return updated_at.isoformat()
+    return str(updated_at or "")
 
 
 @dataclass(frozen=True)
@@ -195,18 +211,13 @@ class InMemoryIssueProjectionStore:
         geo_postal_code: list[str] | None = None,
     ) -> list[dict[str, object]]:
         assert self._rows is not None
-        rows: list[tuple[str, dict[str, object], str]] = []
-        for row in self._rows.values():
-            created_at = row.get("created_at")
-            created_at_text = (
-                created_at.isoformat()
-                if isinstance(created_at, datetime)
-                else str(created_at or row.get("updated_at", ""))
-            )
+        rows: list[tuple[str, str, dict[str, object], str]] = []
+        for issue_id, row in self._rows.items():
+            created_at_text = _row_created_at_text(row)
             payload = row["payload"]
             assert isinstance(payload, dict)
-            rows.append((str(row["status"]), payload, created_at_text))
-        ordered = sorted(rows, key=lambda item: item[2], reverse=True)
+            rows.append((issue_id, str(row["status"]), payload, created_at_text))
+        ordered = sorted(rows, key=lambda item: item[3], reverse=True)
         return filter_projection_rows(
             ordered,
             status=status,
@@ -232,7 +243,15 @@ class InMemoryIssueProjectionStore:
         if row is None:
             return None
         payload = row["payload"]
-        return dict(payload) if isinstance(payload, dict) else None
+        if not isinstance(payload, dict):
+            return None
+        created_at_text = _row_created_at_text(row)
+        return merge_projection_columns(
+            issue_id=issue_id,
+            row_status=str(row["status"]),
+            payload=payload,
+            created_at=created_at_text,
+        )
 
 
 @dataclass

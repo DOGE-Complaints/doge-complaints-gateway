@@ -659,20 +659,25 @@ class SupabaseIssueProjectionStore:
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
     ) -> list[dict[str, object]]:
-        from core.projection.read_filters import filter_projection_rows, parse_payload_json
+        from core.projection.read_filters import (
+            filter_projection_rows,
+            merge_projection_columns,
+            parse_payload_json,
+        )
 
         rows_data = self.db._request(
             method="GET",
             path="/rest/v1/doge_issues",
             params={
-                "select": "status,payload_json,created_at",
+                "select": "issue_id,status,payload_json,created_at",
                 "order": "created_at.desc",
             },
         )
-        rows: list[tuple[str, dict[str, object], str]] = []
+        rows: list[tuple[str, str, dict[str, object], str]] = []
         for row in rows_data:
             rows.append(
                 (
+                    str(row["issue_id"]),
                     str(row["status"]),
                     parse_payload_json(row["payload_json"]),
                     str(row["created_at"]),
@@ -698,20 +703,26 @@ class SupabaseIssueProjectionStore:
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
-        from core.projection.read_filters import parse_payload_json
+        from core.projection.read_filters import merge_projection_columns, parse_payload_json
 
         rows = self.db._request(
             method="GET",
             path="/rest/v1/doge_issues",
             params={
-                "select": "payload_json",
+                "select": "issue_id,status,payload_json,created_at",
                 "issue_id": self.db._eq_filter(issue_id),
                 "limit": "1",
             },
         )
         if not rows:
             return None
-        return parse_payload_json(rows[0]["payload_json"])
+        row = rows[0]
+        return merge_projection_columns(
+            issue_id=str(row["issue_id"]),
+            row_status=str(row["status"]),
+            payload=parse_payload_json(row["payload_json"]),
+            created_at=str(row["created_at"]),
+        )
 
 
 @dataclass
