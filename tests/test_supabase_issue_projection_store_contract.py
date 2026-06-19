@@ -31,6 +31,7 @@ def test_l_supa_list_projections_gets_doge_issues_with_expected_select(
         assert json_body is None
         return [
             {
+                "issue_id": "issue-mock-1",
                 "status": "PUBLISHED",
                 "payload_json": {
                     "id": "issue-mock-1",
@@ -56,7 +57,7 @@ def test_l_supa_list_projections_gets_doge_issues_with_expected_select(
 
     assert captured["method"] == "GET"
     assert captured["path"] == "/rest/v1/doge_issues"
-    assert captured["params"]["select"] == "status,payload_json,created_at"
+    assert captured["params"]["select"] == "issue_id,status,payload_json,created_at"
     assert captured["params"]["order"] == "created_at.desc"
     assert len(rows) == 1
     assert rows[0]["id"] == "issue-mock-1"
@@ -85,10 +86,9 @@ def test_l_supa_post_fetch_filter_applied_after_http_fetch(
         assert path == "/rest/v1/doge_issues"
         return [
             {
+                "issue_id": "match",
                 "status": "PUBLISHED",
                 "payload_json": {
-                    "id": "match",
-                    "status": "PUBLISHED",
                     "type": "INCIDENT",
                     "labels": [],
                     "geo": {"country": "EE"},
@@ -96,10 +96,9 @@ def test_l_supa_post_fetch_filter_applied_after_http_fetch(
                 "created_at": "2026-05-01T00:00:00+00:00",
             },
             {
+                "issue_id": "skip",
                 "status": "PUBLISHED",
                 "payload_json": {
-                    "id": "skip",
-                    "status": "PUBLISHED",
                     "type": "INCIDENT",
                     "labels": [],
                     "geo": {"country": "FI"},

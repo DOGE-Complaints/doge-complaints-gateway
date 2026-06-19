@@ -139,7 +139,13 @@ def test_req24_ac2_sqlite_write_path_uses_doge_issues_table(tmp_path: Path) -> N
         ("sqlite-ac2-1",),
     ).fetchone()
     assert row is not None
-    assert store.get_projection("sqlite-ac2-1") == payload
+    result = store.get_projection("sqlite-ac2-1")
+    assert result is not None
+    assert result["id"] == "sqlite-ac2-1"
+    assert result["status"] == "PUBLISHED"
+    assert "created_at" in result
+    for key, value in payload.items():
+        assert result[key] == value
     db.connection.close()
 
 
@@ -459,7 +465,13 @@ def test_sqlite_read_store_roundtrip(tmp_path: Path) -> None:
     )
     listed = store.list_projections(status=["NEW"])
     assert len(listed) == 1
-    assert store.get_projection("sqlite-1") == payload
+    result = store.get_projection("sqlite-1")
+    assert result is not None
+    assert result["id"] == "sqlite-1"
+    assert result["status"] == "NEW"
+    assert "created_at" in result
+    for key, value in payload.items():
+        assert result[key] == value
     db.connection.close()
 
 

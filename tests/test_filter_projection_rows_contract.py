@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from core.projection.read_filters import filter_projection_rows, normalize_geo_token
+from core.projection.read_filters import (
+    filter_projection_rows,
+    merge_projection_columns,
+    normalize_geo_token,
+)
 
 
 def _row(
@@ -14,7 +18,7 @@ def _row(
     institution: str | dict[str, str] | None = None,
     geo: dict[str, object] | None = None,
     created_at: str = "2026-05-01T00:00:00+00:00",
-) -> tuple[str, dict[str, object], str]:
+) -> tuple[str, str, dict[str, object], str]:
     payload: dict[str, object] = {
         "id": issue_id,
         "status": status,
@@ -24,7 +28,7 @@ def _row(
     }
     if geo is not None:
         payload["geo"] = geo
-    return (status, payload, created_at)
+    return (issue_id, status, payload, created_at)
 
 
 def test_m01_empty_status_list_returns_all() -> None:
@@ -185,3 +189,54 @@ def test_m12_geo_postal_code_filter() -> None:
     result = filter_projection_rows(rows, geo_postal_code=["10145"])
     ids = {str(r["id"]) for r in result}
     assert ids == {"postal-a"}
+
+
+def test_m13_status_filter_uses_column_not_payload() -> None:
+    incomplete: dict[str, object] = {"type": "INCIDENT", "labels": []}
+    rows = [
+        (
+            "pub-col",
+            "PUBLISHED",
+            {**incomplete, "status": "DRAFT"},
+            "2026-05-01T00:00:00+00:00",
+        ),
+        ("draft-col", "DRAFT", dict(incomplete), "2026-05-01T00:00:00+00:00"),
+    ]
+    result = filter_projection_rows(rows, status=["PUBLISHED"])
+    ids = {str(r["id"]) for r in result}
+    assert ids == {"pub-col"}
+
+
+def test_m14_incomplete_payload_merge_columns() -> None:
+    incomplete: dict[str, object] = {"type": "INCIDENT", "labels": ["infra"]}
+    rows = [("issue-x", "PUBLISHED", incomplete, "2026-05-01T12:00:00+00:00")]
+    result = filter_projection_rows(rows)
+    assert len(result) == 1
+    assert result[0]["id"] == "issue-x"
+    assert result[0]["status"] == "PUBLISHED"
+    assert result[0]["created_at"] == "2026-05-01T12:00:00+00:00"
+    assert result[0]["type"] == "INCIDENT"
+
+
+def test_merge_projection_columns_overrides_payload_fields() -> None:
+    merged = merge_projection_columns(
+        issue_id="col-id",
+        row_status="PUBLISHED",
+        payload={"type": "BUG"},
+        created_at="2026-05-01T00:00:00+00:00",
+    )
+    assert merged["id"] == "col-id"
+    assert merged["status"] == "PUBLISHED"
+    assert merged["created_at"] == "2026-05-01T00:00:00+00:00"
+    assert merged["type"] == "BUG"
+
+
+def test_merge_projection_columns_always_includes_created_at_key() -> None:
+    merged = merge_projection_columns(
+        issue_id="col-id",
+        row_status="PUBLISHED",
+        payload={"type": "BUG"},
+        created_at=None,
+    )
+    assert "created_at" in merged
+    assert merged["created_at"] == ""
