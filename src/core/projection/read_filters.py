@@ -4,6 +4,11 @@ import json
 from typing import Any
 
 from core.geo.scope import normalize_geo_token
+from core.projection.enums import DOGEIssueType
+from core.projection.read_type_telemetry import record_unknown_issue_type
+
+_CANONICAL_ISSUE_TYPES = {item.value for item in DOGEIssueType}
+_DEFAULT_ISSUE_TYPE = DOGEIssueType.IMPROVEMENT.value
 
 
 def _clean_str_list(values: list[str] | None) -> list[str] | None:
@@ -142,9 +147,34 @@ def _institution_payload_matches(payload_institution: object, filter_value: str)
     return payload_institution == filter_value
 
 
+def canonicalize_issue_type_on_read(
+    raw_type: object,
+    *,
+    issue_id: str | None = None,
+    log_unknown: bool = True,
+) -> str:
+    """Normalize legacy payload type to governed UPPERCASE canon on read."""
+    if raw_type is None or (isinstance(raw_type, str) and not raw_type.strip()):
+        return _DEFAULT_ISSUE_TYPE
+
+    raw_text = str(raw_type)
+    normalized = raw_text.strip().upper()
+    if normalized in _CANONICAL_ISSUE_TYPES:
+        return normalized
+
+    if log_unknown:
+        record_unknown_issue_type(
+            raw_type=raw_text,
+            issue_id=issue_id or "",
+            normalized_to=_DEFAULT_ISSUE_TYPE,
+        )
+    return _DEFAULT_ISSUE_TYPE
+
+
 def _matches_post_fetch_filters(
     payload: dict[str, object],
     *,
+    issue_id: str | None = None,
     issue_type: str | None,
     labels: list[str] | None,
     institution: str | None,
@@ -158,8 +188,14 @@ def _matches_post_fetch_filters(
     geo_country: list[str] | None,
     geo_postal_code: list[str] | None,
 ) -> bool:
-    if issue_type is not None and payload.get("type") != issue_type:
-        return False
+    if issue_type is not None:
+        payload_type = canonicalize_issue_type_on_read(
+            payload.get("type"),
+            issue_id=issue_id,
+            log_unknown=False,
+        )
+        if payload_type != issue_type:
+            return False
     label_values = _clean_str_list(labels)
     if label_values:
         payload_labels = payload.get("labels")
@@ -197,6 +233,10 @@ def merge_projection_columns(
     out["id"] = issue_id
     out["status"] = row_status
     out["created_at"] = created_at or ""
+    out["type"] = canonicalize_issue_type_on_read(
+        out.get("type"),
+        issue_id=issue_id,
+    )
     return out
 
 
@@ -220,6 +260,12 @@ def filter_projection_rows(
     geo_postal_code: list[str] | None = None,
 ) -> list[dict[str, object]]:
     status_values = _clean_str_list(status)
+    filter_issue_type: str | None = None
+    if issue_type is not None:
+        filter_issue_type = canonicalize_issue_type_on_read(
+            issue_type,
+            log_unknown=False,
+        )
     result: list[dict[str, object]] = []
     for issue_id, row_status, payload, created_at in rows:
         if status_values and row_status not in status_values:
@@ -230,7 +276,8 @@ def filter_projection_rows(
             continue
         if not _matches_post_fetch_filters(
             payload,
-            issue_type=issue_type,
+            issue_id=issue_id,
+            issue_type=filter_issue_type,
             labels=labels,
             institution=institution,
             geo_lat_min=geo_lat_min,
