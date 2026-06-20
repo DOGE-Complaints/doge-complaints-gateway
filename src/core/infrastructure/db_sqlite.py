@@ -617,10 +617,6 @@ class SqliteIssueProjectionStore:
             "SELECT issue_id, status, payload_json, created_at FROM doge_issues WHERE 1=1"
         )
         params: list[object] = []
-        if status:
-            placeholders = ",".join("?" for _ in status)
-            query += f" AND status IN ({placeholders})"
-            params.extend(status)
         if created_after:
             query += " AND created_at >= ?"
             params.append(created_after)

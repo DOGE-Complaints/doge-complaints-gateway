@@ -4,11 +4,15 @@ import json
 from typing import Any
 
 from core.geo.scope import normalize_geo_token
-from core.projection.enums import DOGEIssueType
+from core.projection.enums import DOGEIssueStatus, DOGEIssueType
+from core.projection.read_status_telemetry import record_unknown_issue_status
 from core.projection.read_type_telemetry import record_unknown_issue_type
 
 _CANONICAL_ISSUE_TYPES = {item.value for item in DOGEIssueType}
 _DEFAULT_ISSUE_TYPE = DOGEIssueType.IMPROVEMENT.value
+_CANONICAL_ISSUE_STATUSES = {item.value for item in DOGEIssueStatus}
+_DEFAULT_ISSUE_STATUS = DOGEIssueStatus.PUBLISHED.value
+_LEGACY_STATUS_ALIASES = {"promoted": DOGEIssueStatus.PUBLISHED.value}
 
 
 def _clean_str_list(values: list[str] | None) -> list[str] | None:
@@ -171,6 +175,55 @@ def canonicalize_issue_type_on_read(
     return _DEFAULT_ISSUE_TYPE
 
 
+def canonicalize_status_on_read(
+    raw_status: object,
+    *,
+    issue_id: str | None = None,
+    log_unknown: bool = True,
+) -> str:
+    """Normalize legacy row status to governed board vocabulary on read."""
+    if raw_status is None or (isinstance(raw_status, str) and not raw_status.strip()):
+        return _DEFAULT_ISSUE_STATUS
+
+    raw_text = str(raw_status)
+    alias = _LEGACY_STATUS_ALIASES.get(raw_text.strip().lower())
+    if alias is not None:
+        return alias
+
+    normalized = raw_text.strip().upper()
+    if normalized in _CANONICAL_ISSUE_STATUSES:
+        return normalized
+
+    if log_unknown:
+        record_unknown_issue_status(
+            raw_status=raw_text,
+            issue_id=issue_id or "",
+            normalized_to=_DEFAULT_ISSUE_STATUS,
+        )
+    return _DEFAULT_ISSUE_STATUS
+
+
+def row_status_matches_filter(raw_status: object, filter_statuses: list[str]) -> bool:
+    """Match status filter against DB column; honor legacy aliases without coercing unknowns."""
+    if raw_status is None or (isinstance(raw_status, str) and not raw_status.strip()):
+        return False
+
+    raw_text = str(raw_status)
+    canonical_filters = {
+        canonicalize_status_on_read(value, log_unknown=False) for value in filter_statuses
+    }
+
+    alias = _LEGACY_STATUS_ALIASES.get(raw_text.strip().lower())
+    if alias is not None:
+        return alias in canonical_filters
+
+    normalized = raw_text.strip().upper()
+    if normalized in _CANONICAL_ISSUE_STATUSES:
+        return normalized in canonical_filters
+
+    return normalized in canonical_filters
+
+
 def _matches_post_fetch_filters(
     payload: dict[str, object],
     *,
@@ -231,7 +284,10 @@ def merge_projection_columns(
     """Column-as-truth merge: DB columns override payload_json for id/status/created_at."""
     out = dict(payload)
     out["id"] = issue_id
-    out["status"] = row_status
+    out["status"] = canonicalize_status_on_read(
+        row_status,
+        issue_id=issue_id,
+    )
     out["created_at"] = created_at or ""
     out["type"] = canonicalize_issue_type_on_read(
         out.get("type"),
@@ -268,7 +324,7 @@ def filter_projection_rows(
         )
     result: list[dict[str, object]] = []
     for issue_id, row_status, payload, created_at in rows:
-        if status_values and row_status not in status_values:
+        if status_values and not row_status_matches_filter(row_status, status_values):
             continue
         if created_after and created_at < created_after:
             continue

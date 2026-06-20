@@ -331,7 +331,7 @@ class IssueCreateService:
         if self.issue_projection_store is not None:
             self.issue_projection_store.save_projection(
                 issue_id=updated.candidate_id,
-                status=updated.status.value,
+                status=str(projection_payload.get("status", projection.status)),
                 payload=projection_payload,
                 policy_version=DERIVATION_POLICY_VERSION,
             )
