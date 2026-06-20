@@ -26,7 +26,7 @@ def test_spa_projection_roundtrip_via_dashboard_view() -> None:
     issue_id = f"test-{uuid4()}"
     store.save_projection(
         issue_id=issue_id,
-        status="promoted",
+        status="PUBLISHED",
         policy_version="m3.doge_issue_derivation.v1",
         payload={
             "type": "improvement",
@@ -50,6 +50,6 @@ def test_spa_projection_roundtrip_via_dashboard_view() -> None:
     assert rows
     row = rows[0]
     assert row["issue_id"] == issue_id
-    assert row["status"] == "promoted"
+    assert row["status"] == "PUBLISHED"
     assert row["type"] == "improvement"
     assert row["title_en"] == "Road light issue"

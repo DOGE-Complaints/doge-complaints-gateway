@@ -152,7 +152,7 @@ def test_supabase_live_full_pipeline_roundtrip(client: TestClient) -> None:
         },
     )
     assert projection_rows
-    assert projection_rows[0]["status"] == "promoted"
+    assert projection_rows[0]["status"] == "PUBLISHED"
 
     projection_embedding_rows = db._request(
         method="GET",
