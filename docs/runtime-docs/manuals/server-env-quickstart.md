@@ -44,16 +44,26 @@ python -m pip install -e '.[dev]'
 
 ## 3) Переменные окружения
 
+Переменные читаются строго из `os.environ` процесса — приложение **не загружает `.env` само**.
+Используйте `make serve` / `make dev` или `source .env` перед ручным `python -m uvicorn ...`.
+
 Минимально необходимые и поддерживаемые в текущем runtime:
 
 - `APP_PROFILE` (`demo` или `pilot`, default `demo`)
 - `API_BASE_URL` (required)
 - `REQUEST_TIMEOUT_S` (default `15`)
 - `LOG_LEVEL` (default `INFO`)
-- `FF_WALLET_ADAPTER` (optional override)
-- `FF_BLOCKCHAIN_ADAPTER` (optional override)
-- `FF_TOKENIZATION_PIPELINE` (optional override)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
+
+**Persistence backend (DB_BACKEND):**
+
+| Значение | Поведение | Требует |
+|---|---|---|
+| `in_memory` (default) | Всё в RAM; данные не переживают рестарт | — (SUPABASE_* должны быть **не заданы**) |
+| `sqlite` | Локальный SQLite-файл | `DATABASE_URL=sqlite:///path/to/db` |
+| `supabase` | Hosted Supabase через PostgREST | `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE` |
+
+> ⚠️ `in_memory` + `SUPABASE_URL` в env → `ConfigError` при старте. Либо убирайте Supabase-переменные, либо ставьте `DB_BACKEND=supabase`.
 
 ### Production logging — рекомендации
 
@@ -71,16 +81,34 @@ python -m pip install -e '.[dev]'
 
 `LOG_DEBUG_DIR` на Railway пишет файлы в ephemeral filesystem контейнера, поэтому они исчезают после redeploy/restart. Используйте это как временную диагностику, а не постоянное хранилище.
 
-Источник: `src/core/config/schema.py`, `src/core/api/security.py`.
+**Cluster-specific (обязателен при нестандартном `CLUSTER_ACTIVE_LENSES`):**
 
-### Пример для demo
+- `CLUSTER_ACTIVE_LENSES` (default: `civic_domain_micro,failure_pattern_micro,civic_weight_systemic`)
+- `CLUSTER_PRIMARY_LENS` (default: `civic_domain_micro`) — **должен входить в `CLUSTER_ACTIVE_LENSES`**; если вы переопределяете лензы, явно задайте и primary.
+
+Источник: `src/core/config/schema.py`.
+
+### Пример для demo (in_memory, только локально)
 
 ```bash
 export APP_PROFILE=demo
 export API_BASE_URL=https://demo.local
-export REQUEST_TIMEOUT_S=15
 export LOG_LEVEL=INFO
 export SERVICE_API_TOKEN=demo-secret-token
+# DB_BACKEND не задан → in_memory (данные только в RAM)
+```
+
+### Пример для demo с Supabase
+
+```bash
+export APP_PROFILE=demo
+export API_BASE_URL=https://demo.local
+export DB_BACKEND=supabase
+export SUPABASE_URL=https://<ref>.supabase.co
+export SUPABASE_SERVICE_ROLE=<service-role-key>
+export CLUSTER_ACTIVE_LENSES=topic_micro,need_local,failure_systemic,failure_micro,repeatability_local,relevance_systemic
+export CLUSTER_PRIMARY_LENS=topic_micro
+# или просто: source .env && make serve
 ```
 
 ### Пример для pilot
@@ -88,8 +116,6 @@ export SERVICE_API_TOKEN=demo-secret-token
 ```bash
 export APP_PROFILE=pilot
 export API_BASE_URL=https://pilot.local
-export REQUEST_TIMEOUT_S=15
-export LOG_LEVEL=INFO
 export SERVICE_API_TOKEN=pilot-secret-token
 ```
 
@@ -107,19 +133,42 @@ python -m pip install -e '.[dev]'
 
 ### 4.2 Запуск сервера
 
+**Рекомендуемый способ** — через `make`, который автоматически загружает `.env`:
+
 ```bash
 cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
-source .venv/bin/activate
-python -m uvicorn --app-dir src core.api.asgi_app:app --host 127.0.0.1 --port 8000
+
+make serve      # production-like локальный запуск (без reload)
+make dev        # горячий reload при изменении кода в src/
+make check-env  # показывает какой DB_BACKEND и Supabase URL увидит сервер
 ```
+
+> Без `make serve` / `make dev` переменные из `.env` **не попадают** в процесс uvicorn.
+> Сервер молча стартует с `DB_BACKEND=in_memory` и все данные живут только в RAM.
+
+**Если нужен голый `uvicorn` без make** — сначала загрузите `.env`:
+
+```bash
+set -a && . ./.env && set +a
+.venv/bin/python -m uvicorn --app-dir src core.api.asgi_app:app \
+  --host 127.0.0.1 --port ${PORT:-8000}
+```
+
+Проверка что сервер использует правильный backend — ищите в стартовом логе:
+```
+startup.config db_backend=supabase ...
+startup.persistence_backend backend=supabase db_ready=True
+```
+Если там `db_backend=in_memory` — `.env` не загружен.
 
 ### 4.3 Как задается порт запуска
 
-Порт задается переменной окружения `PORT`:
+Порт задается переменной окружения `PORT` в `.env` или в шелле:
 
 ```bash
-export PORT=8010
-python -m uvicorn --app-dir src core.api.asgi_app:app --host 127.0.0.1 --port "$PORT"
+PORT=8010 make serve
+# или
+export PORT=8010 && make serve
 ```
 
 Если `PORT` не задан, используется `8000`.
@@ -235,7 +284,7 @@ SMOKE_BASE_URL="https://dogestonia-tallinn-demo.up.railway.app" sh scripts/smoke
 ## 5) Частые проблемы
 
 1. `Missing required environment variable: API_BASE_URL`
-   - выставить `API_BASE_URL`.
+   - выставить `API_BASE_URL`, или использовать `make serve` (подгружает из `.env`).
 2. `SERVICE_API_TOKEN is required for APP_PROFILE='pilot' strict auth mode`
    - выставить `SERVICE_API_TOKEN` или вернуться к `APP_PROFILE=demo`.
 3. `zsh: no matches found: .[dev]`
@@ -246,13 +295,27 @@ SMOKE_BASE_URL="https://dogestonia-tallinn-demo.up.railway.app" sh scripts/smoke
 5. Railway build не ставит `uvicorn` (`No module named uvicorn`)
    - убедиться, что в корне есть `requirements.txt` с `fastapi`, `uvicorn`, `psycopg[binary]`;
    - проверить, что Railway Root Directory указывает на `doge-complaints-gateway`.
+6. **Сервер стартует, но данные не попадают в Supabase (истории только в памяти)**
+   - стартовый лог показывает `db_backend=in_memory` → `.env` не загружен в процесс uvicorn.
+   - Используйте `make serve` вместо голого `python -m uvicorn ...`.
+   - Проверьте: `make check-env` должен показывать `DB_BACKEND = supabase`.
+7. `ConfigError: CLUSTER_PRIMARY_LENS must appear in CLUSTER_ACTIVE_LENSES`
+   - В `.env` переопределён `CLUSTER_ACTIVE_LENSES` без явного `CLUSTER_PRIMARY_LENS`.
+   - Добавьте `CLUSTER_PRIMARY_LENS=topic_micro` (или первый lens из вашего списка).
+8. `ConfigError: DB_BACKEND='in_memory' does not allow SUPABASE_URL`
+   - В env одновременно заданы Supabase-кредс и отсутствует `DB_BACKEND=supabase`.
+   - Добавьте `DB_BACKEND=supabase` в `.env`.
 
 ## 6) DB backend env quick reference
 
-- `DB_BACKEND=in_memory`
-  - не допускает `DATABASE_URL` и `SUPABASE_*`.
+- `DB_BACKEND=in_memory` (default)
+  - не допускает `DATABASE_URL` и `SUPABASE_*` — иначе `ConfigError`.
+  - Данные живут только в RAM процесса; `200 OK` возвращается, но в БД ничего нет.
 - `DB_BACKEND=sqlite`
   - требует `DATABASE_URL=sqlite:///...`.
 - `DB_BACKEND=supabase`
   - требует `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE`;
   - не требует `DATABASE_URL` (runtime работает через Supabase HTTP/PostgREST client).
+  - Стартовый лог при успехе: `startup.persistence_backend backend=supabase db_ready=True`.
+
+**Важно: `DB_BACKEND` читается строго из `os.environ` процесса.** Файл `.env` не загружается автоматически — всегда используйте `make serve` / `make dev` для локального запуска.
