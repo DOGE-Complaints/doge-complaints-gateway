@@ -1,0 +1,58 @@
+{
+  "dataset_version": "0.1",
+  "file": "dogestonia_simulation_canvas_v0_1.json",
+  "total_stories": 130,
+  "total_clusters": 26,
+  "issue_types": {
+    "complaint": 105,
+    "system_bug": 10,
+    "observation": 10,
+    "absurdity": 5
+  },
+  "languages": {
+    "ru": 52,
+    "et": 52,
+    "en": 26
+  },
+  "cluster_types": {
+    "strong_local_cluster": 45,
+    "weak_thematic_cluster": 40,
+    "geographic_mixed_cluster": 10,
+    "system_process_cluster": 20,
+    "conflict_cluster": 15
+  },
+  "labels_top": {
+    "public_space": 90,
+    "maintenance_gap": 60,
+    "recurring_issue": 45,
+    "accessibility": 45,
+    "safety": 40,
+    "unsafe_condition": 40,
+    "information_gap": 40,
+    "environment": 35,
+    "housing": 25,
+    "access_blocked": 25,
+    "roads": 20,
+    "parking": 20,
+    "digital_service": 20,
+    "unclear_rules": 20,
+    "waste": 15,
+    "service_unavailable": 15,
+    "bureaucratic_loop": 15,
+    "trust_in_services": 15,
+    "transport": 15,
+    "equity_access": 15
+  },
+  "structural_validation": "passed",
+  "notes": [
+    "Root is a single JSON array.",
+    "Each story contains resident_profile, resident_input, interview_context, expected_interview_path, normalized_issue_payload, cluster_metadata and test_metadata.",
+    "canonical_payload uses allowed ISSUE_TYPE values and canonical labels only.",
+    "Backend-generated fields are not included in canonical_payload.",
+    "location_query added for scenarios with resident_input.has_location=true."
+  ],
+  "geo_location_query_coverage": {
+    "stories_with_has_location_true": 26,
+    "stories_with_location_query": 26
+  }
+}
