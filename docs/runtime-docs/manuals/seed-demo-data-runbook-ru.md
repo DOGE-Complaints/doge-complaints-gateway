@@ -40,7 +40,7 @@ POST /intake/stories    →    объединяет ≥8 похожих в од�
    ```
    ⚠️ Если `db_checks.columns: false` — на hosted **не применены columnar-миграции** (RC-04). Примените `supabase/migrations/20260619_1200/1210/1220` к проекту Supabase **до** загрузки, иначе проекции не запишутся/не прочитаются. (Подробно — [audit-gw-rc-04](../../analysis/audit-gw-rc-04-columnar-model-migration-2026-06-20.md).)
 3. **Кластеризация включена:** на сервере `CLUSTER_CRON_ENABLED=true` (по умолчанию true). Без неё истории загрузятся, но карточек не будет никогда.
-4. **Достаточно историй для ≥8/кластер.** Текущий `dogestonia_simulation_canvas_v0_1.json` (130 историй) разнороден по меткам — кластер ≥8 не гарантирован. Для заполненной доски используйте расширенный датасет из [SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md).
+4. **Достаточно историй для ≥8/кластер.** Текущий `dogestonia_simulation_canvas_v0_1.json` (130 историй) разнороден по меткам — кластер ≥8 не гарантирован. Для заполненной доски используйте расширенный датасет **v0_2**: `tests/sandbox/dogestonia_simulation_canvas_v0_2.json` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md); ожидаемо **2** issue-карточки — см. [`expected-board-fill-matrix.md`](../../tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t04-expected-board-fill-matrix/expected-board-fill-matrix.md)).
 
 ---
 
