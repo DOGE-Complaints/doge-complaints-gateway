@@ -1,0 +1,1436 @@
+[
+  {
+    "simulation_id": "DOGE-EST-V02-W001",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 1. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W001",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W001",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 0
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W002",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "elderly_resident_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 2. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W002",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W002",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 1
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W003",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "tenant_calm",
+      "role": "resident",
+      "language": "ru",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 3. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W003",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W003",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 2
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W004",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 4. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W004",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W004",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 3
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W005",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "elderly_resident_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 5. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W005",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W005",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 4
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W006",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "tenant_calm",
+      "role": "resident",
+      "language": "ru",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 6. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W006",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W006",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 5
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W007",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 7. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W007",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W007",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 6
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W008",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "elderly_resident_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 8. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W008",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W008",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 7
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-W009",
+    "scenario_group": "environment",
+    "scenario_subgroup": "waste_bins_kalamaja",
+    "resident_profile": {
+      "persona_key": "tenant_calm",
+      "role": "resident",
+      "language": "ru",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "yard waste bins, Tallinn, Estonia (kalamaja_waste_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C1-waste-kalamaja.",
+      "phase_7_summary": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "waste",
+          "environment",
+          "safety",
+          "maintenance_gap",
+          "recurring_issue",
+          "residents"
+        ],
+        "title": {
+          "en": "Overflowing waste bins in Kalamaja courtyard",
+          "et": "Ülevoolvad prügikastid Kalamaja hoovis",
+          "ru": "Переполненные мусорные баки во дворе Каламая"
+        },
+        "summary": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9."
+        },
+        "description": {
+          "en": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9. Cluster seed v0_2 dense variant.",
+          "et": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9. Cluster seed v0_2 dense variant.",
+          "ru": "Residents report bins overflowing again in the same Kalamaja block. Report variant 9. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-W009",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-W009",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C1-waste-kalamaja_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C1-waste-kalamaja",
+      "variant_index": 8
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R001",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 1. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R001",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R001",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 0
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R002",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "cyclist_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 2. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R002",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R002",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 1
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R003",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "commuter_frustrated",
+      "role": "resident",
+      "language": "ru",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 3. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R003",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R003",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 2
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R004",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 4. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R004",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R004",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 3
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R005",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "cyclist_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 5. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R005",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R005",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 4
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R006",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "commuter_frustrated",
+      "role": "resident",
+      "language": "ru",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 6. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R006",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R006",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 5
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R007",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "parent_worried",
+      "role": "resident",
+      "language": "en",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7.",
+      "input_quality": "complete",
+      "noise_profile": [
+        "emotional_language"
+      ],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 7. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "en",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R007",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R007",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 6
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R008",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "cyclist_practical",
+      "role": "resident",
+      "language": "et",
+      "tone": "frustrated",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": true,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 8. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "et",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R008",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R008",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 7
+    }
+  },
+  {
+    "simulation_id": "DOGE-EST-V02-R009",
+    "scenario_group": "infrastructure",
+    "scenario_subgroup": "road_potholes_lasnamae",
+    "resident_profile": {
+      "persona_key": "commuter_frustrated",
+      "role": "resident",
+      "language": "ru",
+      "tone": "calm",
+      "precision_level": "medium"
+    },
+    "resident_input": {
+      "raw_message": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9.",
+      "input_quality": "complete",
+      "noise_profile": [],
+      "noise_level": "medium",
+      "has_location": true,
+      "has_time_context": true,
+      "has_desired_outcome": false,
+      "has_photo_reference": false,
+      "location_query": "pothole street, Tallinn, Estonia (lasnamae_roads_cluster_v02)"
+    },
+    "interview_context": {
+      "missing_information": [],
+      "clarification_questions_expected": [],
+      "phase_7_confirmation_needed": false,
+      "accepted_uncertainty": []
+    },
+    "expected_interview_path": {
+      "phase_1_entry": "Resident reports civic signal for C2-roads-lasnamae.",
+      "phase_7_summary": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9."
+    },
+    "normalized_issue_payload": {
+      "canonical_payload": {
+        "type": "complaint",
+        "labels": [
+          "roads",
+          "safety",
+          "broken_infrastructure",
+          "unsafe_condition",
+          "recurring_issue",
+          "pedestrians"
+        ],
+        "title": {
+          "en": "Potholes on Lasnamäe residential street",
+          "et": "Augud Lasnamäe elamutänaval",
+          "ru": "Выбоины на жилой улице в Ласнамяэ"
+        },
+        "summary": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9."
+        },
+        "description": {
+          "en": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9. Cluster seed v0_2 dense variant.",
+          "et": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9. Cluster seed v0_2 dense variant.",
+          "ru": "Pedestrians report recurring potholes on the same Lasnamäe route. Report variant 9. Cluster seed v0_2 dense variant."
+        }
+      },
+      "normalization_metadata": {
+        "session_language": "ru",
+        "ingest_validation_report_ref": "sim_validation_DOGE-EST-V02-R009",
+        "safety_compliance_report_ref": "sim_safety_DOGE-EST-V02-R009",
+        "policy_gate_ref": {
+          "policy_ref": "simulated_operator_rulebook",
+          "rulebook_version": "simulation-v1",
+          "status": "approved"
+        }
+      }
+    },
+    "cluster_metadata": {
+      "primary_cluster_key": "C2-roads-lasnamae_ignored_by_gateway",
+      "cluster_type": "seed_v02_dense"
+    },
+    "test_metadata": {
+      "seed_cluster_target": "C2-roads-lasnamae",
+      "variant_index": 8
+    }
+  }
+]
