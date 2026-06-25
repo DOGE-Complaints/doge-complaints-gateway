@@ -58,6 +58,7 @@ class AppConfig:
     cluster_cron_enabled: bool
     identity_introspect_url: str | None
     identity_service_token: str | None
+    spa_verify_base_url: str | None
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -597,6 +598,15 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
             "IDENTITY_INTROSPECT_URL is required when IDENTITY_SERVICE_TOKEN is set."
         )
 
+    spa_verify_base_url_raw = _get_value(source, "SPA_VERIFY_BASE_URL")
+    spa_verify_base_url: str | None = None
+    if spa_verify_base_url_raw is not None:
+        stripped_verify = spa_verify_base_url_raw.strip()
+        if stripped_verify:
+            spa_verify_base_url = _validate_http_url(
+                stripped_verify, env_name="SPA_VERIFY_BASE_URL"
+            ).rstrip("/")
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
@@ -624,5 +634,6 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_cron_enabled=cluster_cron_enabled,
         identity_introspect_url=identity_introspect_url,
         identity_service_token=identity_service_token,
+        spa_verify_base_url=spa_verify_base_url,
     )
 

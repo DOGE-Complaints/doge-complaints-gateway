@@ -35,10 +35,18 @@ from core.api.handlers import (
 from core.api.security import (
     UnauthorizedError,
     UserTokenIntrospectionError,
+    UserTokenIntrospectionUnavailableError,
     UserTokenMissingError,
+    VerificationRequiredError,
     extract_user_token,
 )
 from core.identity import IdentityIntrospectionError
+from core.identity.verification_gate import (
+    DEFAULT_VERIFICATION_REQUIRED_REASON,
+    VerificationGateOutcome,
+    evaluate_verification_gate,
+)
+from core.identity.verify_url import build_verify_url
 from core.config import ConfigError
 from core.logging_setup import log_runtime_exception
 from core.scheduler import ClusterCronJob
@@ -242,6 +250,24 @@ def _unauthorized_response(exc: Exception, *, trace_id: str) -> JSONResponse:
     return JSONResponse(content=envelope, status_code=401)
 
 
+@app.exception_handler(VerificationRequiredError)
+async def verification_required_handler(
+    request: Request, exc: VerificationRequiredError
+) -> JSONResponse:
+    trace_id = _read_trace_id(request)
+    envelope = build_error_envelope(exc, trace_id=trace_id).as_dict()
+    return JSONResponse(content=envelope, status_code=403)
+
+
+@app.exception_handler(UserTokenIntrospectionUnavailableError)
+async def user_token_introspection_unavailable_handler(
+    request: Request, exc: UserTokenIntrospectionUnavailableError
+) -> JSONResponse:
+    trace_id = _read_trace_id(request)
+    envelope = build_error_envelope(exc, trace_id=trace_id).as_dict()
+    return JSONResponse(content=envelope, status_code=503)
+
+
 @app.exception_handler(UnauthorizedError)
 async def unauthorized_handler(request: Request, exc: UnauthorizedError) -> JSONResponse:
     trace_id = _read_trace_id(request)
@@ -273,19 +299,32 @@ def require_user_token(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> None:
-    """GW-GAUTH-02: introspect user token at identity; fail-closed on errors."""
+    """GW-GAUTH-02/03: introspect user token; gate on phone_verified (OAUTH-04)."""
     user_token = extract_user_token(dict(request.headers.items()))
     if user_token is None:
         raise UserTokenMissingError("Missing user token.")
     client = deps.identity_introspection
     if client is None:
-        raise UserTokenIntrospectionError("Identity introspection is not configured.")
+        raise UserTokenIntrospectionUnavailableError(
+            "Identity introspection is not configured."
+        )
     try:
         result = client.introspect(user_token)
     except IdentityIntrospectionError as exc:
-        raise UserTokenIntrospectionError("User token introspection failed.") from exc
-    if not result.active:
+        raise UserTokenIntrospectionUnavailableError(
+            "User token introspection failed."
+        ) from exc
+
+    gate = evaluate_verification_gate(result)
+    if gate is VerificationGateOutcome.UNAUTHORIZED:
         raise UserTokenIntrospectionError("User token is not active.")
+    if gate is VerificationGateOutcome.VERIFICATION_REQUIRED:
+        raise VerificationRequiredError(
+            DEFAULT_VERIFICATION_REQUIRED_REASON,
+            verify_url=build_verify_url(deps.config),
+            reason=DEFAULT_VERIFICATION_REQUIRED_REASON,
+        )
+
     assert result.sub is not None
     request.state.user_introspection = result
 

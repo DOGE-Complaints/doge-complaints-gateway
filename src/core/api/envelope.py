@@ -4,7 +4,11 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 from uuid import uuid4
 
-from core.api.security import UnauthorizedError
+from core.api.security import (
+    UnauthorizedError,
+    UserTokenIntrospectionUnavailableError,
+    VerificationRequiredError,
+)
 from core.config import ConfigError
 from core.geo.scope import GeoScopeMismatchError
 from core.telemetry.label_miss import LabelMissValidationError
@@ -79,6 +83,33 @@ def build_error_envelope(
                 type="validation",
                 message="Invalid request",
                 details={},
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, VerificationRequiredError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="VERIFICATION_REQUIRED",
+                type="auth",
+                message=str(exc),
+                details={
+                    "error": "verification_required",
+                    "reason": exc.reason,
+                    "verify_url": exc.verify_url,
+                    **payload,
+                },
+            ),
+            trace_id=resolved_trace_id,
+        )
+
+    if isinstance(exc, UserTokenIntrospectionUnavailableError):
+        return ErrorEnvelope(
+            error=ErrorBody(
+                code="SERVICE_UNAVAILABLE",
+                type="infrastructure",
+                message=str(exc),
+                details=payload,
             ),
             trace_id=resolved_trace_id,
         )

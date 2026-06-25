@@ -14,7 +14,26 @@ class UserTokenMissingError(UnauthorizedError):
 
 
 class UserTokenIntrospectionError(UnauthorizedError):
-    """Raised when identity introspection fails or user token is inactive (fail-closed)."""
+    """Raised when user token is inactive (fail-closed)."""
+
+
+class UserTokenIntrospectionUnavailableError(Exception):
+    """Identity introspection unavailable — fail-closed, not verification_required."""
+
+
+class VerificationRequiredError(Exception):
+    """Raised when phone_verified is false (OAUTH-04, HTTP 403)."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        verify_url: str,
+        reason: str,
+    ) -> None:
+        super().__init__(message)
+        self.verify_url = verify_url
+        self.reason = reason
 
 
 def extract_user_token(headers: Mapping[str, str]) -> str | None:
