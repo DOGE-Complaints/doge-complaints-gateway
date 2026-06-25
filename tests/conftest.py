@@ -152,7 +152,7 @@ def _gauth02_default_introspection_active(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Keep GAUTH-01 contract tests green; GAUTH-02 tests override introspection."""
-    if "test_gw_gauth_02" in request.node.nodeid:
+    if "test_gw_gauth_02" in request.node.nodeid or "test_gw_gauth_03" in request.node.nodeid:
         return
     from core.identity.introspection_client import IdentityIntrospectionClient, IntrospectionResult
 

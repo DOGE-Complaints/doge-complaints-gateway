@@ -174,7 +174,8 @@ def test_identity_down_rejected_fail_closed(
         json=_valid_intake_payload(),
         headers=gauth_intake_headers(),
     )
-    assert response.status_code == 401
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
     assert "introspection" in response.json()["error"]["message"].lower()
 
 
@@ -193,7 +194,9 @@ def test_phone_verified_comes_from_identity_not_payload_jwt(
             user_token="eyJhbGciOiJub25lIn0.eyJwaG9uZV92ZXJpZmllZCI6dHJ1ZX0."
         ),
     )
-    assert response.status_code == 202
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "VERIFICATION_REQUIRED"
+    assert response.json()["error"]["details"]["error"] == "verification_required"
 
 
 def test_missing_identity_config_fail_closed(
@@ -214,5 +217,6 @@ def test_missing_identity_config_fail_closed(
             )
     finally:
         _clear_api_dependencies_cache()
-    assert response.status_code == 401
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
     assert "not configured" in response.json()["error"]["message"].lower()
