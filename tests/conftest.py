@@ -63,10 +63,14 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
     monkeypatch.setenv("SERVICE_API_TOKEN", "gauth-test-service-token")
+    monkeypatch.setenv("IDENTITY_INTROSPECT_URL", "https://identity.test")
+    monkeypatch.setenv("IDENTITY_SERVICE_TOKEN", "identity-test-service-token")
 
 
 GAUTH_TEST_SERVICE_TOKEN = "gauth-test-service-token"
 GAUTH_TEST_USER_TOKEN = "gauth-test-user-token"
+GAUTH_TEST_IDENTITY_SERVICE_TOKEN = "identity-test-service-token"
+GAUTH_TEST_IDENTITY_URL = "https://identity.test"
 
 
 def gauth_intake_headers(
@@ -141,3 +145,24 @@ def configured_logging() -> None:
     yield
     logging.getLogger().handlers.clear()
     logging.getLogger().setLevel(logging.WARNING)
+
+
+@pytest.fixture(autouse=True)
+def _gauth02_default_introspection_active(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep GAUTH-01 contract tests green; GAUTH-02 tests override introspection."""
+    if "test_gw_gauth_02" in request.node.nodeid:
+        return
+    from core.identity.introspection_client import IdentityIntrospectionClient, IntrospectionResult
+
+    def _active_introspect(
+        self: IdentityIntrospectionClient, user_token: str
+    ) -> IntrospectionResult:
+        _ = user_token
+        return IntrospectionResult(
+            active=True, sub="gauth-test-user-sub", phone_verified=True
+        )
+
+    monkeypatch.setattr(IdentityIntrospectionClient, "introspect", _active_introspect)
+
