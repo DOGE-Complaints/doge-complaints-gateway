@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from typing import Any, Mapping
 
 from core.api.dependencies import ApiDependencies
@@ -14,6 +15,11 @@ from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
+from core.identity.authoritative_submitter import (
+    authoritative_submitter_from_introspection,
+    payload_submitter_mismatches_introspection,
+)
+from core.identity.introspection_client import IntrospectionResult
 from core.intake import IntakeValidationError, build_story_intake_response, parse_story_intake_request
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
 
@@ -133,6 +139,7 @@ def handle_story_intake(
     payload: Mapping[str, Any],
     idempotency_key: str | None = None,
     trace_id: str | None = None,
+    user_introspection: IntrospectionResult | None = None,
 ) -> tuple[dict[str, Any], int]:
     resolved_trace_id = ensure_trace_id(trace_id)
     set_log_context(trace_id=resolved_trace_id)
@@ -162,6 +169,27 @@ def handle_story_intake(
         return envelope.as_dict(), 503
     try:
         request = parse_story_intake_request(payload)
+        if user_introspection is not None:
+            claimed_submitter = request.submitter
+            if payload_submitter_mismatches_introspection(
+                claimed_submitter, user_introspection
+            ):
+                log_api_event(
+                    logging.INFO,
+                    "story_intake_submitter_mismatch",
+                    trace_id=resolved_trace_id,
+                    claimed_external_user_id=claimed_submitter.external_user_id,
+                    authoritative_sub=user_introspection.sub,
+                    outcome="resolved_to_introspection",
+                )
+            request = replace(
+                request,
+                submitter=authoritative_submitter_from_introspection(
+                    payload_submitter=claimed_submitter,
+                    introspection=user_introspection,
+                    identity_introspect_url=dependencies.config.identity_introspect_url,
+                ),
+            )
         log_api_event(
             logging.DEBUG,
             "story_intake_received",

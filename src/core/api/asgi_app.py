@@ -479,6 +479,7 @@ async def intake_stories(
 ) -> JSONResponse:
     raw_body = await request.body()
     payload = json.loads(raw_body)
+    user_introspection = getattr(request.state, "user_introspection", None)
     envelope, status_code = handle_story_intake(
         deps,
         payload=payload,
@@ -486,6 +487,7 @@ async def intake_stories(
             request.headers.get("idempotency-key"), raw_body
         ),
         trace_id=_read_trace_id(request),
+        user_introspection=user_introspection,
     )
     return JSONResponse(content=envelope, status_code=status_code)
 
