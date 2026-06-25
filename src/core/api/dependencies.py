@@ -13,6 +13,7 @@ from core.application import (
 from core.application.issue_create import IssueProjectionReadStore
 from core.config import AppConfig, load_config_from_env
 from core.domain import LabelTranslationMissStore
+from core.identity import IdentityIntrospectionClient, build_identity_introspection_from_config
 from core.infrastructure import provide_service_factory
 
 
@@ -33,6 +34,7 @@ class ApiDependencies:
         )
     )
     service_auth: ServiceTokenAuth = field(default_factory=ServiceTokenAuth.disabled)
+    identity_introspection: IdentityIntrospectionClient | None = None
     metrics: ApiMetrics = field(default_factory=ApiMetrics)
     db_backend: str = "in_memory"
     db_ready: bool = True
@@ -85,6 +87,9 @@ def build_api_dependencies() -> ApiDependencies:
         issue_projection_read_store=service_factory.get_issue_projection_read_store(),
         config=service_factory.config,
         service_auth=build_service_auth_from_env(),
+        identity_introspection=build_identity_introspection_from_config(
+            service_factory.config
+        ),
         metrics=ApiMetrics(),
         db_backend=db_backend,
         db_ready=db_ready,

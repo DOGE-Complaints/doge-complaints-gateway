@@ -56,6 +56,8 @@ class AppConfig:
     cluster_type_resolution: str
     cluster_cron_interval_s: int
     cluster_cron_enabled: bool
+    identity_introspect_url: str | None
+    identity_service_token: str | None
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -122,6 +124,24 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
             "Required for pilot profile strict auth mode. "
             "Public-content write routes (POST /intake/stories, POST /tallinn/issues) "
             "reject with 401 when missing or invalid even if this env is unset (GW-GAUTH-01)."
+        ),
+    ),
+    EnvSpec(
+        name="IDENTITY_INTROSPECT_URL",
+        required=False,
+        default=None,
+        description=(
+            "Identity service base URL for OAuth introspection "
+            "(POST {base}/oauth/introspect, GW-GAUTH-02)."
+        ),
+    ),
+    EnvSpec(
+        name="IDENTITY_SERVICE_TOKEN",
+        required=False,
+        default=None,
+        description=(
+            "Service token gateway presents to identity introspection endpoint "
+            "(GW-GAUTH-02)."
         ),
     ),
     EnvSpec(
@@ -552,6 +572,31 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         env_name="CLUSTER_CRON_ENABLED",
     )
 
+    identity_introspect_url_raw = _get_value(source, "IDENTITY_INTROSPECT_URL")
+    identity_introspect_url: str | None = None
+    if identity_introspect_url_raw is not None:
+        stripped_base = identity_introspect_url_raw.strip()
+        if stripped_base:
+            identity_introspect_url = _validate_http_url(
+                stripped_base, env_name="IDENTITY_INTROSPECT_URL"
+            ).rstrip("/")
+
+    identity_service_token_raw = _get_value(source, "IDENTITY_SERVICE_TOKEN")
+    identity_service_token: str | None = None
+    if identity_service_token_raw is not None:
+        stripped_token = identity_service_token_raw.strip()
+        if stripped_token:
+            identity_service_token = stripped_token
+
+    if identity_introspect_url and not identity_service_token:
+        raise ConfigError(
+            "IDENTITY_SERVICE_TOKEN is required when IDENTITY_INTROSPECT_URL is set."
+        )
+    if identity_service_token and not identity_introspect_url:
+        raise ConfigError(
+            "IDENTITY_INTROSPECT_URL is required when IDENTITY_SERVICE_TOKEN is set."
+        )
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
@@ -577,5 +622,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_type_resolution=cluster_type_resolution,
         cluster_cron_interval_s=cluster_cron_interval_s,
         cluster_cron_enabled=cluster_cron_enabled,
+        identity_introspect_url=identity_introspect_url,
+        identity_service_token=identity_service_token,
     )
 

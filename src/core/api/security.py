@@ -13,6 +13,10 @@ class UserTokenMissingError(UnauthorizedError):
     """Raised when a verify-gated route lacks the user access token."""
 
 
+class UserTokenIntrospectionError(UnauthorizedError):
+    """Raised when identity introspection fails or user token is inactive (fail-closed)."""
+
+
 def extract_user_token(headers: Mapping[str, str]) -> str | None:
     """Read end-user OAuth access token from X-User-Token (GW-GAUTH-01 stub; GAUTH-02 introspects)."""
     h = _lower_headers(headers)

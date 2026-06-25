@@ -32,7 +32,13 @@ from core.api.handlers import (
     handle_tallinn_issue_get,
     handle_tallinn_issues_list,
 )
-from core.api.security import UnauthorizedError, UserTokenMissingError, extract_user_token
+from core.api.security import (
+    UnauthorizedError,
+    UserTokenIntrospectionError,
+    UserTokenMissingError,
+    extract_user_token,
+)
+from core.identity import IdentityIntrospectionError
 from core.config import ConfigError
 from core.logging_setup import log_runtime_exception
 from core.scheduler import ClusterCronJob
@@ -263,10 +269,25 @@ def require_public_content_service_auth(
     deps.service_auth.require(dict(request.headers.items()), mandatory=True)
 
 
-def require_user_token(request: Request) -> None:
-    """GW-GAUTH-01 stub: user token required on verify-gated mutations (introspection in GAUTH-02)."""
-    if extract_user_token(dict(request.headers.items())) is None:
+def require_user_token(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> None:
+    """GW-GAUTH-02: introspect user token at identity; fail-closed on errors."""
+    user_token = extract_user_token(dict(request.headers.items()))
+    if user_token is None:
         raise UserTokenMissingError("Missing user token.")
+    client = deps.identity_introspection
+    if client is None:
+        raise UserTokenIntrospectionError("Identity introspection is not configured.")
+    try:
+        result = client.introspect(user_token)
+    except IdentityIntrospectionError as exc:
+        raise UserTokenIntrospectionError("User token introspection failed.") from exc
+    if not result.active:
+        raise UserTokenIntrospectionError("User token is not active.")
+    assert result.sub is not None
+    request.state.user_introspection = result
 
 
 _PUBLIC_CONTENT_WRITE_DEPS = [
