@@ -34,6 +34,7 @@ POST /intake/stories    →    объединяет ≥8 похожих в од�
 Цель — hosted-демо (Railway + Supabase).
 
 1. **Сервер в режиме Supabase.** Данные попадут в облако только если у gateway `DB_BACKEND=supabase`. Иначе пишется в in-memory/sqlite и в hosted-БД ничего не появится.
+   - **Двухслойная auth на `/intake/stories` (GW-GAUTH-01).** Подача требует **двух** заголовков: `Authorization: Bearer` (сервисный `GATEWAY_API_TOKEN`) и `X-User-Token` (`GATEWAY_USER_TOKEN`, по умолчанию = сервисный). Загрузчик шлёт оба автоматически. Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT). После реального introspection (**GW-GAUTH-02**) `X-User-Token` должен быть настоящим пользовательским токеном.
 2. **Готовность БД — `/ready` зелёный:**
    ```bash
    curl -sS "$GATEWAY_URL/ready" | jq '.data.db | {ready, checks}'
@@ -53,7 +54,8 @@ cd doge-complaints-gateway
 cp .env.test.example .env.test
 # заполнить в .env.test:
 #   GATEWAY_URL=https://<твой-railway>.up.railway.app
-#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>
+#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>   # слой 1: доверенный канал (Authorization: Bearer)
+#   GATEWAY_USER_TOKEN=<пользовательский токен>      # слой 2: X-User-Token; опц. (дефолт = GATEWAY_API_TOKEN)
 #   SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_1.json   (или _v0_2 из SEED-02)
 ```
 

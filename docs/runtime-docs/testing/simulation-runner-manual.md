@@ -2,6 +2,8 @@
 
 Скрипт `tests/simulation_runner.py` загружает тестовые истории из canvas-файла в задеплоенное приложение через реальные HTTP-запросы.
 
+> Это **SSOT по загрузке** (детали скрипта, env, группы). Нужна **вся цепочка** «загрузка → кластеризация (cron) → карточки на доске»? — см. сквозной e2e-runbook: [`seed-demo-data-runbook-ru.md`](../manuals/seed-demo-data-runbook-ru.md). Загрузка историй сама по себе доску **не** наполняет — карточки создаёт кластеризация (≥8 на группу).
+
 ---
 
 ## Быстрый старт
@@ -45,7 +47,8 @@ doge-complaints-gateway/
 | Переменная | Обязательная | Описание |
 |---|---|---|
 | `GATEWAY_URL` | **ДА** | Адрес задеплоенного приложения, например `https://dogestonia-tallinn.up.railway.app` |
-| `GATEWAY_API_TOKEN` | **ДА** | API-токен (`SERVICE_API_TOKEN` из `.env` приложения) |
+| `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. Слой 1 «доверенный канал» (GW-GAUTH-01). |
+| `GATEWAY_USER_TOKEN` | нет (но см. ⚠️) | **Пользовательский** токен → заголовок `X-User-Token`. Слой 2 «кто человек» (GW-GAUTH-01). **По умолчанию = `GATEWAY_API_TOKEN`** (`getenv("GATEWAY_USER_TOKEN", gateway_api_token)`, [`simulation_runner.py:172`](../../../tests/simulation_runner.py#L172)). ⚠️ Дефолт проходит, пока user-слой — заглушка присутствия; после реального introspection (**GW-GAUTH-02**) сюда нужен **настоящий пользовательский OAuth-токен**, иначе intake вернёт 401. |
 | `SIMULATION_CANVAS_PATH` | нет | Путь к JSON-файлу со сценариями. По умолчанию: `tests/sandbox/dogestonia_simulation_canvas_v0_1.json` |
 | `SIMULATION_GROUPS` | нет | Фильтр групп через запятую. Пусто = все группы |
 | `SIMULATION_MAX_STORIES` | нет | Максимум историй за прогон. Пусто = все |
@@ -55,6 +58,7 @@ doge-complaints-gateway/
 ```dotenv
 GATEWAY_URL=https://dogestonia-tallinn.up.railway.app
 GATEWAY_API_TOKEN=111.444.555.888.555.444.111-Tallinn-demo-token
+# GATEWAY_USER_TOKEN=<пользовательский OAuth-токен>   # опц.; по умолчанию = GATEWAY_API_TOKEN (нужен реальный после GW-GAUTH-02)
 
 SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_1.json
 
@@ -121,7 +125,7 @@ Exit code 1 — есть ошибки (список в `Failed IDs`).
 |---|---|
 | 200 | История принята, получен `story_id` |
 | 400 | Невалидный payload (проблема в данных) |
-| 401 | Неверный `GATEWAY_API_TOKEN` |
+| 401 | Неверный `GATEWAY_API_TOKEN` (сервисный слой), **или** отсутствует/невалиден `X-User-Token` (пользовательский слой, GW-GAUTH-01). Проверь оба токена. |
 | 500 | Ошибка на стороне сервера |
 
 ---
