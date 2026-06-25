@@ -32,7 +32,7 @@ from core.api.handlers import (
     handle_tallinn_issue_get,
     handle_tallinn_issues_list,
 )
-from core.api.security import UnauthorizedError
+from core.api.security import UnauthorizedError, UserTokenMissingError, extract_user_token
 from core.config import ConfigError
 from core.logging_setup import log_runtime_exception
 from core.scheduler import ClusterCronJob
@@ -253,7 +253,26 @@ def require_service_auth(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> None:
-    deps.service_auth.require(dict(request.headers.items()))
+    deps.service_auth.require(dict(request.headers.items()), mandatory=False)
+
+
+def require_public_content_service_auth(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> None:
+    deps.service_auth.require(dict(request.headers.items()), mandatory=True)
+
+
+def require_user_token(request: Request) -> None:
+    """GW-GAUTH-01 stub: user token required on verify-gated mutations (introspection in GAUTH-02)."""
+    if extract_user_token(dict(request.headers.items())) is None:
+        raise UserTokenMissingError("Missing user token.")
+
+
+_PUBLIC_CONTENT_WRITE_DEPS = [
+    Depends(require_public_content_service_auth),
+    Depends(require_user_token),
+]
 
 
 @app.get("/health")
@@ -377,7 +396,7 @@ async def tallinn_issue_get(
     return JSONResponse(content=payload, status_code=status_code)
 
 
-@app.post("/tallinn/issues", dependencies=[Depends(require_service_auth)])
+@app.post("/tallinn/issues", dependencies=_PUBLIC_CONTENT_WRITE_DEPS)
 async def tallinn_issue_create(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
@@ -393,7 +412,7 @@ async def tallinn_issue_create(
     return JSONResponse(content=payload, status_code=status_code)
 
 
-@app.post("/intake/stories")
+@app.post("/intake/stories", dependencies=_PUBLIC_CONTENT_WRITE_DEPS)
 async def intake_stories(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),

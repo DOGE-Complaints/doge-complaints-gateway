@@ -25,7 +25,7 @@ def _require_service_auth(
     trace_id: str,
 ) -> dict[str, Any] | None:
     try:
-        dependencies.service_auth.require(headers or {})
+        dependencies.service_auth.require(headers or {}, mandatory=False)
         return None
     except UnauthorizedError as exc:
         dependencies.metrics.record_auth_failure()
