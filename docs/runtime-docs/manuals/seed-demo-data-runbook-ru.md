@@ -34,7 +34,10 @@ POST /intake/stories    →    объединяет ≥8 похожих в од�
 Цель — hosted-демо (Railway + Supabase).
 
 1. **Сервер в режиме Supabase.** Данные попадут в облако только если у gateway `DB_BACKEND=supabase`. Иначе пишется в in-memory/sqlite и в hosted-БД ничего не появится.
-   - **Двухслойная auth на `/intake/stories` (GW-GAUTH-01).** Подача требует **двух** заголовков: `Authorization: Bearer` (сервисный `GATEWAY_API_TOKEN`) и `X-User-Token` (`GATEWAY_USER_TOKEN`, по умолчанию = сервисный). Загрузчик шлёт оба автоматически. Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT). После реального introspection (**GW-GAUTH-02**) `X-User-Token` должен быть настоящим пользовательским токеном.
+   - **Двухслойная auth на `/intake/stories` (GW-GAUTH-01/02/03).** Подача требует **двух** заголовков: `Authorization: Bearer` (сервисный `GATEWAY_API_TOKEN`) и `X-User-Token` (`GATEWAY_USER_TOKEN`, по умолчанию = сервисный). Загрузчик шлёт оба автоматически. Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT).
+     - **Серверная сторона (после live introspection, GW-GAUTH-02/03).** Чтобы hosted gateway принимал истории, на сервере должны быть заданы `IDENTITY_INTROSPECT_URL` + `IDENTITY_SERVICE_TOKEN` (gateway зовёт identity `POST /oauth/introspect`), иначе intake = **503** (fail-closed). См. [`server-env-quickstart.md` §3](./server-env-quickstart.md).
+     - **`GATEWAY_USER_TOKEN` должен быть НАСТОЯЩИМ verified пользовательским OAuth-токеном** (`phone_verified=true` у identity), **не** дефолтным `GATEWAY_API_TOKEN`. Иначе: сервисный токен identity отвергнет как user → **401**; активный, но неверифицированный пользователь → **403** `verification_required` (+`verify_url`) — история **не** принимается.
+     - **Коды отказа intake:** `401` (нет/битый сервисный или user-токен, `active=false`) · `403` `verification_required` (`phone_verified=false`) · `503` (identity не сконфигурирован/недоступен, fail-closed).
 2. **Готовность БД — `/ready` зелёный:**
    ```bash
    curl -sS "$GATEWAY_URL/ready" | jq '.data.db | {ready, checks}'

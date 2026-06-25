@@ -48,7 +48,7 @@ doge-complaints-gateway/
 |---|---|---|
 | `GATEWAY_URL` | **ДА** | Адрес задеплоенного приложения, например `https://dogestonia-tallinn.up.railway.app` |
 | `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. Слой 1 «доверенный канал» (GW-GAUTH-01). |
-| `GATEWAY_USER_TOKEN` | нет (но см. ⚠️) | **Пользовательский** токен → заголовок `X-User-Token`. Слой 2 «кто человек» (GW-GAUTH-01). **По умолчанию = `GATEWAY_API_TOKEN`** (`getenv("GATEWAY_USER_TOKEN", gateway_api_token)`, [`simulation_runner.py:172`](../../../tests/simulation_runner.py#L172)). ⚠️ Дефолт проходит, пока user-слой — заглушка присутствия; после реального introspection (**GW-GAUTH-02**) сюда нужен **настоящий пользовательский OAuth-токен**, иначе intake вернёт 401. |
+| `GATEWAY_USER_TOKEN` | нет (но см. ⚠️) | **Пользовательский** токен → заголовок `X-User-Token`. Слой 2 «кто человек» (GW-GAUTH-01). **По умолчанию = `GATEWAY_API_TOKEN`** (`getenv("GATEWAY_USER_TOKEN", gateway_api_token)`, [`simulation_runner.py:172`](../../../tests/simulation_runner.py#L172)). ⚠️ **GW-GAUTH-02/03 уже включены (live introspection + verify-гейт):** против реального gateway дефолт **не пройдёт** — сервисный токен identity отвергнет как user → **401**; нужен **настоящий verified** OAuth-токен (`phone_verified=true`), иначе **403** `verification_required`. Серверу также нужны `IDENTITY_INTROSPECT_URL`/`IDENTITY_SERVICE_TOKEN` — см. [`server-env-quickstart.md` §3](../manuals/server-env-quickstart.md) и [`seed-demo-data-runbook-ru.md`](../manuals/seed-demo-data-runbook-ru.md). |
 | `SIMULATION_CANVAS_PATH` | нет | Путь к JSON-файлу со сценариями. По умолчанию: `tests/sandbox/dogestonia_simulation_canvas_v0_1.json` |
 | `SIMULATION_GROUPS` | нет | Фильтр групп через запятую. Пусто = все группы |
 | `SIMULATION_MAX_STORIES` | нет | Максимум историй за прогон. Пусто = все |
@@ -125,7 +125,9 @@ Exit code 1 — есть ошибки (список в `Failed IDs`).
 |---|---|
 | 200 | История принята, получен `story_id` |
 | 400 | Невалидный payload (проблема в данных) |
-| 401 | Неверный `GATEWAY_API_TOKEN` (сервисный слой), **или** отсутствует/невалиден `X-User-Token` (пользовательский слой, GW-GAUTH-01). Проверь оба токена. |
+| 401 | Неверный `GATEWAY_API_TOKEN` (сервисный слой), **или** отсутствует/невалиден `X-User-Token`, **или** introspection вернул `active=false` (GW-GAUTH-01/02). Проверь оба токена. |
+| 403 | `verification_required` — пользователь активен, но `phone_verified=false` (GW-GAUTH-03). Нужен **verified** user-токен; в теле — `verify_url`. |
+| 503 | identity introspection не сконфигурирован/недоступен (fail-closed): задай `IDENTITY_INTROSPECT_URL`/`IDENTITY_SERVICE_TOKEN` на сервере — см. [`server-env-quickstart.md` §3](../manuals/server-env-quickstart.md). |
 | 500 | Ошибка на стороне сервера |
 
 ---

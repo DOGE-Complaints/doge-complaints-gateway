@@ -55,6 +55,19 @@ python -m pip install -e '.[dev]'
 - `LOG_LEVEL` (default `INFO`)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
 
+**Авторизация подачи историй (GW-GAUTH-01/02/03) — для приёма `POST /intake/stories`:**
+
+Мутации публичного контента (`/intake/stories`, `/tallinn/issues`) требуют **двух слоёв**: сервисный токен канала + пользовательский токен, который gateway проверяет у identity (introspection) и гейтит по `phone_verified`. Чтобы пользовательский слой работал на сервере:
+
+| Переменная | Назначение | Если не задана |
+|---|---|---|
+| `IDENTITY_INTROSPECT_URL` | База identity для `POST {base}/oauth/introspect` (GW-GAUTH-02) | introspection не сконфигурирован → intake отвечает **503** (`UserTokenIntrospectionUnavailableError`, fail-closed) — истории не принимаются |
+| `IDENTITY_SERVICE_TOKEN` | Сервисный токен, который gateway предъявляет identity на входе introspection | identity отвергнет вызов (401/403) → intake **503** |
+| `SPA_VERIFY_BASE_URL` | База для `verify_url` в ответе **403** `verification_required` (default `http://localhost:3000`) | в 403-теле уйдёт дефолтный verify-URL |
+
+> Источники: EnvSpec в [`schema.py`](../../../src/core/config/schema.py); поведение — [`asgi_app.py:require_user_token`](../../../src/core/api/asgi_app.py) (503/403/401), [`verification_gate.py`](../../../src/core/identity/verification_gate.py).
+> Коды ответов intake при включённой авторизации: **401** — нет/битый сервисный или пользовательский токен (`active=false`); **403** `verification_required` (+`verify_url`) — пользователь активен, но `phone_verified=false`; **503** — identity недоступен/не сконфигурирован (fail-closed). Подробнее по seed — [`seed-demo-data-runbook-ru.md`](./seed-demo-data-runbook-ru.md).
+
 **Persistence backend (DB_BACKEND):**
 
 | Значение | Поведение | Требует |
