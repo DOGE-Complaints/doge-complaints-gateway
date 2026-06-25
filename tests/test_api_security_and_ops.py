@@ -9,13 +9,16 @@ import pytest  # pyright: ignore[reportMissingImports]
 from core.api import (
     ApiDependencies,
     ApiMetrics,
-    ServiceTokenAuth,
-    build_service_auth_from_env,
-    extract_service_token,
     handle_health,
     handle_metrics,
     handle_protected_status,
     handle_readiness,
+)
+from core.api.security import (
+    ServiceTokenAuth,
+    UnauthorizedError,
+    build_service_auth_from_env,
+    extract_service_token,
 )
 from core.application import HealthService
 
@@ -98,8 +101,21 @@ def test_service_auth_disabled_allows_protected_without_header() -> None:
 
 
 def test_build_service_auth_from_env() -> None:
-    assert build_service_auth_from_env({}).is_enabled() is False
-    assert build_service_auth_from_env({"SERVICE_API_TOKEN": "x"}).is_enabled() is True
+    unset = build_service_auth_from_env({})
+    assert unset.is_enabled() is False
+    assert unset.mandatory is True
+    with pytest.raises(UnauthorizedError):
+        unset.require({}, mandatory=True)
+    enabled = build_service_auth_from_env({"SERVICE_API_TOKEN": "x"})
+    assert enabled.is_enabled() is True
+    assert enabled.mandatory is True
+
+
+def test_extract_user_token_reads_x_user_token() -> None:
+    from core.api.security import extract_user_token
+
+    assert extract_user_token({"X-User-Token": "  user-tok  "}) == "user-tok"
+    assert extract_user_token({}) is None
 
 
 def test_readiness_and_metrics_increment_counters() -> None:

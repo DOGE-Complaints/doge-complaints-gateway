@@ -2,12 +2,23 @@
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import os
+from collections.abc import Callable
+from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
 from core.logging_setup import configure_logging
+
+_GAUTH_WRITE_PATH_SUFFIXES = ("/intake/stories", "/tallinn/issues")
+_ORIGINAL_TESTCLIENT_REQUEST: Callable[..., Any] | None = None
+_GAUTH_RAW_CLIENT_MARKER = "gauth_raw_client"
+_gauth_skip_auto_headers: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "gauth_skip_auto_headers", default=False
+)
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
@@ -51,6 +62,76 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_PRIMARY_LENS", "civic_domain_micro")
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
+    monkeypatch.setenv("SERVICE_API_TOKEN", "gauth-test-service-token")
+
+
+GAUTH_TEST_SERVICE_TOKEN = "gauth-test-service-token"
+GAUTH_TEST_USER_TOKEN = "gauth-test-user-token"
+
+
+def gauth_intake_headers(
+    *,
+    service_token: str | None = None,
+    user_token: str = GAUTH_TEST_USER_TOKEN,
+    extra: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Default service + user headers for verify-gated POST /intake/stories (GW-GAUTH-01)."""
+    resolved_service = (
+        service_token
+        or os.environ.get("SERVICE_API_TOKEN")
+        or GAUTH_TEST_SERVICE_TOKEN
+    )
+    headers = {
+        "Authorization": f"Bearer {resolved_service}",
+        "X-User-Token": user_token,
+    }
+    if extra:
+        headers.update(extra)
+    return headers
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line(
+        "markers",
+        "gauth_raw_client: skip auto-injected GW-GAUTH service/user headers on TestClient",
+    )
+
+
+def _gauth_auto_inject_headers(method: str, url: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+    if method.upper() != "POST":
+        return kwargs
+    path = url.split("?", 1)[0]
+    if not any(path.endswith(suffix) for suffix in _GAUTH_WRITE_PATH_SUFFIXES):
+        return kwargs
+    merged = gauth_intake_headers()
+    merged.update(kwargs.pop("headers", None) or {})
+    kwargs["headers"] = merged
+    return kwargs
+
+
+@pytest.fixture(autouse=True)
+def _gauth_testclient_auto_headers(request: pytest.FixtureRequest):
+    """Inject default GW-GAUTH-01 headers on TestClient POSTs to public write paths."""
+    global _ORIGINAL_TESTCLIENT_REQUEST
+    skip = (
+        request.node.get_closest_marker(_GAUTH_RAW_CLIENT_MARKER) is not None
+        or "test_gw_gauth_01" in request.node.nodeid
+    )
+    token = _gauth_skip_auto_headers.set(skip)
+    if _ORIGINAL_TESTCLIENT_REQUEST is None:
+        _ORIGINAL_TESTCLIENT_REQUEST = TestClient.request
+
+        def _patched_request(
+            self: TestClient, method: str, url: str, **kwargs: Any
+        ) -> Any:
+            if not _gauth_skip_auto_headers.get():
+                kwargs = _gauth_auto_inject_headers(method, url, kwargs)
+            assert _ORIGINAL_TESTCLIENT_REQUEST is not None
+            return _ORIGINAL_TESTCLIENT_REQUEST(self, method, url, **kwargs)
+
+        TestClient.request = _patched_request  # type: ignore[method-assign]
+    yield
+    _gauth_skip_auto_headers.reset(token)
 
 
 @pytest.fixture

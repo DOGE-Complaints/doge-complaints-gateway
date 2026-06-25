@@ -212,6 +212,7 @@ def test_req24_ac9_cors_options(client: TestClient) -> None:
     assert response.headers.get("access-control-allow-origin") == "*"
 
 
+@pytest.mark.gauth_raw_client
 def test_req24_ac10_post_without_bearer_returns_401(client: TestClient) -> None:
     response = client.post(
         "/tallinn/issues",

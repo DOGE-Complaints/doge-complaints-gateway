@@ -128,16 +128,25 @@ def _extract_story_id_from_intake_response(body: Any) -> str:
     return "n/a"
 
 
-def _post_json(url: str, payload: dict[str, Any], api_token: str) -> tuple[int, str]:
+def _post_json(
+    url: str,
+    payload: dict[str, Any],
+    api_token: str,
+    *,
+    user_token: str | None = None,
+) -> tuple[int, str]:
     body = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json",
+    }
+    if user_token:
+        headers["X-User-Token"] = user_token
     req = request.Request(
         url=url,
         data=body,
         method="POST",
-        headers={
-            "x-api-token": api_token,
-            "Content-Type": "application/json",
-        },
+        headers=headers,
     )
     try:
         with request.urlopen(req, timeout=30) as resp:
@@ -160,6 +169,7 @@ def main() -> int:
 
     gateway_url = _required_env("GATEWAY_URL").rstrip("/")
     gateway_api_token = _required_env("GATEWAY_API_TOKEN")
+    gateway_user_token = os.getenv("GATEWAY_USER_TOKEN", gateway_api_token).strip()
     canvas_path_raw = _required_env("SIMULATION_CANVAS_PATH")
     canvas_path = Path(canvas_path_raw)
     if not canvas_path.exists():
@@ -199,7 +209,10 @@ def main() -> int:
         payload = _scenario_to_payload(scenario)
         try:
             status_code, response_text = _post_json(
-                f"{gateway_url}/intake/stories", payload, gateway_api_token
+                f"{gateway_url}/intake/stories",
+                payload,
+                gateway_api_token,
+                user_token=gateway_user_token,
             )
             if status_code == 202:
                 try:
