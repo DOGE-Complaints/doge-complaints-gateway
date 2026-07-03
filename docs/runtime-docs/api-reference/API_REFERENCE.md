@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Intake (`POST /intake/stories`) and story draft stash (`POST /story-drafts`, `GET /story-drafts/{draft_id}`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
+2. Intake (`POST /intake/stories`) and story draft stash (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -498,13 +498,31 @@ Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and r
 ### `GET /story-drafts/{draft_id}`
 
 - **HTTP binding:** `asgi_app.py` → `handle_story_draft_get` (`handlers.py`)
-- **Auth:** user-auth stub (`require_story_draft_user_auth`) until GW-DRAFT-02
+- **Auth:** browser `Authorization: Bearer` only (Supabase session); `require_story_draft_read_user` → identity `GET /me` (**active session only** — no `phone_verified` gate on read; per mvp §4)
 - **Success:** `200` — `{ "data": <saved StoryIntakeRequest JSON>, "trace_id": "..." }`
+- **Auth error:** `401` — missing/inactive Bearer
+- **Identity unavailable:** `503` — `SERVICE_UNAVAILABLE` (fail-closed)
 - **Not found / expired:** `404` — `DOMAIN_ERROR`
 
 Persistence: separate `StoryDraftRepository` port (`domain/contracts.py`); adapters in_memory / sqlite / supabase per `DB_BACKEND`. Supabase migration: `supabase/migrations/20260703_1200_gw_draft_01_story_drafts.sql`.
 
-Test evidence: `tests/test_gw_draft_01_story_draft_stash_contract.py`
+Test evidence: `tests/test_gw_draft_01_story_draft_stash_contract.py`, `tests/test_gw_draft_02_get_auth_contract.py`
+
+### `POST /story-drafts/{draft_id}/submit` (GW-DRAFT-02)
+
+Browser handoff completion: verified user submits stashed draft; gateway calls identity `GET /me` with forwarded Supabase Bearer (no local JWT validation).
+
+- **HTTP binding:** `asgi_app.py` → `require_story_draft_submit_user` + `handle_story_draft_submit` (`handlers.py`)
+- **Auth:** browser `Authorization: Bearer` only (Supabase session); **no** service token, **no** `X-User-Token`
+- **Identity:** `IdentityMeClient` → `{IDENTITY_BASE_URL}/me` → `IntrospectionResult`; env `IDENTITY_BASE_URL` (falls back to `IDENTITY_INTROSPECT_URL` base when unset)
+- **Gate:** reuse `evaluate_verification_gate` — `phone_verified=true` → intake; `false` → **403** `verification_required` + `verify_url`; inactive/missing token → **401**; identity down → **503**
+- **Body:** none (payload loaded from draft store by `draft_id`)
+- **Success:** `202 Accepted` — same `StoryIntakeResponse` envelope as `POST /intake/stories`; `submitter` resolved via `authoritative_submitter_from_introspection` (`sub` from `/me`)
+- **Idempotency:** `draft_id` is the idempotency key; repeat submit returns same `story_id` without duplicate stories; draft deleted after first success
+- **Not found / expired:** `404` — `DOMAIN_ERROR`
+- **Config:** `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL` (for `verify_url`)
+
+Test evidence: `tests/test_gw_draft_02_story_draft_submit_contract.py`
 
 ---
 

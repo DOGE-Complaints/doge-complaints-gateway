@@ -77,6 +77,27 @@ User identity на уровне доменной истории передаёт
 | `FF_BLOCKCHAIN_ADAPTER` | `src/core/config/schema.py` | Override adapter behavior |
 | `FF_TOKENIZATION_PIPELINE` | `src/core/config/schema.py` | Override pipeline behavior |
 | `LOG_LEVEL` | `src/core/config/schema.py` | Уровень логирования |
+| `IDENTITY_BASE_URL` | `src/core/config/schema.py`, `src/core/identity/me_client.py` | Base URL for browser session check via identity `GET /me` (GW-DRAFT-02); falls back to introspect URL host when unset |
+| `IDENTITY_INTROSPECT_URL` | `src/core/identity/introspection_client.py` | GPT/user-token introspection endpoint (GW-GAUTH-02); also fallback base for `/me` when `IDENTITY_BASE_URL` unset |
+| `SPA_VERIFY_BASE_URL` | `src/core/identity/verify_url.py` | SPA verify redirect base for `verification_required` (403) responses |
+
+### 4.1) Browser story-draft auth paths (GW-DRAFT-02)
+
+**GET `/story-drafts/{draft_id}` (read / preview):**
+
+- Token extraction: `extract_authorization_bearer` — `Authorization: Bearer` (Supabase session).
+- Identity check: `IdentityMeClient.fetch_me` → `GET {IDENTITY_BASE_URL}/me`.
+- Dependency: `require_story_draft_read_user` — **active session only** (`result.active=true`); **no** `phone_verified` gate (mvp §4: preview before verify is allowed).
+- Fail-closed: missing/inactive token → **401**; identity down / unconfigured → **503**.
+
+**POST `/story-drafts/{draft_id}/submit` (create story):**
+
+- Same Bearer + `/me` client, but dependency `require_story_draft_submit_user` applies full `evaluate_verification_gate` (GAUTH-03): `phone_verified=true` required; `false` → **403** `verification_required` + `verify_url`.
+- Fail-closed: `IdentityMeError` or missing client → **503**; story is not created.
+
+Gateway does **not** validate Supabase JWT locally on either path; trust boundary is identity service.
+
+Contrast with `POST /intake/stories` (GPT path): service token + `X-User-Token` + `IdentityIntrospectionClient`.
 
 ### 5) Readiness and auth boundary semantics
 
@@ -102,6 +123,10 @@ User identity на уровне доменной истории передаёт
   - проверяет обязательность `submitter.external_user_id`.
 - `tests/test_story_repository_lifecycle.py`
   - проверяет сохранение `submitter_external_user_id` и `submitter_identity_issuer`.
+- `tests/test_gw_draft_02_story_draft_submit_contract.py`
+  - проверяет browser Bearer → `/me` gate, 202/403/401/503/404, idempotent submit.
+- `tests/test_gw_draft_02_get_auth_contract.py`
+  - проверяет GET read auth: 401/503/200; unverified session allowed on GET (no 403).
 
 ## Архитектурные последствия и ограничения
 

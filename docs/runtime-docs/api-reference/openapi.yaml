@@ -723,10 +723,13 @@ paths:
       description: |
         Runtime state:
         - returns saved intake JSON from draft store;
+        - browser auth: `Authorization: Bearer` → identity `/me` (active session only, no phone_verified gate);
         - unknown or expired draft id → 404;
-        - user-auth hook stub until GW-DRAFT-02 (`require_story_draft_user_auth`).
+        - handler: `handle_story_draft_get`; dep: `require_story_draft_read_user`.
       operationId: getStoryDraft
       x-runtime-state: implemented-runtime-binding
+      security:
+        - BearerAuth: []
       parameters:
         - name: draft_id
           in: path
@@ -746,8 +749,72 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or inactive browser Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Identity `/me` unavailable or not configured (fail-closed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
         '500':
           description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /story-drafts/{draft_id}/submit:
+    post:
+      tags: [Intake]
+      summary: Submit stashed story draft from browser (phone_verified gate)
+      description: |
+        Runtime state:
+        - browser auth: `Authorization: Bearer` (Supabase session forwarded to identity `/me`);
+        - gate: `evaluate_verification_gate` on `IntrospectionResult` from `IdentityMeClient`;
+        - loads draft payload, creates story via `handle_story_intake` with `idempotency_key=draft_id`;
+        - deletes draft on success; idempotent replay returns same `story_id` (202);
+        - handler: `handle_story_draft_submit` in `src/core/api/handlers.py`.
+      operationId: postStoryDraftSubmit
+      x-runtime-state: implemented-runtime-binding
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '202':
+          description: Story created (same envelope as `POST /intake/stories`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryIntake'
+        '401':
+          description: Missing/inactive browser Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Phone not verified (`verification_required` + `verify_url`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Unknown or expired draft id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Identity `/me` unavailable or not configured (fail-closed)
           content:
             application/json:
               schema:
