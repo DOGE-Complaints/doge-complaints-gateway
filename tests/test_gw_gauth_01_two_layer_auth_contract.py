@@ -1,4 +1,4 @@
-"""GW-GAUTH-01: two-layer auth contract on public-content write paths (stub user gate → GAUTH-02)."""
+"""GW-GAUTH-01: service-layer auth on public-content write paths (GW-DRAFT-04 service-only)."""
 
 from __future__ import annotations
 
@@ -53,41 +53,30 @@ def test_intake_without_service_token_rejected_not_noop(client: TestClient) -> N
     assert "service" in body["error"]["message"].lower()
 
 
-def test_intake_service_only_without_user_token_rejected(client: TestClient) -> None:
+def test_intake_service_only_accepted(client: TestClient) -> None:
     response = client.post(
         "/intake/stories",
         json=_valid_intake_payload(),
-        headers={"Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}"},
-    )
-    assert response.status_code == 401
-    body = response.json()
-    assert body["error"]["code"] == "UNAUTHORIZED"
-    assert "user" in body["error"]["message"].lower()
-
-
-def test_intake_with_service_and_user_token_accepted(client: TestClient) -> None:
-    response = client.post(
-        "/intake/stories",
-        json=_valid_intake_payload(),
-        headers=gauth_intake_headers(extra={"idempotency-key": "gauth-contract-ok"}),
+        headers={
+            "Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}",
+            "idempotency-key": "gauth-contract-ok",
+        },
     )
     assert response.status_code == 202
     assert response.json()["data"]["story_id"]
 
 
-def test_service_only_does_not_create_story_for_arbitrary_submitter(
-    client: TestClient,
-) -> None:
-    """Service trust alone must not pass verify-gated intake (user layer stub)."""
+def test_service_only_accepts_payload_submitter(client: TestClient) -> None:
+    """Legacy intake trusts service token; submitter comes from payload (no user layer)."""
     payload = _valid_intake_payload()
-    payload["submitter"]["external_user_id"] = "arbitrary-untrusted-user"
+    payload["submitter"]["external_user_id"] = "arbitrary-trusted-service-user"
     response = client.post(
         "/intake/stories",
         json=payload,
         headers={"Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}"},
     )
-    assert response.status_code == 401
-    assert "error" in response.json()
+    assert response.status_code == 202
+    assert response.json()["data"]["story_id"]
 
 
 def test_intake_rejects_when_service_token_env_unset(
@@ -110,12 +99,12 @@ def test_intake_rejects_when_service_token_env_unset(
     assert response.json()["error"]["code"] == "UNAUTHORIZED"
 
 
-def test_tallinn_issues_post_requires_two_layer_auth(client: TestClient) -> None:
+def test_tallinn_issues_post_requires_service_auth(client: TestClient) -> None:
     bare = client.post("/tallinn/issues", json={"title": "test"})
     assert bare.status_code == 401
-    service_only = client.post(
+    with_service = client.post(
         "/tallinn/issues",
         json={"title": "test"},
         headers={"Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}"},
     )
-    assert service_only.status_code == 401
+    assert with_service.status_code in {200, 201, 202, 400, 422}

@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 from core.identity.me_client import IdentityMeClient, IdentityMeError
 from tests.conftest import (
     GAUTH_TEST_IDENTITY_URL,

@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 from core.identity.me_client import IdentityMeClient, IdentityMeError
 from tests.conftest import (
     GAUTH_TEST_IDENTITY_URL,
@@ -156,8 +156,6 @@ def test_get_verified_session_returns_200(
 
 def test_missing_identity_config_returns_503(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("IDENTITY_BASE_URL", raising=False)
-    monkeypatch.delenv("IDENTITY_INTROSPECT_URL", raising=False)
-    monkeypatch.delenv("IDENTITY_SERVICE_TOKEN", raising=False)
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("SERVICE_API_TOKEN", GAUTH_TEST_SERVICE_TOKEN)

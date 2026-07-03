@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from tests.conftest import GAUTH_TEST_IDENTITY_URL, GAUTH_TEST_SERVICE_TOKEN, GAUTH_TEST_USER_TOKEN
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 from core.identity.me_client import IdentityMeClient
 from tests.intake_v2_fixtures import valid_v2_intake_payload
 
