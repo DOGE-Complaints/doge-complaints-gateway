@@ -12,6 +12,7 @@
 ```
 stories                     ← основная запись, все поля из intake
   ├── idempotency_keys      ← dedup: intake_key → story_id
+  ├── story_drafts          ← ephemeral intake JSON stash (GW-DRAFT-01; TTL via expires_at)
   ├── story_embeddings      ← векторный индекс (8-dim, deterministic-baseline-v1)
   ├── story_signals         ← кэш extraction_policy → signals_json
   └── cluster_memberships   ← lens → cluster_id для аналитики
@@ -433,13 +434,32 @@ Stories lifecycle: `accepted → partial_ready → ready_for_profile → cluster
 
 ---
 
+## Слой 0: `public.story_drafts` — ephemeral draft stash (GW-DRAFT-01)
+
+Отдельный store для handoff GPT→браузер. **Не** создаёт запись в `stories` и **не** создаёт issue.
+
+| Колонка | Тип | Обязательно | Описание |
+|---------|-----|-------------|---------|
+| `draft_id` | `text PK` | да | Opaque id (`secrets.token_urlsafe(16)`) |
+| `payload_json` | `jsonb NOT NULL` | да | Полный `StoryIntakeRequest` JSON как получен на `POST /story-drafts` |
+| `created_at` | `timestamptz NOT NULL` | да | UTC момент стеша |
+| `expires_at` | `timestamptz NOT NULL` | да | `created_at + STORY_DRAFT_TTL_SECONDS` (default 86400) |
+
+**TTL:** `get_draft()` возвращает `None` (→ HTTP 404) когда `expires_at <= now()`; sqlite/supabase адаптеры удаляют протухшую строку при чтении.
+
+**Порт:** `StoryDraftRepository` в `domain/contracts.py`; адаптеры: `InMemoryStoryDraftRepository`, `SqliteStoryDraftRepository`, `SupabaseStoryDraftRepository`.
+
+**Миграция:** `supabase/migrations/20260703_1200_gw_draft_01_story_drafts.sql`
+
+---
+
 ## Условия проверки готовности БД при старте
 
 При запуске в режиме `DB_BACKEND=supabase` сервис выполняет три probe-запроса:
 
 | Проверка | Метод | Что проверяет |
 |----------|-------|--------------|
-| `required_tables_ready()` | GET 1 строку из каждой из 10 таблиц | Все таблицы существуют и доступны |
+| `required_tables_ready()` | GET 1 строку из каждой из 11 таблиц | Все таблицы существуют и доступны |
 | `required_columns_ready()` | SELECT только нужных колонок | `stories`: geo-колонки; `story_embeddings`, `doge_issue_embeddings`: `embedding_vector_json` |
 | `required_stories_intake_v2_columns_ready()` | SELECT intake v2 колонок | `narrative_title_json`, `narrative_description_json`, `narrative_session_language` применены (миграция 20260513) |
 

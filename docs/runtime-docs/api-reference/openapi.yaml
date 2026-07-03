@@ -441,6 +441,29 @@ components:
           $ref: '#/components/schemas/StoryIntakeResponseData'
         trace_id:
           type: string
+    StoryDraftCreateData:
+      type: object
+      required: [draft_id]
+      properties:
+        draft_id:
+          type: string
+          description: Opaque id for browser handoff (GW-DRAFT-01).
+    SuccessEnvelope_StoryDraftCreate:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/StoryDraftCreateData'
+        trace_id:
+          type: string
+    SuccessEnvelope_StoryDraftGet:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/StoryIntakeRequest'
+        trace_id:
+          type: string
     LabelMissRequest:
       type: object
       required: [label_key, locale]
@@ -638,6 +661,87 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '422':
           description: location_query resolved to geo outside CLUSTER_GEO_SCOPE (GEO_SCOPE_MISMATCH)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /story-drafts:
+    post:
+      tags: [Intake]
+      summary: Stash story intake draft for browser handoff
+      description: |
+        Runtime state:
+        - contract: same `StoryIntakeRequest` as `POST /intake/stories`;
+        - auth: service token only (`require_public_content_service_auth`);
+        - persists via `StoryDraftRepository` (no story/issue created);
+        - handler: `handle_story_draft_create` in `src/core/api/handlers.py`.
+      operationId: postStoryDraft
+      x-runtime-state: implemented-runtime-binding
+      security:
+        - ServiceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoryIntakeRequest'
+      responses:
+        '201':
+          description: Draft stashed; returns opaque `draft_id`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryDraftCreate'
+        '400':
+          description: Intake validation error (DOMAIN_ERROR)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid service token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /story-drafts/{draft_id}:
+    get:
+      tags: [Intake]
+      summary: Fetch stashed story draft by id
+      description: |
+        Runtime state:
+        - returns saved intake JSON from draft store;
+        - unknown or expired draft id → 404;
+        - user-auth hook stub until GW-DRAFT-02 (`require_story_draft_user_auth`).
+      operationId: getStoryDraft
+      x-runtime-state: implemented-runtime-binding
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Draft payload (StoryIntakeRequest shape in `data`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryDraftGet'
+        '404':
+          description: Unknown or expired draft id
           content:
             application/json:
               schema:

@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Intake (`POST /intake/stories`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
+2. Intake (`POST /intake/stories`) and story draft stash (`POST /story-drafts`, `GET /story-drafts/{draft_id}`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -463,9 +463,9 @@ Test evidence:
 - `tests/test_story_repository_lifecycle.py`
 - `tests/test_story_intake_idempotency.py`
 
-## 6.5 Label miss telemetry (GW-L10N-03)
+## 6.7 Label miss telemetry (GW-L10N-03)
 
-Anonymous sink when SPA humanize cannot find a label translation. **No auth**, **no PII** — only canonical `label_key` and `locale`.
+Anonymous sink when SPA humanize cannot find a label translation. **No auth**, **no PII** — only canonical `label_key` and `locale`. No rate-limit (known risk — see story GW-L10N-03 §54).
 
 ### `POST /telemetry/label-misses`
 
@@ -480,6 +480,31 @@ Anonymous sink when SPA humanize cannot find a label translation. **No auth**, *
 - **Operator queries:** [`appendix/label-translation-misses-operator-ru.md`](../appendix/label-translation-misses-operator-ru.md)
 
 Test evidence: `tests/test_gw_l10n_03_label_miss_telemetry.py`
+
+## 6.8 Story draft stash (GW-DRAFT-01)
+
+Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and receives an opaque `draft_id` for browser redirect. **No story or issue is created.**
+
+### `POST /story-drafts`
+
+- **HTTP binding:** `asgi_app.py` → `handle_story_draft_create` (`handlers.py`)
+- **Auth:** service token only (`Authorization: Bearer` or `X-Service-Token`) — same as public-content service channel; **no** `X-User-Token`
+- **Body:** same schema as `POST /intake/stories` (`StoryIntakeRequest`)
+- **Success:** `201 Created` — `{ "data": { "draft_id": "<opaque>" }, "trace_id": "..." }`
+- **Validation error:** `400` — `DOMAIN_ERROR` (same mapping as intake)
+- **Auth error:** `401` — `UNAUTHORIZED`
+- **TTL:** `STORY_DRAFT_TTL_SECONDS` env (default `86400`); expired drafts are not returned on GET
+
+### `GET /story-drafts/{draft_id}`
+
+- **HTTP binding:** `asgi_app.py` → `handle_story_draft_get` (`handlers.py`)
+- **Auth:** user-auth stub (`require_story_draft_user_auth`) until GW-DRAFT-02
+- **Success:** `200` — `{ "data": <saved StoryIntakeRequest JSON>, "trace_id": "..." }`
+- **Not found / expired:** `404` — `DOMAIN_ERROR`
+
+Persistence: separate `StoryDraftRepository` port (`domain/contracts.py`); adapters in_memory / sqlite / supabase per `DB_BACKEND`. Supabase migration: `supabase/migrations/20260703_1200_gw_draft_01_story_drafts.sql`.
+
+Test evidence: `tests/test_gw_draft_01_story_draft_stash_contract.py`
 
 ---
 
