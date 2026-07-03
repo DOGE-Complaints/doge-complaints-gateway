@@ -5,6 +5,7 @@ from core.infrastructure.providers import provide_app_config
 from core.infrastructure.repositories import (
     InMemoryIdempotencyRepository,
     InMemorySignalProfileRepository,
+    InMemoryStoryDraftRepository,
     InMemoryStoryRepository,
 )
 from core.evidence import InMemoryEvidencePackRepository
@@ -15,9 +16,10 @@ from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryRev
 def _factory() -> DefaultServiceFactory:
     return DefaultServiceFactory(
         health_repository=InMemoryHealthRepository(),
-        idempotency_repository=InMemoryIdempotencyRepository(),
-        signal_profile_repository=InMemorySignalProfileRepository(),
         story_repository=InMemoryStoryRepository(),
+        idempotency_repository=InMemoryIdempotencyRepository(),
+        story_draft_repository=InMemoryStoryDraftRepository(),
+        signal_profile_repository=InMemorySignalProfileRepository(),
         issue_candidate_store=InMemoryIssueCandidateStore(),
         review_audit_log_repository=InMemoryReviewAuditLogRepository(),
         evidence_pack_repository=InMemoryEvidencePackRepository(),
