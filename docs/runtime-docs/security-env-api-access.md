@@ -97,7 +97,11 @@ User identity на уровне доменной истории передаёт
 
 Gateway does **not** validate Supabase JWT locally on either path; trust boundary is identity service.
 
-Contrast with `POST /intake/stories` (GPT path): service token + `X-User-Token` + `IdentityIntrospectionClient`.
+Contrast with `POST /intake/stories` (**legacy GPT direct path**, superseded for user submit by [story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md)): service token + `X-User-Token` + `IdentityIntrospectionClient`.
+
+### 4.2) Identity canon sync (GW-DRAFT-03)
+
+Identity runtime-docs (`04-security.md` §A, `09-gateway-expectations.md`) **временно рассинхронизированы** с as-built browser-submit на gateway. Канон identity правится в identity-репо: [STORY-IDS-DOC-DRAFT-05](../../../doge-identity-service/docs/tasks/backlog-stories/story-draft-handoff/STORY-IDS-DOC-DRAFT-05-browser-submit-security-canon-sync.md). Gateway не редактирует чужой SSOT (D-DRAFT-5).
 
 ### 5) Readiness and auth boundary semantics
 

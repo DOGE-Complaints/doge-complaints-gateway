@@ -483,7 +483,7 @@ Test evidence: `tests/test_gw_l10n_03_label_miss_telemetry.py`
 
 ## 6.8 Story draft stash (GW-DRAFT-01)
 
-Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and receives an opaque `draft_id` for browser redirect. **No story or issue is created.**
+Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and receives an opaque `draft_id` for browser redirect. **No story or issue is created.** Architecture overview: [`architecture-and-layers-as-is.md`](../architecture-and-layers-as-is.md) §4.1.
 
 ### `POST /story-drafts`
 

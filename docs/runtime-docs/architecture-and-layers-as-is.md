@@ -47,11 +47,16 @@ Runtime graph строится через:
 | GET | `/demo/auth-page` | public | demo static HTML |
 | GET | `/demo/auth-page/` | public | demo static HTML alias |
 | GET | `/demo/auth-page/styles.css` | public | demo static CSS |
-| POST | `/intake/stories` | public | story-first intake trigger |
+| POST | `/intake/stories` | service + user (legacy GPT direct) | story-first intake trigger — **legacy** two-token path (GW-GAUTH); primary user submit → story-draft handoff |
+| POST | `/story-drafts` | service | GPT stash draft (`StoryIntakeRequest`); no story created — [API_REFERENCE §6.8](api-reference/API_REFERENCE.md) |
+| GET | `/story-drafts/{draft_id}` | browser Bearer → `/me` | Browser preview draft (active session only) |
+| POST | `/story-drafts/{draft_id}/submit` | browser Bearer → `/me` + `phone_verified` | Browser submit → story create (as-built user path) |
 
 `POST /issues` отсутствует: issue materialization только через story-first orchestration.
 
-### 4) Runtime flow (story-first)
+**As-built user submit:** GPT → `POST /story-drafts` (service) → `draft_id` → SPA browser → `GET`/`POST …/submit` (Bearer, identity `/me`). Детали: [API_REFERENCE §6.8](api-reference/API_REFERENCE.md), [security-env-api-access.md](security-env-api-access.md) §4.1.
+
+### 4) Runtime flow (story-first direct — legacy GPT path)
 
 ```mermaid
 flowchart TD
@@ -69,6 +74,20 @@ flowchart TD
   issueCreate --> issueEmbedding[IssueProjectionEmbeddingStore.save_projection_embedding]
 ```
 
+### 4.1) Runtime flow (story-draft handoff — as-built user submit, GW-DRAFT-01/02)
+
+```mermaid
+flowchart TD
+  gptStash[POST /story-drafts service-auth] --> draftStore[StoryDraftRepository]
+  draftStore --> draftId[draft_id redirect to SPA]
+  draftId --> browserGet[GET /story-drafts/id Bearer /me]
+  browserGet --> browserSubmit[POST /story-drafts/id/submit]
+  browserSubmit --> meGate[IdentityMeClient + verification_gate GAUTH-03]
+  meGate --> intake[handle_story_intake idempotency_key=draft_id]
+  intake --> storyStore[StoryRepository.save]
+  storyStore --> orchestrator[StoryClusterOrchestrator.process_story]
+```
+
 ### 5) Contracts and data shapes
 
 - Intake contract: `StoryIntakeRequest` (`m2.story_intake_envelope.v1`) в `src/core/intake/contracts.py`
@@ -83,6 +102,8 @@ flowchart TD
 - `DB_BACKEND`: `in_memory | sqlite | supabase`
 - `DATABASE_URL` (только `sqlite`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (в `supabase` HTTP режиме)
 - `SERVICE_API_TOKEN` (protected endpoints)
+- `IDENTITY_BASE_URL`, `IDENTITY_INTROSPECT_URL`, `SPA_VERIFY_BASE_URL` (browser `/me` + verification gate — GW-DRAFT-02)
+- `STORY_DRAFT_TTL_SECONDS` (draft stash TTL — GW-DRAFT-01)
 - `APP_PROFILE`, `API_BASE_URL`, `REQUEST_TIMEOUT_S`, feature flags adapter-профиля
 
 ### 7) Verification evidence
@@ -90,6 +111,7 @@ flowchart TD
 - Layer/DI: `tests/test_layer_guardrails.py`, `tests/test_bootstrap_smoke.py`, `tests/test_di_service_factory.py`
 - HTTP transport: `tests/test_http_transport_smoke.py`, `tests/test_http_intake_endpoint.py`, `tests/test_http_issue_create_endpoint.py`
 - Story-first e2e: `tests/test_e2e_story_cluster_issue_pipeline.py`, `tests/test_e2e_intake_create_spa_contract.py`
+- Story-draft handoff: `tests/test_gw_draft_01_story_draft_stash_contract.py`, `tests/test_gw_draft_02_story_draft_submit_contract.py`, `tests/test_gw_draft_02_get_auth_contract.py`
 
 ## Planned target
 

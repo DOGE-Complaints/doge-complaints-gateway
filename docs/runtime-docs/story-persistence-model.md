@@ -451,6 +451,8 @@ Stories lifecycle: `accepted → partial_ready → ready_for_profile → cluster
 
 **Миграция:** `supabase/migrations/20260703_1200_gw_draft_01_story_drafts.sql`
 
+**Browser submit (GW-DRAFT-02):** после успешного `POST /story-drafts/{draft_id}/submit` строка удаляется из `story_drafts`; story создаётся в `stories` через `StoryIntakeService`. См. [`API_REFERENCE.md`](api-reference/API_REFERENCE.md) §6.8 submit + [`architecture-and-layers-as-is.md`](architecture-and-layers-as-is.md) §4.1.
+
 ---
 
 ## Условия проверки готовности БД при старте
