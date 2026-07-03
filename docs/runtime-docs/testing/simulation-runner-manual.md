@@ -47,8 +47,7 @@ doge-complaints-gateway/
 | Переменная | Обязательная | Описание |
 |---|---|---|
 | `GATEWAY_URL` | **ДА** | Адрес задеплоенного приложения, например `https://dogestonia-tallinn.up.railway.app` |
-| `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. Слой 1 «доверенный канал» (GW-GAUTH-01). **Legacy path:** `POST /intake/stories` (simulation runner). |
-| `GATEWAY_USER_TOKEN` | нет (но см. ⚠️) | **Пользовательский** токен → заголовок `X-User-Token`. Слой 2 «кто человек» (GW-GAUTH-01). **Legacy GPT direct submit only** — superseded for product user submit by [story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md) (browser `POST /story-drafts/{id}/submit`). **По умолчанию = `GATEWAY_API_TOKEN`** (`getenv("GATEWAY_USER_TOKEN", gateway_api_token)`, [`simulation_runner.py:172`](../../../tests/simulation_runner.py#L172)). ⚠️ **GW-GAUTH-02/03 на `/intake/stories`:** против реального gateway дефолт **не пройдёт** — нужен **настоящий verified** OAuth-токен (`phone_verified=true`), иначе **403** `verification_required`. Серверу также нужны `IDENTITY_INTROSPECT_URL`/`IDENTITY_SERVICE_TOKEN` — см. [`server-env-quickstart.md` §3](../manuals/server-env-quickstart.md) и [`seed-demo-data-runbook-ru.md`](../manuals/seed-demo-data-runbook-ru.md). |
+| `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. **Legacy path:** `POST /intake/stories` (simulation runner) — **service-only** после GW-DRAFT-04 (без `X-User-Token`). Продуктовый user submit — browser `POST /story-drafts/{id}/submit` ([story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md)). |
 | `SIMULATION_CANVAS_PATH` | нет | Путь к JSON-файлу со сценариями. По умолчанию: `tests/sandbox/dogestonia_simulation_canvas_v0_1.json` |
 | `SIMULATION_GROUPS` | нет | Фильтр групп через запятую. Пусто = все группы |
 | `SIMULATION_MAX_STORIES` | нет | Максимум историй за прогон. Пусто = все |
@@ -58,7 +57,6 @@ doge-complaints-gateway/
 ```dotenv
 GATEWAY_URL=https://dogestonia-tallinn.up.railway.app
 GATEWAY_API_TOKEN=111.444.555.888.555.444.111-Tallinn-demo-token
-# GATEWAY_USER_TOKEN=<пользовательский OAuth-токен>   # опц.; по умолчанию = GATEWAY_API_TOKEN (нужен реальный после GW-GAUTH-02)
 
 SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_1.json
 
@@ -125,9 +123,9 @@ Exit code 1 — есть ошибки (список в `Failed IDs`).
 |---|---|
 | 200 | История принята, получен `story_id` |
 | 400 | Невалидный payload (проблема в данных) |
-| 401 | Неверный `GATEWAY_API_TOKEN` (сервисный слой), **или** отсутствует/невалиден `X-User-Token`, **или** introspection вернул `active=false` (GW-GAUTH-01/02). Проверь оба токена. |
-| 403 | `verification_required` — пользователь активен, но `phone_verified=false` (GW-GAUTH-03). Нужен **verified** user-токен; в теле — `verify_url`. |
-| 503 | identity introspection не сконфигурирован/недоступен (fail-closed): задай `IDENTITY_INTROSPECT_URL`/`IDENTITY_SERVICE_TOKEN` на сервере — см. [`server-env-quickstart.md` §3](../manuals/server-env-quickstart.md). |
+| 401 | Неверный или отсутствующий `GATEWAY_API_TOKEN` (сервисный слой). |
+| 403 | Не применяется к legacy `/intake/stories` (service-only). Для browser submit см. `POST /story-drafts/{id}/submit`. |
+| 503 | Сервер не готов (БД/конфиг) — см. `/ready`. |
 | 500 | Ошибка на стороне сервера |
 
 ---

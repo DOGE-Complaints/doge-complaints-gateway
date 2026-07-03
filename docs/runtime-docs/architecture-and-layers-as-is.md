@@ -47,7 +47,7 @@ Runtime graph строится через:
 | GET | `/demo/auth-page` | public | demo static HTML |
 | GET | `/demo/auth-page/` | public | demo static HTML alias |
 | GET | `/demo/auth-page/styles.css` | public | demo static CSS |
-| POST | `/intake/stories` | service + user (legacy GPT direct) | story-first intake trigger — **legacy** two-token path (GW-GAUTH); primary user submit → story-draft handoff |
+| POST | `/intake/stories` | service-only (trusted channel) | legacy seed/simulation story-first intake (GW-DRAFT-04); **product user submit** → `POST /story-drafts/{id}/submit` |
 | POST | `/story-drafts` | service | GPT stash draft (`StoryIntakeRequest`); no story created — [API_REFERENCE §6.8](api-reference/API_REFERENCE.md) |
 | GET | `/story-drafts/{draft_id}` | browser Bearer → `/me` | Browser preview draft (active session only) |
 | POST | `/story-drafts/{draft_id}/submit` | browser Bearer → `/me` + `phone_verified` | Browser submit → story create (as-built user path) |
@@ -56,7 +56,7 @@ Runtime graph строится через:
 
 **As-built user submit:** GPT → `POST /story-drafts` (service) → `draft_id` → SPA browser → `GET`/`POST …/submit` (Bearer, identity `/me`). Детали: [API_REFERENCE §6.8](api-reference/API_REFERENCE.md), [security-env-api-access.md](security-env-api-access.md) §4.1.
 
-### 4) Runtime flow (story-first direct — legacy GPT path)
+### 4) Runtime flow (story-first direct — legacy trusted-service intake)
 
 ```mermaid
 flowchart TD
@@ -102,7 +102,7 @@ flowchart TD
 - `DB_BACKEND`: `in_memory | sqlite | supabase`
 - `DATABASE_URL` (только `sqlite`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (в `supabase` HTTP режиме)
 - `SERVICE_API_TOKEN` (protected endpoints)
-- `IDENTITY_BASE_URL`, `IDENTITY_INTROSPECT_URL`, `SPA_VERIFY_BASE_URL` (browser `/me` + verification gate — GW-DRAFT-02)
+- `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL` (browser `/me` + verification gate — GW-DRAFT-02)
 - `STORY_DRAFT_TTL_SECONDS` (draft stash TTL — GW-DRAFT-01)
 - `APP_PROFILE`, `API_BASE_URL`, `REQUEST_TIMEOUT_S`, feature flags adapter-профиля
 

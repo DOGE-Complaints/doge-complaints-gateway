@@ -77,8 +77,7 @@ User identity на уровне доменной истории передаёт
 | `FF_BLOCKCHAIN_ADAPTER` | `src/core/config/schema.py` | Override adapter behavior |
 | `FF_TOKENIZATION_PIPELINE` | `src/core/config/schema.py` | Override pipeline behavior |
 | `LOG_LEVEL` | `src/core/config/schema.py` | Уровень логирования |
-| `IDENTITY_BASE_URL` | `src/core/config/schema.py`, `src/core/identity/me_client.py` | Base URL for browser session check via identity `GET /me` (GW-DRAFT-02); falls back to introspect URL host when unset |
-| `IDENTITY_INTROSPECT_URL` | `src/core/identity/introspection_client.py` | GPT/user-token introspection endpoint (GW-GAUTH-02); also fallback base for `/me` when `IDENTITY_BASE_URL` unset |
+| `IDENTITY_BASE_URL` | `src/core/config/schema.py`, `src/core/identity/me_client.py` | Base URL for browser session check via identity `GET /me` (GW-DRAFT-02) |
 | `SPA_VERIFY_BASE_URL` | `src/core/identity/verify_url.py` | SPA verify redirect base for `verification_required` (403) responses |
 
 ### 4.1) Browser story-draft auth paths (GW-DRAFT-02)
@@ -97,7 +96,16 @@ User identity на уровне доменной истории передаёт
 
 Gateway does **not** validate Supabase JWT locally on either path; trust boundary is identity service.
 
-Contrast with `POST /intake/stories` (**legacy GPT direct path**, superseded for user submit by [story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md)): service token + `X-User-Token` + `IdentityIntrospectionClient`.
+### 4.1.1) Legacy public-content writes — trusted service channel (GW-DRAFT-04)
+
+**`POST /intake/stories` and `POST /tallinn/issues`:**
+
+- Auth: `require_public_content_service_auth` — valid `SERVICE_API_TOKEN` only (`asgi_app.py`).
+- **No user-token layer** — OAuth introspection removed (GW-DRAFT-04); payload `submitter` fields persist as provided (no authoritative override when `user_introspection=None`).
+- Intended use: trusted operators — seed scripts, simulation runner, internal tooling — **not** end-user browser submit.
+- **Product user submit** with `phone_verified` gate: browser `POST /story-drafts/{id}/submit` only (GW-DRAFT-02); superseded legacy GPT direct path per [story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md).
+
+> **Risk:** compromise of `SERVICE_API_TOKEN` or re-exposing these routes as user-facing removes prior confused-deputy protection; scope tokens and keep routes non-public in production-like environments.
 
 ### 4.2) Identity canon sync (GW-DRAFT-03)
 

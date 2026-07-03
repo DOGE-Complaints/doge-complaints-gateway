@@ -34,10 +34,8 @@ POST /intake/stories    →    объединяет ≥8 похожих в од�
 Цель — hosted-демо (Railway + Supabase).
 
 1. **Сервер в режиме Supabase.** Данные попадут в облако только если у gateway `DB_BACKEND=supabase`. Иначе пишется в in-memory/sqlite и в hosted-БД ничего не появится.
-   - **Legacy GPT direct path на `/intake/stories` (GW-GAUTH-01/02/03).** Загрузчик simulation_runner шлёт истории через **этот** legacy path (не browser handoff). Требует **двух** заголовков: `Authorization: Bearer` (сервисный `GATEWAY_API_TOKEN`) и `X-User-Token` (`GATEWAY_USER_TOKEN`). **Актуальный user submit в продукте:** GPT стешит → браузер сабмитит — [`story-draft-handoff`](../../tasks/backlog-stories/story-draft-handoff/INDEX.md). Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT).
-     - **Серверная сторона (после live introspection, GW-GAUTH-02/03).** Чтобы hosted gateway принимал истории, на сервере должны быть заданы `IDENTITY_INTROSPECT_URL` + `IDENTITY_SERVICE_TOKEN` (gateway зовёт identity `POST /oauth/introspect`), иначе intake = **503** (fail-closed). См. [`server-env-quickstart.md` §3](./server-env-quickstart.md).
-     - **`GATEWAY_USER_TOKEN` должен быть НАСТОЯЩИМ verified пользовательским OAuth-токеном** (`phone_verified=true` у identity), **не** дефолтным `GATEWAY_API_TOKEN`. Иначе: сервисный токен identity отвергнет как user → **401**; активный, но неверифицированный пользователь → **403** `verification_required` (+`verify_url`) — история **не** принимается.
-     - **Коды отказа intake:** `401` (нет/битый сервисный или user-токен, `active=false`) · `403` `verification_required` (`phone_verified=false`) · `503` (identity не сконфигурирован/недоступен, fail-closed).
+   - **Legacy service path на `/intake/stories` (GW-DRAFT-04).** Загрузчик `simulation_runner` шлёт истории только с `Authorization: Bearer` (`GATEWAY_API_TOKEN` = `SERVICE_API_TOKEN` на сервере). **Актуальный user submit в продукте:** GPT стешит → браузер сабмитит — [`story-draft-handoff`](../../tasks/backlog-stories/story-draft-handoff/INDEX.md). Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT).
+     - **Коды отказа intake:** `401` (нет/битый сервисный токен) · `503` (сервер/БД не готов).
 2. **Готовность БД — `/ready` зелёный:**
    ```bash
    curl -sS "$GATEWAY_URL/ready" | jq '.data.db | {ready, checks}'
@@ -57,8 +55,7 @@ cd doge-complaints-gateway
 cp .env.test.example .env.test
 # заполнить в .env.test:
 #   GATEWAY_URL=https://<твой-railway>.up.railway.app
-#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>   # слой 1: доверенный канал (Authorization: Bearer)
-#   GATEWAY_USER_TOKEN=<пользовательский токен>      # слой 2: X-User-Token; опц. (дефолт = GATEWAY_API_TOKEN)
+#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>   # Authorization: Bearer (service-only intake)
 #   SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_1.json   (или _v0_2 из SEED-02)
 ```
 
