@@ -27,6 +27,8 @@ from core.api.handlers import (
     handle_metrics,
     handle_protected_status,
     handle_readiness,
+    handle_story_draft_create,
+    handle_story_draft_get,
     handle_story_intake,
     handle_tallinn_issue_create,
     handle_tallinn_issue_get,
@@ -57,6 +59,7 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/ready",
     "/demo/auth-page",
     "/intake/stories",
+    "/story-drafts",
     "/telemetry/label-misses",
     "/tallinn/issues",
 )
@@ -334,6 +337,16 @@ _PUBLIC_CONTENT_WRITE_DEPS = [
     Depends(require_user_token),
 ]
 
+_STORY_DRAFT_WRITE_DEPS = [Depends(require_public_content_service_auth)]
+
+
+def require_story_draft_user_auth(request: Request) -> None:
+    """GW-DRAFT-02 placeholder: browser user session auth for draft fetch."""
+    _ = request
+
+
+_STORY_DRAFT_READ_DEPS = [Depends(require_story_draft_user_auth)]
+
 
 @app.get("/health")
 async def health(
@@ -490,6 +503,36 @@ async def intake_stories(
         user_introspection=user_introspection,
     )
     return JSONResponse(content=envelope, status_code=status_code)
+
+
+@app.post("/story-drafts", dependencies=_STORY_DRAFT_WRITE_DEPS)
+async def story_draft_create(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_story_draft_create(
+        deps,
+        payload=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.get("/story-drafts/{draft_id}", dependencies=_STORY_DRAFT_READ_DEPS)
+async def story_draft_get(
+    request: Request,
+    draft_id: str,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload, status_code = handle_story_draft_get(
+        deps,
+        draft_id=draft_id,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
 
 
 @app.post("/telemetry/label-misses")

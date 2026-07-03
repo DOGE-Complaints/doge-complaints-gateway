@@ -6,7 +6,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Mapping
 
-from core.domain import IdempotencyRecord, StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
+from core.domain import (
+    IdempotencyRecord,
+    StoryDraftRecord,
+    StoryGeoSnapshot,
+    StoryLifecycleStatus,
+    StoryRecord,
+)
 from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
@@ -31,6 +37,7 @@ REQUIRED_READINESS_TABLES: frozenset[str] = frozenset(
         "issue_story_links",
         "story_signals",
         "cluster_memberships",
+        "story_drafts",
     }
 )
 
@@ -325,6 +332,8 @@ class SupabaseDatabase:
         return cached
 
     def required_columns_ready(self) -> bool:
+        from core.projection.columnar_storage import DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS
+
         required: dict[str, set[str]] = {
             "stories": {
                 "story_id",
@@ -346,6 +355,7 @@ class SupabaseDatabase:
                 "embedding_vector_json",
                 "embedding_policy_version",
             },
+            "doge_issues": set(DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS),
         }
         try:
             for table_name, columns in required.items():
@@ -581,6 +591,60 @@ class SupabaseIdempotencyRepository:
 
 
 @dataclass
+class SupabaseStoryDraftRepository:
+    db: SupabaseDatabase
+
+    def save_draft(self, record: StoryDraftRecord) -> StoryDraftRecord:
+        self.db._request(
+            method="POST",
+            path="/rest/v1/story_drafts",
+            params={"on_conflict": "draft_id"},
+            json_body=[
+                {
+                    "draft_id": record.draft_id,
+                    "payload_json": record.payload,
+                    "created_at": record.created_at.isoformat(),
+                    "expires_at": record.expires_at.isoformat(),
+                }
+            ],
+            prefer="resolution=merge-duplicates,return=minimal",
+        )
+        return record
+
+    def get_draft(self, draft_id: str) -> StoryDraftRecord | None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/story_drafts",
+            params={
+                "select": "draft_id,payload_json,created_at,expires_at",
+                "draft_id": self.db._eq_filter(draft_id),
+                "limit": "1",
+            },
+        )
+        if not rows:
+            return None
+        row = rows[0]
+        expires_at = _parse_dt(str(row["expires_at"]))
+        if expires_at <= _utcnow():
+            self.db._request(
+                method="DELETE",
+                path="/rest/v1/story_drafts",
+                params={"draft_id": self.db._eq_filter(draft_id)},
+                prefer="return=minimal",
+            )
+            return None
+        payload = row["payload_json"]
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        return StoryDraftRecord(
+            draft_id=str(row["draft_id"]),
+            payload=dict(payload),
+            created_at=_parse_dt(str(row["created_at"])),
+            expires_at=expires_at,
+        )
+
+
+@dataclass
 class SupabaseStoryEmbeddingStore:
     db: SupabaseDatabase
 
@@ -622,7 +686,10 @@ class SupabaseIssueProjectionStore:
         payload: dict[str, object],
         policy_version: str,
     ) -> None:
+        from core.projection.columnar_storage import payload_to_storage_fields
+
         now = _utcnow().isoformat()
+        storage_fields = payload_to_storage_fields(payload)
         self.db._request(
             method="POST",
             path="/rest/v1/doge_issues",
@@ -631,10 +698,10 @@ class SupabaseIssueProjectionStore:
                 {
                     "issue_id": issue_id,
                     "status": status,
-                    "payload_json": payload,
                     "policy_version": policy_version,
                     "created_at": now,
                     "updated_at": now,
+                    **storage_fields,
                 }
             ],
             prefer="resolution=merge-duplicates,return=minimal",
@@ -659,27 +726,28 @@ class SupabaseIssueProjectionStore:
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
     ) -> list[dict[str, object]]:
-        from core.projection.read_filters import (
-            filter_projection_rows,
-            merge_projection_columns,
-            parse_payload_json,
+        from core.projection.columnar_storage import (
+            COLUMNAR_ROW_SELECT,
+            assemble_public_issue_from_storage_row,
         )
+        from core.projection.read_filters import filter_projection_rows
 
         rows_data = self.db._request(
             method="GET",
             path="/rest/v1/doge_issues",
             params={
-                "select": "issue_id,status,payload_json,created_at",
+                "select": COLUMNAR_ROW_SELECT,
                 "order": "created_at.desc",
             },
         )
         rows: list[tuple[str, str, dict[str, object], str]] = []
         for row in rows_data:
+            assembled = assemble_public_issue_from_storage_row(dict(row))
             rows.append(
                 (
                     str(row["issue_id"]),
                     str(row["status"]),
-                    parse_payload_json(row["payload_json"]),
+                    assembled,
                     str(row["created_at"]),
                 )
             )
@@ -703,24 +771,30 @@ class SupabaseIssueProjectionStore:
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
-        from core.projection.read_filters import merge_projection_columns, parse_payload_json
+        from core.projection.columnar_storage import (
+            COLUMNAR_ROW_SELECT,
+            assemble_public_issue_from_storage_row,
+        )
 
         rows = self.db._request(
             method="GET",
             path="/rest/v1/doge_issues",
             params={
-                "select": "issue_id,status,payload_json,created_at",
+                "select": COLUMNAR_ROW_SELECT,
                 "issue_id": self.db._eq_filter(issue_id),
                 "limit": "1",
             },
         )
         if not rows:
             return None
-        row = rows[0]
+        from core.projection.read_filters import merge_projection_columns
+
+        row = dict(rows[0])
+        assembled = assemble_public_issue_from_storage_row(row)
         return merge_projection_columns(
             issue_id=str(row["issue_id"]),
             row_status=str(row["status"]),
-            payload=parse_payload_json(row["payload_json"]),
+            payload=assembled,
             created_at=str(row["created_at"]),
         )
 

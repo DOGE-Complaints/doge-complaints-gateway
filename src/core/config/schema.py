@@ -59,6 +59,7 @@ class AppConfig:
     identity_introspect_url: str | None
     identity_service_token: str | None
     spa_verify_base_url: str | None
+    story_draft_ttl_seconds: int
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -240,6 +241,14 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         required=False,
         default="true",
         description="Enable/disable background cluster cron loop.",
+    ),
+    EnvSpec(
+        name="STORY_DRAFT_TTL_SECONDS",
+        required=False,
+        default="86400",
+        description=(
+            "TTL for story draft stash entries in seconds (GW-DRAFT-01; recommended 3600–86400)."
+        ),
     ),
 )
 
@@ -607,6 +616,18 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
                 stripped_verify, env_name="SPA_VERIFY_BASE_URL"
             ).rstrip("/")
 
+    story_draft_ttl_raw = _require_value(source, name="STORY_DRAFT_TTL_SECONDS")
+    try:
+        story_draft_ttl_seconds = int(story_draft_ttl_raw)
+    except ValueError as exc:
+        raise ConfigError(
+            f"Invalid STORY_DRAFT_TTL_SECONDS={story_draft_ttl_raw!r}. Expected integer."
+        ) from exc
+    if story_draft_ttl_seconds <= 0:
+        raise ConfigError(
+            f"Invalid STORY_DRAFT_TTL_SECONDS={story_draft_ttl_seconds}. Must be positive."
+        )
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
@@ -635,5 +656,6 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         identity_introspect_url=identity_introspect_url,
         identity_service_token=identity_service_token,
         spa_verify_base_url=spa_verify_base_url,
+        story_draft_ttl_seconds=story_draft_ttl_seconds,
     )
 

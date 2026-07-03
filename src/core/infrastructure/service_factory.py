@@ -24,6 +24,7 @@ from core.domain import (
     IdempotencyRepository,
     LabelTranslationMissStore,
     SignalProfileRepository,
+    StoryDraftRepository,
     StoryRepository,
     StorySignalStore,
 )
@@ -47,6 +48,7 @@ class DefaultServiceFactory:
     health_repository: HealthRepository
     story_repository: StoryRepository
     idempotency_repository: IdempotencyRepository
+    story_draft_repository: StoryDraftRepository
     signal_profile_repository: SignalProfileRepository
     issue_candidate_store: IssueCandidateStore
     review_audit_log_repository: ReviewAuditLogRepository

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import secrets
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from typing import Any, Mapping
 
 from core.api.dependencies import ApiDependencies
@@ -14,6 +16,7 @@ from core.api.envelope import (
 from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
+from core.domain import StoryDraftRecord
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
 from core.identity.authoritative_submitter import (
     authoritative_submitter_from_introspection,
@@ -499,4 +502,89 @@ def handle_label_miss_telemetry(
         ).as_dict(),
         202,
     )
+
+
+def handle_story_draft_create(
+    dependencies: ApiDependencies,
+    *,
+    payload: Mapping[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    repository = dependencies.story_draft_repository
+    if repository is None:
+        envelope = build_error_envelope(
+            RuntimeError("Story draft repository is not configured."),
+            trace_id=resolved_trace_id,
+        )
+        log_error(envelope)
+        return envelope.as_dict(), 500
+    try:
+        parse_story_intake_request(payload)
+        now = datetime.now(UTC)
+        expires_at = now + timedelta(seconds=dependencies.config.story_draft_ttl_seconds)
+        draft_id = secrets.token_urlsafe(16)
+        record = StoryDraftRecord(
+            draft_id=draft_id,
+            payload=dict(payload),
+            created_at=now,
+            expires_at=expires_at,
+        )
+        repository.save_draft(record)
+        log_api_event(
+            logging.INFO,
+            "story_draft_stashed",
+            trace_id=resolved_trace_id,
+            draft_id=draft_id,
+            outcome="success",
+        )
+        return (
+            build_success_envelope(
+                data={"draft_id": draft_id}, trace_id=resolved_trace_id
+            ).as_dict(),
+            201,
+        )
+    except IntakeValidationError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 400
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
+def handle_story_draft_get(
+    dependencies: ApiDependencies,
+    *,
+    draft_id: str,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    repository = dependencies.story_draft_repository
+    if repository is None:
+        envelope = build_error_envelope(
+            RuntimeError("Story draft repository is not configured."),
+            trace_id=resolved_trace_id,
+        )
+        log_error(envelope)
+        return envelope.as_dict(), 500
+    try:
+        record = repository.get_draft(draft_id)
+        if record is None:
+            return (
+                build_error_envelope(
+                    ValueError(f"Draft not found: {draft_id}"),
+                    trace_id=resolved_trace_id,
+                ).as_dict(),
+                404,
+            )
+        return (
+            build_success_envelope(data=record.payload, trace_id=resolved_trace_id).as_dict(),
+            200,
+        )
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
 

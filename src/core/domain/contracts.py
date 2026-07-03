@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Mapping, Protocol
+from typing import Any, Mapping, Protocol
 
 
 @dataclass(frozen=True)
@@ -103,6 +103,26 @@ class IdempotencyRepository(Protocol):
 
     def save(self, record: IdempotencyRecord) -> IdempotencyRecord:
         """Persist idempotency record."""
+        ...
+
+
+@dataclass(frozen=True)
+class StoryDraftRecord:
+    """Ephemeral story intake payload stashed for browser handoff (GW-DRAFT-01)."""
+
+    draft_id: str
+    payload: dict[str, Any]
+    created_at: datetime
+    expires_at: datetime
+
+
+class StoryDraftRepository(Protocol):
+    def save_draft(self, record: StoryDraftRecord) -> StoryDraftRecord:
+        """Persist a story draft; returns the saved record."""
+        ...
+
+    def get_draft(self, draft_id: str) -> StoryDraftRecord | None:
+        """Fetch draft by id; None when unknown or past expires_at (TTL)."""
         ...
 
 

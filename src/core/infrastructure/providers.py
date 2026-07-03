@@ -10,6 +10,7 @@ from core.domain import (
     HealthRepository,
     IdempotencyRepository,
     SignalProfileRepository,
+    StoryDraftRepository,
     StoryRepository,
 )
 from core.domain import ClusterMembershipStore, StorySignalStore, LabelTranslationMissStore
@@ -22,6 +23,7 @@ from core.infrastructure.repositories import (
     InMemoryIssueStoryLinkStore,
     InMemoryLabelTranslationMissStore,
     InMemorySignalProfileRepository,
+    InMemoryStoryDraftRepository,
     InMemoryStoryEmbeddingStore,
     InMemoryStoryRepository,
     InMemoryStorySignalStore,
@@ -36,6 +38,7 @@ from core.infrastructure.db_sqlite import (
     SqliteIssueProjectionStore,
     SqliteLabelTranslationMissStore,
     SqliteReviewAuditLogRepository,
+    SqliteStoryDraftRepository,
     SqliteStoryEmbeddingStore,
     SqliteStoryRepository,
     SqliteStorySignalStore,
@@ -50,6 +53,7 @@ from core.infrastructure.db_supabase import (
     SupabaseIssueProjectionStore,
     SupabaseLabelTranslationMissStore,
     SupabaseReviewAuditLogRepository,
+    SupabaseStoryDraftRepository,
     SupabaseStoryEmbeddingStore,
     SupabaseStoryRepository,
     SupabaseStorySignalStore,
@@ -79,6 +83,10 @@ def provide_story_repository() -> StoryRepository:
 
 def provide_idempotency_repository() -> IdempotencyRepository:
     return InMemoryIdempotencyRepository()
+
+
+def provide_story_draft_repository() -> StoryDraftRepository:
+    return InMemoryStoryDraftRepository()
 
 
 def provide_signal_profile_repository() -> SignalProfileRepository:
@@ -135,6 +143,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     )
     story_repository = provide_story_repository()
     idempotency_repository = provide_idempotency_repository()
+    story_draft_repository = provide_story_draft_repository()
     story_embedding_store = InMemoryStoryEmbeddingStore()
     issue_projection_store = InMemoryIssueProjectionStore()
     issue_projection_embedding_store = InMemoryIssueProjectionEmbeddingStore()
@@ -150,6 +159,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         sqlite_db.ensure_schema()
         story_repository = SqliteStoryRepository(sqlite_db)
         idempotency_repository = SqliteIdempotencyRepository(sqlite_db)
+        story_draft_repository = SqliteStoryDraftRepository(sqlite_db)
         story_embedding_store = SqliteStoryEmbeddingStore(sqlite_db)
         issue_projection_store = SqliteIssueProjectionStore(sqlite_db)
         issue_projection_embedding_store = SqliteIssueProjectionEmbeddingStore(sqlite_db)
@@ -181,6 +191,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         )
         story_repository = SupabaseStoryRepository(supabase_db)
         idempotency_repository = SupabaseIdempotencyRepository(supabase_db)
+        story_draft_repository = SupabaseStoryDraftRepository(supabase_db)
         story_embedding_store = SupabaseStoryEmbeddingStore(supabase_db)
         issue_projection_store = SupabaseIssueProjectionStore(supabase_db)
         issue_projection_embedding_store = SupabaseIssueProjectionEmbeddingStore(
@@ -234,6 +245,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         health_repository=provide_health_repository(),
         story_repository=story_repository,
         idempotency_repository=idempotency_repository,
+        story_draft_repository=story_draft_repository,
         signal_profile_repository=provide_signal_profile_repository(),
         issue_candidate_store=issue_candidate_store,
         review_audit_log_repository=review_audit_log_repository,

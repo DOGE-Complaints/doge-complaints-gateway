@@ -3,11 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
-from core.projection.read_filters import (
-    filter_projection_rows,
-    merge_projection_columns,
-    parse_payload_json,
+from core.projection.columnar_storage import (
+    assemble_public_issue_from_storage_row,
+    payload_to_storage_fields,
+    storage_fields_to_sqlite_values,
 )
+from core.projection.read_filters import filter_projection_rows
 import logging
 from typing import Mapping
 
@@ -15,6 +16,7 @@ from core.domain import (
     HealthReport,
     IdempotencyRecord,
     SignalProfileRecord,
+    StoryDraftRecord,
     StoryLifecycleStatus,
     StoryRecord,
 )
@@ -109,6 +111,30 @@ class InMemoryIdempotencyRepository:
 
 
 @dataclass
+class InMemoryStoryDraftRepository:
+    _records: dict[str, StoryDraftRecord] | None = None
+
+    def __post_init__(self) -> None:
+        if self._records is None:
+            self._records = {}
+
+    def save_draft(self, record: StoryDraftRecord) -> StoryDraftRecord:
+        assert self._records is not None
+        self._records[record.draft_id] = record
+        return record
+
+    def get_draft(self, draft_id: str) -> StoryDraftRecord | None:
+        assert self._records is not None
+        record = self._records.get(draft_id)
+        if record is None:
+            return None
+        if record.expires_at <= datetime.now(UTC):
+            self._records.pop(draft_id, None)
+            return None
+        return record
+
+
+@dataclass
 class InMemorySignalProfileRepository:
     _versions: dict[str, list[SignalProfileRecord]] | None = None
 
@@ -182,13 +208,14 @@ class InMemoryIssueProjectionStore:
     ) -> None:
         assert self._rows is not None
         now = datetime.now(UTC)
+        storage_fields = storage_fields_to_sqlite_values(payload_to_storage_fields(payload))
         self._rows[issue_id] = {
             "issue_id": issue_id,
             "status": status,
-            "payload": dict(payload),
             "policy_version": policy_version,
             "created_at": now,
             "updated_at": now,
+            **storage_fields,
         }
 
     def list_projections(
@@ -214,9 +241,28 @@ class InMemoryIssueProjectionStore:
         rows: list[tuple[str, str, dict[str, object], str]] = []
         for issue_id, row in self._rows.items():
             created_at_text = _row_created_at_text(row)
-            payload = row["payload"]
-            assert isinstance(payload, dict)
-            rows.append((issue_id, str(row["status"]), payload, created_at_text))
+            row_dict = {
+                "issue_id": issue_id,
+                "status": str(row["status"]),
+                "created_at": created_at_text,
+                "issue_type": row.get("issue_type"),
+                "labels_json": row.get("labels_json"),
+                "title_json": row.get("title_json"),
+                "summary_json": row.get("summary_json"),
+                "description_json": row.get("description_json"),
+                "institution_json": row.get("institution_json"),
+                "geo_json": row.get("geo_json"),
+                "original_locale_json": row.get("original_locale_json"),
+                "arweave_txid": row.get("arweave_txid"),
+                "image_txid": row.get("image_txid"),
+                "image_hash": row.get("image_hash"),
+            }
+            legacy_payload = row.get("payload")
+            assembled = assemble_public_issue_from_storage_row(
+                row_dict,
+                legacy_payload_json=legacy_payload if isinstance(legacy_payload, dict) else None,
+            )
+            rows.append((issue_id, str(row["status"]), assembled, created_at_text))
         ordered = sorted(rows, key=lambda item: item[3], reverse=True)
         return filter_projection_rows(
             ordered,
@@ -242,14 +288,34 @@ class InMemoryIssueProjectionStore:
         row = self._rows.get(issue_id)
         if row is None:
             return None
-        payload = row["payload"]
-        if not isinstance(payload, dict):
-            return None
         created_at_text = _row_created_at_text(row)
+        row_dict = {
+            "issue_id": issue_id,
+            "status": str(row["status"]),
+            "created_at": created_at_text,
+            "issue_type": row.get("issue_type"),
+            "labels_json": row.get("labels_json"),
+            "title_json": row.get("title_json"),
+            "summary_json": row.get("summary_json"),
+            "description_json": row.get("description_json"),
+            "institution_json": row.get("institution_json"),
+            "geo_json": row.get("geo_json"),
+            "original_locale_json": row.get("original_locale_json"),
+            "arweave_txid": row.get("arweave_txid"),
+            "image_txid": row.get("image_txid"),
+            "image_hash": row.get("image_hash"),
+        }
+        legacy_payload = row.get("payload")
+        assembled = assemble_public_issue_from_storage_row(
+            row_dict,
+            legacy_payload_json=legacy_payload if isinstance(legacy_payload, dict) else None,
+        )
+        from core.projection.read_filters import merge_projection_columns
+
         return merge_projection_columns(
             issue_id=issue_id,
             row_status=str(row["status"]),
-            payload=payload,
+            payload=assembled,
             created_at=created_at_text,
         )
 

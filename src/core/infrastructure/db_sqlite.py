@@ -8,7 +8,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Mapping
 
-from core.domain import IdempotencyRecord, StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
+from core.domain import (
+    IdempotencyRecord,
+    StoryDraftRecord,
+    StoryGeoSnapshot,
+    StoryLifecycleStatus,
+    StoryRecord,
+)
 from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json, i18n_dict_to_json
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
@@ -193,6 +199,13 @@ class SqliteDatabase:
                 FOREIGN KEY(story_id) REFERENCES stories(story_id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS story_drafts (
+                draft_id TEXT PRIMARY KEY,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS story_embeddings (
                 embedding_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 story_id TEXT NOT NULL,
@@ -209,10 +222,20 @@ class SqliteDatabase:
             CREATE TABLE IF NOT EXISTS doge_issues (
                 issue_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
                 policy_version TEXT NOT NULL,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                issue_type TEXT NOT NULL DEFAULT 'IMPROVEMENT',
+                labels_json TEXT NOT NULL DEFAULT '[]',
+                title_json TEXT NOT NULL DEFAULT '{}',
+                summary_json TEXT NOT NULL DEFAULT '{}',
+                description_json TEXT NOT NULL DEFAULT '{}',
+                institution_json TEXT,
+                geo_json TEXT,
+                original_locale_json TEXT NOT NULL DEFAULT '[]',
+                arweave_txid TEXT,
+                image_txid TEXT,
+                image_hash TEXT
             );
 
             CREATE TABLE IF NOT EXISTS doge_issue_embeddings (
@@ -339,7 +362,99 @@ class SqliteDatabase:
             CREATE INDEX IF NOT EXISTS idx_issue_story_links_cluster ON issue_story_links(cluster_id);
             """
         )
+        self._ensure_doge_issues_columnar_migration()
         self.connection.commit()
+
+    def _ensure_doge_issues_columnar_migration(self) -> None:
+        """GW-RC-04: add columnar fields and drop legacy payload_json on existing DBs."""
+        table_exists = self.connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='doge_issues'"
+        ).fetchone()
+        if table_exists is None:
+            return
+
+        cur = self.connection.execute("PRAGMA table_info(doge_issues)")
+        cols = {row[1] for row in cur.fetchall()}
+        for name, ddl in (
+            ("issue_type", "ALTER TABLE doge_issues ADD COLUMN issue_type TEXT"),
+            (
+                "labels_json",
+                "ALTER TABLE doge_issues ADD COLUMN labels_json TEXT NOT NULL DEFAULT '[]'",
+            ),
+            (
+                "title_json",
+                "ALTER TABLE doge_issues ADD COLUMN title_json TEXT NOT NULL DEFAULT '{}'",
+            ),
+            (
+                "summary_json",
+                "ALTER TABLE doge_issues ADD COLUMN summary_json TEXT NOT NULL DEFAULT '{}'",
+            ),
+            (
+                "description_json",
+                "ALTER TABLE doge_issues ADD COLUMN description_json TEXT NOT NULL DEFAULT '{}'",
+            ),
+            ("institution_json", "ALTER TABLE doge_issues ADD COLUMN institution_json TEXT"),
+            ("geo_json", "ALTER TABLE doge_issues ADD COLUMN geo_json TEXT"),
+            (
+                "original_locale_json",
+                "ALTER TABLE doge_issues ADD COLUMN original_locale_json TEXT NOT NULL DEFAULT '[]'",
+            ),
+            ("arweave_txid", "ALTER TABLE doge_issues ADD COLUMN arweave_txid TEXT"),
+            ("image_txid", "ALTER TABLE doge_issues ADD COLUMN image_txid TEXT"),
+            ("image_hash", "ALTER TABLE doge_issues ADD COLUMN image_hash TEXT"),
+        ):
+            if name not in cols:
+                self.connection.execute(ddl)
+
+        if "payload_json" not in cols:
+            return
+
+        self.connection.execute(
+            """
+            UPDATE doge_issues SET
+                issue_type = COALESCE(
+                    NULLIF(TRIM(issue_type), ''),
+                    json_extract(payload_json, '$.type'),
+                    'IMPROVEMENT'
+                ),
+                labels_json = CASE
+                    WHEN labels_json IS NOT NULL AND labels_json != '[]' THEN labels_json
+                    ELSE COALESCE(json_extract(payload_json, '$.labels'), '[]')
+                END,
+                title_json = CASE
+                    WHEN title_json IS NOT NULL AND title_json != '{}' THEN title_json
+                    ELSE COALESCE(json_extract(payload_json, '$.title'), '{}')
+                END,
+                summary_json = CASE
+                    WHEN summary_json IS NOT NULL AND summary_json != '{}' THEN summary_json
+                    ELSE COALESCE(json_extract(payload_json, '$.summary'), '{}')
+                END,
+                description_json = CASE
+                    WHEN description_json IS NOT NULL AND description_json != '{}' THEN description_json
+                    ELSE COALESCE(json_extract(payload_json, '$.description'), '{}')
+                END,
+                institution_json = COALESCE(
+                    institution_json, json_extract(payload_json, '$.institution')
+                ),
+                geo_json = COALESCE(geo_json, json_extract(payload_json, '$.geo')),
+                original_locale_json = CASE
+                    WHEN original_locale_json IS NOT NULL AND original_locale_json != '[]'
+                        THEN original_locale_json
+                    ELSE COALESCE(json_extract(payload_json, '$.original_locale'), '[]')
+                END,
+                arweave_txid = COALESCE(
+                    arweave_txid, json_extract(payload_json, '$.arweave_txid')
+                ),
+                image_txid = COALESCE(
+                    image_txid, json_extract(payload_json, '$.image_txid')
+                ),
+                image_hash = COALESCE(
+                    image_hash, json_extract(payload_json, '$.image_hash')
+                )
+            WHERE payload_json IS NOT NULL AND length(payload_json) > 2
+            """
+        )
+        self.connection.execute("ALTER TABLE doge_issues DROP COLUMN payload_json")
 
     def healthcheck(self) -> bool:
         try:
@@ -534,6 +649,57 @@ class SqliteIdempotencyRepository:
 
 
 @dataclass
+class SqliteStoryDraftRepository:
+    db: SqliteDatabase
+
+    def save_draft(self, record: StoryDraftRecord) -> StoryDraftRecord:
+        self.db.connection.execute(
+            """
+            INSERT INTO story_drafts (draft_id, payload_json, created_at, expires_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(draft_id) DO UPDATE SET
+                payload_json = excluded.payload_json,
+                created_at = excluded.created_at,
+                expires_at = excluded.expires_at
+            """,
+            (
+                record.draft_id,
+                json.dumps(record.payload),
+                record.created_at.isoformat(),
+                record.expires_at.isoformat(),
+            ),
+        )
+        self.db.connection.commit()
+        return record
+
+    def get_draft(self, draft_id: str) -> StoryDraftRecord | None:
+        row = self.db.connection.execute(
+            """
+            SELECT draft_id, payload_json, created_at, expires_at
+            FROM story_drafts
+            WHERE draft_id = ?
+            """,
+            (draft_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        expires_at = _parse_dt(str(row["expires_at"]))
+        if expires_at <= _utcnow():
+            self.db.connection.execute(
+                "DELETE FROM story_drafts WHERE draft_id = ?",
+                (draft_id,),
+            )
+            self.db.connection.commit()
+            return None
+        return StoryDraftRecord(
+            draft_id=str(row["draft_id"]),
+            payload=json.loads(str(row["payload_json"])),
+            created_at=_parse_dt(str(row["created_at"])),
+            expires_at=expires_at,
+        )
+
+
+@dataclass
 class SqliteStoryEmbeddingStore:
     db: SqliteDatabase
 
@@ -577,18 +743,56 @@ class SqliteIssueProjectionStore:
         payload: dict[str, object],
         policy_version: str,
     ) -> None:
+        from core.projection.columnar_storage import (
+            payload_to_storage_fields,
+            storage_fields_to_sqlite_values,
+        )
+
         now = _utcnow().isoformat()
+        fields = storage_fields_to_sqlite_values(payload_to_storage_fields(payload))
         self.db.connection.execute(
             """
-            INSERT INTO doge_issues (issue_id, status, payload_json, policy_version, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO doge_issues (
+                issue_id, status, policy_version, created_at, updated_at,
+                issue_type, labels_json, title_json, summary_json, description_json,
+                institution_json, geo_json, original_locale_json,
+                arweave_txid, image_txid, image_hash
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(issue_id) DO UPDATE SET
                 status = excluded.status,
-                payload_json = excluded.payload_json,
                 policy_version = excluded.policy_version,
-                updated_at = excluded.updated_at
+                updated_at = excluded.updated_at,
+                issue_type = excluded.issue_type,
+                labels_json = excluded.labels_json,
+                title_json = excluded.title_json,
+                summary_json = excluded.summary_json,
+                description_json = excluded.description_json,
+                institution_json = excluded.institution_json,
+                geo_json = excluded.geo_json,
+                original_locale_json = excluded.original_locale_json,
+                arweave_txid = excluded.arweave_txid,
+                image_txid = excluded.image_txid,
+                image_hash = excluded.image_hash
             """,
-            (issue_id, status, json.dumps(payload), policy_version, now, now),
+            (
+                issue_id,
+                status,
+                policy_version,
+                now,
+                now,
+                fields["issue_type"],
+                fields["labels_json"],
+                fields["title_json"],
+                fields["summary_json"],
+                fields["description_json"],
+                fields["institution_json"],
+                fields["geo_json"],
+                fields["original_locale_json"],
+                fields["arweave_txid"],
+                fields["image_txid"],
+                fields["image_hash"],
+            ),
         )
         self.db.connection.commit()
 
@@ -611,11 +815,18 @@ class SqliteIssueProjectionStore:
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
     ) -> list[dict[str, object]]:
-        from core.projection.read_filters import filter_projection_rows, parse_payload_json
-
-        query = (
-            "SELECT issue_id, status, payload_json, created_at FROM doge_issues WHERE 1=1"
+        from core.projection.columnar_storage import (
+            assemble_public_issue_from_storage_row,
+            sqlite_row_to_dict,
         )
+        from core.projection.read_filters import filter_projection_rows
+
+        query = """
+            SELECT issue_id, status, created_at, issue_type, labels_json, title_json,
+                   summary_json, description_json, institution_json, geo_json,
+                   original_locale_json, arweave_txid, image_txid, image_hash
+            FROM doge_issues WHERE 1=1
+        """
         params: list[object] = []
         if created_after:
             query += " AND created_at >= ?"
@@ -626,13 +837,30 @@ class SqliteIssueProjectionStore:
         query += " ORDER BY created_at DESC"
         cursor = self.db.connection.execute(query, tuple(params))
         rows: list[tuple[str, str, dict[str, object], str]] = []
-        for issue_id, row_status, payload_json, created_at in cursor.fetchall():
+        for fetched in cursor.fetchall():
+            row_dict = sqlite_row_to_dict(
+                issue_id=str(fetched[0]),
+                row_status=str(fetched[1]),
+                created_at=str(fetched[2]),
+                issue_type=fetched[3],
+                labels_json=fetched[4],
+                title_json=fetched[5],
+                summary_json=fetched[6],
+                description_json=fetched[7],
+                institution_json=fetched[8],
+                geo_json=fetched[9],
+                original_locale_json=fetched[10],
+                arweave_txid=fetched[11],
+                image_txid=fetched[12],
+                image_hash=fetched[13],
+            )
+            assembled = assemble_public_issue_from_storage_row(row_dict)
             rows.append(
                 (
-                    str(issue_id),
-                    str(row_status),
-                    parse_payload_json(payload_json),
-                    str(created_at),
+                    str(fetched[0]),
+                    str(fetched[1]),
+                    assembled,
+                    str(fetched[2]),
                 )
             )
         return filter_projection_rows(
@@ -655,21 +883,47 @@ class SqliteIssueProjectionStore:
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
-        from core.projection.read_filters import merge_projection_columns, parse_payload_json
+        from core.projection.columnar_storage import (
+            assemble_public_issue_from_storage_row,
+            sqlite_row_to_dict,
+        )
 
         cursor = self.db.connection.execute(
-            "SELECT issue_id, status, payload_json, created_at FROM doge_issues WHERE issue_id = ?",
+            """
+            SELECT issue_id, status, created_at, issue_type, labels_json, title_json,
+                   summary_json, description_json, institution_json, geo_json,
+                   original_locale_json, arweave_txid, image_txid, image_hash
+            FROM doge_issues WHERE issue_id = ?
+            """,
             (issue_id,),
         )
         row = cursor.fetchone()
         if row is None:
             return None
-        row_issue_id, row_status, payload_json, created_at = row
+        from core.projection.read_filters import merge_projection_columns
+
+        row_dict = sqlite_row_to_dict(
+            issue_id=str(row[0]),
+            row_status=str(row[1]),
+            created_at=str(row[2]),
+            issue_type=row[3],
+            labels_json=row[4],
+            title_json=row[5],
+            summary_json=row[6],
+            description_json=row[7],
+            institution_json=row[8],
+            geo_json=row[9],
+            original_locale_json=row[10],
+            arweave_txid=row[11],
+            image_txid=row[12],
+            image_hash=row[13],
+        )
+        assembled = assemble_public_issue_from_storage_row(row_dict)
         return merge_projection_columns(
-            issue_id=str(row_issue_id),
-            row_status=str(row_status),
-            payload=parse_payload_json(payload_json),
-            created_at=str(created_at),
+            issue_id=str(row[0]),
+            row_status=str(row[1]),
+            payload=assembled,
+            created_at=str(row[2]),
         )
 
 
