@@ -643,6 +643,14 @@ class SupabaseStoryDraftRepository:
             expires_at=expires_at,
         )
 
+    def delete_draft(self, draft_id: str) -> None:
+        self.db._request(
+            method="DELETE",
+            path="/rest/v1/story_drafts",
+            params={"draft_id": self.db._eq_filter(draft_id)},
+            prefer="return=minimal",
+        )
+
 
 @dataclass
 class SupabaseStoryEmbeddingStore:

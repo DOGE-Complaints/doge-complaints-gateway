@@ -29,6 +29,7 @@ from core.api.handlers import (
     handle_readiness,
     handle_story_draft_create,
     handle_story_draft_get,
+    handle_story_draft_submit,
     handle_story_intake,
     handle_tallinn_issue_create,
     handle_tallinn_issue_get,
@@ -40,9 +41,10 @@ from core.api.security import (
     UserTokenIntrospectionUnavailableError,
     UserTokenMissingError,
     VerificationRequiredError,
+    extract_authorization_bearer,
     extract_user_token,
 )
-from core.identity import IdentityIntrospectionError
+from core.identity import IdentityIntrospectionError, IdentityMeError
 from core.identity.verification_gate import (
     DEFAULT_VERIFICATION_REQUIRED_REASON,
     VerificationGateOutcome,
@@ -340,12 +342,63 @@ _PUBLIC_CONTENT_WRITE_DEPS = [
 _STORY_DRAFT_WRITE_DEPS = [Depends(require_public_content_service_auth)]
 
 
-def require_story_draft_user_auth(request: Request) -> None:
-    """GW-DRAFT-02 placeholder: browser user session auth for draft fetch."""
-    _ = request
+def require_story_draft_read_user(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> None:
+    """GW-DRAFT-02 audit G1: browser Bearer → identity /me; active session only (no phone_verified gate)."""
+    bearer = extract_authorization_bearer(dict(request.headers.items()))
+    if bearer is None:
+        raise UserTokenMissingError("Missing user token.")
+    client = deps.identity_me
+    if client is None:
+        raise UserTokenIntrospectionUnavailableError("Identity /me is not configured.")
+    try:
+        result = client.fetch_me(bearer)
+    except IdentityMeError as exc:
+        raise UserTokenIntrospectionUnavailableError(
+            "Identity /me request failed."
+        ) from exc
+    if not result.active:
+        raise UserTokenIntrospectionError("User token is not active.")
+    assert result.sub is not None
+    request.state.user_introspection = result
 
 
-_STORY_DRAFT_READ_DEPS = [Depends(require_story_draft_user_auth)]
+def require_story_draft_submit_user(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> None:
+    """GW-DRAFT-02: browser Supabase Bearer → identity /me + phone_verified gate."""
+    bearer = extract_authorization_bearer(dict(request.headers.items()))
+    if bearer is None:
+        raise UserTokenMissingError("Missing user token.")
+    client = deps.identity_me
+    if client is None:
+        raise UserTokenIntrospectionUnavailableError("Identity /me is not configured.")
+    try:
+        result = client.fetch_me(bearer)
+    except IdentityMeError as exc:
+        raise UserTokenIntrospectionUnavailableError(
+            "Identity /me request failed."
+        ) from exc
+
+    gate = evaluate_verification_gate(result)
+    if gate is VerificationGateOutcome.UNAUTHORIZED:
+        raise UserTokenIntrospectionError("User token is not active.")
+    if gate is VerificationGateOutcome.VERIFICATION_REQUIRED:
+        raise VerificationRequiredError(
+            DEFAULT_VERIFICATION_REQUIRED_REASON,
+            verify_url=build_verify_url(deps.config),
+            reason=DEFAULT_VERIFICATION_REQUIRED_REASON,
+        )
+
+    assert result.sub is not None
+    request.state.user_introspection = result
+
+
+_STORY_DRAFT_READ_DEPS = [Depends(require_story_draft_read_user)]
+_STORY_DRAFT_SUBMIT_DEPS = [Depends(require_story_draft_submit_user)]
 
 
 @app.get("/health")
@@ -530,6 +583,26 @@ async def story_draft_get(
     payload, status_code = handle_story_draft_get(
         deps,
         draft_id=draft_id,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.post(
+    "/story-drafts/{draft_id}/submit",
+    dependencies=_STORY_DRAFT_SUBMIT_DEPS,
+)
+async def story_draft_submit(
+    request: Request,
+    draft_id: str,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    user_introspection = getattr(request.state, "user_introspection", None)
+    assert user_introspection is not None
+    payload, status_code = handle_story_draft_submit(
+        deps,
+        draft_id=draft_id,
+        user_introspection=user_introspection,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)

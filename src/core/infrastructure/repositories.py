@@ -133,6 +133,10 @@ class InMemoryStoryDraftRepository:
             return None
         return record
 
+    def delete_draft(self, draft_id: str) -> None:
+        assert self._records is not None
+        self._records.pop(draft_id, None)
+
 
 @dataclass
 class InMemorySignalProfileRepository:

@@ -698,6 +698,13 @@ class SqliteStoryDraftRepository:
             expires_at=expires_at,
         )
 
+    def delete_draft(self, draft_id: str) -> None:
+        self.db.connection.execute(
+            "DELETE FROM story_drafts WHERE draft_id = ?",
+            (draft_id,),
+        )
+        self.db.connection.commit()
+
 
 @dataclass
 class SqliteStoryEmbeddingStore:

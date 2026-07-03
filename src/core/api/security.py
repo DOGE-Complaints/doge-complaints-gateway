@@ -46,6 +46,16 @@ def extract_user_token(headers: Mapping[str, str]) -> str | None:
     return token if token else None
 
 
+def extract_authorization_bearer(headers: Mapping[str, str]) -> str | None:
+    """Read browser Supabase session token from Authorization: Bearer (GW-DRAFT-02)."""
+    h = _lower_headers(headers)
+    auth = h.get("authorization")
+    if not auth or not auth.lower().startswith("bearer "):
+        return None
+    token = auth[7:].strip()
+    return token if token else None
+
+
 def _lower_headers(headers: Mapping[str, str]) -> dict[str, str]:
     return {str(k).lower(): str(v) for k, v in headers.items()}
 

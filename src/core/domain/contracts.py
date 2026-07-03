@@ -125,6 +125,10 @@ class StoryDraftRepository(Protocol):
         """Fetch draft by id; None when unknown or past expires_at (TTL)."""
         ...
 
+    def delete_draft(self, draft_id: str) -> None:
+        """Remove draft after successful submit (GW-DRAFT-02)."""
+        ...
+
 
 class SignalDimension(StrEnum):
     """Signal axes for profiles and clustering.

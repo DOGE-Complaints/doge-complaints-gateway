@@ -22,8 +22,13 @@ from core.identity.authoritative_submitter import (
     authoritative_submitter_from_introspection,
     payload_submitter_mismatches_introspection,
 )
+from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
 from core.identity.introspection_client import IntrospectionResult
-from core.intake import IntakeValidationError, build_story_intake_response, parse_story_intake_request
+from core.intake import (
+    IntakeValidationError,
+    build_story_intake_response,
+    parse_story_intake_request,
+)
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
 
 
@@ -190,7 +195,10 @@ def handle_story_intake(
                 submitter=authoritative_submitter_from_introspection(
                     payload_submitter=claimed_submitter,
                     introspection=user_introspection,
-                    identity_introspect_url=dependencies.config.identity_introspect_url,
+                    identity_introspect_url=(
+                        dependencies.config.identity_base_url
+                        or dependencies.config.identity_introspect_url
+                    ),
                 ),
             )
         log_api_event(
@@ -587,4 +595,102 @@ def handle_story_draft_get(
         envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
         log_error(envelope)
         return envelope.as_dict(), 500
+
+
+def _story_intake_replay_from_idempotency(
+    dependencies: ApiDependencies,
+    *,
+    draft_id: str,
+    trace_id: str,
+) -> tuple[dict[str, Any], int] | None:
+    """Return 202 intake envelope when draft_id already submitted (GW-DRAFT-02 T04)."""
+    idem_repo = dependencies.story_intake_service.idempotency_repository
+    existing_key = idem_repo.get_by_key(draft_id)
+    if existing_key is None:
+        return None
+    existing_story = dependencies.story_intake_service.repository.get_story(
+        existing_key.story_id
+    )
+    if existing_story is None:
+        return None
+    signal_store = dependencies.story_intake_service.story_signal_store
+    gpt_signals_persisted = (
+        signal_store is not None
+        and signal_store.get_signals(
+            existing_story.story_id, GPT_CLASSIFIER_POLICY_VERSION
+        )
+        is not None
+    )
+    return (
+        build_story_intake_response(
+            story_id=existing_story.story_id,
+            status=existing_story.lifecycle_status.value,
+            trace_id=trace_id,
+            geo_resolved=existing_story.geo is not None,
+            gpt_signals_persisted=gpt_signals_persisted,
+        ),
+        202,
+    )
+
+
+def handle_story_draft_submit(
+    dependencies: ApiDependencies,
+    *,
+    draft_id: str,
+    user_introspection: IntrospectionResult,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """Submit stashed draft via browser Bearer + identity /me gate (GW-DRAFT-02)."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    set_log_context(trace_id=resolved_trace_id)
+    replay = _story_intake_replay_from_idempotency(
+        dependencies, draft_id=draft_id, trace_id=resolved_trace_id
+    )
+    if replay is not None:
+        log_api_event(
+            logging.INFO,
+            "story_draft_submit_idempotent_replay",
+            trace_id=resolved_trace_id,
+            draft_id=draft_id,
+            outcome="success",
+        )
+        return replay
+
+    repository = dependencies.story_draft_repository
+    if repository is None:
+        envelope = build_error_envelope(
+            RuntimeError("Story draft repository is not configured."),
+            trace_id=resolved_trace_id,
+        )
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+    record = repository.get_draft(draft_id)
+    if record is None:
+        return (
+            build_error_envelope(
+                ValueError(f"Draft not found: {draft_id}"),
+                trace_id=resolved_trace_id,
+            ).as_dict(),
+            404,
+        )
+
+    envelope, status_code = handle_story_intake(
+        dependencies,
+        payload=record.payload,
+        idempotency_key=draft_id,
+        trace_id=resolved_trace_id,
+        user_introspection=user_introspection,
+    )
+    if status_code == 202:
+        repository.delete_draft(draft_id)
+        log_api_event(
+            logging.INFO,
+            "story_draft_submitted",
+            trace_id=resolved_trace_id,
+            draft_id=draft_id,
+            story_id=envelope.get("data", {}).get("story_id"),
+            outcome="success",
+        )
+    return envelope, status_code
 

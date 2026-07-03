@@ -16,16 +16,25 @@ from core.identity.verification_gate import (
     VerificationGateOutcome,
     evaluate_verification_gate,
 )
+from core.identity.me_client import (
+    IdentityMeClient,
+    IdentityMeError,
+    build_identity_me_from_config,
+)
+
 from core.identity.verify_url import build_verify_url, resolve_spa_verify_base_url
 
 __all__ = [
     "DEFAULT_VERIFICATION_REQUIRED_REASON",
     "IdentityIntrospectionClient",
     "IdentityIntrospectionError",
+    "IdentityMeClient",
+    "IdentityMeError",
     "IntrospectionResult",
     "VerificationGateOutcome",
     "authoritative_submitter_from_introspection",
     "build_identity_introspection_from_config",
+    "build_identity_me_from_config",
     "build_verify_url",
     "evaluate_verification_gate",
     "payload_submitter_mismatches_introspection",

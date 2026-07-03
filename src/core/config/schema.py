@@ -58,6 +58,7 @@ class AppConfig:
     cluster_cron_enabled: bool
     identity_introspect_url: str | None
     identity_service_token: str | None
+    identity_base_url: str | None
     spa_verify_base_url: str | None
     story_draft_ttl_seconds: int
 
@@ -144,6 +145,15 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         description=(
             "Service token gateway presents to identity introspection endpoint "
             "(GW-GAUTH-02)."
+        ),
+    ),
+    EnvSpec(
+        name="IDENTITY_BASE_URL",
+        required=False,
+        default=None,
+        description=(
+            "Identity service base URL for browser /me forward (GET {base}/me, GW-DRAFT-02). "
+            "Falls back to IDENTITY_INTROSPECT_URL when unset."
         ),
     ),
     EnvSpec(
@@ -607,6 +617,17 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
             "IDENTITY_INTROSPECT_URL is required when IDENTITY_SERVICE_TOKEN is set."
         )
 
+    identity_base_url_raw = _get_value(source, "IDENTITY_BASE_URL")
+    identity_base_url: str | None = None
+    if identity_base_url_raw is not None:
+        stripped_me_base = identity_base_url_raw.strip()
+        if stripped_me_base:
+            identity_base_url = _validate_http_url(
+                stripped_me_base, env_name="IDENTITY_BASE_URL"
+            ).rstrip("/")
+    if identity_base_url is None and identity_introspect_url is not None:
+        identity_base_url = identity_introspect_url
+
     spa_verify_base_url_raw = _get_value(source, "SPA_VERIFY_BASE_URL")
     spa_verify_base_url: str | None = None
     if spa_verify_base_url_raw is not None:
@@ -655,6 +676,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_cron_enabled=cluster_cron_enabled,
         identity_introspect_url=identity_introspect_url,
         identity_service_token=identity_service_token,
+        identity_base_url=identity_base_url,
         spa_verify_base_url=spa_verify_base_url,
         story_draft_ttl_seconds=story_draft_ttl_seconds,
     )
