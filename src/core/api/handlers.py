@@ -23,7 +23,7 @@ from core.identity.authoritative_submitter import (
     payload_submitter_mismatches_introspection,
 )
 from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 from core.intake import (
     IntakeValidationError,
     build_story_intake_response,
@@ -195,10 +195,7 @@ def handle_story_intake(
                 submitter=authoritative_submitter_from_introspection(
                     payload_submitter=claimed_submitter,
                     introspection=user_introspection,
-                    identity_introspect_url=(
-                        dependencies.config.identity_base_url
-                        or dependencies.config.identity_introspect_url
-                    ),
+                    identity_introspect_url=dependencies.config.identity_base_url,
                 ),
             )
         log_api_event(

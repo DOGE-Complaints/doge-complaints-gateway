@@ -42,9 +42,8 @@ from core.api.security import (
     UserTokenMissingError,
     VerificationRequiredError,
     extract_authorization_bearer,
-    extract_user_token,
 )
-from core.identity import IdentityIntrospectionError, IdentityMeError
+from core.identity import IdentityMeError
 from core.identity.verification_gate import (
     DEFAULT_VERIFICATION_REQUIRED_REASON,
     VerificationGateOutcome,
@@ -300,45 +299,6 @@ def require_public_content_service_auth(
     deps.service_auth.require(dict(request.headers.items()), mandatory=True)
 
 
-def require_user_token(
-    request: Request,
-    deps: ApiDependencies = Depends(get_api_dependencies),
-) -> None:
-    """GW-GAUTH-02/03: introspect user token; gate on phone_verified (OAUTH-04)."""
-    user_token = extract_user_token(dict(request.headers.items()))
-    if user_token is None:
-        raise UserTokenMissingError("Missing user token.")
-    client = deps.identity_introspection
-    if client is None:
-        raise UserTokenIntrospectionUnavailableError(
-            "Identity introspection is not configured."
-        )
-    try:
-        result = client.introspect(user_token)
-    except IdentityIntrospectionError as exc:
-        raise UserTokenIntrospectionUnavailableError(
-            "User token introspection failed."
-        ) from exc
-
-    gate = evaluate_verification_gate(result)
-    if gate is VerificationGateOutcome.UNAUTHORIZED:
-        raise UserTokenIntrospectionError("User token is not active.")
-    if gate is VerificationGateOutcome.VERIFICATION_REQUIRED:
-        raise VerificationRequiredError(
-            DEFAULT_VERIFICATION_REQUIRED_REASON,
-            verify_url=build_verify_url(deps.config),
-            reason=DEFAULT_VERIFICATION_REQUIRED_REASON,
-        )
-
-    assert result.sub is not None
-    request.state.user_introspection = result
-
-
-_PUBLIC_CONTENT_WRITE_DEPS = [
-    Depends(require_public_content_service_auth),
-    Depends(require_user_token),
-]
-
 _STORY_DRAFT_WRITE_DEPS = [Depends(require_public_content_service_auth)]
 
 
@@ -522,7 +482,7 @@ async def tallinn_issue_get(
     return JSONResponse(content=payload, status_code=status_code)
 
 
-@app.post("/tallinn/issues", dependencies=_PUBLIC_CONTENT_WRITE_DEPS)
+@app.post("/tallinn/issues", dependencies=[Depends(require_public_content_service_auth)])
 async def tallinn_issue_create(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
@@ -538,7 +498,7 @@ async def tallinn_issue_create(
     return JSONResponse(content=payload, status_code=status_code)
 
 
-@app.post("/intake/stories", dependencies=_PUBLIC_CONTENT_WRITE_DEPS)
+@app.post("/intake/stories", dependencies=[Depends(require_public_content_service_auth)])
 async def intake_stories(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),

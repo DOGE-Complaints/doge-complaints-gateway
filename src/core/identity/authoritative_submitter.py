@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 from core.intake.contracts import Submitter
 
 

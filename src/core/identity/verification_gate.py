@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 
 VERIFICATION_REQUIRED_ERROR = "verification_required"
 DEFAULT_VERIFICATION_REQUIRED_REASON = (

@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 
 from core.config import AppConfig
-from core.identity.introspection_client import IntrospectionResult
+from core.identity.introspection_result import IntrospectionResult
 
 
 class IdentityMeError(Exception):
