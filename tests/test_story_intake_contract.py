@@ -6,8 +6,10 @@ from core.intake import (
     INTAKE_RESPONSE_SCHEMA_VERSION,
     INTAKE_SCHEMA_VERSION,
     INTAKE_SCHEMA_VERSION_V1,
+    STASH_PENDING_EXTERNAL_USER_ID,
     IntakeValidationError,
     build_story_intake_response,
+    parse_story_draft_stash_request,
     parse_story_intake_request,
 )
 from tests.intake_v2_fixtures import narrative_dict, valid_v2_intake_payload
@@ -38,6 +40,13 @@ def test_parse_story_intake_request_valid_payload() -> None:
     assert request.privacy.redaction_requested is True
     assert request.live_story_context is not None
     assert request.live_story_context.consistency_notes == "User clarified scope."
+
+
+def test_parse_story_draft_stash_request_omits_submitter() -> None:
+    payload = valid_v2_intake_payload()
+    payload.pop("submitter", None)
+    request = parse_story_draft_stash_request(payload)
+    assert request.submitter.external_user_id == STASH_PENDING_EXTERNAL_USER_ID
 
 
 def test_parse_story_intake_request_rejects_v1_schema() -> None:

@@ -26,7 +26,9 @@ from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
 from core.identity.introspection_result import IntrospectionResult
 from core.intake import (
     IntakeValidationError,
+    STASH_PENDING_EXTERNAL_USER_ID,
     build_story_intake_response,
+    parse_story_draft_stash_request,
     parse_story_intake_request,
 )
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
@@ -176,11 +178,20 @@ def handle_story_intake(
         )
         return envelope.as_dict(), 503
     try:
-        request = parse_story_intake_request(payload)
+        request = parse_story_intake_request(
+            payload,
+            require_submitter=user_introspection is None,
+        )
         if user_introspection is not None:
             claimed_submitter = request.submitter
-            if payload_submitter_mismatches_introspection(
-                claimed_submitter, user_introspection
+            stash_pending = (
+                claimed_submitter.external_user_id == STASH_PENDING_EXTERNAL_USER_ID
+            )
+            if (
+                not stash_pending
+                and payload_submitter_mismatches_introspection(
+                    claimed_submitter, user_introspection
+                )
             ):
                 log_api_event(
                     logging.INFO,
@@ -525,7 +536,7 @@ def handle_story_draft_create(
         log_error(envelope)
         return envelope.as_dict(), 500
     try:
-        parse_story_intake_request(payload)
+        parse_story_draft_stash_request(payload)
         now = datetime.now(UTC)
         expires_at = now + timedelta(seconds=dependencies.config.story_draft_ttl_seconds)
         draft_id = secrets.token_urlsafe(16)

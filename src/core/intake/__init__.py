@@ -14,8 +14,10 @@ from core.intake.contracts import (
     IntakeNotes,
     StoryIntakeRequest,
     StoryIntakeResponse,
+    STASH_PENDING_EXTERNAL_USER_ID,
     Submitter,
     build_story_intake_response,
+    parse_story_draft_stash_request,
     parse_story_intake_request,
 )
 from core.intake.observability import (
@@ -44,6 +46,8 @@ __all__ = [
     "IntakeNotes",
     "StoryIntakeRequest",
     "StoryIntakeResponse",
+    "STASH_PENDING_EXTERNAL_USER_ID",
+    "parse_story_draft_stash_request",
     "parse_story_intake_request",
     "build_story_intake_response",
     "IntakeErrorType",

@@ -14,6 +14,8 @@ from core.domain.narrative_i18n import (
 INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v2"
 INTAKE_SCHEMA_VERSION_V1 = "m2.story_intake_envelope.v1"
 INTAKE_RESPONSE_SCHEMA_VERSION = "m2.story_intake_response.v1"
+# Placeholder author on GPT stash path; replaced at browser submit via /me (GW-DRAFT-02).
+STASH_PENDING_EXTERNAL_USER_ID = "__stash_pending_author__"
 
 
 class IntakeValidationError(ValueError):
@@ -204,7 +206,11 @@ def _parse_language_code(raw: str, *, field_name: str, parent: str) -> str:
     return normalized
 
 
-def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
+def parse_story_intake_request(
+    payload: Mapping[str, Any],
+    *,
+    require_submitter: bool = True,
+) -> StoryIntakeRequest:
     schema_version = _require_non_empty_string(payload, "schema_version")
     if schema_version == INTAKE_SCHEMA_VERSION_V1:
         raise IntakeValidationError(
@@ -218,14 +224,25 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         )
 
     submitter_payload = payload.get("submitter")
-    if not isinstance(submitter_payload, Mapping):
-        raise IntakeValidationError("Missing or invalid root.submitter.")
-    external_user_id = _require_non_empty_string(
-        submitter_payload, "external_user_id", parent="submitter"
-    )
-    identity_issuer = _require_non_empty_string(
-        submitter_payload, "identity_issuer", parent="submitter"
-    )
+    if require_submitter:
+        if not isinstance(submitter_payload, Mapping):
+            raise IntakeValidationError("Missing or invalid root.submitter.")
+        external_user_id = _require_non_empty_string(
+            submitter_payload, "external_user_id", parent="submitter"
+        )
+        identity_issuer = _require_non_empty_string(
+            submitter_payload, "identity_issuer", parent="submitter"
+        )
+    elif isinstance(submitter_payload, Mapping):
+        external_user_id = _require_non_empty_string(
+            submitter_payload, "external_user_id", parent="submitter"
+        )
+        identity_issuer = _require_non_empty_string(
+            submitter_payload, "identity_issuer", parent="submitter"
+        )
+    else:
+        external_user_id = STASH_PENDING_EXTERNAL_USER_ID
+        identity_issuer = ""
 
     narrative_payload = payload.get("narrative")
     if not isinstance(narrative_payload, Mapping):
@@ -354,7 +371,8 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
     return StoryIntakeRequest(
         schema_version=schema_version,
         submitter=Submitter(
-            external_user_id=external_user_id, identity_issuer=identity_issuer
+            external_user_id=external_user_id,
+            identity_issuer=identity_issuer,
         ),
         narrative=Narrative(
             original_text=original_text,
@@ -373,6 +391,11 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         live_story_context=live_story_context,
         gpt_signals=gpt_signals,
     )
+
+
+def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
+    """Validate GPT stash payload (StoryDraftStashRequest) — submitter omitted by design."""
+    return parse_story_intake_request(payload, require_submitter=False)
 
 
 def build_story_intake_response(

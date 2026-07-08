@@ -50,6 +50,32 @@ def _valid_draft_payload() -> dict[str, Any]:
     return valid_v2_intake_payload()
 
 
+def _gpt_stash_payload_without_submitter() -> dict[str, Any]:
+    payload = _valid_draft_payload()
+    payload.pop("submitter", None)
+    return payload
+
+
+def test_post_story_drafts_accepts_payload_without_submitter(
+    client: TestClient,
+) -> None:
+    """GPT StoryDraftStashRequest omits submitter; author resolved at browser submit."""
+    deps = get_api_dependencies()
+    stories_before = len(deps.story_intake_service.repository.list_stories())
+
+    response = client.post(
+        "/story-drafts",
+        json=_gpt_stash_payload_without_submitter(),
+        headers=_service_headers(),
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["data"]["draft_id"]
+    stories_after = len(deps.story_intake_service.repository.list_stories())
+    assert stories_after == stories_before
+
+
 def test_post_story_drafts_returns_draft_id_without_creating_story(
     client: TestClient,
 ) -> None:
@@ -120,7 +146,8 @@ def test_get_story_drafts_returns_saved_payload(
     assert get_response.status_code == 200
     body = get_response.json()
     assert body["data"]["schema_version"] == payload["schema_version"]
-    assert body["data"]["submitter"] == payload["submitter"]
+    if "submitter" in payload:
+        assert body["data"]["submitter"] == payload["submitter"]
     assert body["data"]["narrative"]["original_text"] == payload["narrative"]["original_text"]
 
 

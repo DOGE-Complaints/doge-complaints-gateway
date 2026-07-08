@@ -90,6 +90,40 @@ def _latest_story_submitter_external_id() -> str:
     return stories[-1].submitter_external_user_id
 
 
+def _stash_draft_without_submitter(client: TestClient) -> str:
+    payload = valid_v2_intake_payload()
+    payload.pop("submitter", None)
+    response = client.post(
+        "/story-drafts",
+        json=payload,
+        headers=_service_headers(),
+    )
+    assert response.status_code == 201
+    return response.json()["data"]["draft_id"]
+
+
+def test_verified_submit_stash_without_submitter_uses_me_author(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    draft_id = _stash_draft_without_submitter(client)
+    before = _story_count()
+    _patch_fetch_me(
+        monkeypatch,
+        result=IntrospectionResult(
+            active=True, sub=VERIFIED_SUB, phone_verified=True
+        ),
+    )
+
+    response = client.post(
+        f"/story-drafts/{draft_id}/submit",
+        headers=_browser_headers(),
+    )
+
+    assert response.status_code == 202
+    assert _story_count() == before + 1
+    assert _latest_story_submitter_external_id() == VERIFIED_SUB
+
+
 def test_verified_browser_submit_returns_202_and_authoritative_submitter(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
