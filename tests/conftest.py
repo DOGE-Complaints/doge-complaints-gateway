@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextvars
 import logging
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from typing import Any
 
 import pytest
@@ -109,27 +109,35 @@ def _service_auto_inject_headers(method: str, url: str, kwargs: dict[str, Any]) 
     return kwargs
 
 
-@pytest.fixture(autouse=True)
-def _gauth_testclient_auto_headers(request: pytest.FixtureRequest):
-    """Inject default service token on TestClient POSTs to public write paths."""
+@pytest.fixture(scope="session", autouse=True)
+def _gauth_testclient_request_patch() -> Generator[None, None, None]:
+    """Patch TestClient.request once per session; restore on session teardown (audit G1)."""
     global _ORIGINAL_TESTCLIENT_REQUEST
+    _ORIGINAL_TESTCLIENT_REQUEST = TestClient.request
+
+    def _patched_request(
+        self: TestClient, method: str, url: str, **kwargs: Any
+    ) -> Any:
+        if not _service_skip_auto_headers.get():
+            kwargs = _service_auto_inject_headers(method, url, kwargs)
+        assert _ORIGINAL_TESTCLIENT_REQUEST is not None
+        return _ORIGINAL_TESTCLIENT_REQUEST(self, method, url, **kwargs)
+
+    TestClient.request = _patched_request  # type: ignore[method-assign]
+    yield
+    if _ORIGINAL_TESTCLIENT_REQUEST is not None:
+        TestClient.request = _ORIGINAL_TESTCLIENT_REQUEST  # type: ignore[method-assign]
+        _ORIGINAL_TESTCLIENT_REQUEST = None
+
+
+@pytest.fixture(autouse=True)
+def _gauth_testclient_auto_headers(request: pytest.FixtureRequest) -> Generator[None, None, None]:
+    """Per-test skip flag for auto-injected service headers on TestClient POSTs."""
     skip = (
         request.node.get_closest_marker(_GAUTH_RAW_CLIENT_MARKER) is not None
         or "test_gw_gauth_01" in request.node.nodeid
     )
     token = _service_skip_auto_headers.set(skip)
-    if _ORIGINAL_TESTCLIENT_REQUEST is None:
-        _ORIGINAL_TESTCLIENT_REQUEST = TestClient.request
-
-        def _patched_request(
-            self: TestClient, method: str, url: str, **kwargs: Any
-        ) -> Any:
-            if not _service_skip_auto_headers.get():
-                kwargs = _service_auto_inject_headers(method, url, kwargs)
-            assert _ORIGINAL_TESTCLIENT_REQUEST is not None
-            return _ORIGINAL_TESTCLIENT_REQUEST(self, method, url, **kwargs)
-
-        TestClient.request = _patched_request  # type: ignore[method-assign]
     yield
     _service_skip_auto_headers.reset(token)
 
