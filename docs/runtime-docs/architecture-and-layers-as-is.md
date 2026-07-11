@@ -48,7 +48,7 @@ Runtime graph строится через:
 | GET | `/demo/auth-page/` | public | demo static HTML alias |
 | GET | `/demo/auth-page/styles.css` | public | demo static CSS |
 | POST | `/intake/stories` | service-only (trusted channel) | legacy seed/simulation story-first intake (GW-DRAFT-04); **product user submit** → `POST /story-drafts/{id}/submit` |
-| POST | `/story-drafts` | service | GPT stash draft (`StoryIntakeRequest`); no story created — [API_REFERENCE §6.8](api-reference/API_REFERENCE.md) |
+| POST | `/story-drafts` | service | GPT stash draft (`StoryDraftStashRequest`, no submitter); no story created — [API_REFERENCE §6.8](api-reference/API_REFERENCE.md) |
 | GET | `/story-drafts/{draft_id}` | browser Bearer → `/me` | Browser preview draft (active session only) |
 | POST | `/story-drafts/{draft_id}/submit` | browser Bearer → `/me` + `phone_verified` | Browser submit → story create (as-built user path) |
 

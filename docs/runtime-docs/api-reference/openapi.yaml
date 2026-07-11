@@ -409,6 +409,28 @@ components:
           $ref: '#/components/schemas/LiveStoryContext'
         gpt_signals:
           $ref: '#/components/schemas/GptSignals'
+    StoryDraftStashRequest:
+      type: object
+      required: [schema_version, narrative]
+      description: >
+        GPT Actions stash body (POST /story-drafts). Author resolved at browser submit
+        via identity /me (GW-DRAFT-02, GW-DRAFT-05). Aligned with GPT UI OpenAPI v0.6.0.
+      properties:
+        schema_version:
+          type: string
+          enum:
+            - m2.story_intake_envelope.v2
+          description: "Only v2 is accepted at runtime."
+        narrative:
+          $ref: '#/components/schemas/Narrative'
+        origin:
+          $ref: '#/components/schemas/Origin'
+        privacy:
+          $ref: '#/components/schemas/Privacy'
+        live_story_context:
+          $ref: '#/components/schemas/LiveStoryContext'
+        gpt_signals:
+          $ref: '#/components/schemas/GptSignals'
     IntakeNotes:
       type: object
       required: [geo_resolved, gpt_signals_persisted]
@@ -461,7 +483,7 @@ components:
       required: [data, trace_id]
       properties:
         data:
-          $ref: '#/components/schemas/StoryIntakeRequest'
+          $ref: '#/components/schemas/StoryDraftStashRequest'
         trace_id:
           type: string
     LabelMissRequest:
@@ -677,7 +699,7 @@ paths:
       summary: Stash story intake draft for browser handoff
       description: |
         Runtime state:
-        - contract: same `StoryIntakeRequest` as `POST /intake/stories`;
+        - contract: `StoryDraftStashRequest` (no submitter; author at browser submit);
         - auth: service token only (`require_public_content_service_auth`);
         - persists via `StoryDraftRepository` (no story/issue created);
         - handler: `handle_story_draft_create` in `src/core/api/handlers.py`.
@@ -690,7 +712,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StoryIntakeRequest'
+              $ref: '#/components/schemas/StoryDraftStashRequest'
       responses:
         '201':
           description: Draft stashed; returns opaque `draft_id`.
@@ -738,7 +760,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Draft payload (StoryIntakeRequest shape in `data`).
+          description: Draft payload (StoryDraftStashRequest shape in `data`; no submitter).
           content:
             application/json:
               schema:

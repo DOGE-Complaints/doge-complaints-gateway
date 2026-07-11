@@ -441,7 +441,7 @@ Stories lifecycle: `accepted → partial_ready → ready_for_profile → cluster
 | Колонка | Тип | Обязательно | Описание |
 |---------|-----|-------------|---------|
 | `draft_id` | `text PK` | да | Opaque id (`secrets.token_urlsafe(16)`) |
-| `payload_json` | `jsonb NOT NULL` | да | Полный `StoryIntakeRequest` JSON как получен на `POST /story-drafts` |
+| `payload_json` | `jsonb NOT NULL` | да | Полный `StoryDraftStashRequest` JSON (без `submitter`) как нормализован на `POST /story-drafts` |
 | `created_at` | `timestamptz NOT NULL` | да | UTC момент стеша |
 | `expires_at` | `timestamptz NOT NULL` | да | `created_at + STORY_DRAFT_TTL_SECONDS` (default 86400) |
 

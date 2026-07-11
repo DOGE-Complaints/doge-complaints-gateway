@@ -450,7 +450,7 @@ Source: `services.py:143-178`
 
 ### 6.9 Code sources
 
-- `src/core/intake/contracts.py` — `StoryIntakeRequest`, `parse_story_intake_request()`, schema version constants
+- `src/core/intake/contracts.py` — `StoryDraftStashRequest`, `StoryIntakeRequest`, `parse_story_draft_stash_request()`, `parse_story_intake_request()`, `intake_request_from_stash_and_submitter()`, schema version constants
 - `src/core/domain/narrative_i18n.py` — `I18N_LANGS`, `parse_required_i18n_dict()`, `narrative_v2_complete()`
 - `src/core/application/services.py` — `StoryIntakeService.create_story()`, `advance_story_readiness()`
 - `src/core/domain/contracts.py` — `StoryRecord`, `StoryLifecycleStatus`
@@ -483,13 +483,13 @@ Test evidence: `tests/test_gw_l10n_03_label_miss_telemetry.py`
 
 ## 6.8 Story draft stash (GW-DRAFT-01)
 
-Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and receives an opaque `draft_id` for browser redirect. **No story or issue is created.** Architecture overview: [`architecture-and-layers-as-is.md`](../architecture-and-layers-as-is.md) §4.1.
+Ephemeral handoff store: GPT stashes a validated `StoryDraftStashRequest` JSON (no `submitter`) and receives an opaque `draft_id` for browser redirect. **No story or issue is created.** At browser submit, gateway bridges stash → `StoryIntakeRequest` with authoritative author from identity `/me` (GW-DRAFT-05). Architecture overview: [`architecture-and-layers-as-is.md`](../architecture-and-layers-as-is.md) §4.1.
 
 ### `POST /story-drafts`
 
 - **HTTP binding:** `asgi_app.py` → `handle_story_draft_create` (`handlers.py`)
 - **Auth:** service token only (`Authorization: Bearer` or `X-Service-Token`) — same as public-content service channel; **no** `X-User-Token`
-- **Body:** same schema as `POST /intake/stories` (`StoryIntakeRequest`)
+- **Body:** `StoryDraftStashRequest` — same narrative envelope as intake **without** `submitter` (aligned with GPT Actions OpenAPI v0.6.0)
 - **Success:** `201 Created` — `{ "data": { "draft_id": "<opaque>" }, "trace_id": "..." }`
 - **Validation error:** `400` — `DOMAIN_ERROR` (same mapping as intake)
 - **Auth error:** `401` — `UNAUTHORIZED`
@@ -499,7 +499,7 @@ Ephemeral handoff store: GPT stashes a validated `StoryIntakeRequest` JSON and r
 
 - **HTTP binding:** `asgi_app.py` → `handle_story_draft_get` (`handlers.py`)
 - **Auth:** browser `Authorization: Bearer` only (Supabase session); `require_story_draft_read_user` → identity `GET /me` (**active session only** — no `phone_verified` gate on read; per mvp §4)
-- **Success:** `200` — `{ "data": <saved StoryIntakeRequest JSON>, "trace_id": "..." }`
+- **Success:** `200` — `{ "data": <saved StoryDraftStashRequest JSON>, "trace_id": "..." }`
 - **Auth error:** `401` — missing/inactive Bearer
 - **Identity unavailable:** `503` — `SERVICE_UNAVAILABLE` (fail-closed)
 - **Not found / expired:** `404` — `DOMAIN_ERROR`
@@ -516,7 +516,7 @@ Browser handoff completion: verified user submits stashed draft; gateway calls i
 - **Auth:** browser `Authorization: Bearer` only (Supabase session); **no** service token, **no** `X-User-Token`
 - **Identity:** `IdentityMeClient` → `{IDENTITY_BASE_URL}/me` → `IntrospectionResult`; env `IDENTITY_BASE_URL` (falls back to `IDENTITY_INTROSPECT_URL` base when unset)
 - **Gate:** reuse `evaluate_verification_gate` — `phone_verified=true` → intake; `false` → **403** `verification_required` + `verify_url`; inactive/missing token → **401**; identity down → **503**
-- **Body:** none (payload loaded from draft store by `draft_id`)
+- **Body:** none (payload loaded from draft store by `draft_id`; bridged to `StoryIntakeRequest` with `/me` author)
 - **Success:** `202 Accepted` — same `StoryIntakeResponse` envelope as `POST /intake/stories`; `submitter` resolved via `authoritative_submitter_from_introspection` (`sub` from `/me`)
 - **Idempotency:** `draft_id` is the idempotency key; repeat submit returns same `story_id` without duplicate stories; draft deleted after first success
 - **Not found / expired:** `404` — `DOMAIN_ERROR`

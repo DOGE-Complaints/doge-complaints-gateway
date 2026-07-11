@@ -38,17 +38,22 @@ Protected/public operation split (as-is, route policy — источник: `asg
 
 ### 1.1) User identifier linkage для stories
 
-User identity на уровне доменной истории передаётся не через Bearer-токен, а в payload intake-контракта:
+Два intake-контракта (GW-DRAFT-05):
 
-- Входной контракт: `submitter.external_user_id` (required), `submitter.identity_issuer` (optional) — `src/core/intake/contracts.py`.
-- Валидация: `parse_story_intake_request` требует непустой `submitter.external_user_id`.
+| Path | Request schema | Author source |
+|------|----------------|---------------|
+| `POST /story-drafts` (GPT stash) | `StoryDraftStashRequest` — **без** `submitter` | n/a (draft only) |
+| `POST /story-drafts/{id}/submit` (browser) | bridge → `StoryIntakeRequest` | identity `GET /me` → `authoritative_submitter_from_introspection` |
+| `POST /intake/stories` (legacy service) | `StoryIntakeRequest` — `submitter` required in payload | payload fields (no `/me` override when `user_introspection=None`) |
+
+- Домен: `parse_story_draft_stash_request`, `parse_story_intake_request`, `intake_request_from_stash_and_submitter` — `src/core/intake/contracts.py`.
 - Привязка к доменной модели: `StoryIntakeService.create_story` записывает
   - `submitter_external_user_id=request.submitter.external_user_id`
   - `submitter_identity_issuer=request.submitter.identity_issuer`
   в `StoryRecord` (`src/core/application/services.py`).
 - Поля persistence-контракта: `StoryRecord.submitter_external_user_id`, `StoryRecord.submitter_identity_issuer` (`src/core/domain/contracts.py`).
 
-Это означает, что текущая runtime-модель уже хранит устойчивую связку story -> external submitter id.
+Legacy drafts (pre GW-DRAFT-05) с placeholder submitter в `story_drafts.payload_json` — tolerant read на submit (`parse_stored_draft_stash_request` strips placeholder).
 
 ### 2) Поведение auth при наличии/отсутствии секрета
 
