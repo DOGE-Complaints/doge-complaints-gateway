@@ -2,16 +2,15 @@
 
 > Этот мануал — **сквозной процесс** «загрузить истории → получить карточки на доске». Детали самого загрузчика — в [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT по загрузке); здесь — вся цепочка целиком. Метод: `.cursor/rules/analysis.mdc` — шаги по фактическому коду.
 >
-> **Статус (2026-06-22, SEED-03):** цепочка intake→cron→проекция→доска **проверена end-to-end локально** — расширенный датасет `v0_2` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md), Done) даёт **2 карточки** на `GET /tallinn/issues` (см. [«Локальный e2e»](#локальный-e2e--быстрая-сквозная-проверка-без-hosted) и [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)).
-> ⚠️ **Hosted-прогон (Railway) временно заблокирован:** публичный `GET /tallinn/issues` отдаёт `INTERNAL_ERROR` из-за рассинхрона версии задеплоенного кода → чинит [STORY-GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md). До закрытия RC-07 hosted-наполнение не проверяемо; локальный путь работает.
+> **Статус (2026-07-11, SEED-03):** цепочка stash→submit→cron→проекция→доска **проверена end-to-end локально** — расширенный датасет `v0_2` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md), Done) даёт **2 карточки** на `GET /tallinn/issues` (см. [«Локальный e2e»](#локальный-e2e--быстрая-сквозная-проверка-без-hosted) и [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)). Hosted read-path разблокирован после [GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) **Done** 2026-07-10 — hosted-прогон по §Шаг1–5 ниже.
 
 ## Главное за 30 секунд
 
 Доска показывает **issue-карточки**, а не сырые истории. Поэтому процесс **двухступенчатый**:
 
 ```
-1) Вы грузите истории        2) Система сама кластеризует (cron)        3) Доска
-POST /intake/stories    →    объединяет ≥8 похожих в одну issue    →    GET /tallinn/issues
+1) Вы грузите истории (stash+submit)   2) Система кластеризует (cron)        3) Доска
+POST /story-drafts → submit (202)  →   объединяет ≥8 похожих в issue    →   GET /tallinn/issues
 ```
 
 **Если просто загрузить истории — доска останется пустой**, пока кластеризация не соберёт группу из **≥8 похожих** историй. Это by design.
@@ -34,8 +33,8 @@ POST /intake/stories    →    объединяет ≥8 похожих в од�
 Цель — hosted-демо (Railway + Supabase).
 
 1. **Сервер в режиме Supabase.** Данные попадут в облако только если у gateway `DB_BACKEND=supabase`. Иначе пишется в in-memory/sqlite и в hosted-БД ничего не появится.
-   - **Legacy service path на `/intake/stories` (GW-DRAFT-04).** Загрузчик `simulation_runner` шлёт истории только с `Authorization: Bearer` (`GATEWAY_API_TOKEN` = `SERVICE_API_TOKEN` на сервере). **Актуальный user submit в продукте:** GPT стешит → браузер сабмитит — [`story-draft-handoff`](../../tasks/backlog-stories/story-draft-handoff/INDEX.md). Детали env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT).
-     - **Коды отказа intake:** `401` (нет/битый сервисный токен) · `503` (сервер/БД не готов).
+   - **Двухфазный runner (GW-DRAFT-06 / SEED-03 / SEED-04).** Загрузчик `simulation_runner` делает **stash** (`POST /story-drafts`, service Bearer `GATEWAY_API_TOKEN`) → **submit** (`POST /story-drafts/{id}/submit`, user Bearer = Supabase `access_token` из email+password на старте). Submitter берётся из identity `/me` (verified, `phone_verified=true`). Env — [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT).
+     - **Коды отказа:** stash `401`/`503`; submit `403` (user не verified — верифицируй в SPA) · `401` (Supabase-токен невалиден); missing env / bad Supabase creds → `RuntimeError` на старте runner.
 2. **Готовность БД — `/ready` зелёный:**
    ```bash
    curl -sS "$GATEWAY_URL/ready" | jq '.data.db | {ready, checks}'
@@ -55,20 +54,24 @@ cd doge-complaints-gateway
 cp .env.test.example .env.test
 # заполнить в .env.test:
 #   GATEWAY_URL=https://<твой-railway>.up.railway.app
-#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>   # Authorization: Bearer (service-only intake)
-#   SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_1.json   (или _v0_2 из SEED-02)
+#   GATEWAY_API_TOKEN=<SERVICE_API_TOKEN сервера>   # stash (service Bearer)
+#   GATEWAY_USER_EMAIL=<email verified demo-user>
+#   GATEWAY_USER_PASSWORD=<password>
+#   SUPABASE_URL=<VITE_SUPABASE_URL из SPA>
+#   SUPABASE_ANON_KEY=<VITE_SUPABASE_ANON_KEY из SPA>
+#   SIMULATION_CANVAS_PATH=tests/sandbox/dogestonia_simulation_canvas_v0_2.json   (рекомендуется для ≥2 карточек)
 ```
 
 ## Шаг 2 — Smoke (10 историй) — убедиться, что доезжает
 
 ```bash
 python3 tests/simulation_runner.py --max 10
-# ожидается: 200/202 OK, story_id=...; Success: 10
+# ожидается: 201 stash draft_id=... -> 202 submit story_id=...; Success: 10
 ```
 Проверка записи:
 ```sql
 -- в Supabase SQL editor
-select count(*) from stories where submitter_external_user_id like 'sim:%';
+select count(*) from stories where origin_source = 'simulation';
 ```
 
 ## Шаг 3 — Полная загрузка
@@ -101,7 +104,7 @@ curl -sS "$GATEWAY_URL/tallinn/issues" | jq '.data.issues[0] | {id,status,type,l
 
 ## Локальный e2e — быстрая сквозная проверка без hosted
 
-Когда hosted недоступен/заблокирован (см. статус-баннер про RC-07), всю цепочку можно проверить **локально на изолированном sqlite** (не трогая прод-данные). Это реальный прогон intake→cron→проекция→доска на актуальном коде:
+Когда hosted недоступен, всю цепочку можно проверить **локально на изолированном sqlite** (не трогая прод-данные). Это реальный прогон stash+submit→cron→проекция→доска на актуальном коде:
 
 ```bash
 cd doge-complaints-gateway
@@ -126,7 +129,7 @@ SUPABASE_URL= SUPABASE_SERVICE_ROLE= \
 
 | Симптом | Причина | Что делать |
 |---|---|---|
-| `stories` пустая после загрузки | сервер не в `DB_BACKEND=supabase` (писалось не в hosted) | проверить конфиг сервера; см. [simulation-runner-manual §FAQ](../testing/simulation-runner-manual.md) |
+| `stories` пустая после загрузки | сервер не в `DB_BACKEND=supabase` (писалось не в hosted) или submit не прошёл (bad creds / не verified / missing env) | проверить конфиг сервера и вывод runner (201+202); см. [simulation-runner-manual §FAQ](../testing/simulation-runner-manual.md) |
 | `stories` есть, `/tallinn/issues` пуст | кластеры <8 ИЛИ cron выключен ИЛИ не дождались тика | проверить `CLUSTER_CRON_ENABLED=true`; подождать интервал; расширить датасет (SEED-02) |
 | `/ready` → `checks.columns: false` | columnar-миграции RC-04 не применены на hosted | применить `20260619_1200/1210/1220` к Supabase |
 | `GET /tallinn/issues` = `INTERNAL_ERROR`, **но `/ready` зелёный** | **deploy drift** — на сервере крутится старая сборка кода (до RC-04/05/06), падает на новом формате строк. Данные при этом целы (тот же набор отдаётся локальным актуальным кодом). | передеплоить актуальный код на таргет (deploy version parity); разбор — [STORY-GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) |
