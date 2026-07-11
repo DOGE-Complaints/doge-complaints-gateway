@@ -16,7 +16,7 @@ from tests.conftest import (
     GAUTH_TEST_SERVICE_TOKEN,
     GAUTH_TEST_USER_TOKEN,
 )
-from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.intake_v2_fixtures import valid_v2_stash_payload
 
 
 @pytest.fixture()
@@ -42,7 +42,7 @@ def _browser_headers(*, token: str = GAUTH_TEST_USER_TOKEN) -> dict[str, str]:
 
 
 def _valid_draft_payload() -> dict[str, Any]:
-    return valid_v2_intake_payload()
+    return valid_v2_stash_payload()
 
 
 def _patch_fetch_me(

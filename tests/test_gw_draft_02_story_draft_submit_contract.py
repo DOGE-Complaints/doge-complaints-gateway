@@ -16,7 +16,7 @@ from tests.conftest import (
     GAUTH_TEST_SERVICE_TOKEN,
     GAUTH_TEST_USER_TOKEN,
 )
-from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.intake_v2_fixtures import valid_v2_stash_payload
 
 GAUTH_TEST_SPA_VERIFY_BASE = "https://spa.test"
 VERIFIED_SUB = "draft02-verified-sub"
@@ -46,12 +46,7 @@ def _browser_headers(*, token: str = GAUTH_TEST_USER_TOKEN) -> dict[str, str]:
 
 
 def _valid_draft_payload() -> dict[str, Any]:
-    return valid_v2_intake_payload(
-        submitter={
-            "external_user_id": "claimed-draft-submitter",
-            "identity_issuer": "https://idp.example.com/eid",
-        },
-    )
+    return valid_v2_stash_payload()
 
 
 def _patch_fetch_me(
@@ -91,15 +86,7 @@ def _latest_story_submitter_external_id() -> str:
 
 
 def _stash_draft_without_submitter(client: TestClient) -> str:
-    payload = valid_v2_intake_payload()
-    payload.pop("submitter", None)
-    response = client.post(
-        "/story-drafts",
-        json=payload,
-        headers=_service_headers(),
-    )
-    assert response.status_code == 201
-    return response.json()["data"]["draft_id"]
+    return _stash_draft(client)
 
 
 def test_verified_submit_stash_without_submitter_uses_me_author(

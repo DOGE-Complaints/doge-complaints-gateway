@@ -13,7 +13,7 @@ from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_depend
 from tests.conftest import GAUTH_TEST_IDENTITY_URL, GAUTH_TEST_SERVICE_TOKEN, GAUTH_TEST_USER_TOKEN
 from core.identity.introspection_result import IntrospectionResult
 from core.identity.me_client import IdentityMeClient
-from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.intake_v2_fixtures import valid_v2_stash_payload
 
 
 @pytest.fixture()
@@ -47,13 +47,11 @@ def _patch_active_me(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _valid_draft_payload() -> dict[str, Any]:
-    return valid_v2_intake_payload()
+    return valid_v2_stash_payload()
 
 
 def _gpt_stash_payload_without_submitter() -> dict[str, Any]:
-    payload = _valid_draft_payload()
-    payload.pop("submitter", None)
-    return payload
+    return valid_v2_stash_payload()
 
 
 def test_post_story_drafts_accepts_payload_without_submitter(
@@ -146,8 +144,7 @@ def test_get_story_drafts_returns_saved_payload(
     assert get_response.status_code == 200
     body = get_response.json()
     assert body["data"]["schema_version"] == payload["schema_version"]
-    if "submitter" in payload:
-        assert body["data"]["submitter"] == payload["submitter"]
+    assert "submitter" not in body["data"]
     assert body["data"]["narrative"]["original_text"] == payload["narrative"]["original_text"]
 
 

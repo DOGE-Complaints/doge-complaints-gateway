@@ -61,6 +61,13 @@ def valid_v2_intake_payload(
     return payload
 
 
+def valid_v2_stash_payload(**overrides: Any) -> dict[str, Any]:
+    """StoryDraftStashRequest wire shape — no submitter (GW-DRAFT-05)."""
+    payload = valid_v2_intake_payload(**overrides)
+    payload.pop("submitter", None)
+    return payload
+
+
 def intake_payload_simple(
     *,
     external_user_id: str = "opaque-user-001",

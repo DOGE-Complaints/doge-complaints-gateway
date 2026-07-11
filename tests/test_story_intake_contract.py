@@ -6,13 +6,15 @@ from core.intake import (
     INTAKE_RESPONSE_SCHEMA_VERSION,
     INTAKE_SCHEMA_VERSION,
     INTAKE_SCHEMA_VERSION_V1,
-    STASH_PENDING_EXTERNAL_USER_ID,
     IntakeValidationError,
+    StoryDraftStashRequest,
     build_story_intake_response,
     parse_story_draft_stash_request,
     parse_story_intake_request,
+    parse_stored_draft_stash_request,
 )
-from tests.intake_v2_fixtures import narrative_dict, valid_v2_intake_payload
+from core.intake.contracts import _LEGACY_STASH_PLACEHOLDER_EXTERNAL_USER_ID
+from tests.intake_v2_fixtures import narrative_dict, valid_v2_intake_payload, valid_v2_stash_payload
 
 
 def test_parse_story_intake_request_valid_payload() -> None:
@@ -43,10 +45,27 @@ def test_parse_story_intake_request_valid_payload() -> None:
 
 
 def test_parse_story_draft_stash_request_omits_submitter() -> None:
-    payload = valid_v2_intake_payload()
-    payload.pop("submitter", None)
-    request = parse_story_draft_stash_request(payload)
-    assert request.submitter.external_user_id == STASH_PENDING_EXTERNAL_USER_ID
+    request = parse_story_draft_stash_request(valid_v2_stash_payload())
+    assert isinstance(request, StoryDraftStashRequest)
+    assert request.schema_version == INTAKE_SCHEMA_VERSION
+    assert request.narrative.original_text.startswith("Road is blocked")
+
+
+def test_parse_story_draft_stash_request_rejects_submitter() -> None:
+    with pytest.raises(IntakeValidationError, match="submitter must be omitted"):
+        parse_story_draft_stash_request(valid_v2_intake_payload())
+
+
+def test_parse_stored_draft_stash_request_strips_legacy_placeholder_submitter() -> None:
+    """Pre-GW-DRAFT-05 drafts may store placeholder submitter; tolerant read strips it."""
+    payload = valid_v2_stash_payload()
+    payload["submitter"] = {
+        "external_user_id": _LEGACY_STASH_PLACEHOLDER_EXTERNAL_USER_ID,
+        "identity_issuer": "",
+    }
+    request = parse_stored_draft_stash_request(payload)
+    assert isinstance(request, StoryDraftStashRequest)
+    assert request.narrative.original_text.startswith("Road is blocked")
 
 
 def test_parse_story_intake_request_rejects_v1_schema() -> None:
