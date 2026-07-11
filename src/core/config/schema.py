@@ -123,7 +123,7 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         description=(
             "Service-to-service API token for protected operations. "
             "Required for pilot profile strict auth mode. "
-            "Public-content write routes (POST /intake/stories, POST /tallinn/issues) "
+            "Public-content write routes (POST /story-drafts, POST /tallinn/issues) "
             "reject with 401 when missing or invalid even if this env is unset (GW-GAUTH-01)."
         ),
     ),

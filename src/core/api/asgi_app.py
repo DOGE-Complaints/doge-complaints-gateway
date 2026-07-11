@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import logging
 import signal
@@ -20,7 +19,6 @@ from fastapi.responses import (  # pyright: ignore[reportMissingImports]
 
 from core.api.dependencies import ApiDependencies, build_api_dependencies
 from core.api.envelope import build_error_envelope, ensure_trace_id
-from core.api.idempotency import resolve_idempotency_key
 from core.api.handlers import (
     handle_health,
     handle_label_miss_telemetry,
@@ -30,7 +28,6 @@ from core.api.handlers import (
     handle_story_draft_create,
     handle_story_draft_get,
     handle_story_draft_submit,
-    handle_story_intake,
     handle_tallinn_issue_create,
     handle_tallinn_issue_get,
     handle_tallinn_issues_list,
@@ -59,7 +56,6 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/health",
     "/ready",
     "/demo/auth-page",
-    "/intake/stories",
     "/story-drafts",
     "/telemetry/label-misses",
     "/tallinn/issues",
@@ -496,26 +492,6 @@ async def tallinn_issue_create(
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)
-
-
-@app.post("/intake/stories", dependencies=[Depends(require_public_content_service_auth)])
-async def intake_stories(
-    request: Request,
-    deps: ApiDependencies = Depends(get_api_dependencies),
-) -> JSONResponse:
-    raw_body = await request.body()
-    payload = json.loads(raw_body)
-    user_introspection = getattr(request.state, "user_introspection", None)
-    envelope, status_code = handle_story_intake(
-        deps,
-        payload=payload,
-        idempotency_key=resolve_idempotency_key(
-            request.headers.get("idempotency-key"), raw_body
-        ),
-        trace_id=_read_trace_id(request),
-        user_introspection=user_introspection,
-    )
-    return JSONResponse(content=envelope, status_code=status_code)
 
 
 @app.post("/story-drafts", dependencies=_STORY_DRAFT_WRITE_DEPS)
