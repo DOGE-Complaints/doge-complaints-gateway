@@ -8,7 +8,6 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
-from urllib import error, request
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _SRC = _REPO_ROOT / "src"
@@ -16,6 +15,12 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from core.intake import INTAKE_SCHEMA_VERSION
+
+from simulation_intake_http import (
+    format_submit_failure,
+    post_stash_and_submit_http,
+    resolve_user_bearer_token,
+)
 
 
 def _load_env_file(path: Path) -> None:
@@ -109,43 +114,25 @@ def _scenario_to_payload(scenario: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def _extract_draft_id_from_stash_response(body: Any) -> str:
-    """Stash success body is SuccessEnvelope: { \"data\": { \"draft_id\": ... }, \"trace_id\": ... }."""
-    if not isinstance(body, dict):
-        return "n/a"
-    data = body.get("data")
-    if isinstance(data, dict):
-        draft_id = data.get("draft_id")
-        if isinstance(draft_id, str) and draft_id.strip():
-            return draft_id.strip()
-    draft_id = body.get("draft_id")
-    if isinstance(draft_id, str) and draft_id.strip():
-        return draft_id.strip()
-    return "n/a"
-
-
-def _post_json(
-    url: str,
-    payload: dict[str, Any],
-    api_token: str,
-) -> tuple[int, str]:
-    body = json.dumps(payload).encode("utf-8")
-    headers = {
-        "Authorization": f"Bearer {api_token}",
-        "Content-Type": "application/json",
-    }
-    req = request.Request(
-        url=url,
-        data=body,
-        method="POST",
-        headers=headers,
+def run_scenario_stash_submit(
+    *,
+    gateway_url: str,
+    service_token: str,
+    user_token: str,
+    scenario: dict[str, Any],
+) -> tuple[bool, int, str, str, str]:
+    """Returns ok, status_code, detail, draft_id, story_id."""
+    payload = _scenario_to_payload(scenario)
+    status_code, response_text, draft_id, story_id = post_stash_and_submit_http(
+        gateway_url=gateway_url,
+        service_token=service_token,
+        user_token=user_token,
+        payload=payload,
     )
-    try:
-        with request.urlopen(req, timeout=30) as resp:
-            return int(resp.status), resp.read().decode("utf-8")
-    except error.HTTPError as exc:
-        error_text = exc.read().decode("utf-8") if exc.fp else str(exc)
-        return int(exc.code), error_text
+    if status_code == 202:
+        return True, status_code, response_text, draft_id, story_id
+    detail = format_submit_failure(status_code, response_text.strip())
+    return False, status_code, detail, draft_id, story_id
 
 
 def _parse_args() -> argparse.Namespace:
@@ -161,6 +148,7 @@ def main() -> int:
 
     gateway_url = _required_env("GATEWAY_URL").rstrip("/")
     gateway_api_token = _required_env("GATEWAY_API_TOKEN")
+    gateway_user_token = resolve_user_bearer_token()
     canvas_path_raw = _required_env("SIMULATION_CANVAS_PATH")
     canvas_path = Path(canvas_path_raw)
     if not canvas_path.exists():
@@ -191,32 +179,27 @@ def main() -> int:
     print("DOGEstonia Simulation Runner")
     print(f"Canvas: {canvas_path} ({len(filtered)} scenarios selected)")
     print(f"Target: {gateway_url}")
+    print("Flow: POST /story-drafts (stash) -> POST /story-drafts/{{id}}/submit")
     print()
 
     successes = 0
     failures: list[str] = []
     for index, scenario in enumerate(filtered, start=1):
         simulation_id = str(scenario.get("simulation_id", f"idx-{index}"))
-        payload = _scenario_to_payload(scenario)
         try:
-            status_code, response_text = _post_json(
-                f"{gateway_url}/story-drafts",
-                payload,
-                gateway_api_token,
+            ok, status_code, detail, draft_id, story_id = run_scenario_stash_submit(
+                gateway_url=gateway_url,
+                service_token=gateway_api_token,
+                user_token=gateway_user_token,
+                scenario=scenario,
             )
-            if status_code == 201:
-                try:
-                    body = json.loads(response_text)
-                except json.JSONDecodeError:
-                    body = {}
-                draft_id = _extract_draft_id_from_stash_response(body)
+            if ok:
                 print(
                     f"[{index:>3}/{len(filtered)}] {simulation_id} -> "
-                    f"{status_code} OK draft_id={draft_id}"
+                    f"201 stash draft_id={draft_id} -> 202 submit story_id={story_id}"
                 )
                 successes += 1
             else:
-                detail = response_text.strip()
                 print(
                     f"[{index:>3}/{len(filtered)}] {simulation_id} -> "
                     f"{status_code} ERROR detail={detail}"

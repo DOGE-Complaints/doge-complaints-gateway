@@ -80,11 +80,12 @@ def build_intake_headers(
 
 def smoke_browser_bearer_token() -> str | None:
     _load_dotenv_test()
-    for name in ("GATEWAY_USER_TOKEN", "SMOKE_USER_BEARER_TOKEN"):
-        value = os.environ.get(name, "").strip()
-        if value:
-            return value
-    return None
+    try:
+        from simulation_intake_http import resolve_user_bearer_token
+
+        return resolve_user_bearer_token()
+    except RuntimeError:
+        return None
 
 
 def post_intake_via_story_drafts_http(
@@ -101,7 +102,9 @@ def post_intake_via_story_drafts_http(
         pytest.skip("GATEWAY_API_TOKEN or SERVICE_API_TOKEN required for smoke stash")
     user_token = smoke_browser_bearer_token()
     if not user_token:
-        pytest.skip("GATEWAY_USER_TOKEN or SMOKE_USER_BEARER_TOKEN required for smoke submit")
+        pytest.skip(
+            "GATEWAY_USER_EMAIL/PASSWORD + SUPABASE_URL/ANON_KEY required for smoke submit"
+        )
 
     stash_headers = dict(headers or {})
     stash_headers.setdefault("Authorization", f"Bearer {service_token}")
