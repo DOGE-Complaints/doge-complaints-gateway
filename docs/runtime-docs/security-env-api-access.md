@@ -32,9 +32,9 @@ Protected/public operation split (as-is, route policy — источник: `asg
   - `GET /demo/auth-page`
   - `GET /demo/auth-page/`
   - `GET /demo/auth-page/styles.css`
-  - `POST /intake/stories` ← бизнес-эндпоинт, без auth
+  - `POST /story-drafts` ← GPT stash (service token)
 
-**Примечание:** бизнес-эндпоинт intake (`/intake/stories`) намеренно публичен в текущей модели — service-to-service auth применяется только к ops-маршрутам. В pilot-профиле бизнес-эндпоинт может быть защищен при необходимости.
+**Примечание:** GPT stash (`POST /story-drafts`) требует service token (GW-DRAFT-04). Browser submit (`POST /story-drafts/{id}/submit`) — Bearer + identity `/me`. Ops-маршруты (`/protected/status`, `/metrics`) — service token.
 
 ### 1.1) User identifier linkage для stories
 
@@ -44,7 +44,6 @@ Protected/public operation split (as-is, route policy — источник: `asg
 |------|----------------|---------------|
 | `POST /story-drafts` (GPT stash) | `StoryDraftStashRequest` — **без** `submitter` | n/a (draft only) |
 | `POST /story-drafts/{id}/submit` (browser) | bridge → `StoryIntakeRequest` | identity `GET /me` → `authoritative_submitter_from_introspection` |
-| `POST /intake/stories` (legacy service) | `StoryIntakeRequest` — `submitter` required in payload | payload fields (no `/me` override when `user_introspection=None`) |
 
 - Домен: `parse_story_draft_stash_request`, `parse_story_intake_request`, `intake_request_from_stash_and_submitter` — `src/core/intake/contracts.py`.
 - Привязка к доменной модели: `StoryIntakeService.create_story` записывает
@@ -103,7 +102,7 @@ Gateway does **not** validate Supabase JWT locally on either path; trust boundar
 
 ### 4.1.1) Legacy public-content writes — trusted service channel (GW-DRAFT-04)
 
-**`POST /intake/stories` and `POST /tallinn/issues`:**
+**`POST /story-drafts` and `POST /tallinn/issues`:**
 
 - Auth: `require_public_content_service_auth` — valid `SERVICE_API_TOKEN` only (`asgi_app.py`).
 - **No user-token layer** — OAuth introspection removed (GW-DRAFT-04); payload `submitter` fields persist as provided (no authoritative override when `user_introspection=None`).
@@ -176,7 +175,7 @@ Identity runtime-docs (`04-security.md` §A, `09-gateway-expectations.md`) **в�
 ## Gaps / risks
 
 - В `demo` профиль всё ещё может работать в auth-disabled режиме при пустом `SERVICE_API_TOKEN`; это допустимо для демо, но рискованно без операционного контроля.
-- Бизнес-эндпоинт (`POST /intake/stories`) публичен — это осознанное решение для текущей фазы, но в production-like окружении может потребоваться auth gate.
+- GPT stash (`POST /story-drafts`) и browser submit (`POST /story-drafts/{id}/submit`) — см. [story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md); в production-like окружении требуется корректный service token и identity `/me`.
 - Отсутствует отдельный формализованный документ по ротации и аудит-требованиям для сервисных ключей.
 - Нет transport-level rate limiting/WAF логики в текущем `src/core` scope.
 

@@ -402,7 +402,7 @@ Source: `db_supabase.py:693-738`
 ## Сводная диаграмма зависимостей
 
 ```
-POST /intake/stories
+POST /story-drafts/{id}/submit  (browser → handle_story_intake internal)
         │
         ▼
 stories [story_id, narrative_*, submitter_*, geo_*, lifecycle_status=ACCEPTED→ready_for_profile]

@@ -652,47 +652,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /intake/stories:
-    post:
-      tags: [Intake]
-      summary: Submit story intake payload
-      description: |
-        Runtime state:
-        - intake contract exists in `src/core/intake/contracts.py`;
-        - HTTP runtime handler is implemented in `src/core/api/asgi_app.py` (`POST /intake/stories`).
-      operationId: postStoryIntake
-      x-runtime-state: implemented-runtime-binding
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StoryIntakeRequest'
-      responses:
-        '202':
-          description: Story accepted — clustering deferred to cron. Do not retry on 202.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessEnvelope_StoryIntake'
-        '400':
-          description: Intake validation error (DOMAIN_ERROR) or schema_version mismatch
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '422':
-          description: location_query resolved to geo outside CLUSTER_GEO_SCOPE (GEO_SCOPE_MISMATCH)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
-          description: Unexpected internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
   /story-drafts:
     post:
       tags: [Intake]
@@ -812,7 +771,7 @@ paths:
         - BearerAuth: []
       responses:
         '202':
-          description: Story created (same envelope as `POST /intake/stories`).
+          description: Story created via browser submit after GPT stash.
           content:
             application/json:
               schema:

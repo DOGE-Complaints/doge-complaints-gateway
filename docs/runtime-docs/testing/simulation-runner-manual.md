@@ -47,7 +47,7 @@ doge-complaints-gateway/
 | Переменная | Обязательная | Описание |
 |---|---|---|
 | `GATEWAY_URL` | **ДА** | Адрес задеплоенного приложения, например `https://dogestonia-tallinn.up.railway.app` |
-| `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. **Legacy path:** `POST /intake/stories` (simulation runner) — **service-only** после GW-DRAFT-04 (без `X-User-Token`). Продуктовый user submit — browser `POST /story-drafts/{id}/submit` ([story-draft-handoff](../../tasks/backlog-stories/story-draft-handoff/INDEX.md)). |
+| `GATEWAY_API_TOKEN` | **ДА** | **Сервисный** токен канала (`SERVICE_API_TOKEN` из `.env` приложения) → заголовок `Authorization: Bearer`. Runner (GW-DRAFT-06): **`POST /story-drafts`** stash-only — **201** + `draft_id` (без submitter). Полный submit/cluster → [GW-SEED-01](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-01-loader-and-hosted-readiness.md); продуктовый user submit — browser `POST /story-drafts/{id}/submit`. |
 | `SIMULATION_CANVAS_PATH` | нет | Путь к JSON-файлу со сценариями. По умолчанию: `tests/sandbox/dogestonia_simulation_canvas_v0_1.json` |
 | `SIMULATION_GROUPS` | нет | Фильтр групп через запятую. Пусто = все группы |
 | `SIMULATION_MAX_STORIES` | нет | Максимум историй за прогон. Пусто = все |
@@ -121,10 +121,10 @@ Exit code 1 — есть ошибки (список в `Failed IDs`).
 
 | Код | Что случилось |
 |---|---|
-| 200 | История принята, получен `story_id` |
+| 201 | Draft stashed, получен `draft_id` (GW-DRAFT-06 stash-only runner) |
 | 400 | Невалидный payload (проблема в данных) |
 | 401 | Неверный или отсутствующий `GATEWAY_API_TOKEN` (сервисный слой). |
-| 403 | Не применяется к legacy `/intake/stories` (service-only). Для browser submit см. `POST /story-drafts/{id}/submit`. |
+| 403 | Для browser submit см. `POST /story-drafts/{id}/submit` (не применяется к stash runner). |
 | 503 | Сервер не готов (БД/конфиг) — см. `/ready`. |
 | 500 | Ошибка на стороне сервера |
 

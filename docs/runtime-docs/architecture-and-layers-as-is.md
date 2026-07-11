@@ -47,7 +47,6 @@ Runtime graph строится через:
 | GET | `/demo/auth-page` | public | demo static HTML |
 | GET | `/demo/auth-page/` | public | demo static HTML alias |
 | GET | `/demo/auth-page/styles.css` | public | demo static CSS |
-| POST | `/intake/stories` | service-only (trusted channel) | legacy seed/simulation story-first intake (GW-DRAFT-04); **product user submit** → `POST /story-drafts/{id}/submit` |
 | POST | `/story-drafts` | service | GPT stash draft (`StoryDraftStashRequest`, no submitter); no story created — [API_REFERENCE §6.8](api-reference/API_REFERENCE.md) |
 | GET | `/story-drafts/{draft_id}` | browser Bearer → `/me` | Browser preview draft (active session only) |
 | POST | `/story-drafts/{draft_id}/submit` | browser Bearer → `/me` + `phone_verified` | Browser submit → story create (as-built user path) |
@@ -56,25 +55,7 @@ Runtime graph строится через:
 
 **As-built user submit:** GPT → `POST /story-drafts` (service) → `draft_id` → SPA browser → `GET`/`POST …/submit` (Bearer, identity `/me`). Детали: [API_REFERENCE §6.8](api-reference/API_REFERENCE.md), [security-env-api-access.md](security-env-api-access.md) §4.1.
 
-### 4) Runtime flow (story-first direct — legacy trusted-service intake)
-
-```mermaid
-flowchart TD
-  apiIntake[POST /intake/stories] --> parse[parse_story_intake_request]
-  parse --> intake[StoryIntakeService.create_story]
-  intake --> storyStore[StoryRepository.save]
-  intake --> storyEmbedding[StoryEmbeddingStore.save_story_embedding]
-  storyStore --> orchestrator[StoryClusterOrchestrator.process_story]
-  orchestrator --> cluster[ClusteringEngine.memberships]
-  cluster --> issueCreate[IssueCreateService.create_issue]
-  issueCreate --> projectionBridge[StoryPromotionProjectionBridge]
-  projectionBridge --> projectionService[IssueProjectionService.project]
-  issueCreate --> projectionStore[IssueProjectionStore.save]
-  issueCreate --> linkStore[IssueStoryLinkStore.save_issue_story_links]
-  issueCreate --> issueEmbedding[IssueProjectionEmbeddingStore.save_projection_embedding]
-```
-
-### 4.1) Runtime flow (story-draft handoff — as-built user submit, GW-DRAFT-01/02)
+### 4) Runtime flow (story-draft handoff — product write path, GW-DRAFT-01/02/06)
 
 ```mermaid
 flowchart TD
@@ -109,7 +90,7 @@ flowchart TD
 ### 7) Verification evidence
 
 - Layer/DI: `tests/test_layer_guardrails.py`, `tests/test_bootstrap_smoke.py`, `tests/test_di_service_factory.py`
-- HTTP transport: `tests/test_http_transport_smoke.py`, `tests/test_http_intake_endpoint.py`, `tests/test_http_issue_create_endpoint.py`
+- HTTP transport: `tests/test_http_transport_smoke.py`, `tests/test_http_issue_create_endpoint.py`
 - Story-first e2e: `tests/test_e2e_story_cluster_issue_pipeline.py`, `tests/test_e2e_intake_create_spa_contract.py`
 - Story-draft handoff: `tests/test_gw_draft_01_story_draft_stash_contract.py`, `tests/test_gw_draft_02_story_draft_submit_contract.py`, `tests/test_gw_draft_02_get_auth_contract.py`
 

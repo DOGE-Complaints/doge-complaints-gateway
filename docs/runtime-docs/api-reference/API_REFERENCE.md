@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Intake (`POST /intake/stories`) and story draft stash (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable.
+2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -130,14 +130,13 @@ Validated in:
 - **Purpose**: in-process counters (`health_requests`, `readiness_requests`, `protected_requests`, `metrics_requests`, `auth_failures`)
 - **Auth required**: Bearer token or `X-Service-Token` when auth is enabled
 
-## 6. Intake Endpoint (implemented HTTP binding)
+## 6. Story intake (GW-DRAFT-06 — public HTTP path removed)
 
-### `POST /intake/stories`
+Public `POST /intake/stories` was removed in GW-DRAFT-06. **GPT write path:** `POST /story-drafts` (stash). **User submit path:** `POST /story-drafts/{draft_id}/submit` (browser Bearer + identity `/me`). Domain logic `handle_story_intake` remains internal (submit-bridge only).
 
-- **Contract**: `src/core/intake/contracts.py`, `src/core/application/services.py`
-- **HTTP binding**: `asgi_app.py:394-409` → `handle_story_intake` (`handlers.py:124-280`)
-- **HTTP status on success**: `202 Accepted`
-- **Request Content-Type**: `application/json`
+See **§6.8 Story draft stash** for HTTP bindings, auth, and envelopes. The request/response shapes below describe the internal `StoryIntakeRequest` contract still used after browser submit.
+
+### Internal contract reference (`StoryIntakeRequest` — not a public HTTP route)
 
 ---
 
@@ -517,7 +516,7 @@ Browser handoff completion: verified user submits stashed draft; gateway calls i
 - **Identity:** `IdentityMeClient` → `{IDENTITY_BASE_URL}/me` → `IntrospectionResult`; env `IDENTITY_BASE_URL` (falls back to `IDENTITY_INTROSPECT_URL` base when unset)
 - **Gate:** reuse `evaluate_verification_gate` — `phone_verified=true` → intake; `false` → **403** `verification_required` + `verify_url`; inactive/missing token → **401**; identity down → **503**
 - **Body:** none (payload loaded from draft store by `draft_id`; bridged to `StoryIntakeRequest` with `/me` author)
-- **Success:** `202 Accepted` — same `StoryIntakeResponse` envelope as `POST /intake/stories`; `submitter` resolved via `authoritative_submitter_from_introspection` (`sub` from `/me`)
+- **Success:** `202 Accepted` — `StoryIntakeResponse` envelope; `submitter` resolved via `authoritative_submitter_from_introspection` (`sub` from `/me`)
 - **Idempotency:** `draft_id` is the idempotency key; repeat submit returns same `story_id` without duplicate stories; draft deleted after first success
 - **Not found / expired:** `404` — `DOMAIN_ERROR`
 - **Config:** `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL` (for `verify_url`)
@@ -725,7 +724,8 @@ Sources:
 - Public operations (no auth required):
   - `GET /health`
   - `GET /ready`
-  - `POST /intake/stories` (202 Accepted — clustering deferred to cron)
+  - `POST /story-drafts` (201 Created — GPT stash; no story yet)
+  - `POST /story-drafts/{draft_id}/submit` (202 Accepted — browser submit → story created; clustering deferred to cron)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
   - `GET /tallinn/issues` (15-parameter filter API)
   - `GET /tallinn/issues/{issue_id}`
@@ -742,7 +742,7 @@ For integrators:
 
 1. Treat `openapi.yaml` as the normative reference format.
 2. All endpoints listed in sections 5, 6, and 7 are routable in the current runtime.
-3. `POST /intake/stories` returns `202 Accepted` — the story is queued for clustering; do not retry on 202.
+3. `POST /story-drafts/{draft_id}/submit` returns `202 Accepted` — the story is queued for clustering; do not retry on 202.
 4. `GET /tallinn/issues` multi-value filters use repeated query params, not comma-separated strings.
 5. Demo static routes are active and routable in current runtime (`/demo/auth-page*`).
 6. `POST /tallinn/issues` is for operator use only and requires `SERVICE_API_TOKEN`.
