@@ -14,8 +14,8 @@ from core.domain.narrative_i18n import (
 INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v2"
 INTAKE_SCHEMA_VERSION_V1 = "m2.story_intake_envelope.v1"
 INTAKE_RESPONSE_SCHEMA_VERSION = "m2.story_intake_response.v1"
-# Placeholder author on GPT stash path; replaced at browser submit via /me (GW-DRAFT-02).
-STASH_PENDING_EXTERNAL_USER_ID = "__stash_pending_author__"
+# Legacy value for pre-GW-DRAFT-05 drafts only; stripped in _normalize_stored_draft_payload (T02).
+_LEGACY_STASH_PLACEHOLDER_EXTERNAL_USER_ID = "__stash_pending_author__"
 
 
 class IntakeValidationError(ValueError):
@@ -81,6 +81,19 @@ def gpt_signals_block_has_values(block: GptSignalsBlock) -> bool:
         or block.impact_estimation is not None
         or block.problem_status is not None
     )
+
+
+@dataclass(frozen=True)
+class StoryDraftStashRequest:
+    schema_version: str
+    narrative: Narrative
+    origin: Origin | None = None
+    privacy: Privacy | None = None
+    live_story_context: LiveStoryContext | None = None
+    gpt_signals: GptSignalsBlock | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -206,11 +219,14 @@ def _parse_language_code(raw: str, *, field_name: str, parent: str) -> str:
     return normalized
 
 
-def parse_story_intake_request(
-    payload: Mapping[str, Any],
-    *,
-    require_submitter: bool = True,
-) -> StoryIntakeRequest:
+def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
+    str,
+    Narrative,
+    Origin | None,
+    Privacy | None,
+    LiveStoryContext | None,
+    GptSignalsBlock | None,
+]:
     schema_version = _require_non_empty_string(payload, "schema_version")
     if schema_version == INTAKE_SCHEMA_VERSION_V1:
         raise IntakeValidationError(
@@ -222,27 +238,6 @@ def parse_story_intake_request(
             f"Unsupported schema_version={schema_version!r}. "
             f"Expected {INTAKE_SCHEMA_VERSION!r}."
         )
-
-    submitter_payload = payload.get("submitter")
-    if require_submitter:
-        if not isinstance(submitter_payload, Mapping):
-            raise IntakeValidationError("Missing or invalid root.submitter.")
-        external_user_id = _require_non_empty_string(
-            submitter_payload, "external_user_id", parent="submitter"
-        )
-        identity_issuer = _require_non_empty_string(
-            submitter_payload, "identity_issuer", parent="submitter"
-        )
-    elif isinstance(submitter_payload, Mapping):
-        external_user_id = _require_non_empty_string(
-            submitter_payload, "external_user_id", parent="submitter"
-        )
-        identity_issuer = _require_non_empty_string(
-            submitter_payload, "identity_issuer", parent="submitter"
-        )
-    else:
-        external_user_id = STASH_PENDING_EXTERNAL_USER_ID
-        identity_issuer = ""
 
     narrative_payload = payload.get("narrative")
     if not isinstance(narrative_payload, Mapping):
@@ -299,7 +294,7 @@ def parse_story_intake_request(
     canonical_labels_raw = narrative_payload.get("canonical_labels")
     canonical_labels: tuple[str, ...] = ()
     if canonical_labels_raw is not None:
-        if not isinstance(canonical_labels_raw, list):
+        if not isinstance(canonical_labels_raw, (list, tuple)):
             raise IntakeValidationError(
                 "Missing or invalid narrative.canonical_labels. Expected array."
             )
@@ -311,6 +306,19 @@ def parse_story_intake_request(
                 )
             normalized_labels.append(label.strip().lower())
         canonical_labels = tuple(dict.fromkeys(normalized_labels))
+
+    narrative = Narrative(
+        original_text=original_text,
+        language=language,
+        title=title,
+        description=description,
+        session_language=session_language,
+        location_query=location_query,
+        canonical_type=canonical_type,
+        canonical_labels=canonical_labels,
+        summary=summary,
+        institution=institution,
+    )
 
     origin_payload = payload.get("origin")
     origin: Origin | None = None
@@ -368,24 +376,41 @@ def parse_story_intake_request(
         if gpt_signals_block_has_values(parsed_gpt_signals):
             gpt_signals = parsed_gpt_signals
 
+    return (
+        schema_version,
+        narrative,
+        origin,
+        privacy,
+        live_story_context,
+        gpt_signals,
+    )
+
+
+def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
+    (
+        schema_version,
+        narrative,
+        origin,
+        privacy,
+        live_story_context,
+        gpt_signals,
+    ) = _parse_story_envelope_body(payload)
+    submitter_payload = payload.get("submitter")
+    if not isinstance(submitter_payload, Mapping):
+        raise IntakeValidationError("Missing or invalid root.submitter.")
+    external_user_id = _require_non_empty_string(
+        submitter_payload, "external_user_id", parent="submitter"
+    )
+    identity_issuer = _require_non_empty_string(
+        submitter_payload, "identity_issuer", parent="submitter"
+    )
     return StoryIntakeRequest(
         schema_version=schema_version,
         submitter=Submitter(
             external_user_id=external_user_id,
             identity_issuer=identity_issuer,
         ),
-        narrative=Narrative(
-            original_text=original_text,
-            language=language,
-            title=title,
-            description=description,
-            session_language=session_language,
-            location_query=location_query,
-            canonical_type=canonical_type,
-            canonical_labels=canonical_labels,
-            summary=summary,
-            institution=institution,
-        ),
+        narrative=narrative,
         origin=origin,
         privacy=privacy,
         live_story_context=live_story_context,
@@ -393,9 +418,61 @@ def parse_story_intake_request(
     )
 
 
-def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryIntakeRequest:
+def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftStashRequest:
     """Validate GPT stash payload (StoryDraftStashRequest) — submitter omitted by design."""
-    return parse_story_intake_request(payload, require_submitter=False)
+    if "submitter" in payload:
+        raise IntakeValidationError(
+            "root.submitter must be omitted for story draft stash."
+        )
+    (
+        schema_version,
+        narrative,
+        origin,
+        privacy,
+        live_story_context,
+        gpt_signals,
+    ) = _parse_story_envelope_body(payload)
+    return StoryDraftStashRequest(
+        schema_version=schema_version,
+        narrative=narrative,
+        origin=origin,
+        privacy=privacy,
+        live_story_context=live_story_context,
+        gpt_signals=gpt_signals,
+    )
+
+
+def _normalize_stored_draft_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Strip legacy placeholder submitter from pre-GW-DRAFT-05 drafts (T02 tolerant read)."""
+    normalized = dict(payload)
+    submitter = normalized.get("submitter")
+    if isinstance(submitter, Mapping):
+        ext = submitter.get("external_user_id")
+        if ext == _LEGACY_STASH_PLACEHOLDER_EXTERNAL_USER_ID:
+            normalized.pop("submitter", None)
+    return normalized
+
+
+def parse_stored_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftStashRequest:
+    """Parse draft store payload; tolerates legacy placeholder submitter on submit."""
+    return parse_story_draft_stash_request(_normalize_stored_draft_payload(payload))
+
+
+def intake_request_from_stash_and_submitter(
+    stash: StoryDraftStashRequest,
+    *,
+    submitter: Submitter,
+) -> StoryIntakeRequest:
+    """Bridge stash → intake at browser submit boundary (GW-DRAFT-05)."""
+    return StoryIntakeRequest(
+        schema_version=stash.schema_version,
+        submitter=submitter,
+        narrative=stash.narrative,
+        origin=stash.origin,
+        privacy=stash.privacy,
+        live_story_context=stash.live_story_context,
+        gpt_signals=stash.gpt_signals,
+    )
 
 
 def build_story_intake_response(

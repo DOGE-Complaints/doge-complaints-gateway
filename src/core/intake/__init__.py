@@ -12,13 +12,15 @@ from core.intake.contracts import (
     Origin,
     Privacy,
     IntakeNotes,
+    StoryDraftStashRequest,
     StoryIntakeRequest,
     StoryIntakeResponse,
-    STASH_PENDING_EXTERNAL_USER_ID,
     Submitter,
     build_story_intake_response,
+    intake_request_from_stash_and_submitter,
     parse_story_draft_stash_request,
     parse_story_intake_request,
+    parse_stored_draft_stash_request,
 )
 from core.intake.observability import (
     IntakeErrorInfo,
@@ -44,11 +46,13 @@ __all__ = [
     "Privacy",
     "LiveStoryContext",
     "IntakeNotes",
+    "StoryDraftStashRequest",
     "StoryIntakeRequest",
     "StoryIntakeResponse",
-    "STASH_PENDING_EXTERNAL_USER_ID",
     "parse_story_draft_stash_request",
+    "parse_stored_draft_stash_request",
     "parse_story_intake_request",
+    "intake_request_from_stash_and_submitter",
     "build_story_intake_response",
     "IntakeErrorType",
     "IntakeErrorInfo",
@@ -57,4 +61,3 @@ __all__ = [
     "log_intake_error",
     "IntakeTelemetry",
 ]
-

@@ -26,10 +26,12 @@ from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
 from core.identity.introspection_result import IntrospectionResult
 from core.intake import (
     IntakeValidationError,
-    STASH_PENDING_EXTERNAL_USER_ID,
+    Submitter,
     build_story_intake_response,
+    intake_request_from_stash_and_submitter,
     parse_story_draft_stash_request,
     parse_story_intake_request,
+    parse_stored_draft_stash_request,
 )
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
 
@@ -178,20 +180,11 @@ def handle_story_intake(
         )
         return envelope.as_dict(), 503
     try:
-        request = parse_story_intake_request(
-            payload,
-            require_submitter=user_introspection is None,
-        )
+        request = parse_story_intake_request(payload)
         if user_introspection is not None:
             claimed_submitter = request.submitter
-            stash_pending = (
-                claimed_submitter.external_user_id == STASH_PENDING_EXTERNAL_USER_ID
-            )
-            if (
-                not stash_pending
-                and payload_submitter_mismatches_introspection(
-                    claimed_submitter, user_introspection
-                )
+            if payload_submitter_mismatches_introspection(
+                claimed_submitter, user_introspection
             ):
                 log_api_event(
                     logging.INFO,
@@ -536,13 +529,13 @@ def handle_story_draft_create(
         log_error(envelope)
         return envelope.as_dict(), 500
     try:
-        parse_story_draft_stash_request(payload)
+        stash = parse_story_draft_stash_request(payload)
         now = datetime.now(UTC)
         expires_at = now + timedelta(seconds=dependencies.config.story_draft_ttl_seconds)
         draft_id = secrets.token_urlsafe(16)
         record = StoryDraftRecord(
             draft_id=draft_id,
-            payload=dict(payload),
+            payload=stash.as_dict(),
             created_at=now,
             expires_at=expires_at,
         )
@@ -683,12 +676,21 @@ def handle_story_draft_submit(
             404,
         )
 
+    stash = parse_stored_draft_stash_request(record.payload)
+    authoritative = authoritative_submitter_from_introspection(
+        payload_submitter=Submitter(external_user_id="", identity_issuer=""),
+        introspection=user_introspection,
+        identity_introspect_url=dependencies.config.identity_base_url,
+    )
+    intake_request = intake_request_from_stash_and_submitter(
+        stash, submitter=authoritative
+    )
     envelope, status_code = handle_story_intake(
         dependencies,
-        payload=record.payload,
+        payload=intake_request.as_dict(),
         idempotency_key=draft_id,
         trace_id=resolved_trace_id,
-        user_introspection=user_introspection,
+        user_introspection=None,
     )
     if status_code == 202:
         repository.delete_draft(draft_id)
