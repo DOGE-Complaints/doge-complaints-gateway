@@ -11,6 +11,7 @@ from core.domain import StoryGeoSnapshot
 from core.geo.providers import _EstoniaGeoLookup
 from core.geo.scope import geo_filter_bucket, parse_cluster_geo_filter
 from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 def _civic_signals() -> dict[str, str]:
@@ -126,8 +127,8 @@ def test_intake_geo_scope_rejects_narva_when_tallinn_node(
 ) -> None:
     monkeypatch.setenv("CLUSTER_GEO_SCOPE", "settlement:tallinn")
     _clear_api_dependencies_cache()
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=_intake_with_location("Narva, Estonia"),
         headers={"idempotency-key": "req35-scope-narva"},
     )
@@ -142,8 +143,8 @@ def test_intake_geo_scope_allows_story_without_location(
     _clear_api_dependencies_cache()
     payload = _intake_with_location("")
     payload["narrative"].pop("location_query", None)
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=payload,
         headers={"idempotency-key": "req35-scope-no-geo"},
     )
@@ -160,8 +161,8 @@ def test_intake_geo_scope_accepts_tallinn_location(
         "external_user_id": "req35-tallinn-user",
         "identity_issuer": "https://idp.example.com/eid",
     }
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=payload,
         headers={"idempotency-key": "req35-scope-tallinn"},
     )

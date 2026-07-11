@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 from simulation_runner import _scenario_to_payload
 
 _CANVAS_PATH = Path(__file__).resolve().parent / "sandbox" / "dogestonia_simulation_canvas_v0_1.json"
@@ -38,7 +39,8 @@ def _load_canvas() -> list[dict[str, Any]]:
 def _intake_and_cluster_all_canvas(client: TestClient) -> None:
     for scenario in _load_canvas():
         payload = _scenario_to_payload(scenario)
-        response = client.post("/intake/stories", json=payload)
+        response = post_intake_via_story_drafts(
+        client, json=payload)
         assert response.status_code == 202, (
             f"Intake failed for scenario {scenario.get('simulation_id', '?')}: {response.text}"
         )
@@ -48,7 +50,8 @@ def _intake_and_cluster_all_canvas(client: TestClient) -> None:
 def test_n01_all_canvas_scenarios_intake_without_errors(client: TestClient) -> None:
     for scenario in _load_canvas():
         payload = _scenario_to_payload(scenario)
-        response = client.post("/intake/stories", json=payload)
+        response = post_intake_via_story_drafts(
+        client, json=payload)
         assert response.status_code == 202, scenario.get("simulation_id", "?")
 
 

@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import json
+import logging
+from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid4
 from typing import Any
 
 import httpx
@@ -21,6 +24,15 @@ _GPT_SIGNALS_ENUMS = {
     "impact_estimation": frozenset({"LOCAL", "DISTRICT", "CITY", "NATIONAL"}),
     "problem_status": frozenset({"ONGOING", "RESOLVED", "RECURRING", "UNKNOWN"}),
 }
+_LOGGER = logging.getLogger(__name__)
+
+
+def _mask_headers(headers: dict[str, str]) -> dict[str, str]:
+    masked = dict(headers)
+    auth = masked.get("Authorization")
+    if auth:
+        masked["Authorization"] = "Bearer ***"
+    return masked
 
 
 def _load_gpt_pirita_payload() -> dict[str, Any]:
@@ -92,21 +104,47 @@ def test_gpt_pirita_payload_static_contract_check(gpt_pirita_intake_payload: dic
 
 def test_ls_gpt_pirita_demo_intake_returns_202_with_story_id(
     http_client: httpx.Client,
+    local_server_url_source: str,
     gpt_pirita_intake_payload: dict[str, Any],
 ) -> None:
     assert_payload_matches_api_reference(gpt_pirita_intake_payload)
     token = intake_auth_token()
-    response = http_client.post(
-        "/intake/stories",
-        json=gpt_pirita_intake_payload,
-        headers=build_intake_headers(
-            idempotency_key="gpt-pirita-demo-smoke",
-            bearer_token=token,
-        ),
+    endpoint = "/story-drafts"
+    stash_payload = dict(gpt_pirita_intake_payload)
+    stash_payload.pop("submitter", None)
+    idempotency_key = (
+        f"gpt-pirita-demo-smoke-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{uuid4().hex[:8]}"
     )
-    assert response.status_code == 202, (
-        f"expected HTTP 202 for GPT Pirita intake; got {response.status_code}: {response.text}"
+    headers = build_intake_headers(
+        idempotency_key=idempotency_key,
+        bearer_token=token,
+    )
+    request_url = f"{str(http_client.base_url).rstrip('/')}{endpoint}"
+    _LOGGER.info("pirita_smoke.url_source=%s base_url=%s", local_server_url_source, http_client.base_url)
+    _LOGGER.info("pirita_smoke.start url=%s method=POST", request_url)
+    _LOGGER.info("pirita_smoke.request_headers=%s", _mask_headers(headers))
+    _LOGGER.info("pirita_smoke.idempotency_key=%s", idempotency_key)
+    _LOGGER.info(
+        "pirita_smoke.request_payload=%s",
+        json.dumps(gpt_pirita_intake_payload, ensure_ascii=False, indent=2),
+    )
+    response = http_client.post(
+        endpoint,
+        json=stash_payload,
+        headers=headers,
+    )
+    _LOGGER.info("pirita_smoke.response_status=%s", response.status_code)
+    _LOGGER.info("pirita_smoke.response_headers=%s", dict(response.headers))
+    _LOGGER.info("pirita_smoke.response_body=%s", response.text)
+    assert response.status_code == 201, (
+        "expected HTTP 201 for GPT Pirita story-drafts stash; "
+        f"url={request_url}; status={response.status_code}; body={response.text}"
     )
     body = response.json()
-    story_id = body.get("data", {}).get("story_id")
-    assert story_id and str(story_id).strip(), f"missing data.story_id in {body!r}"
+    draft_id = body.get("data", {}).get("draft_id")
+    _LOGGER.info(
+        "pirita_smoke.parsed_response draft_id=%s trace_id=%s",
+        draft_id,
+        body.get("trace_id"),
+    )
+    assert draft_id and str(draft_id).strip(), f"missing data.draft_id in {body!r}"

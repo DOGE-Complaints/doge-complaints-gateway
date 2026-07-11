@@ -115,7 +115,8 @@ def test_extend_flow_process_story_story_count_three_and_labels_union() -> None:
     expected_canonical = canonical_labels_from_cluster(cluster_records)
     assert set(expected_canonical) == {"roads", "broken_infrastructure", "parking"}
 
-    payload = projection_store._rows[issue_id]["payload"]
+    payload = projection_store.get_projection(issue_id)
+    assert payload is not None
     assert set(payload["labels"]) == set(spa_labels_from_canonical(expected_canonical))
 
     for sid in ("s1", "s2", "s3"):

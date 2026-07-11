@@ -11,6 +11,13 @@ from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
 from core.infrastructure.db_sqlite import SqliteStorySignalStore
 from core.intake import IntakeValidationError, parse_story_intake_request
 from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.story_draft_intake_helpers import (
+    patch_identity_me_verified,
+    post_intake_via_story_drafts,
+    stash_story_draft,
+    submit_story_draft,
+    submitter_external_id,
+)
 
 
 @pytest.fixture()
@@ -96,8 +103,8 @@ def test_parse_empty_gpt_signals_object_normalized_to_none() -> None:
 def test_intake_empty_gpt_signals_object_no_classifier_row(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=valid_v2_intake_payload(gpt_signals={}),
         headers={"x-trace-id": "trace-gpt-empty", "idempotency-key": "idem-gpt-empty"},
     )
@@ -111,8 +118,8 @@ def test_intake_empty_gpt_signals_object_no_classifier_row(
 def test_intake_with_gpt_signals_returns_202_and_persists_sqlite(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=_payload_with_gpt_signals(),
         headers={"x-trace-id": "trace-gpt-1", "idempotency-key": "idem-gpt-1"},
     )
@@ -132,8 +139,8 @@ def test_intake_with_gpt_signals_returns_202_and_persists_sqlite(
 def test_intake_without_gpt_signals_no_classifier_row(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=valid_v2_intake_payload(),
         headers={"x-trace-id": "trace-gpt-none", "idempotency-key": "idem-gpt-none"},
     )
@@ -147,8 +154,8 @@ def test_intake_without_gpt_signals_no_classifier_row(
 def test_intake_invalid_gpt_signals_severity_returns_400(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=_payload_with_gpt_signals(severity="INVALID"),
         headers={"x-trace-id": "trace-gpt-bad", "idempotency-key": "idem-gpt-bad"},
     )
@@ -157,11 +164,14 @@ def test_intake_invalid_gpt_signals_severity_returns_400(
 
 def test_intake_gpt_signals_idempotent_single_classifier_row(
     sqlite_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     payload = _payload_with_gpt_signals()
     headers = {"x-trace-id": "trace-gpt-idem", "idempotency-key": "idem-gpt-repeat"}
-    first = sqlite_client.post("/intake/stories", json=payload, headers=headers)
-    second = sqlite_client.post("/intake/stories", json=payload, headers=headers)
+    draft_id = stash_story_draft(sqlite_client, payload, headers=headers)
+    patch_identity_me_verified(monkeypatch, sub=submitter_external_id(payload))
+    first = submit_story_draft(sqlite_client, draft_id, headers=headers)
+    second = submit_story_draft(sqlite_client, draft_id, headers=headers)
     assert first.status_code == 202
     assert second.status_code == 202
     story_id = first.json()["data"]["story_id"]
@@ -194,10 +204,11 @@ def test_intake_gpt_signals_persist_failure_still_returns_202(
 
     monkeypatch.setattr(store, "save_signals", _boom)
 
-    response = demo_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        demo_client,
         json=_payload_with_gpt_signals(),
         headers={"x-trace-id": "trace-gpt-fail", "idempotency-key": "idem-gpt-fail"},
+        monkeypatch=monkeypatch,
     )
     assert response.status_code == 202
     assert response.json()["data"]["story_id"]

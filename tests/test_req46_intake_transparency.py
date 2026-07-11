@@ -17,6 +17,7 @@ from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepo
 from core.infrastructure.repositories import InMemoryStorySignalStore
 from core.intake import parse_story_intake_request
 from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -45,8 +46,8 @@ def _geo_service() -> GeoService:
 
 
 def test_http_intake_response_includes_intake_notes(demo_client: TestClient) -> None:
-    response = demo_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        demo_client,
         json=valid_v2_intake_payload(narrative={"location_query": "Tallinn"}),
     )
     assert response.status_code == 202
@@ -208,8 +209,8 @@ def test_sqlite_intake_persists_gpt_signals_when_store_configured(
     _clear_api_dependencies_cache()
     try:
         with TestClient(app) as client:
-            response = client.post(
-                "/intake/stories",
+            response = post_intake_via_story_drafts(
+        client,
                 json=valid_v2_intake_payload(
                     gpt_signals={
                         "severity": "MEDIUM",

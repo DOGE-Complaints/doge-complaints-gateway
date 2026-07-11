@@ -14,6 +14,7 @@ from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMe
 from core.intake import IntakeValidationError, parse_story_intake_request
 from core.projection import project_distinct_issue
 from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 _INSTITUTION = {
     "et": "Tallinna Linnavalitsus",
@@ -69,8 +70,8 @@ def test_parse_incomplete_institution_raises() -> None:
 def test_intake_with_institution_returns_202_and_persists_sqlite(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=_payload_with_institution(),
         headers={"x-trace-id": "trace-inst-1", "idempotency-key": "idem-inst-1"},
     )
@@ -85,8 +86,8 @@ def test_intake_with_institution_returns_202_and_persists_sqlite(
 def test_intake_without_institution_leaves_column_null(
     sqlite_client: TestClient,
 ) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=valid_v2_intake_payload(),
         headers={"x-trace-id": "trace-inst-none", "idempotency-key": "idem-inst-none"},
     )
@@ -99,8 +100,8 @@ def test_intake_without_institution_leaves_column_null(
 
 
 def test_intake_invalid_institution_returns_400(sqlite_client: TestClient) -> None:
-    response = sqlite_client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        sqlite_client,
         json=valid_v2_intake_payload(
             narrative={"institution": {"et": "x", "ru": "y"}}
         ),

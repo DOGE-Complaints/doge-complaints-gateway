@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from tests.intake_v2_fixtures import intake_payload_simple
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 def _projection_count() -> int:
@@ -40,8 +41,8 @@ def _intake_pair(client: TestClient, *, prefix: str) -> None:
             title_en=f"Cron {prefix} {suffix}",
         )
         payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-        response = client.post(
-            "/intake/stories",
+        response = post_intake_via_story_drafts(
+        client,
             json=payload,
             headers={"idempotency-key": f"cron-{prefix}-{suffix}"},
         )

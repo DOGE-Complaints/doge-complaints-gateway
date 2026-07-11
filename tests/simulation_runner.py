@@ -96,10 +96,6 @@ def _scenario_to_payload(scenario: dict[str, Any]) -> dict[str, Any]:
 
     payload: dict[str, Any] = {
         "schema_version": INTAKE_SCHEMA_VERSION,
-        "submitter": {
-            "external_user_id": f"sim:{scenario['simulation_id']}",
-            "identity_issuer": "https://simulation.dogestonia/eid",
-        },
         "narrative": narrative,
         "origin": {
             "source": "simulation",
@@ -113,18 +109,18 @@ def _scenario_to_payload(scenario: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def _extract_story_id_from_intake_response(body: Any) -> str:
-    """Intake success body is SuccessEnvelope: { \"data\": { \"story_id\": ... }, \"trace_id\": ... }."""
+def _extract_draft_id_from_stash_response(body: Any) -> str:
+    """Stash success body is SuccessEnvelope: { \"data\": { \"draft_id\": ... }, \"trace_id\": ... }."""
     if not isinstance(body, dict):
         return "n/a"
     data = body.get("data")
     if isinstance(data, dict):
-        sid = data.get("story_id")
-        if isinstance(sid, str) and sid.strip():
-            return sid.strip()
-    sid = body.get("story_id")
-    if isinstance(sid, str) and sid.strip():
-        return sid.strip()
+        draft_id = data.get("draft_id")
+        if isinstance(draft_id, str) and draft_id.strip():
+            return draft_id.strip()
+    draft_id = body.get("draft_id")
+    if isinstance(draft_id, str) and draft_id.strip():
+        return draft_id.strip()
     return "n/a"
 
 
@@ -204,19 +200,19 @@ def main() -> int:
         payload = _scenario_to_payload(scenario)
         try:
             status_code, response_text = _post_json(
-                f"{gateway_url}/intake/stories",
+                f"{gateway_url}/story-drafts",
                 payload,
                 gateway_api_token,
             )
-            if status_code == 202:
+            if status_code == 201:
                 try:
                     body = json.loads(response_text)
                 except json.JSONDecodeError:
                     body = {}
-                story_id = _extract_story_id_from_intake_response(body)
+                draft_id = _extract_draft_id_from_stash_response(body)
                 print(
                     f"[{index:>3}/{len(filtered)}] {simulation_id} -> "
-                    f"{status_code} OK story_id={story_id}"
+                    f"{status_code} OK draft_id={draft_id}"
                 )
                 successes += 1
             else:

@@ -7,7 +7,7 @@ import asyncio
 import httpx
 import pytest
 
-from conftest import build_intake_headers, load_simulation_canvas
+from conftest import build_intake_headers, load_simulation_canvas, post_intake_via_story_drafts_http
 from simulation_runner import _scenario_to_payload
 
 
@@ -18,8 +18,8 @@ def seeded_issue_list_base(http_client: httpx.Client, local_server_url: str) -> 
     assert len(infra) >= 1, "canvas must contain infrastructure scenarios"
     for idx, scenario in enumerate(infra):
         payload = _scenario_to_payload(scenario)
-        response = http_client.post(
-            "/intake/stories",
+        response = post_intake_via_story_drafts_http(
+            http_client,
             json=payload,
             headers=build_intake_headers(idempotency_key=f"async-seed-{idx}"),
         )

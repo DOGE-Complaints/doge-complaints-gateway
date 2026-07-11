@@ -18,6 +18,7 @@ from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryReviewAuditLogRepository
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -32,8 +33,8 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 
 
 def test_api_branch_generates_trace_id_when_header_absent(client: TestClient) -> None:
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=intake_payload_simple(
             external_user_id="branch-user",
             original_text="Branch closure story",

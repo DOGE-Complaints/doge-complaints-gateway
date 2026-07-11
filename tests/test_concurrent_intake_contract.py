@@ -10,6 +10,13 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from tests.intake_v2_fixtures import intake_payload_simple
+from tests.story_draft_intake_helpers import (
+    patch_identity_me_verified,
+    post_intake_via_story_drafts,
+    stash_story_draft,
+    submit_story_draft,
+    submitter_external_id,
+)
 
 
 @pytest.fixture()
@@ -37,8 +44,8 @@ def _post_intake(
         title_en=f"CC {worker_id}",
     )
     payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=payload,
         headers={"idempotency-key": key},
     )
@@ -60,22 +67,37 @@ def test_cc01_parallel_intake_returns_five_unique_story_ids(client: TestClient) 
         assert len(set(story_ids)) == 5
 
 
-def test_cc02_parallel_same_idempotency_key_creates_one_story(client: TestClient) -> None:
-    """CC-02: five parallel intakes with one idempotency-key → one story."""
-    shared_key = "cc-shared-idempotency"
+def test_cc02_parallel_same_idempotency_key_creates_one_story(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CC-02: parallel submit replay on one draft → one story."""
+    payload = intake_payload_simple(
+        external_user_id="cc-shared-user",
+        original_text="Concurrent shared draft Kalamaja district",
+        title_en="CC shared",
+    )
+    payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
+
     for _ in range(3):
         _clear_api_dependencies_cache()
         with TestClient(app) as fresh_client:
+            shared_draft_id = stash_story_draft(
+                fresh_client,
+                payload,
+                headers={"idempotency-key": "cc-shared-idempotency"},
+            )
+            patch_identity_me_verified(monkeypatch, sub=submitter_external_id(payload))
+
+            def _submit() -> tuple[int, str | None]:
+                response = submit_story_draft(fresh_client, shared_draft_id)
+                story_id = None
+                if response.status_code == 202:
+                    story_id = response.json()["data"]["story_id"]
+                return response.status_code, story_id
+
             with ThreadPoolExecutor(max_workers=5) as pool:
-                futures = [
-                    pool.submit(
-                        _post_intake,
-                        fresh_client,
-                        worker_id=i,
-                        idempotency_key=shared_key,
-                    )
-                    for i in range(5)
-                ]
+                futures = [pool.submit(_submit) for _ in range(5)]
                 results = [future.result() for future in as_completed(futures)]
         statuses, story_ids = zip(*results, strict=True)
         assert all(status == 202 for status in statuses)

@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 from tests.intake_v2_fixtures import intake_payload_simple
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -55,10 +56,12 @@ def test_cross_layer_api_app_infra_side_effects_roundtrip(
     client: TestClient,
     sqlite_db_url: str,
 ) -> None:
-    ok_1 = client.post("/intake/stories", json=_intake_payload(1), headers={"idempotency-key": "cross-1"})
-    ok_2 = client.post("/intake/stories", json=_intake_payload(2), headers={"idempotency-key": "cross-2"})
-    bad = client.post(
-        "/intake/stories",
+    ok_1 = post_intake_via_story_drafts(
+        client, json=_intake_payload(1), headers={"idempotency-key": "cross-1"})
+    ok_2 = post_intake_via_story_drafts(
+        client, json=_intake_payload(2), headers={"idempotency-key": "cross-2"})
+    bad = post_intake_via_story_drafts(
+        client,
         json={"schema_version": INTAKE_SCHEMA_VERSION, "submitter": {"external_user_id": "broken"}},
         headers={"idempotency-key": "cross-bad"},
     )

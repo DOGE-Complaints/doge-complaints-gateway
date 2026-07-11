@@ -18,7 +18,7 @@ SCENARIO_GROUPS = ("infrastructure", "environment", "digital", "conflict")
 _ENV_TEST_LOADED = False
 
 
-def _load_env_file(path: Path) -> None:
+def _load_env_file(path: Path, *, overwrite: bool) -> None:
     if not path.exists():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -28,7 +28,7 @@ def _load_env_file(path: Path) -> None:
         key, value = line.split("=", 1)
         key = key.strip()
         value = value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
+        if key and (overwrite or key not in os.environ):
             os.environ[key] = value
 
 
@@ -36,9 +36,18 @@ def _load_dotenv_test() -> None:
     global _ENV_TEST_LOADED
     if _ENV_TEST_LOADED:
         return
-    _load_env_file(_REPO_ROOT / ".env.test")
-    _load_env_file(_REPO_ROOT / ".env")
+    _load_env_file(_REPO_ROOT / ".env.test", overwrite=True)
+    _load_env_file(_REPO_ROOT / ".env", overwrite=False)
     _ENV_TEST_LOADED = True
+
+
+def resolve_local_server_url() -> tuple[str, str]:
+    """Resolve smoke target URL with product-approved gateway-only policy."""
+    _load_dotenv_test()
+    gateway = os.environ.get("GATEWAY_URL", "").strip()
+    if gateway:
+        return gateway.rstrip("/"), "GATEWAY_URL"
+    return "", "UNSET"
 
 
 def intake_auth_token() -> str | None:
@@ -69,6 +78,70 @@ def build_intake_headers(
     return headers
 
 
+def smoke_browser_bearer_token() -> str | None:
+    _load_dotenv_test()
+    for name in ("GATEWAY_USER_TOKEN", "SMOKE_USER_BEARER_TOKEN"):
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return None
+
+
+def post_intake_via_story_drafts_http(
+    client: httpx.Client,
+    *,
+    json: dict[str, Any],
+    headers: dict[str, str] | None = None,
+) -> httpx.Response:
+    """Live HTTP: stash then browser submit (requires service + user bearer tokens)."""
+    from tests.story_draft_intake_helpers import intake_payload_to_stash
+
+    service_token = intake_auth_token()
+    if not service_token:
+        pytest.skip("GATEWAY_API_TOKEN or SERVICE_API_TOKEN required for smoke stash")
+    user_token = smoke_browser_bearer_token()
+    if not user_token:
+        pytest.skip("GATEWAY_USER_TOKEN or SMOKE_USER_BEARER_TOKEN required for smoke submit")
+
+    stash_headers = dict(headers or {})
+    stash_headers.setdefault("Authorization", f"Bearer {service_token}")
+    stash_headers.setdefault("Content-Type", "application/json")
+    stash_payload = intake_payload_to_stash(json)
+    stash_response = client.post("/story-drafts", json=stash_payload, headers=stash_headers)
+    if stash_response.status_code != 201:
+        return stash_response
+    draft_id = stash_response.json()["data"]["draft_id"]
+    submit_headers = {
+        "Authorization": f"Bearer {user_token}",
+        "Accept": "application/json",
+    }
+    if headers and headers.get("x-trace-id"):
+        submit_headers["x-trace-id"] = headers["x-trace-id"]
+    return client.post(f"/story-drafts/{draft_id}/submit", headers=submit_headers)
+
+
+def post_story_draft_stash_http(
+    client: httpx.Client,
+    *,
+    json: dict[str, Any],
+    headers: dict[str, str] | None = None,
+) -> httpx.Response:
+    """Live HTTP stash-only (GW-DRAFT-06 simulation_runner parity)."""
+    from tests.story_draft_intake_helpers import intake_payload_to_stash
+
+    service_token = intake_auth_token()
+    if not service_token:
+        pytest.skip("GATEWAY_API_TOKEN or SERVICE_API_TOKEN required for smoke stash")
+    stash_headers = dict(headers or {})
+    stash_headers.setdefault("Authorization", f"Bearer {service_token}")
+    stash_headers.setdefault("Content-Type", "application/json")
+    return client.post(
+        "/story-drafts",
+        json=intake_payload_to_stash(json),
+        headers=stash_headers,
+    )
+
+
 def load_simulation_canvas() -> list[dict[str, Any]]:
     raw = json.loads(_CANVAS_PATH.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
@@ -85,9 +158,9 @@ def first_scenario_for_group(group: str) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def local_server_url() -> str:
-    configured = os.environ.get("LOCAL_SERVER_URL", "").strip()
+    configured, _ = resolve_local_server_url()
     if not configured:
-        pytest.skip("LOCAL_SERVER_URL not set")
+        pytest.fail("GATEWAY_URL must be set for smoke target resolution")
     base = configured.rstrip("/")
     try:
         health = httpx.get(f"{base}/health", timeout=3.0)
@@ -96,6 +169,12 @@ def local_server_url() -> str:
     if health.status_code != 200:
         pytest.skip(f"server not reachable: /health returned {health.status_code}")
     return base
+
+
+@pytest.fixture(scope="module")
+def local_server_url_source() -> str:
+    _, source = resolve_local_server_url()
+    return source
 
 
 @pytest.fixture(scope="module")

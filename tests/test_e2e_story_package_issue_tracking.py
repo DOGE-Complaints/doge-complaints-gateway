@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -39,12 +40,12 @@ def _payload(user: str, text: str) -> dict[str, object]:
 
 
 def test_story_package_issue_tracking_materialization_and_audit(client: TestClient) -> None:
-    response_a = client.post(
-        "/intake/stories",
+    response_a = post_intake_via_story_drafts(
+        client,
         json=_payload("tracking-user-1", "Water supply issue in district C keeps repeating."),
     )
-    response_b = client.post(
-        "/intake/stories",
+    response_b = post_intake_via_story_drafts(
+        client,
         json=_payload("tracking-user-2", "Water supply issue in district C keeps repeating."),
     )
     assert response_a.status_code == 202

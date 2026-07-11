@@ -11,6 +11,13 @@ from core.infrastructure.providers import provide_app_config, provide_service_fa
 from core.infrastructure.repositories import InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, IntakeValidationError, parse_story_intake_request
 from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.story_draft_intake_helpers import (
+    patch_identity_me_verified,
+    post_intake_via_story_drafts,
+    stash_story_draft,
+    submit_story_draft,
+    submitter_external_id,
+)
 
 
 @pytest.fixture()
@@ -70,19 +77,26 @@ def test_invalid_language_raises_intake_validation_error(lang: str) -> None:
 
 def test_invalid_payload_returns_422_not_500(client: TestClient) -> None:
     """REQ-39 E-04: handler maps validation errors to 4xx, not 500."""
-    resp = client.post("/intake/stories", json={"schema_version": "wrong"})
+    resp = post_intake_via_story_drafts(
+        client, json={"schema_version": "wrong"})
     assert resp.status_code != 500
     assert resp.status_code in (400, 422)
     body = resp.json()
     assert "error" in body or "detail" in body
 
 
-def test_idempotency_key_deduplicates_story(client: TestClient) -> None:
-    """REQ-39 E-05: same idempotency-key returns same story_id."""
+def test_idempotency_key_deduplicates_story(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """REQ-39 E-05: resubmitting the same draft returns the same story_id."""
     payload = _minimal_valid_payload()
-    headers = {"idempotency-key": "test-key-001"}
-    resp1 = client.post("/intake/stories", json=payload, headers=headers)
-    resp2 = client.post("/intake/stories", json=payload, headers=headers)
+    draft_id = stash_story_draft(
+        client, payload, headers={"idempotency-key": "test-key-001"}
+    )
+    sub = submitter_external_id(payload)
+    patch_identity_me_verified(monkeypatch, sub=sub)
+    resp1 = submit_story_draft(client, draft_id)
+    resp2 = submit_story_draft(client, draft_id)
     assert resp1.status_code == 202
     assert resp2.status_code == 202
     assert resp1.json()["data"]["story_id"] == resp2.json()["data"]["story_id"]

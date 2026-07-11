@@ -13,9 +13,12 @@ from fastapi.testclient import TestClient
 
 from core.logging_setup import configure_logging
 
-_SERVICE_WRITE_PATH_SUFFIXES = ("/intake/stories", "/tallinn/issues")
+_SERVICE_WRITE_PATH_SUFFIXES = ("/tallinn/issues",)
 _ORIGINAL_TESTCLIENT_REQUEST: Callable[..., Any] | None = None
 _GAUTH_RAW_CLIENT_MARKER = "gauth_raw_client"
+GAUTH_TEST_SERVICE_TOKEN = "gauth-test-service-token"
+GAUTH_TEST_USER_TOKEN = "gauth-test-user-token"
+GAUTH_TEST_IDENTITY_URL = "https://identity.test"
 _service_skip_auto_headers: contextvars.ContextVar[bool] = contextvars.ContextVar(
     "service_skip_auto_headers", default=False
 )
@@ -63,11 +66,7 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
     monkeypatch.setenv("SERVICE_API_TOKEN", "gauth-test-service-token")
-
-
-GAUTH_TEST_SERVICE_TOKEN = "gauth-test-service-token"
-GAUTH_TEST_USER_TOKEN = "gauth-test-user-token"
-GAUTH_TEST_IDENTITY_URL = "https://identity.test"
+    monkeypatch.setenv("IDENTITY_BASE_URL", GAUTH_TEST_IDENTITY_URL)
 
 
 def gauth_intake_headers(
@@ -76,7 +75,7 @@ def gauth_intake_headers(
     user_token: str | None = None,
     extra: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    """Service token headers for legacy POST /intake/stories and /tallinn/issues."""
+    """Service token headers for POST /story-drafts stash and /tallinn/issues."""
     resolved_service = (
         service_token
         or os.environ.get("SERVICE_API_TOKEN")

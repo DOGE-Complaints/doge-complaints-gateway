@@ -9,6 +9,7 @@ import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 from simulation_runner import _scenario_to_payload
 
 _CANVAS_PATH = Path(__file__).resolve().parent / "sandbox" / "dogestonia_simulation_canvas_v0_1.json"
@@ -64,8 +65,8 @@ def test_e2e_simulation_canvas_intake_trilingual_narrative_persisted(client: Tes
         payload = _scenario_to_payload(scenario)
         trace = f"trace-sim-canvas-{sim_id}"
         idem = f"idem-sim-canvas-{sim_id}"
-        response = client.post(
-            "/intake/stories",
+        response = post_intake_via_story_drafts(
+        client,
             json=payload,
             headers={"x-trace-id": trace, "idempotency-key": idem},
         )

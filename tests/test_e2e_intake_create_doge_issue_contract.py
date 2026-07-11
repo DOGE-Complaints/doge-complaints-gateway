@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 REQUIRED_DOGE_ISSUE_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
 
@@ -41,7 +42,8 @@ def _intake_payload(external_user_id: str, text: str) -> dict[str, object]:
 
 
 def _create_story(client: TestClient, *, external_user_id: str, text: str) -> str:
-    response = client.post("/intake/stories", json=_intake_payload(external_user_id, text))
+    response = post_intake_via_story_drafts(
+        client, json=_intake_payload(external_user_id, text))
     assert response.status_code == 202
     payload = response.json()
     assert payload["data"]["schema_version"] == "m2.story_intake_response.v1"
@@ -66,8 +68,9 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
     assert projection_store is not None
     rows = getattr(projection_store, "_rows")
     assert rows
-    issue_id, first = next(iter(rows.items()))
-    projection = first["payload"]
+    issue_id = next(iter(rows.keys()))
+    projection = projection_store.get_projection(issue_id)
+    assert projection is not None
     assert REQUIRED_DOGE_ISSUE_KEYS.issubset(projection.keys())
     embedding_store = issue_create.issue_projection_embedding_store
     assert embedding_store is not None
@@ -83,8 +86,8 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
 
 
 def test_e2e_rejects_invalid_intake_payload(client: TestClient) -> None:
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json={
             "schema_version": "m2.story_intake_envelope.v1",
             "submitter": {"external_user_id": "bad", "identity_issuer": "https://idp.example.com/eid"},

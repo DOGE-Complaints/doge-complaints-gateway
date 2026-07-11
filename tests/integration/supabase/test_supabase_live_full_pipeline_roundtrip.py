@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.infrastructure.db_supabase import SupabaseDatabase
 from core.intake import INTAKE_SCHEMA_VERSION
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 def _require_live_http_env() -> tuple[str, str]:
@@ -59,13 +60,13 @@ def test_supabase_live_full_pipeline_roundtrip(client: TestClient) -> None:
     idem_a = f"{run_id}-idem-a"
     idem_b = f"{run_id}-idem-b"
 
-    response_a = client.post(
-        "/intake/stories",
+    response_a = post_intake_via_story_drafts(
+        client,
         json=_payload(f"{run_id}-u1", f"{run_id} street lights issue"),
         headers={"idempotency-key": idem_a, "x-trace-id": f"{run_id}-trace-a"},
     )
-    response_b = client.post(
-        "/intake/stories",
+    response_b = post_intake_via_story_drafts(
+        client,
         json=_payload(f"{run_id}-u2", f"{run_id} street lights issue"),
         headers={"idempotency-key": idem_b, "x-trace-id": f"{run_id}-trace-b"},
     )

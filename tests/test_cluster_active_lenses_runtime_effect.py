@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -55,8 +56,10 @@ def _run_for_lens(
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     _clear_api_dependencies_cache()
     with TestClient(app) as client:
-        r1 = client.post("/intake/stories", json=_payload(1))
-        r2 = client.post("/intake/stories", json=_payload(2))
+        r1 = post_intake_via_story_drafts(
+        client, json=_payload(1))
+        r2 = post_intake_via_story_drafts(
+        client, json=_payload(2))
     _clear_api_dependencies_cache()
     assert r1.status_code == 202
     assert r2.status_code == 202

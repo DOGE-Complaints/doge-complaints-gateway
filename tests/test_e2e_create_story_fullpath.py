@@ -7,7 +7,13 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
-from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.story_draft_intake_helpers import (
+    patch_identity_me_verified,
+    post_intake_via_story_drafts,
+    stash_story_draft,
+    submit_story_draft,
+    submitter_external_id,
+)
 
 
 @pytest.fixture()
@@ -41,21 +47,27 @@ def _payload(user: str, text: str) -> dict[str, object]:
 
 def test_e2e_create_story_fullpath_with_idempotency_and_materialization(
     client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    response_1 = client.post(
-        "/intake/stories",
-        json=_payload("fullpath-user-1", "Street lights are broken in district B."),
-        headers={"x-trace-id": "trace-fullpath-1", "idempotency-key": "tc-p0-03-idem-1"},
+    payload_user_1 = _payload("fullpath-user-1", "Street lights are broken in district B.")
+    payload_user_2 = _payload("fullpath-user-2", "Street lights are broken in district B.")
+    draft_id = stash_story_draft(
+        client,
+        payload_user_1,
+        headers={"idempotency-key": "tc-p0-03-idem-1"},
     )
-    response_2 = client.post(
-        "/intake/stories",
-        json=_payload("fullpath-user-1", "Street lights are broken in district B."),
-        headers={"x-trace-id": "trace-fullpath-2", "idempotency-key": "tc-p0-03-idem-1"},
+    patch_identity_me_verified(monkeypatch, sub=submitter_external_id(payload_user_1))
+    response_1 = submit_story_draft(
+        client, draft_id, headers={"x-trace-id": "trace-fullpath-1"}
     )
-    response_3 = client.post(
-        "/intake/stories",
-        json=_payload("fullpath-user-2", "Street lights are broken in district B."),
+    response_2 = submit_story_draft(
+        client, draft_id, headers={"x-trace-id": "trace-fullpath-2"}
+    )
+    response_3 = post_intake_via_story_drafts(
+        client,
+        json=payload_user_2,
         headers={"x-trace-id": "trace-fullpath-3", "idempotency-key": "tc-p0-03-idem-2"},
+        monkeypatch=monkeypatch,
     )
 
     assert response_1.status_code == 202
@@ -69,7 +81,6 @@ def test_e2e_create_story_fullpath_with_idempotency_and_materialization(
     story_id_2 = payload_2["data"]["story_id"]
     story_id_3 = payload_3["data"]["story_id"]
 
-    # Same idempotency key must return same story id.
     assert story_id_1 == story_id_2
     assert story_id_1 != story_id_3
     assert payload_1["trace_id"] == "trace-fullpath-1"
@@ -100,9 +111,12 @@ def test_e2e_create_story_fullpath_with_idempotency_and_materialization(
 
 
 def test_e2e_create_story_fullpath_rejects_invalid_payload(client: TestClient) -> None:
-    response = client.post(
-        "/intake/stories",
-        json={"schema_version": INTAKE_SCHEMA_VERSION, "submitter": {"external_user_id": "bad", "identity_issuer": "https://idp.example.com/eid"}},
+    response = post_intake_via_story_drafts(
+        client,
+        json={
+            "schema_version": INTAKE_SCHEMA_VERSION,
+            "submitter": {"external_user_id": "bad", "identity_issuer": "https://idp.example.com/eid"},
+        },
         headers={"x-trace-id": "trace-fullpath-bad"},
     )
     assert response.status_code == 400

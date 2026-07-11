@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from tests.conftest import GAUTH_TEST_SERVICE_TOKEN, GAUTH_TEST_USER_TOKEN, gauth_intake_headers
-from tests.intake_v2_fixtures import valid_v2_intake_payload
+from tests.intake_v2_fixtures import valid_v2_stash_payload
 
 
 @pytest.fixture()
@@ -25,12 +25,8 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     _clear_api_dependencies_cache()
 
 
-def _valid_intake_payload() -> dict[str, Any]:
-    return valid_v2_intake_payload(
-        submitter={
-            "external_user_id": "gauth-contract-user",
-            "identity_issuer": "https://idp.example.com/eid",
-        },
+def _valid_stash_payload() -> dict[str, Any]:
+    return valid_v2_stash_payload(
         narrative={
             "original_text": "Pothole on main street.",
             "language": "en",
@@ -41,10 +37,10 @@ def _valid_intake_payload() -> dict[str, Any]:
     )
 
 
-def test_intake_without_service_token_rejected_not_noop(client: TestClient) -> None:
+def test_story_drafts_stash_without_service_token_rejected(client: TestClient) -> None:
     response = client.post(
-        "/intake/stories",
-        json=_valid_intake_payload(),
+        "/story-drafts",
+        json=_valid_stash_payload(),
         headers={"X-User-Token": GAUTH_TEST_USER_TOKEN},
     )
     assert response.status_code == 401
@@ -53,33 +49,34 @@ def test_intake_without_service_token_rejected_not_noop(client: TestClient) -> N
     assert "service" in body["error"]["message"].lower()
 
 
-def test_intake_service_only_accepted(client: TestClient) -> None:
+def test_story_drafts_stash_service_only_accepted(client: TestClient) -> None:
     response = client.post(
-        "/intake/stories",
-        json=_valid_intake_payload(),
+        "/story-drafts",
+        json=_valid_stash_payload(),
         headers={
             "Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}",
             "idempotency-key": "gauth-contract-ok",
         },
     )
-    assert response.status_code == 202
-    assert response.json()["data"]["story_id"]
+    assert response.status_code == 201
+    assert response.json()["data"]["draft_id"]
 
 
-def test_service_only_accepts_payload_submitter(client: TestClient) -> None:
-    """Legacy intake trusts service token; submitter comes from payload (no user layer)."""
-    payload = _valid_intake_payload()
-    payload["submitter"]["external_user_id"] = "arbitrary-trusted-service-user"
+def test_story_drafts_stash_rejects_submitter_in_payload(client: TestClient) -> None:
+    payload = _valid_stash_payload()
+    payload["submitter"] = {
+        "external_user_id": "should-not-be-here",
+        "identity_issuer": "https://idp.example.com/eid",
+    }
     response = client.post(
-        "/intake/stories",
+        "/story-drafts",
         json=payload,
         headers={"Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}"},
     )
-    assert response.status_code == 202
-    assert response.json()["data"]["story_id"]
+    assert response.status_code in {400, 422}
 
 
-def test_intake_rejects_when_service_token_env_unset(
+def test_story_drafts_stash_rejects_when_service_token_env_unset(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("SERVICE_API_TOKEN", raising=False)
@@ -89,8 +86,8 @@ def test_intake_rejects_when_service_token_env_unset(
     try:
         with TestClient(app) as client:
             response = client.post(
-                "/intake/stories",
-                json=_valid_intake_payload(),
+                "/story-drafts",
+                json=_valid_stash_payload(),
                 headers=gauth_intake_headers(),
             )
     finally:

@@ -10,6 +10,13 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from tests.intake_v2_fixtures import intake_payload_simple, valid_v2_intake_payload
+from tests.story_draft_intake_helpers import (
+    patch_identity_me_verified,
+    post_intake_via_story_drafts,
+    stash_story_draft,
+    submit_story_draft,
+    submitter_external_id,
+)
 
 
 @pytest.fixture()
@@ -50,8 +57,10 @@ def test_db_backed_pipeline_persists_stories_projections_and_embeddings(
     client: TestClient,
     sqlite_db_url: str,
 ) -> None:
-    client.post("/intake/stories", json=_intake_payload(1))
-    client.post("/intake/stories", json=_intake_payload(2))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(1))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(2))
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)
@@ -109,7 +118,8 @@ def test_readiness_reports_sqlite_backend(client: TestClient) -> None:
 
 def test_sqlite_intake_v2_narrative_i18n_roundtrip(client: TestClient) -> None:
     payload = valid_v2_intake_payload()
-    response = client.post("/intake/stories", json=payload)
+    response = post_intake_via_story_drafts(
+        client, json=payload)
     assert response.status_code == 202
     story_id = response.json()["data"]["story_id"]
 
@@ -123,16 +133,18 @@ def test_sqlite_intake_v2_narrative_i18n_roundtrip(client: TestClient) -> None:
 def test_http_idempotency_deduplication_sqlite_same_key_different_payload(
     client: TestClient,
     sqlite_db_url: str,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-22: same idempotency-key must yield one story_id and one DB row (HTTP + sqlite)."""
+    """TC-22: resubmitting the same draft yields one story_id and one DB row (sqlite)."""
     idem_key = "tcr-p1-01-idem-dedup-sqlite"
     headers = {"idempotency-key": idem_key, "x-trace-id": "tcr-p1-01-dedup"}
+    payload = _intake_payload(101)
 
-    r1 = client.post("/intake/stories", json=_intake_payload(101), headers=headers)
-    r2 = client.post(
-        "/intake/stories",
-        json=_intake_payload(202),
-        headers={**headers, "x-trace-id": "tcr-p1-01-dedup-2"},
+    draft_id = stash_story_draft(client, payload, headers=headers)
+    patch_identity_me_verified(monkeypatch, sub=submitter_external_id(payload))
+    r1 = submit_story_draft(client, draft_id, headers=headers)
+    r2 = submit_story_draft(
+        client, draft_id, headers={**headers, "x-trace-id": "tcr-p1-01-dedup-2"}
     )
     assert r1.status_code == 202
     assert r2.status_code == 202
@@ -145,7 +157,7 @@ def test_http_idempotency_deduplication_sqlite_same_key_different_payload(
     try:
         idem_count = connection.execute(
             "SELECT COUNT(*) FROM idempotency_keys WHERE key = ?",
-            (idem_key,),
+            (draft_id,),
         ).fetchone()[0]
         stories_count = connection.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
     finally:
@@ -159,15 +171,19 @@ def test_sqlite_living_issue_extend_persists_merged_candidate_and_audit(
     client: TestClient,
     sqlite_db_url: str,
 ) -> None:
-    client.post("/intake/stories", json=_intake_payload(1))
-    client.post("/intake/stories", json=_intake_payload(2))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(1))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(2))
     deps = get_api_dependencies()
     first_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
     assert len(first_issue_ids) == 1
     issue_id = first_issue_ids[0]
 
-    client.post("/intake/stories", json=_intake_payload(3))
-    client.post("/intake/stories", json=_intake_payload(4))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(3))
+    post_intake_via_story_drafts(
+        client, json=_intake_payload(4))
     second_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
     assert second_issue_ids == [issue_id]
 
@@ -196,13 +212,15 @@ def test_sqlite_living_issue_extend_persists_merged_candidate_and_audit(
             "cluster_growth_extend",
         ]
 
-        persisted_payload = connection.execute(
-            "SELECT payload_json FROM doge_issues WHERE issue_id = ?",
+        persisted_description = connection.execute(
+            "SELECT description_json FROM doge_issues WHERE issue_id = ?",
             (issue_id,),
         ).fetchone()
-        assert persisted_payload is not None
-        payload = json.loads(str(persisted_payload[0]))
-        description = payload.get("description", {}).get("en", "")
-        assert "issue #4" in description.lower()
+        assert persisted_description is not None
+        description_payload = json.loads(str(persisted_description[0]))
+        description = description_payload.get("en", "")
+        # GW-L10N-01: description from dominant_story i18n (oldest on tie), not full aggregate.
+        assert "issue #1" in description.lower()
+        assert "issue #4" not in description.lower()
     finally:
         connection.close()

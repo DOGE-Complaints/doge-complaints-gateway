@@ -31,6 +31,7 @@ from core.promotion.repositories import (
 )
 from tests.intake_v2_fixtures import narrative_dict
 from tests.simulation_runner import _scenario_to_payload
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 CANVAS_V02 = Path(__file__).resolve().parent / "sandbox" / "dogestonia_simulation_canvas_v0_2.json"
 CLUSTER_MIN_SIZE = 8
@@ -54,14 +55,22 @@ def _district_for_cluster(seed_cluster_target: str) -> str:
 def _story_from_scenario(scenario: dict[str, Any], *, story_id: str) -> StoryRecord:
     payload = _scenario_to_payload(scenario)
     narrative = payload["narrative"]
+    simulation_id = str(scenario.get("simulation_id", story_id))
+    submitter = payload.get("submitter") or {}
+    submitter_external = str(
+        submitter.get("external_user_id") or f"sim:{simulation_id}"
+    )
+    submitter_issuer = str(
+        submitter.get("identity_issuer") or "https://simulation.dogestonia/eid"
+    )
     cluster_target = str(scenario.get("test_metadata", {}).get("seed_cluster_target", ""))
     now = datetime.now(UTC)
     return StoryRecord(
         story_id=story_id,
         schema_version=str(payload["schema_version"]),
         narrative_original_text=str(narrative["original_text"]),
-        submitter_external_user_id=str(payload["submitter"]["external_user_id"]),
-        submitter_identity_issuer=str(payload["submitter"]["identity_issuer"]),
+        submitter_external_user_id=submitter_external,
+        submitter_identity_issuer=submitter_issuer,
         lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
         created_at=now,
         updated_at=now,
@@ -168,10 +177,17 @@ def sqlite_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     _clear_api_dependencies_cache()
 
 
-def test_v02_intake_and_clustering_sqlite_creates_projections(sqlite_client: TestClient) -> None:
+def test_v02_intake_and_clustering_sqlite_creates_projections(
+    sqlite_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     for scenario in _load_v02_scenarios():
         payload = _scenario_to_payload(scenario)
-        response = sqlite_client.post("/intake/stories", json=payload)
+        response = post_intake_via_story_drafts(
+            sqlite_client,
+            json=payload,
+            monkeypatch=monkeypatch,
+        )
         assert response.status_code == 202, response.text
     issue_ids = get_api_dependencies().story_cluster_orchestrator.process_all_pending()
     assert len(issue_ids) >= 2

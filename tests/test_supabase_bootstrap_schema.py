@@ -149,3 +149,20 @@ def test_required_columns_ready_geo_fields_in_select_and_bootstrap_req39_g03() -
     for field in geo_fields:
         assert field in _STORY_SELECT_FIELDS, f"geo field {field!r} missing from SELECT"
         assert field in sql, f"geo field {field!r} missing from bootstrap"
+
+
+def test_doge_issues_columnar_fields_in_bootstrap_and_readiness_gw_rc_04_t10() -> None:
+    """GW-RC-04 T10: columnar SELECT fields exist in bootstrap; readiness checks them."""
+    from core.projection.columnar_storage import (
+        COLUMNAR_ROW_SELECT,
+        DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS,
+    )
+
+    sql = _BOOTSTRAP_SQL.read_text(encoding="utf-8")
+    for field in DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS:
+        assert field in sql, f"columnar field {field!r} missing from bootstrap"
+    select_fields = {f.strip() for f in COLUMNAR_ROW_SELECT.split(",") if f.strip()}
+    assert DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS <= select_fields
+    src = inspect.getsource(SupabaseDatabase.required_columns_ready)
+    assert "DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS" in src
+    assert '"doge_issues"' in src or "'doge_issues'" in src

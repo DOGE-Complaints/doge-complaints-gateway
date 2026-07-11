@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.intake import INTAKE_SCHEMA_VERSION
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -36,12 +37,12 @@ def _intake_payload(index: int) -> dict[str, object]:
 
 
 def _create_story(client: TestClient, *, index: int) -> str:
-    response = client.post(
-        "/intake/stories",
+    response = post_intake_via_story_drafts(
+        client,
         json=_intake_payload(index),
         headers={"x-trace-id": f"trace-intake-{index}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 202
     return str(response.json()["data"]["story_id"])
 
 

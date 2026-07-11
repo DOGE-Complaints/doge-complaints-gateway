@@ -19,6 +19,7 @@ from tests.geo_propagation_fixtures import (
     geo_mustamae,
     story_record,
 )
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -50,7 +51,8 @@ def _seed_via_intake(client: TestClient) -> str:
         title_en="Kalamaja pavement",
     )
     payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = client.post("/intake/stories", json=payload)
+    response = post_intake_via_story_drafts(
+        client, json=payload)
     assert response.status_code == 202
     story_id = str(response.json()["data"]["story_id"])
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
@@ -114,7 +116,8 @@ def test_req24_ac2_write_path_uses_doge_issues(client: TestClient) -> None:
         title_en="AC2 write path",
     )
     payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = client.post("/intake/stories", json=payload)
+    response = post_intake_via_story_drafts(
+        client, json=payload)
     assert response.status_code == 202
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
     in_memory = get_api_dependencies().issue_create_service.issue_projection_store

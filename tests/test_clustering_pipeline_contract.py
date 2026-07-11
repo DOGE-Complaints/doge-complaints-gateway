@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.infrastructure.db_sqlite import SqliteIssueProjectionStore
 from tests.intake_v2_fixtures import intake_payload_simple
+from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
 @pytest.fixture()
@@ -38,7 +39,8 @@ def _intake_story(client: TestClient, *, suffix: str) -> None:
         title_en=f"J test {suffix}",
     )
     payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = client.post("/intake/stories", json=payload)
+    response = post_intake_via_story_drafts(
+        client, json=payload)
     assert response.status_code == 202, response.text
 
 
