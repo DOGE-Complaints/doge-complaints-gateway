@@ -147,6 +147,37 @@ class InMemoryStoryDraftRepository:
 
 
 @dataclass
+class InMemoryDraftOwnerRepository:
+    _owners: dict[str, str] | None = None
+    _story_drafts: InMemoryStoryDraftRepository | None = None
+
+    def __post_init__(self) -> None:
+        if self._owners is None:
+            self._owners = {}
+
+    def set_owner(self, draft_id: str, submitter_external_user_id: str) -> None:
+        assert self._owners is not None
+        self._owners.setdefault(draft_id, submitter_external_user_id)
+
+    def get_current_draft(
+        self, submitter_external_user_id: str
+    ) -> StoryDraftRecord | None:
+        assert self._owners is not None
+        if self._story_drafts is None:
+            return None
+        candidates: list[StoryDraftRecord] = []
+        for draft_id, owner_sub in self._owners.items():
+            if owner_sub != submitter_external_user_id:
+                continue
+            record = self._story_drafts.get_draft(draft_id)
+            if record is not None:
+                candidates.append(record)
+        if not candidates:
+            return None
+        return max(candidates, key=lambda record: record.created_at)
+
+
+@dataclass
 class InMemorySignalProfileRepository:
     _versions: dict[str, list[SignalProfileRecord]] | None = None
 

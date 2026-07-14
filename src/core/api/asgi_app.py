@@ -26,6 +26,7 @@ from core.api.handlers import (
     handle_protected_status,
     handle_readiness,
     handle_story_draft_create,
+    handle_story_draft_current,
     handle_story_draft_get,
     handle_story_draft_submit,
     handle_story_activity,
@@ -511,15 +512,34 @@ async def story_draft_create(
     return JSONResponse(content=payload, status_code=status_code)
 
 
+@app.get("/story-drafts/current", dependencies=_STORY_DRAFT_READ_DEPS)
+async def story_draft_current(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    user_introspection = getattr(request.state, "user_introspection", None)
+    assert user_introspection is not None
+    assert user_introspection.sub is not None
+    payload, status_code = handle_story_draft_current(
+        deps,
+        submitter_external_user_id=user_introspection.sub,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
 @app.get("/story-drafts/{draft_id}", dependencies=_STORY_DRAFT_READ_DEPS)
 async def story_draft_get(
     request: Request,
     draft_id: str,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
+    user_introspection = getattr(request.state, "user_introspection", None)
+    assert user_introspection is not None
     payload, status_code = handle_story_draft_get(
         deps,
         draft_id=draft_id,
+        submitter_external_user_id=user_introspection.sub,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)

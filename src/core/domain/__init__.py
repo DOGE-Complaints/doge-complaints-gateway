@@ -1,5 +1,6 @@
 from core.domain.contracts import (
     ClusterMembershipStore,
+    DraftOwnerRepository,
     HealthReport,
     HealthRepository,
     IdempotencyRecord,
@@ -19,6 +20,7 @@ from core.domain.contracts import (
 
 __all__ = [
     "ClusterMembershipStore",
+    "DraftOwnerRepository",
     "HealthReport",
     "HealthRepository",
     "IdempotencyRecord",

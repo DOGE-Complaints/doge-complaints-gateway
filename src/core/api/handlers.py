@@ -539,6 +539,7 @@ def handle_story_draft_create(
             payload=stash.as_dict(),
             created_at=now,
             expires_at=expires_at,
+            updated_at=now,
         )
         repository.save_draft(record)
         log_api_event(
@@ -568,6 +569,7 @@ def handle_story_draft_get(
     dependencies: ApiDependencies,
     *,
     draft_id: str,
+    submitter_external_user_id: str | None = None,
     trace_id: str | None = None,
 ) -> tuple[dict[str, Any], int]:
     resolved_trace_id = ensure_trace_id(trace_id)
@@ -589,8 +591,60 @@ def handle_story_draft_get(
                 ).as_dict(),
                 404,
             )
+        if submitter_external_user_id and dependencies.draft_owner_repository is not None:
+            try:
+                dependencies.draft_owner_repository.set_owner(
+                    draft_id, submitter_external_user_id
+                )
+            except Exception as exc:  # noqa: BLE001
+                log_api_event(
+                    logging.WARNING,
+                    "draft_owner_set_failed",
+                    trace_id=resolved_trace_id,
+                    draft_id=draft_id,
+                    outcome="best_effort_ignored",
+                    error_type=type(exc).__name__,
+                )
         return (
             build_success_envelope(data=record.payload, trace_id=resolved_trace_id).as_dict(),
+            200,
+        )
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
+def handle_story_draft_current(
+    dependencies: ApiDependencies,
+    *,
+    submitter_external_user_id: str,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    resolved_trace_id = ensure_trace_id(trace_id)
+    owner_repository = dependencies.draft_owner_repository
+    if owner_repository is None:
+        envelope = build_error_envelope(
+            RuntimeError("Draft owner repository is not configured."),
+            trace_id=resolved_trace_id,
+        )
+        log_error(envelope)
+        return envelope.as_dict(), 500
+    try:
+        record = owner_repository.get_current_draft(submitter_external_user_id)
+        if record is None:
+            return (
+                build_success_envelope(data=None, trace_id=resolved_trace_id).as_dict(),
+                200,
+            )
+        return (
+            build_success_envelope(
+                data={
+                    "draft_id": record.draft_id,
+                    "last_edited_at": record.updated_at.isoformat(),
+                },
+                trace_id=resolved_trace_id,
+            ).as_dict(),
             200,
         )
     except Exception as exc:  # noqa: BLE001

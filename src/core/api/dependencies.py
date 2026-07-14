@@ -12,7 +12,7 @@ from core.application import (
 )
 from core.application.issue_create import IssueProjectionReadStore
 from core.config import AppConfig, load_config_from_env
-from core.domain import LabelTranslationMissStore, StoryDraftRepository
+from core.domain import DraftOwnerRepository, LabelTranslationMissStore, StoryDraftRepository
 from core.identity.me_client import IdentityMeClient, build_identity_me_from_config
 from core.infrastructure import provide_service_factory
 
@@ -41,6 +41,7 @@ class ApiDependencies:
     db_checks: dict[str, bool] = field(default_factory=dict)
     label_translation_miss_store: LabelTranslationMissStore | None = None
     story_draft_repository: StoryDraftRepository | None = None
+    draft_owner_repository: DraftOwnerRepository | None = None
 
 
 # Backward-compatible name used in tests and story docs
@@ -95,4 +96,5 @@ def build_api_dependencies() -> ApiDependencies:
         db_checks=db_checks,
         label_translation_miss_store=service_factory.label_translation_miss_store,
         story_draft_repository=service_factory.story_draft_repository,
+        draft_owner_repository=service_factory.draft_owner_repository,
     )

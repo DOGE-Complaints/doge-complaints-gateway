@@ -20,6 +20,7 @@ from core.application.services import StoryEmbeddingStore
 from core.cluster import ClusterLens, ClusteringEngine
 from core.domain import (
     ClusterMembershipStore,
+    DraftOwnerRepository,
     HealthRepository,
     IdempotencyRepository,
     LabelTranslationMissStore,
@@ -49,6 +50,7 @@ class DefaultServiceFactory:
     story_repository: StoryRepository
     idempotency_repository: IdempotencyRepository
     story_draft_repository: StoryDraftRepository
+    draft_owner_repository: DraftOwnerRepository
     signal_profile_repository: SignalProfileRepository
     issue_candidate_store: IssueCandidateStore
     review_audit_log_repository: ReviewAuditLogRepository

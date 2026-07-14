@@ -7,15 +7,19 @@ from core.application import ServiceFactory
 from core.config import AppConfig, load_config_from_env
 from core.config.env_file import merge_dotenv_from_cwd
 from core.domain import (
+    ClusterMembershipStore,
+    DraftOwnerRepository,
     HealthRepository,
     IdempotencyRepository,
     SignalProfileRepository,
     StoryDraftRepository,
     StoryRepository,
+    StorySignalStore,
+    LabelTranslationMissStore,
 )
-from core.domain import ClusterMembershipStore, StorySignalStore, LabelTranslationMissStore
 from core.infrastructure.repositories import (
     InMemoryClusterMembershipStore,
+    InMemoryDraftOwnerRepository,
     InMemoryHealthRepository,
     InMemoryIdempotencyRepository,
     InMemoryIssueProjectionEmbeddingStore,
@@ -31,6 +35,7 @@ from core.infrastructure.repositories import (
 from core.infrastructure.db_sqlite import (
     SqliteClusterMembershipStore,
     SqliteDatabase,
+    SqliteDraftOwnerRepository,
     SqliteIssueCandidateStore,
     SqliteIdempotencyRepository,
     SqliteIssueStoryLinkStore,
@@ -46,6 +51,7 @@ from core.infrastructure.db_sqlite import (
 from core.infrastructure.db_supabase import (
     SupabaseClusterMembershipStore,
     SupabaseDatabase,
+    SupabaseDraftOwnerRepository,
     SupabaseIssueCandidateStore,
     SupabaseIdempotencyRepository,
     SupabaseIssueStoryLinkStore,
@@ -87,6 +93,14 @@ def provide_idempotency_repository() -> IdempotencyRepository:
 
 def provide_story_draft_repository() -> StoryDraftRepository:
     return InMemoryStoryDraftRepository()
+
+
+def provide_draft_owner_repository(
+    story_draft_repository: StoryDraftRepository | None = None,
+) -> DraftOwnerRepository:
+    if isinstance(story_draft_repository, InMemoryStoryDraftRepository):
+        return InMemoryDraftOwnerRepository(_story_drafts=story_draft_repository)
+    return InMemoryDraftOwnerRepository()
 
 
 def provide_signal_profile_repository() -> SignalProfileRepository:
@@ -144,6 +158,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     story_repository = provide_story_repository()
     idempotency_repository = provide_idempotency_repository()
     story_draft_repository = provide_story_draft_repository()
+    draft_owner_repository = provide_draft_owner_repository(story_draft_repository)
     story_embedding_store = InMemoryStoryEmbeddingStore()
     issue_projection_store = InMemoryIssueProjectionStore()
     issue_projection_embedding_store = InMemoryIssueProjectionEmbeddingStore()
@@ -160,6 +175,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         story_repository = SqliteStoryRepository(sqlite_db)
         idempotency_repository = SqliteIdempotencyRepository(sqlite_db)
         story_draft_repository = SqliteStoryDraftRepository(sqlite_db)
+        draft_owner_repository = SqliteDraftOwnerRepository(sqlite_db)
         story_embedding_store = SqliteStoryEmbeddingStore(sqlite_db)
         issue_projection_store = SqliteIssueProjectionStore(sqlite_db)
         issue_projection_embedding_store = SqliteIssueProjectionEmbeddingStore(sqlite_db)
@@ -192,6 +208,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         story_repository = SupabaseStoryRepository(supabase_db)
         idempotency_repository = SupabaseIdempotencyRepository(supabase_db)
         story_draft_repository = SupabaseStoryDraftRepository(supabase_db)
+        draft_owner_repository = SupabaseDraftOwnerRepository(supabase_db)
         story_embedding_store = SupabaseStoryEmbeddingStore(supabase_db)
         issue_projection_store = SupabaseIssueProjectionStore(supabase_db)
         issue_projection_embedding_store = SupabaseIssueProjectionEmbeddingStore(
@@ -246,6 +263,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         story_repository=story_repository,
         idempotency_repository=idempotency_repository,
         story_draft_repository=story_draft_repository,
+        draft_owner_repository=draft_owner_repository,
         signal_profile_repository=provide_signal_profile_repository(),
         issue_candidate_store=issue_candidate_store,
         review_audit_log_repository=review_audit_log_repository,

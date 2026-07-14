@@ -619,6 +619,7 @@ class SupabaseStoryDraftRepository:
                     "payload_json": record.payload,
                     "created_at": record.created_at.isoformat(),
                     "expires_at": record.expires_at.isoformat(),
+                    "updated_at": record.updated_at.isoformat(),
                 }
             ],
             prefer="resolution=merge-duplicates,return=minimal",
@@ -630,7 +631,7 @@ class SupabaseStoryDraftRepository:
             method="GET",
             path="/rest/v1/story_drafts",
             params={
-                "select": "draft_id,payload_json,created_at,expires_at",
+                "select": "draft_id,payload_json,created_at,expires_at,updated_at",
                 "draft_id": self.db._eq_filter(draft_id),
                 "limit": "1",
             },
@@ -650,11 +651,19 @@ class SupabaseStoryDraftRepository:
         payload = row["payload_json"]
         if isinstance(payload, str):
             payload = json.loads(payload)
+        created_at = _parse_dt(str(row["created_at"]))
+        updated_raw = row.get("updated_at")
+        updated_at = (
+            _parse_dt(str(updated_raw))
+            if updated_raw is not None
+            else created_at
+        )
         return StoryDraftRecord(
             draft_id=str(row["draft_id"]),
             payload=dict(payload),
-            created_at=_parse_dt(str(row["created_at"])),
+            created_at=created_at,
             expires_at=expires_at,
+            updated_at=updated_at,
         )
 
     def delete_draft(self, draft_id: str) -> None:
@@ -664,6 +673,52 @@ class SupabaseStoryDraftRepository:
             params={"draft_id": self.db._eq_filter(draft_id)},
             prefer="return=minimal",
         )
+
+
+@dataclass
+class SupabaseDraftOwnerRepository:
+    db: SupabaseDatabase
+
+    def set_owner(self, draft_id: str, submitter_external_user_id: str) -> None:
+        now = _utcnow().isoformat()
+        self.db._request(
+            method="POST",
+            path="/rest/v1/draft_owner",
+            params={"on_conflict": "draft_id"},
+            json_body=[
+                {
+                    "draft_id": draft_id,
+                    "submitter_external_user_id": submitter_external_user_id,
+                    "created_at": now,
+                }
+            ],
+            prefer="resolution=ignore-duplicates,return=minimal",
+        )
+
+    def get_current_draft(
+        self, submitter_external_user_id: str
+    ) -> StoryDraftRecord | None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/draft_owner",
+            params={
+                "select": "draft_id",
+                "submitter_external_user_id": self.db._eq_filter(
+                    submitter_external_user_id
+                ),
+            },
+        )
+        if not rows:
+            return None
+        draft_repo = SupabaseStoryDraftRepository(self.db)
+        candidates: list[StoryDraftRecord] = []
+        for row in rows:
+            record = draft_repo.get_draft(str(row["draft_id"]))
+            if record is not None:
+                candidates.append(record)
+        if not candidates:
+            return None
+        return max(candidates, key=lambda record: record.created_at)
 
 
 @dataclass

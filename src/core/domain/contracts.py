@@ -118,6 +118,7 @@ class StoryDraftRecord:
     payload: dict[str, Any]
     created_at: datetime
     expires_at: datetime
+    updated_at: datetime
 
 
 class StoryDraftRepository(Protocol):
@@ -131,6 +132,18 @@ class StoryDraftRepository(Protocol):
 
     def delete_draft(self, draft_id: str) -> None:
         """Remove draft after successful submit (GW-DRAFT-02)."""
+        ...
+
+
+class DraftOwnerRepository(Protocol):
+    def set_owner(self, draft_id: str, submitter_external_user_id: str) -> None:
+        """First-wins idempotent associate: first authenticated reader owns draft (GW-CAB-02, D-CAB02-1)."""
+        ...
+
+    def get_current_draft(
+        self, submitter_external_user_id: str
+    ) -> StoryDraftRecord | None:
+        """Latest non-expired draft for user (join draft_owner×story_drafts, D-CAB02-3)."""
         ...
 
 

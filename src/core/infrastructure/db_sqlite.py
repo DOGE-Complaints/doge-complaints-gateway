@@ -203,8 +203,18 @@ class SqliteDatabase:
                 draft_id TEXT PRIMARY KEY,
                 payload_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL
+                expires_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS draft_owner (
+                draft_id TEXT PRIMARY KEY,
+                submitter_external_user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(draft_id) REFERENCES story_drafts(draft_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_draft_owner_submitter
+                ON draft_owner(submitter_external_user_id);
 
             CREATE TABLE IF NOT EXISTS story_embeddings (
                 embedding_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -363,7 +373,30 @@ class SqliteDatabase:
             """
         )
         self._ensure_doge_issues_columnar_migration()
+        self._ensure_story_draft_owner_migration()
         self.connection.commit()
+
+    def _ensure_story_draft_owner_migration(self) -> None:
+        """GW-CAB-02: story_drafts.updated_at + draft_owner association table."""
+        cur = self.connection.execute("PRAGMA table_info(story_drafts)")
+        draft_cols = {row[1] for row in cur.fetchall()}
+        if "updated_at" not in draft_cols:
+            self.connection.execute("ALTER TABLE story_drafts ADD COLUMN updated_at TEXT")
+            self.connection.execute(
+                "UPDATE story_drafts SET updated_at = created_at WHERE updated_at IS NULL"
+            )
+        self.connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS draft_owner (
+                draft_id TEXT PRIMARY KEY,
+                submitter_external_user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(draft_id) REFERENCES story_drafts(draft_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_draft_owner_submitter
+                ON draft_owner(submitter_external_user_id);
+            """
+        )
 
     def _ensure_doge_issues_columnar_migration(self) -> None:
         """GW-RC-04: add columnar fields and drop legacy payload_json on existing DBs."""
@@ -667,18 +700,20 @@ class SqliteStoryDraftRepository:
     def save_draft(self, record: StoryDraftRecord) -> StoryDraftRecord:
         self.db.connection.execute(
             """
-            INSERT INTO story_drafts (draft_id, payload_json, created_at, expires_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO story_drafts (draft_id, payload_json, created_at, expires_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(draft_id) DO UPDATE SET
                 payload_json = excluded.payload_json,
                 created_at = excluded.created_at,
-                expires_at = excluded.expires_at
+                expires_at = excluded.expires_at,
+                updated_at = excluded.updated_at
             """,
             (
                 record.draft_id,
                 json.dumps(record.payload),
                 record.created_at.isoformat(),
                 record.expires_at.isoformat(),
+                record.updated_at.isoformat(),
             ),
         )
         self.db.connection.commit()
@@ -687,7 +722,7 @@ class SqliteStoryDraftRepository:
     def get_draft(self, draft_id: str) -> StoryDraftRecord | None:
         row = self.db.connection.execute(
             """
-            SELECT draft_id, payload_json, created_at, expires_at
+            SELECT draft_id, payload_json, created_at, expires_at, updated_at
             FROM story_drafts
             WHERE draft_id = ?
             """,
@@ -703,11 +738,19 @@ class SqliteStoryDraftRepository:
             )
             self.db.connection.commit()
             return None
+        created_at = _parse_dt(str(row["created_at"]))
+        updated_raw = row["updated_at"]
+        updated_at = (
+            _parse_dt(str(updated_raw))
+            if updated_raw is not None
+            else created_at
+        )
         return StoryDraftRecord(
             draft_id=str(row["draft_id"]),
             payload=json.loads(str(row["payload_json"])),
-            created_at=_parse_dt(str(row["created_at"])),
+            created_at=created_at,
             expires_at=expires_at,
+            updated_at=updated_at,
         )
 
     def delete_draft(self, draft_id: str) -> None:
@@ -716,6 +759,56 @@ class SqliteStoryDraftRepository:
             (draft_id,),
         )
         self.db.connection.commit()
+
+
+@dataclass
+class SqliteDraftOwnerRepository:
+    db: SqliteDatabase
+
+    def set_owner(self, draft_id: str, submitter_external_user_id: str) -> None:
+        now = _utcnow().isoformat()
+        self.db.connection.execute(
+            """
+            INSERT INTO draft_owner (draft_id, submitter_external_user_id, created_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(draft_id) DO NOTHING
+            """,
+            (draft_id, submitter_external_user_id, now),
+        )
+        self.db.connection.commit()
+
+    def get_current_draft(
+        self, submitter_external_user_id: str
+    ) -> StoryDraftRecord | None:
+        now = _utcnow().isoformat()
+        row = self.db.connection.execute(
+            """
+            SELECT sd.draft_id, sd.payload_json, sd.created_at, sd.expires_at, sd.updated_at
+            FROM draft_owner AS do
+            INNER JOIN story_drafts AS sd ON sd.draft_id = do.draft_id
+            WHERE do.submitter_external_user_id = ?
+              AND sd.expires_at > ?
+            ORDER BY sd.created_at DESC
+            LIMIT 1
+            """,
+            (submitter_external_user_id, now),
+        ).fetchone()
+        if row is None:
+            return None
+        created_at = _parse_dt(str(row["created_at"]))
+        updated_raw = row["updated_at"]
+        updated_at = (
+            _parse_dt(str(updated_raw))
+            if updated_raw is not None
+            else created_at
+        )
+        return StoryDraftRecord(
+            draft_id=str(row["draft_id"]),
+            payload=json.loads(str(row["payload_json"])),
+            created_at=created_at,
+            expires_at=_parse_dt(str(row["expires_at"])),
+            updated_at=updated_at,
+        )
 
 
 @dataclass
