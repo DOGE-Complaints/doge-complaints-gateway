@@ -22,6 +22,7 @@ from core.identity.authoritative_submitter import (
     authoritative_submitter_from_introspection,
     payload_submitter_mismatches_introspection,
 )
+from core.application.story_activity import StoryActivityService
 from core.application.services import GPT_CLASSIFIER_POLICY_VERSION
 from core.identity.introspection_result import IntrospectionResult
 from core.intake import (
@@ -703,4 +704,29 @@ def handle_story_draft_submit(
             outcome="success",
         )
     return envelope, status_code
+
+
+def handle_story_activity(
+    dependencies: ApiDependencies,
+    *,
+    submitter_external_user_id: str,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """GW-CAB-01: user-scoped story list + metrics for cabinet."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        service = StoryActivityService(
+            story_repository=dependencies.story_intake_service.repository,
+            issue_story_link_store=dependencies.issue_create_service.issue_story_link_store,
+            issue_projection_read_store=dependencies.issue_projection_read_store,
+        )
+        data = service.build_activity(submitter_external_user_id=submitter_external_user_id)
+        return (
+            build_success_envelope(data=data, trace_id=resolved_trace_id).as_dict(),
+            200,
+        )
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
 

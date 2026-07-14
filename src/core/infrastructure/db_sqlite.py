@@ -592,6 +592,18 @@ class SqliteStoryRepository:
         ).fetchall()
         return [_story_record_from_sqlite_row(row) for row in rows]
 
+    def list_stories_by_submitter(self, submitter_external_user_id: str) -> list[StoryRecord]:
+        rows = self.db.connection.execute(
+            f"""
+            SELECT {_STORY_SELECT_COLUMNS}
+            FROM stories
+            WHERE submitter_external_user_id = ?
+            ORDER BY created_at DESC
+            """,
+            (submitter_external_user_id.strip(),),
+        ).fetchall()
+        return [_story_record_from_sqlite_row(row) for row in rows]
+
     def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
         rows = self.db.connection.execute(
             f"""
@@ -1147,6 +1159,20 @@ class SqliteIssueStoryLinkStore:
                 (issue_id, cluster_id, story_id, now),
             )
         self.db.connection.commit()
+
+    def get_issue_id_for_story(self, story_id: str) -> str | None:
+        row = self.db.connection.execute(
+            """
+            SELECT issue_id FROM issue_story_links
+            WHERE story_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (story_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return str(row["issue_id"])
 
 
 @dataclass

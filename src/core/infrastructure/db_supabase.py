@@ -523,6 +523,20 @@ class SupabaseStoryRepository:
         )
         return [_story_record_from_supabase_row(row) for row in rows]
 
+    def list_stories_by_submitter(self, submitter_external_user_id: str) -> list[StoryRecord]:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/stories",
+            params={
+                "select": _story_select_fields_for_db(self.db),
+                "submitter_external_user_id": self.db._eq_filter(
+                    submitter_external_user_id.strip()
+                ),
+                "order": "created_at.desc",
+            },
+        )
+        return [_story_record_from_supabase_row(row) for row in rows]
+
     def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
         rows = self.db._request(
             method="GET",
@@ -1039,6 +1053,21 @@ class SupabaseIssueStoryLinkStore:
             json_body=payload,
             prefer="resolution=ignore-duplicates,return=minimal",
         )
+
+    def get_issue_id_for_story(self, story_id: str) -> str | None:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/issue_story_links",
+            params={
+                "select": "issue_id",
+                "story_id": self.db._eq_filter(story_id),
+                "order": "created_at.desc",
+                "limit": "1",
+            },
+        )
+        if not rows:
+            return None
+        return str(rows[0]["issue_id"])
 
 
 @dataclass

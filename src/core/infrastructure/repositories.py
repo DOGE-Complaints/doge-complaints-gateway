@@ -76,6 +76,14 @@ class InMemoryStoryRepository:
         assert self._records is not None
         return list(self._records.values())
 
+    def list_stories_by_submitter(self, submitter_external_user_id: str) -> list[StoryRecord]:
+        sub = submitter_external_user_id.strip()
+        return [
+            s
+            for s in self.list_stories()
+            if s.submitter_external_user_id.strip() == sub
+        ]
+
     def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
         return [
             s
@@ -375,6 +383,13 @@ class InMemoryIssueStoryLinkStore:
         existing_story_ids = existing[1] if existing is not None else ()
         merged_story_ids = tuple(sorted(set(existing_story_ids).union(set(story_ids))))
         self._rows[issue_id] = (cluster_id, merged_story_ids)
+
+    def get_issue_id_for_story(self, story_id: str) -> str | None:
+        assert self._rows is not None
+        for issue_id, (_, linked_story_ids) in self._rows.items():
+            if story_id in linked_story_ids:
+                return issue_id
+        return None
 
 
 @dataclass

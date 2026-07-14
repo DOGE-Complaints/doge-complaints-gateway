@@ -84,6 +84,10 @@ class IssueStoryLinkStore(Protocol):
     ) -> None:
         """Persist explicit issue->stories linkage for process recovery."""
 
+    def get_issue_id_for_story(self, story_id: str) -> str | None:
+        """Resolve issue_id linked to story_id, if any (GW-CAB-01)."""
+        ...
+
 
 class IssueProjectionReadStore(Protocol):
     """Read issue projections for Tallinn list/get APIs."""

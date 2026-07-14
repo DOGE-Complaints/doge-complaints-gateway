@@ -28,6 +28,7 @@ from core.api.handlers import (
     handle_story_draft_create,
     handle_story_draft_get,
     handle_story_draft_submit,
+    handle_story_activity,
     handle_tallinn_issue_create,
     handle_tallinn_issue_get,
     handle_tallinn_issues_list,
@@ -539,6 +540,22 @@ async def story_draft_submit(
         deps,
         draft_id=draft_id,
         user_introspection=user_introspection,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.get("/story-activity", dependencies=_STORY_DRAFT_READ_DEPS)
+async def story_activity(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    user_introspection = getattr(request.state, "user_introspection", None)
+    assert user_introspection is not None
+    assert user_introspection.sub is not None
+    payload, status_code = handle_story_activity(
+        deps,
+        submitter_external_user_id=user_introspection.sub,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)

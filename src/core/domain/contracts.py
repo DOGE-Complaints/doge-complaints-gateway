@@ -80,6 +80,10 @@ class StoryRepository(Protocol):
         """List all persisted stories."""
         ...
 
+    def list_stories_by_submitter(self, submitter_external_user_id: str) -> list[StoryRecord]:
+        """List stories authored by submitter_external_user_id (GW-CAB-01)."""
+        ...
+
     def list_stories_ready_for_clustering(self) -> list[StoryRecord]:
         """Stories eligible for clustering (typically READY_FOR_PROFILE)."""
         ...
