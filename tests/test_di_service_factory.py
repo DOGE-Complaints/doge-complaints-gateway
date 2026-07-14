@@ -3,6 +3,7 @@ from __future__ import annotations
 from core.infrastructure import DefaultServiceFactory, InMemoryHealthRepository
 from core.infrastructure.providers import provide_app_config
 from core.infrastructure.repositories import (
+    InMemoryDraftOwnerRepository,
     InMemoryIdempotencyRepository,
     InMemorySignalProfileRepository,
     InMemoryStoryDraftRepository,
@@ -14,11 +15,15 @@ from core.promotion.repositories import InMemoryIssueCandidateStore, InMemoryRev
 
 
 def _factory() -> DefaultServiceFactory:
+    story_draft_repository = InMemoryStoryDraftRepository()
     return DefaultServiceFactory(
         health_repository=InMemoryHealthRepository(),
         story_repository=InMemoryStoryRepository(),
         idempotency_repository=InMemoryIdempotencyRepository(),
-        story_draft_repository=InMemoryStoryDraftRepository(),
+        story_draft_repository=story_draft_repository,
+        draft_owner_repository=InMemoryDraftOwnerRepository(
+            _story_drafts=story_draft_repository
+        ),
         signal_profile_repository=InMemorySignalProfileRepository(),
         issue_candidate_store=InMemoryIssueCandidateStore(),
         review_audit_log_repository=InMemoryReviewAuditLogRepository(),
