@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`) and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
+2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -523,6 +523,23 @@ Browser handoff completion: verified user submits stashed draft; gateway calls i
 
 Test evidence: `tests/test_gw_draft_02_story_draft_submit_contract.py`
 
+### `GET /story-activity` (GW-CAB-01)
+
+User cabinet read model: authenticated user's stories (id / status / created_at) plus aggregate metrics.
+
+- **HTTP binding:** `asgi_app.py` → `require_story_draft_read_user` + `handle_story_activity` (`handlers.py`)
+- **Auth:** browser `Authorization: Bearer` only (Supabase session); `require_story_draft_read_user` → identity `GET /me` (**active session only** — same dep as draft GET)
+- **Author scoping:** `user_introspection.sub` → `StoryRepository.list_stories_by_submitter` (D-CAB01-4)
+- **Row status:** issue projection `DOGEIssueStatus` via `issue_story_links` → `get_projection`; no link → `under_review` (D-CAB01-1)
+- **UI enum mapping:** `PUBLISHED→published`; all other governed statuses → `under_review` (D-CAB01-2; SPA §0)
+- **Metrics:** `submitted` = all user stories; `published` / `under_review` = split by mapped row status (D-CAB01-3)
+- **Success:** `200` — `{ "data": { "metrics": { "submitted", "published", "under_review" }, "stories": [ { "story_id", "status", "created_at" } ] }, "trace_id": "..." }`
+- **Auth error:** `401` — missing/inactive Bearer
+- **Identity unavailable:** `503` — `SERVICE_UNAVAILABLE` (fail-closed)
+- **Out of scope (AC-4):** write, pagination, issue detail fields
+
+Test evidence: `tests/test_gw_cab_01_story_activity_api.py`
+
 ---
 
 ## 7. Issues API (as-is behavior, active HTTP binding)
@@ -725,10 +742,13 @@ Sources:
   - `GET /health`
   - `GET /ready`
   - `POST /story-drafts` (201 Created — GPT stash; no story yet)
-  - `POST /story-drafts/{draft_id}/submit` (202 Accepted — browser submit → story created; clustering deferred to cron)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
   - `GET /tallinn/issues` (15-parameter filter API)
   - `GET /tallinn/issues/{issue_id}`
+- Browser Bearer operations (`require_story_draft_read_user` / submit dep):
+  - `GET /story-drafts/{draft_id}`
+  - `GET /story-activity` (GW-CAB-01 — user cabinet list + metrics)
+  - `POST /story-drafts/{draft_id}/submit` (202 Accepted — phone_verified gate)
 
 ### Planned
 

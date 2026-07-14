@@ -486,6 +486,53 @@ components:
           $ref: '#/components/schemas/StoryDraftStashRequest'
         trace_id:
           type: string
+    StoryActivityMetrics:
+      type: object
+      required: [submitted, published, under_review]
+      properties:
+        submitted:
+          type: integer
+          minimum: 0
+          description: Count of all stories for the authenticated submitter.
+        published:
+          type: integer
+          minimum: 0
+          description: Stories mapped to cabinet status `published` (issue projection PUBLISHED).
+        under_review:
+          type: integer
+          minimum: 0
+          description: Stories mapped to cabinet status `under_review` (all other cases).
+    StoryActivityRow:
+      type: object
+      required: [story_id, status, created_at]
+      properties:
+        story_id:
+          type: string
+        status:
+          type: string
+          enum: [published, under_review]
+        created_at:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp from `StoryRecord.created_at`.
+    StoryActivityData:
+      type: object
+      required: [metrics, stories]
+      properties:
+        metrics:
+          $ref: '#/components/schemas/StoryActivityMetrics'
+        stories:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoryActivityRow'
+    SuccessEnvelope_StoryActivity:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/StoryActivityData'
+        trace_id:
+          type: string
     LabelMissRequest:
       type: object
       required: [label_key, locale]
@@ -790,6 +837,40 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '404':
           description: Unknown or expired draft id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Identity `/me` unavailable or not configured (fail-closed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /story-activity:
+    get:
+      tags: [Intake]
+      summary: User cabinet story activity (scoped list + metrics)
+      description: |
+        Runtime state (GW-CAB-01):
+        - browser auth: `Authorization: Bearer` → identity `/me` (active session only);
+        - author scoping: `user_introspection.sub` → `list_stories_by_submitter`;
+        - row status from issue projection via `issue_story_links` (D-CAB01-1..2);
+        - handler: `handle_story_activity` in `src/core/api/handlers.py`;
+        - dep: `require_story_draft_read_user` (`_STORY_DRAFT_READ_DEPS`).
+      operationId: getStoryActivity
+      x-runtime-state: implemented-runtime-binding
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User-scoped story list and metrics (MVP cabinet contract).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryActivity'
+        '401':
+          description: Missing/inactive browser Bearer token
           content:
             application/json:
               schema:
