@@ -486,6 +486,27 @@ components:
           $ref: '#/components/schemas/StoryDraftStashRequest'
         trace_id:
           type: string
+    StoryDraftCurrentData:
+      type: object
+      required: [draft_id, last_edited_at]
+      properties:
+        draft_id:
+          type: string
+        last_edited_at:
+          type: string
+          format: date-time
+          description: ISO-8601 from `StoryDraftRecord.updated_at` (equals `created_at` until edit path exists).
+    SuccessEnvelope_StoryDraftCurrent:
+      type: object
+      required: [data, trace_id]
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/StoryDraftCurrentData'
+            - type: 'null'
+          description: Pending draft for authenticated user, or null when none.
+        trace_id:
+          type: string
     StoryActivityMetrics:
       type: object
       required: [submitted, published, under_review]
@@ -752,6 +773,7 @@ paths:
         Runtime state:
         - returns saved intake JSON from draft store;
         - browser auth: `Authorization: Bearer` → identity `/me` (active session only, no phone_verified gate);
+        - on successful read, gateway best-effort associates `draft_id→sub` (GW-CAB-02);
         - unknown or expired draft id → 404;
         - handler: `handle_story_draft_get`; dep: `require_story_draft_read_user`.
       operationId: getStoryDraft
@@ -777,6 +799,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or inactive browser Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Identity `/me` unavailable or not configured (fail-closed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /story-drafts/current:
+    get:
+      tags: [Intake]
+      summary: Discover current pending draft for authenticated user
+      description: |
+        Runtime state:
+        - browser auth: `Authorization: Bearer` → identity `/me` (active session only);
+        - returns latest non-expired draft owned by `sub` (D-CAB02-3) or `{ "data": null }`;
+        - owner association written on `GET /story-drafts/{id}` (cross-device resume);
+        - handler: `handle_story_draft_current`; dep: `require_story_draft_read_user`.
+      operationId: getStoryDraftCurrent
+      x-runtime-state: implemented-runtime-binding
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current pending draft envelope or null data when none.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope_StoryDraftCurrent'
         '401':
           description: Missing or inactive browser Bearer token
           content:
