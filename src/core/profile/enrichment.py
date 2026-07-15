@@ -76,6 +76,9 @@ def infer_signals_from_canonical(
         SignalDimension.CIVIC_WEIGHT.value: civic_weight,
         SignalDimension.DESIRED_OUTCOME.value: desired_outcome,
         SignalDimension.AFFECTED_GROUP.value: affected_group,
+        SignalDimension.SERVICE_OBJECT.value: "unknown",
+        SignalDimension.NEED.value: "unknown",
+        SignalDimension.ECOSYSTEM_SIGNAL.value: "unknown",
         SignalDimension.GEOGRAPHIC_DISTRICT.value: geographic_district,
         SignalDimension.CANONICAL_TYPE.value: type_value,
     }

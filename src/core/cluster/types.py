@@ -10,12 +10,16 @@ from core.domain import StoryGeoSnapshot
 class ClusterLens(StrEnum):
     """Civic clustering lenses (canonical_labels-based, multilingual-safe)."""
 
+    COMPOSITE_PRIMARY_MICRO = "composite_primary_micro"
     CIVIC_DOMAIN_MICRO = "civic_domain_micro"
     FAILURE_PATTERN_MICRO = "failure_pattern_micro"
     CIVIC_WEIGHT_SYSTEMIC = "civic_weight_systemic"
     DESIRED_OUTCOME_LOCAL = "desired_outcome_local"
     AFFECTED_GROUP_LOCAL = "affected_group_local"
     GEOGRAPHIC_DISTRICT_MICRO = "geographic_district_micro"
+    SERVICE_OBJECT_MICRO = "service_object_micro"
+    DEEP_NEED_LOCAL = "deep_need_local"
+    ECOSYSTEM_SIGNAL_SYSTEMIC = "ecosystem_signal_systemic"
 
 
 class ClusteringMode(StrEnum):

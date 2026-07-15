@@ -18,12 +18,16 @@ from core.geo.scope import geo_filter_bucket, parse_cluster_geo_filter
 
 
 CIVIC_LENSES: tuple[ClusterLens, ...] = (
+    ClusterLens.COMPOSITE_PRIMARY_MICRO,
     ClusterLens.CIVIC_DOMAIN_MICRO,
     ClusterLens.FAILURE_PATTERN_MICRO,
     ClusterLens.CIVIC_WEIGHT_SYSTEMIC,
     ClusterLens.DESIRED_OUTCOME_LOCAL,
     ClusterLens.AFFECTED_GROUP_LOCAL,
     ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
+    ClusterLens.SERVICE_OBJECT_MICRO,
+    ClusterLens.DEEP_NEED_LOCAL,
+    ClusterLens.ECOSYSTEM_SIGNAL_SYSTEMIC,
 )
 
 # Backward-compat alias (deprecated name; same as CIVIC_LENSES).
@@ -32,19 +36,23 @@ CANONICAL_LENSES: tuple[ClusterLens, ...] = CIVIC_LENSES
 _SYSTEMIC_LENSES: frozenset[ClusterLens] = frozenset(
     {
         ClusterLens.CIVIC_WEIGHT_SYSTEMIC,
+        ClusterLens.ECOSYSTEM_SIGNAL_SYSTEMIC,
     }
 )
 _LOCAL_LENSES: frozenset[ClusterLens] = frozenset(
     {
         ClusterLens.DESIRED_OUTCOME_LOCAL,
         ClusterLens.AFFECTED_GROUP_LOCAL,
+        ClusterLens.DEEP_NEED_LOCAL,
     }
 )
 _MICRO_LENSES: frozenset[ClusterLens] = frozenset(
     {
+        ClusterLens.COMPOSITE_PRIMARY_MICRO,
         ClusterLens.CIVIC_DOMAIN_MICRO,
         ClusterLens.FAILURE_PATTERN_MICRO,
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
+        ClusterLens.SERVICE_OBJECT_MICRO,
     }
 )
 
@@ -57,14 +65,41 @@ def merged_signals(profile: StoryProfileSignals) -> dict[str, str]:
 
 def lens_dimension(lens: ClusterLens) -> SignalDimension:
     mapping: dict[ClusterLens, SignalDimension] = {
+        ClusterLens.COMPOSITE_PRIMARY_MICRO: SignalDimension.CIVIC_DOMAIN,
         ClusterLens.CIVIC_DOMAIN_MICRO: SignalDimension.CIVIC_DOMAIN,
         ClusterLens.FAILURE_PATTERN_MICRO: SignalDimension.FAILURE_PATTERN,
         ClusterLens.CIVIC_WEIGHT_SYSTEMIC: SignalDimension.CIVIC_WEIGHT,
         ClusterLens.DESIRED_OUTCOME_LOCAL: SignalDimension.DESIRED_OUTCOME,
         ClusterLens.AFFECTED_GROUP_LOCAL: SignalDimension.AFFECTED_GROUP,
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO: SignalDimension.GEOGRAPHIC_DISTRICT,
+        ClusterLens.SERVICE_OBJECT_MICRO: SignalDimension.SERVICE_OBJECT,
+        ClusterLens.DEEP_NEED_LOCAL: SignalDimension.NEED,
+        ClusterLens.ECOSYSTEM_SIGNAL_SYSTEMIC: SignalDimension.ECOSYSTEM_SIGNAL,
     }
     return mapping[lens]
+
+
+def composite_primary_signal_pair(signals: Mapping[str, str]) -> tuple[str, str]:
+    civic_domain = str(signals.get(SignalDimension.CIVIC_DOMAIN.value, "unknown")).strip() or "unknown"
+    failure_pattern = (
+        str(signals.get(SignalDimension.FAILURE_PATTERN.value, "unknown")).strip() or "unknown"
+    )
+    return civic_domain, failure_pattern
+
+
+def composite_primary_cluster_key(
+    profile: StoryProfileSignals,
+    *,
+    geo_filter: str = "country",
+) -> str:
+    signals = merged_signals(profile)
+    civic_domain, failure_pattern = composite_primary_signal_pair(signals)
+    base = (
+        f"{ClusterLens.COMPOSITE_PRIMARY_MICRO.value}:"
+        f"civic_domain+failure_pattern:{civic_domain}+{failure_pattern}:micro"
+    )
+    geo_part = geo_filter_bucket(profile.geo, geo_filter)
+    return f"{base}|{geo_part}"
 
 
 def cluster_key_for_lens(
@@ -73,6 +108,9 @@ def cluster_key_for_lens(
     *,
     geo_filter: str = "country",
 ) -> str:
+    if lens == ClusterLens.COMPOSITE_PRIMARY_MICRO:
+        return composite_primary_cluster_key(profile, geo_filter=geo_filter)
+
     signals = merged_signals(profile)
     dimension = lens_dimension(lens)
     raw_value = str(signals.get(dimension.value, "unknown")).strip() or "unknown"
@@ -138,6 +176,9 @@ def build_cluster_narrative(
         "desired_outcome",
         "affected_group",
         "geographic_district",
+        "service_object",
+        "need",
+        "ecosystem_signal",
     )
     parts = [
         f"{dim}={dominant[dim]}"
@@ -184,7 +225,7 @@ class ClusteringEngine:
             return self.primary_lens
         if self.active_lenses:
             return self.active_lenses[0]
-        return ClusterLens.CIVIC_DOMAIN_MICRO
+        return ClusterLens.COMPOSITE_PRIMARY_MICRO
 
     @staticmethod
     def _dominant_for_profiles(profiles: list[StoryProfileSignals]) -> dict[str, str]:

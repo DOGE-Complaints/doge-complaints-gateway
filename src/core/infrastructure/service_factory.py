@@ -149,5 +149,7 @@ class DefaultServiceFactory:
             story_label_repository=self.story_label_repository,
             cluster_membership_store=self.cluster_membership_store,
             log_debug_dir=self.config.log_debug_dir,
+            cluster_min_size_by_lens=self.config.cluster_min_size_by_lens,
+            default_cluster_min_size=self.config.cluster_min_size,
         )
 

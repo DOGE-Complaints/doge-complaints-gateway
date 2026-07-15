@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Mapping
 
 from core.application.issue_create import IssueCreateCommand, IssueCreateService
 from core.cluster import ClusterLens, ClusteringEngine, StoryProfileSignals
+from core.cluster.engine import composite_primary_signal_pair
 from core.domain import (
     ClusterMembershipStore,
     StoryLabelRepository,
@@ -35,11 +37,12 @@ class StoryClusterOrchestrator:
     story_label_repository: StoryLabelRepository | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
     log_debug_dir: str | None = None
+    cluster_min_size_by_lens: Mapping[str, int] = field(default_factory=dict)
+    default_cluster_min_size: int = 1
 
     def _cluster_key_from_signals(self, signals: dict[str, str]) -> str:
-        domain = signals.get("civic_domain", "unknown")
-        pattern = signals.get("failure_pattern", "unknown")
-        return f"{domain}_{pattern}"
+        civic_domain, failure_pattern = composite_primary_signal_pair(signals)
+        return f"{civic_domain}+{failure_pattern}"
 
     def _get_or_compute_signals(
         self,
@@ -132,7 +135,7 @@ class StoryClusterOrchestrator:
                 (dict(p.signals) for p in profiles if p.story_id == story_id),
                 {},
             )
-            min_size = self._resolve_min_size_guard()
+            min_size = self._resolve_min_size_guard(lens_key)
             is_new = len(member_story_ids) <= min_size
             if isinstance(debug_logger, StoryDebugLogger):
                 debug_logger.log(
@@ -161,7 +164,8 @@ class StoryClusterOrchestrator:
     def process_all_pending(self) -> list[str]:
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
         logger.debug("cluster.batch_start", extra={"ready_count": len(ready_stories)})
-        min_size_guard = max(1, self._resolve_min_size_guard())
+        primary_lens = self.clustering_engine.resolved_primary_lens()
+        min_size_guard = max(1, self._resolve_min_size_guard(primary_lens.value))
         if len(ready_stories) < min_size_guard:
             logger.info(
                 "cluster.batch_skipped_min_size",
@@ -201,13 +205,17 @@ class StoryClusterOrchestrator:
                 created_issue_ids.append(issue_id)
         return created_issue_ids
 
-    def _resolve_min_size_guard(self) -> int:
+    def _resolve_min_size_guard(self, lens: str | None = None) -> int:
+        lens_key = lens or self.clustering_engine.resolved_primary_lens().value
+        configured = self.cluster_min_size_by_lens.get(lens_key)
+        if isinstance(configured, int):
+            return configured
         gate = getattr(self.issue_create_service, "promotion_service", None)
         policy = getattr(gate, "gate_policy", None)
         min_stories = getattr(policy, "min_stories", None)
         if isinstance(min_stories, int):
             return min_stories
-        return 1
+        return max(1, self.default_cluster_min_size)
 
     def _compute_cluster_inputs(
         self,
@@ -336,6 +344,7 @@ class StoryClusterOrchestrator:
                     story_ids=member_story_ids,
                     readiness_score=readiness_score,
                     title=issue_title,
+                    min_stories=self._resolve_min_size_guard(primary_lens),
                 )
             )
         except (ValueError, PromotionStateError) as exc:

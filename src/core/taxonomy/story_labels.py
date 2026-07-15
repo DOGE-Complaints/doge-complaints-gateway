@@ -139,11 +139,17 @@ _AXIS_TO_SIGNAL_DIMENSION: dict[str, SignalDimension] = {
     "civic_signal": SignalDimension.CIVIC_WEIGHT,
     "desired_outcome": SignalDimension.DESIRED_OUTCOME,
     "affected_scope": SignalDimension.AFFECTED_GROUP,
+    "service_object": SignalDimension.SERVICE_OBJECT,
+    "deep_need": SignalDimension.NEED,
+    "ecosystem_signal": SignalDimension.ECOSYSTEM_SIGNAL,
     SignalDimension.CIVIC_DOMAIN.value: SignalDimension.CIVIC_DOMAIN,
     SignalDimension.FAILURE_PATTERN.value: SignalDimension.FAILURE_PATTERN,
     SignalDimension.CIVIC_WEIGHT.value: SignalDimension.CIVIC_WEIGHT,
     SignalDimension.DESIRED_OUTCOME.value: SignalDimension.DESIRED_OUTCOME,
     SignalDimension.AFFECTED_GROUP.value: SignalDimension.AFFECTED_GROUP,
+    SignalDimension.SERVICE_OBJECT.value: SignalDimension.SERVICE_OBJECT,
+    SignalDimension.NEED.value: SignalDimension.NEED,
+    SignalDimension.ECOSYSTEM_SIGNAL.value: SignalDimension.ECOSYSTEM_SIGNAL,
 }
 
 
@@ -165,9 +171,25 @@ def signals_from_story_labels(
     )
 
     signals: dict[str, str] = {}
-    for axis, dimension in _AXIS_TO_SIGNAL_DIMENSION.items():
-        axis_labels = by_axis.get(axis, [])
-        signals[dimension.value] = axis_labels[0] if axis_labels else "unknown"
+    mapped_dimensions = {
+        SignalDimension.CIVIC_DOMAIN,
+        SignalDimension.FAILURE_PATTERN,
+        SignalDimension.CIVIC_WEIGHT,
+        SignalDimension.DESIRED_OUTCOME,
+        SignalDimension.AFFECTED_GROUP,
+        SignalDimension.SERVICE_OBJECT,
+        SignalDimension.NEED,
+        SignalDimension.ECOSYSTEM_SIGNAL,
+    }
+    axis_values: dict[SignalDimension, list[str]] = {dimension: [] for dimension in mapped_dimensions}
+    for axis, labels in by_axis.items():
+        dimension = _AXIS_TO_SIGNAL_DIMENSION.get(axis)
+        if dimension is None or dimension not in axis_values:
+            continue
+        axis_values[dimension].extend(labels)
+
+    for dimension, labels in axis_values.items():
+        signals[dimension.value] = labels[0] if labels else "unknown"
 
     signals[SignalDimension.GEOGRAPHIC_DISTRICT.value] = geographic_district
     signals[SignalDimension.CANONICAL_TYPE.value] = type_value

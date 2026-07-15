@@ -19,11 +19,13 @@ def evaluate_promotion_gates(
     policy: PromotionGatePolicy,
     *,
     cluster_canonical_types: tuple[str, ...] | None = None,
+    min_stories: int | None = None,
 ) -> PromotionGateResult:
     reasons: list[str] = []
+    effective_min_stories = policy.min_stories if min_stories is None else min_stories
     if candidate.readiness_score < policy.min_readiness_score:
         reasons.append("readiness_below_threshold")
-    if len(candidate.story_ids) < policy.min_stories:
+    if len(candidate.story_ids) < effective_min_stories:
         reasons.append("insufficient_story_evidence")
     if policy.require_actionable_canonical_type and cluster_canonical_types is not None:
         normalized = {

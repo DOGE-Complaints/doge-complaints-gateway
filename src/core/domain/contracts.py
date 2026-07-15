@@ -188,6 +188,8 @@ class SignalDimension(StrEnum):
     DESIRED_OUTCOME = "desired_outcome"
     AFFECTED_GROUP = "affected_group"
     GEOGRAPHIC_DISTRICT = "geographic_district"
+    SERVICE_OBJECT = "service_object"
+    ECOSYSTEM_SIGNAL = "ecosystem_signal"
     CANONICAL_TYPE = "canonical_type"
 
 

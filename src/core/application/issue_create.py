@@ -31,6 +31,7 @@ class IssueCreateCommand:
     story_ids: tuple[str, ...]
     readiness_score: int
     title: str
+    min_stories: int | None = None
 
 
 @dataclass(frozen=True)
@@ -225,6 +226,7 @@ class IssueCreateService:
         self.promotion_service.submit_for_review(
             candidate.candidate_id,
             cluster_canonical_types=tuple(cluster_canonical_types),
+            min_stories=command.min_stories,
         )
         self.promotion_service.start_review(candidate.candidate_id)
         promoted = self.promotion_service.record_review(

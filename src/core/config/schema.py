@@ -45,6 +45,7 @@ class AppConfig:
     supabase_url: str | None
     supabase_service_role: str | None
     cluster_min_size: int
+    cluster_min_size_by_lens: dict[str, int]
     cluster_readiness_threshold: int
     cluster_active_lenses: tuple[str, ...]
     cluster_primary_lens: str
@@ -163,7 +164,18 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         name="CLUSTER_MIN_SIZE",
         required=False,
         default="5",
-        description="Minimum number of stories for cluster-level promotion eligibility.",
+        description="Minimum number of stories for cluster-level promotion eligibility (global fallback).",
+    ),
+    EnvSpec(
+        name="CLUSTER_MIN_SIZE_BY_LENS",
+        required=False,
+        default=(
+            "composite_primary_micro=8,service_object_micro=3,deep_need_local=3,"
+            "ecosystem_signal_systemic=3"
+        ),
+        description=(
+            "Per-lens min story counts for promotion (lens_id=count pairs, comma-separated)."
+        ),
     ),
     EnvSpec(
         name="CLUSTER_READINESS_THRESHOLD",
@@ -174,13 +186,18 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
     EnvSpec(
         name="CLUSTER_ACTIVE_LENSES",
         required=False,
-        default="civic_domain_micro,failure_pattern_micro,civic_weight_systemic,desired_outcome_local,affected_group_local,geographic_district_micro",
+        default=(
+            "composite_primary_micro,civic_domain_micro,failure_pattern_micro,"
+            "civic_weight_systemic,desired_outcome_local,affected_group_local,"
+            "geographic_district_micro,service_object_micro,deep_need_local,"
+            "ecosystem_signal_systemic"
+        ),
         description="Comma-separated enabled cluster lenses.",
     ),
     EnvSpec(
         name="CLUSTER_PRIMARY_LENS",
         required=False,
-        default="civic_domain_micro",
+        default="composite_primary_micro",
         description="Primary lens for orchestrator (must be one of CLUSTER_ACTIVE_LENSES).",
     ),
     EnvSpec(
@@ -324,14 +341,44 @@ def _parse_positive_int(value: str, *, env_name: str) -> int:
 def _all_cluster_lens_ids() -> frozenset[str]:
     return frozenset(
         {
+            "composite_primary_micro",
             "civic_domain_micro",
             "failure_pattern_micro",
             "civic_weight_systemic",
             "desired_outcome_local",
             "affected_group_local",
             "geographic_district_micro",
+            "service_object_micro",
+            "deep_need_local",
+            "ecosystem_signal_systemic",
         }
     )
+
+
+def _parse_cluster_min_size_by_lens(
+    raw: str,
+    *,
+    allowed_lenses: frozenset[str],
+) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for item in raw.split(","):
+        chunk = item.strip()
+        if not chunk:
+            continue
+        if "=" not in chunk:
+            raise ConfigError(
+                f"Invalid CLUSTER_MIN_SIZE_BY_LENS entry {chunk!r}. Expected lens_id=count."
+            )
+        lens_id, count_raw = chunk.split("=", 1)
+        lens_id = lens_id.strip().lower()
+        if lens_id not in allowed_lenses:
+            raise ConfigError(
+                f"Invalid CLUSTER_MIN_SIZE_BY_LENS lens {lens_id!r}. "
+                f"Allowed: {sorted(allowed_lenses)}."
+            )
+        count = _parse_positive_int(count_raw, env_name="CLUSTER_MIN_SIZE_BY_LENS")
+        result[lens_id] = count
+    return result
 
 
 def _parse_cluster_lenses(raw: str) -> tuple[str, ...]:
@@ -529,6 +576,10 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         _require_value(source, name="CLUSTER_MIN_SIZE"),
         env_name="CLUSTER_MIN_SIZE",
     )
+    cluster_min_size_by_lens = _parse_cluster_min_size_by_lens(
+        _require_value(source, name="CLUSTER_MIN_SIZE_BY_LENS"),
+        allowed_lenses=_all_cluster_lens_ids(),
+    )
     cluster_readiness_threshold = _parse_positive_int(
         _require_value(source, name="CLUSTER_READINESS_THRESHOLD"),
         env_name="CLUSTER_READINESS_THRESHOLD",
@@ -615,6 +666,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         supabase_url=supabase_url,
         supabase_service_role=supabase_service_role,
         cluster_min_size=cluster_min_size,
+        cluster_min_size_by_lens=cluster_min_size_by_lens,
         cluster_readiness_threshold=cluster_readiness_threshold,
         cluster_active_lenses=cluster_active_lenses,
         cluster_primary_lens=cluster_primary_lens,

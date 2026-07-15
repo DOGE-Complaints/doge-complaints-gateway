@@ -77,6 +77,7 @@ class IssuePromotionService:
         candidate_id: str,
         *,
         cluster_canonical_types: tuple[str, ...] | None = None,
+        min_stories: int | None = None,
     ) -> IssueCandidateRecord:
         current = self._get(candidate_id)
         _require_transition(current.status, IssueCandidateStatus.DRAFT)
@@ -84,6 +85,7 @@ class IssuePromotionService:
             current,
             self.gate_policy,
             cluster_canonical_types=cluster_canonical_types,
+            min_stories=min_stories,
         )
         if not gate.passed:
             raise PromotionStateError("Promotion gates failed: " + ",".join(gate.reasons))
