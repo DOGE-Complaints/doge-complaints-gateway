@@ -59,10 +59,16 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "60")
     monkeypatch.setenv(
         "CLUSTER_ACTIVE_LENSES",
-        "civic_domain_micro,failure_pattern_micro,civic_weight_systemic,"
-        "desired_outcome_local,affected_group_local,geographic_district_micro",
+        "composite_primary_micro,civic_domain_micro,failure_pattern_micro,"
+        "civic_weight_systemic,desired_outcome_local,affected_group_local,"
+        "geographic_district_micro,service_object_micro,deep_need_local,"
+        "ecosystem_signal_systemic",
     )
-    monkeypatch.setenv("CLUSTER_PRIMARY_LENS", "civic_domain_micro")
+    monkeypatch.setenv("CLUSTER_PRIMARY_LENS", "composite_primary_micro")
+    monkeypatch.setenv(
+        "CLUSTER_MIN_SIZE_BY_LENS",
+        "service_object_micro=3,deep_need_local=3,ecosystem_signal_systemic=3",
+    )
     monkeypatch.setenv("CLUSTER_SIGNAL_SOURCE", "canonical")
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
     monkeypatch.setenv("SERVICE_API_TOKEN", "gauth-test-service-token")

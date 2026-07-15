@@ -24,8 +24,8 @@ def _engine(
     )
 
 
-def test_canonical_lenses_minimum_six() -> None:
-    assert len(CANONICAL_LENSES) == 6
+def test_canonical_lenses_minimum_ten() -> None:
+    assert len(CANONICAL_LENSES) == 10
 
 
 def test_clustering_engine_default_id_algorithm_matches_runtime_default() -> None:

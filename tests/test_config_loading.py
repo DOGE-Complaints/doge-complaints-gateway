@@ -45,15 +45,20 @@ def test_load_config_demo_defaults() -> None:
     assert config.cluster_readiness_threshold == 60
     assert config.cluster_active_lenses
     assert config.cluster_active_lenses == (
+        "composite_primary_micro",
         "civic_domain_micro",
         "failure_pattern_micro",
         "civic_weight_systemic",
         "desired_outcome_local",
         "affected_group_local",
         "geographic_district_micro",
+        "service_object_micro",
+        "deep_need_local",
+        "ecosystem_signal_systemic",
     )
     assert "topic_micro" not in config.cluster_active_lenses
-    assert config.cluster_primary_lens == "civic_domain_micro"
+    assert config.cluster_primary_lens == "composite_primary_micro"
+    assert config.cluster_min_size_by_lens["composite_primary_micro"] == 8
     assert config.cluster_signal_source == "canonical"
     assert config.cluster_geo_filter == "country"
     assert config.cluster_geo_scope is None

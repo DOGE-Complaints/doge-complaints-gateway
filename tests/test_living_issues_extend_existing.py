@@ -79,7 +79,7 @@ def test_extend_flow_process_story_story_count_three_and_labels_union() -> None:
             "s2",
             text="street light still broken in same district",
             title_hint="Street light issue",
-            labels=("roads",),
+            labels=("roads", "broken_infrastructure"),
         )
     )
     orchestrator, promotion_service, projection_store = _build_orchestrator(stories)
@@ -96,7 +96,7 @@ def test_extend_flow_process_story_story_count_three_and_labels_union() -> None:
             "s3",
             text="street light broken near square same district",
             title_hint="Square light",
-            labels=("roads", "parking"),
+            labels=("roads", "broken_infrastructure", "parking"),
         )
     )
     extend_issue_id = orchestrator.process_story("s3")

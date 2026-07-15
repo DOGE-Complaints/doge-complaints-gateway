@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.application.cluster_orchestrator import StoryClusterOrchestrator
 from core.application.issue_create import IssueCreateService, StoryPromotionProjectionBridge
-from core.cluster import ClusteringEngine
+from core.cluster import ClusteringEngine, ClusterLens
 from core.domain import StoryGeoSnapshot, StoryLifecycleStatus, StoryRecord
 from core.infrastructure.repositories import (
     InMemoryIssueProjectionStore,
@@ -112,11 +112,17 @@ def _build_orchestrator(stories: InMemoryStoryRepository) -> StoryClusterOrchest
         issue_projection_store=projection_store,
         issue_story_link_store=InMemoryIssueStoryLinkStore(),
     )
-    engine = ClusteringEngine(geo_filter="district")
+    engine = ClusteringEngine(
+        active_lenses=(ClusterLens.COMPOSITE_PRIMARY_MICRO,),
+        primary_lens=ClusterLens.COMPOSITE_PRIMARY_MICRO,
+        geo_filter="district",
+    )
     return StoryClusterOrchestrator(
         story_repository=stories,
         clustering_engine=engine,
         issue_create_service=issue_create,
+        cluster_min_size_by_lens={"composite_primary_micro": CLUSTER_MIN_SIZE},
+        default_cluster_min_size=CLUSTER_MIN_SIZE,
     )
 
 
@@ -142,7 +148,10 @@ def test_v02_offline_cluster_sizes_at_least_min_size() -> None:
                 str(scenario["test_metadata"]["seed_cluster_target"])
             ),
         )
-        key = f"{signals['civic_domain']}|{signals['geographic_district']}"
+        key = (
+            f"{signals['civic_domain']}|{signals['failure_pattern']}|"
+            f"{signals['geographic_district']}"
+        )
         buckets[key] += 1
     assert all(count >= CLUSTER_MIN_SIZE for count in buckets.values())
     assert len(buckets) == 2
