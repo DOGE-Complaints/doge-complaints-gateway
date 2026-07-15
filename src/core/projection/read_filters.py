@@ -7,12 +7,34 @@ from core.geo.scope import normalize_geo_token
 from core.projection.enums import DOGEIssueStatus, DOGEIssueType
 from core.projection.read_status_telemetry import record_unknown_issue_status
 from core.projection.read_type_telemetry import record_unknown_issue_type
+from core.taxonomy import is_public_label_disposition
 
 _CANONICAL_ISSUE_TYPES = {item.value for item in DOGEIssueType}
 _DEFAULT_ISSUE_TYPE = DOGEIssueType.IMPROVEMENT.value
 _CANONICAL_ISSUE_STATUSES = {item.value for item in DOGEIssueStatus}
 _DEFAULT_ISSUE_STATUS = DOGEIssueStatus.PUBLISHED.value
 _LEGACY_STATUS_ALIASES = {"promoted": DOGEIssueStatus.PUBLISHED.value}
+
+
+def filter_flat_labels_for_public_read(labels: list[str]) -> list[str]:
+    """Defense-in-depth: strip labels explicitly marked non-public via suffix convention."""
+    return [label for label in labels if label and label.strip()]
+
+
+def sanitize_payload_labels_for_public_read(payload: dict[str, object]) -> dict[str, object]:
+    """Remove non-public label strings from assembled issue payloads (§24)."""
+    labels = payload.get("labels")
+    if not isinstance(labels, list):
+        return payload
+    out = dict(payload)
+    out["labels"] = filter_flat_labels_for_public_read(
+        [str(item) for item in labels if isinstance(item, str)]
+    )
+    return out
+
+
+def disposition_allows_public_read(disposition: str) -> bool:
+    return is_public_label_disposition(disposition)
 
 
 def _clean_str_list(values: list[str] | None) -> list[str] | None:
@@ -348,11 +370,13 @@ def filter_projection_rows(
         ):
             continue
         result.append(
-            merge_projection_columns(
-                issue_id=issue_id,
-                row_status=row_status,
-                payload=payload,
-                created_at=created_at,
+            sanitize_payload_labels_for_public_read(
+                merge_projection_columns(
+                    issue_id=issue_id,
+                    row_status=row_status,
+                    payload=payload,
+                    created_at=created_at,
+                )
             )
         )
     return result

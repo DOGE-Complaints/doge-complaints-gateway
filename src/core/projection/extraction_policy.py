@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from core.cluster.alpha import alpha_score
+from core.domain import StoryLabelRepository
 from core.projection.enums import DOGEIssueLabel, DOGEIssueStatus, DOGEIssueType
 from core.projection.i18n import I18nText, i18n_text_from_optional_dict, i18n_text_from_plain_text
 from core.projection.input import ProjectionInput
+from core.taxonomy import public_label_strings
 
 from ..domain.contracts import StoryGeoSnapshot, StoryRecord
 
@@ -38,7 +40,25 @@ def canonical_issue_type_from_story(story: StoryRecord) -> str:
     return _CANONICAL_TYPE_TO_ISSUE_TYPE.get(raw, DOGEIssueType.IMPROVEMENT.value)
 
 
-def canonical_labels_from_cluster(stories: tuple[StoryRecord, ...]) -> tuple[str, ...]:
+def canonical_labels_from_cluster(
+    stories: tuple[StoryRecord, ...],
+    *,
+    story_label_repository: StoryLabelRepository | None = None,
+) -> tuple[str, ...]:
+    if story_label_repository is not None:
+        ordered: list[str] = []
+        seen: set[str] = set()
+        for story in stories:
+            for label in public_label_strings(
+                story_label_repository.list_by_story(story.story_id)
+            ):
+                if label in seen:
+                    continue
+                seen.add(label)
+                ordered.append(label)
+        if ordered:
+            return tuple(ordered)
+
     ordered: list[str] = []
     seen: set[str] = set()
     for story in stories:
@@ -121,6 +141,7 @@ class StoryToProjectionPolicy(Protocol):
 @dataclass(frozen=True)
 class DeterministicStoryToProjectionPolicy:
     policy_version: str = EXTRACTION_POLICY_VERSION
+    story_label_repository: StoryLabelRepository | None = None
 
     def build_draft(
         self,
@@ -133,7 +154,12 @@ class DeterministicStoryToProjectionPolicy:
         summary_text = aggregate_text[:220].strip()
         description_text = aggregate_text if aggregate_text else promoted_title
         issue_type = canonical_issue_type_from_story(dominant_story)
-        labels = spa_labels_from_canonical(canonical_labels_from_cluster(cluster_stories))
+        labels = spa_labels_from_canonical(
+            canonical_labels_from_cluster(
+                cluster_stories,
+                story_label_repository=self.story_label_repository,
+            )
+        )
         summary_fallback = summary_text if summary_text else promoted_title
         return StoryProjectionDraft(
             issue_type=issue_type,

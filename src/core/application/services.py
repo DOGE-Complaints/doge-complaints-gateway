@@ -15,10 +15,12 @@ from core.domain import (
     SignalProfileRecord,
     SignalProfileRepository,
     StoryLifecycleStatus,
+    StoryLabelRepository,
     StoryRecord,
     StoryRepository,
     StorySignalStore,
 )
+from core.taxonomy import story_labels_from_narrative
 from core.redaction import redact_pii
 from core.geo import GeoService
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
@@ -95,6 +97,7 @@ class StoryIntakeService:
     geo_service: GeoService | None = None
     story_embedding_store: StoryEmbeddingStore | None = None
     story_signal_store: StorySignalStore | None = None
+    story_label_repository: StoryLabelRepository | None = None
     log_debug_dir: str | None = None
 
     def _persist_gpt_classifier_signals(
@@ -293,6 +296,13 @@ class StoryIntakeService:
                 },
             )
             saved = self.repository.save_story(record)
+            if self.story_label_repository is not None:
+                label_rows = story_labels_from_narrative(
+                    story_id=saved.story_id,
+                    narrative=request.narrative,
+                )
+                if label_rows:
+                    self.story_label_repository.save_labels(label_rows)
             logger.info(
                 "intake.persistence_save_done backend=%s repository_class=%s stage=%s",
                 backend_hint,

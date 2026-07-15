@@ -10,6 +10,7 @@ from core.domain import (
     IdempotencyRecord,
     StoryDraftRecord,
     StoryGeoSnapshot,
+    StoryLabel,
     StoryLifecycleStatus,
     StoryRecord,
 )
@@ -38,6 +39,7 @@ REQUIRED_READINESS_TABLES: frozenset[str] = frozenset(
         "story_signals",
         "cluster_memberships",
         "story_drafts",
+        "story_labels",
     }
 )
 
@@ -1162,6 +1164,78 @@ class SupabaseStorySignalStore:
         if isinstance(raw, str):
             return dict(json.loads(raw))
         return dict(raw)
+
+
+@dataclass
+class SupabaseStoryLabelRepository:
+    db: SupabaseDatabase
+
+    def save_labels(self, labels: tuple[StoryLabel, ...]) -> None:
+        if not labels:
+            return
+        story_ids = sorted({label.story_id for label in labels})
+        for story_id in story_ids:
+            self.db._request(
+                method="DELETE",
+                path="/rest/v1/story_labels",
+                params={"story_id": self.db._eq_filter(story_id)},
+                prefer="return=minimal",
+            )
+        self.db._request(
+            method="POST",
+            path="/rest/v1/story_labels",
+            json_body=[
+                {
+                    "story_id": row.story_id,
+                    "axis": row.axis,
+                    "label": row.label,
+                    "disposition": row.disposition,
+                }
+                for row in labels
+            ],
+            prefer="return=minimal",
+        )
+
+    def list_by_story(self, story_id: str) -> tuple[StoryLabel, ...]:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/story_labels",
+            params={
+                "select": "story_id,axis,label,disposition",
+                "story_id": self.db._eq_filter(story_id),
+                "order": "axis.asc,label.asc",
+            },
+        )
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
+
+    def list_by_axis(self, axis: str) -> tuple[StoryLabel, ...]:
+        normalized = axis.strip().lower()
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/story_labels",
+            params={
+                "select": "story_id,axis,label,disposition",
+                "axis": self.db._eq_filter(normalized),
+                "order": "story_id.asc,label.asc",
+            },
+        )
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
 
 
 @dataclass

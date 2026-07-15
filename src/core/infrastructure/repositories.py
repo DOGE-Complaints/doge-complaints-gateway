@@ -17,6 +17,7 @@ from core.domain import (
     IdempotencyRecord,
     SignalProfileRecord,
     StoryDraftRecord,
+    StoryLabel,
     StoryLifecycleStatus,
     StoryRecord,
 )
@@ -480,4 +481,35 @@ class InMemoryLabelTranslationMissStore:
         assert self._rows is not None
         row = self._rows.get((label_key, locale))
         return row[0] if row is not None else 0
+
+
+@dataclass
+class InMemoryStoryLabelRepository:
+    _rows: dict[str, list[StoryLabel]] | None = None
+
+    def __post_init__(self) -> None:
+        if self._rows is None:
+            self._rows = {}
+
+    def save_labels(self, labels: tuple[StoryLabel, ...]) -> None:
+        assert self._rows is not None
+        if not labels:
+            return
+        story_ids = {label.story_id for label in labels}
+        for story_id in story_ids:
+            self._rows[story_id] = []
+        for label in labels:
+            self._rows[label.story_id].append(label)
+
+    def list_by_story(self, story_id: str) -> tuple[StoryLabel, ...]:
+        assert self._rows is not None
+        return tuple(self._rows.get(story_id, []))
+
+    def list_by_axis(self, axis: str) -> tuple[StoryLabel, ...]:
+        assert self._rows is not None
+        normalized = axis.strip().lower()
+        matched: list[StoryLabel] = []
+        for rows in self._rows.values():
+            matched.extend(row for row in rows if row.axis == normalized)
+        return tuple(matched)
 

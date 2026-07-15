@@ -9,6 +9,11 @@ from core.domain.narrative_i18n import (
     parse_optional_i18n_dict,
     parse_required_i18n_dict,
 )
+from core.taxonomy import (
+    AxisLabelEntry,
+    canonical_flat_labels_from_taxonomy,
+    parse_taxonomy_payload,
+)
 
 
 INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v2"
@@ -38,6 +43,7 @@ class Narrative:
     location_query: str | None = None
     canonical_type: str | None = None
     canonical_labels: tuple[str, ...] = ()
+    taxonomy: tuple[AxisLabelEntry, ...] = ()
     summary: dict[str, str] | None = None
     institution: dict[str, str] | None = None
 
@@ -307,6 +313,23 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
             normalized_labels.append(label.strip().lower())
         canonical_labels = tuple(dict.fromkeys(normalized_labels))
 
+    taxonomy: tuple[AxisLabelEntry, ...] = ()
+    taxonomy_raw = narrative_payload.get("taxonomy")
+    if taxonomy_raw is not None:
+        if isinstance(taxonomy_raw, Mapping):
+            try:
+                taxonomy = parse_taxonomy_payload(taxonomy_raw)
+            except ValueError as exc:
+                raise IntakeValidationError(str(exc)) from exc
+        elif isinstance(taxonomy_raw, (list, tuple)) and not taxonomy_raw:
+            taxonomy = ()
+        else:
+            raise IntakeValidationError(
+                "Missing or invalid narrative.taxonomy. Expected object."
+            )
+        if taxonomy and not canonical_labels:
+            canonical_labels = canonical_flat_labels_from_taxonomy(taxonomy)
+
     narrative = Narrative(
         original_text=original_text,
         language=language,
@@ -316,6 +339,7 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         location_query=location_query,
         canonical_type=canonical_type,
         canonical_labels=canonical_labels,
+        taxonomy=taxonomy,
         summary=summary,
         institution=institution,
     )

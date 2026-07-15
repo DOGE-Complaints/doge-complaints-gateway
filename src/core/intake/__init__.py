@@ -1,3 +1,4 @@
+from core.taxonomy.story_labels import AxisLabelEntry
 from core.intake.contracts import (
     GPT_SIGNAL_IMPACT_VALUES,
     GPT_SIGNAL_PROBLEM_STATUS_VALUES,
@@ -39,6 +40,7 @@ __all__ = [
     "GPT_SIGNAL_IMPACT_VALUES",
     "GPT_SIGNAL_PROBLEM_STATUS_VALUES",
     "IntakeValidationError",
+    "AxisLabelEntry",
     "GptSignalsBlock",
     "Submitter",
     "Narrative",

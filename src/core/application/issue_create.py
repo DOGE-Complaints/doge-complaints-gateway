@@ -8,7 +8,7 @@ from typing import Any
 from typing import Protocol
 from uuid import uuid4
 
-from core.domain import StoryRecord, StoryRepository
+from core.domain import StoryLabelRepository, StoryRecord, StoryRepository
 from core.promotion.types import IssueCandidateRecord
 from core.projection import (
     DeterministicStoryToProjectionPolicy,
@@ -127,6 +127,7 @@ class StoryPromotionProjectionBridge:
     extraction_policy: StoryToProjectionPolicy = field(
         default_factory=DeterministicStoryToProjectionPolicy
     )
+    story_label_repository: StoryLabelRepository | None = None
 
     def build_projection_input(
         self,

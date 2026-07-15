@@ -26,6 +26,7 @@ from core.domain import (
     LabelTranslationMissStore,
     SignalProfileRepository,
     StoryDraftRepository,
+    StoryLabelRepository,
     StoryRepository,
     StorySignalStore,
 )
@@ -62,6 +63,7 @@ class DefaultServiceFactory:
     issue_projection_embedding_store: IssueProjectionEmbeddingStore | None = None
     issue_story_link_store: IssueStoryLinkStore | None = None
     story_signal_store: StorySignalStore | None = None
+    story_label_repository: StoryLabelRepository | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
     label_translation_miss_store: LabelTranslationMissStore | None = None
 
@@ -75,6 +77,7 @@ class DefaultServiceFactory:
             geo_service=self.geo_service,
             story_embedding_store=self.story_embedding_store,
             story_signal_store=self.story_signal_store,
+            story_label_repository=self.story_label_repository,
             log_debug_dir=self.config.log_debug_dir,
         )
 
@@ -108,7 +111,9 @@ class DefaultServiceFactory:
         return IssueProjectionService()
 
     def get_story_projection_policy(self) -> StoryToProjectionPolicy:
-        return DeterministicStoryToProjectionPolicy()
+        return DeterministicStoryToProjectionPolicy(
+            story_label_repository=self.story_label_repository,
+        )
 
     def get_evidence_pack_service(self) -> EvidencePackService:
         return EvidencePackService(repository=self.evidence_pack_repository)
@@ -128,6 +133,7 @@ class DefaultServiceFactory:
             bridge=StoryPromotionProjectionBridge(
                 story_repository=self.story_repository,
                 extraction_policy=self.get_story_projection_policy(),
+                story_label_repository=self.story_label_repository,
             ),
             issue_projection_store=self.issue_projection_store,
             issue_projection_embedding_store=self.issue_projection_embedding_store,
@@ -140,6 +146,7 @@ class DefaultServiceFactory:
             clustering_engine=self.get_clustering_engine(),
             issue_create_service=self.get_issue_create_service(),
             story_signal_store=self.story_signal_store,
+            story_label_repository=self.story_label_repository,
             cluster_membership_store=self.cluster_membership_store,
             log_debug_dir=self.config.log_debug_dir,
         )

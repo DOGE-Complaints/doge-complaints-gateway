@@ -12,6 +12,7 @@ from core.domain import (
     IdempotencyRecord,
     StoryDraftRecord,
     StoryGeoSnapshot,
+    StoryLabel,
     StoryLifecycleStatus,
     StoryRecord,
 )
@@ -374,7 +375,24 @@ class SqliteDatabase:
         )
         self._ensure_doge_issues_columnar_migration()
         self._ensure_story_draft_owner_migration()
+        self._ensure_story_labels_migration()
         self.connection.commit()
+
+    def _ensure_story_labels_migration(self) -> None:
+        """GW-TAX-01: per-axis taxonomy persistence table."""
+        self.connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS story_labels (
+                story_id TEXT NOT NULL,
+                axis TEXT NOT NULL,
+                label TEXT NOT NULL,
+                disposition TEXT NOT NULL,
+                PRIMARY KEY (story_id, axis, label)
+            );
+            CREATE INDEX IF NOT EXISTS idx_story_labels_story ON story_labels(story_id);
+            CREATE INDEX IF NOT EXISTS idx_story_labels_axis ON story_labels(axis);
+            """
+        )
 
     def _ensure_story_draft_owner_migration(self) -> None:
         """GW-CAB-02: story_drafts.updated_at + draft_owner association table."""
@@ -1296,6 +1314,70 @@ class SqliteStorySignalStore:
         if row is None:
             return None
         return dict(json.loads(str(row["signals_json"])))
+
+
+@dataclass
+class SqliteStoryLabelRepository:
+    db: SqliteDatabase
+
+    def save_labels(self, labels: tuple[StoryLabel, ...]) -> None:
+        if not labels:
+            return
+        story_ids = sorted({label.story_id for label in labels})
+        for story_id in story_ids:
+            self.db.connection.execute(
+                "DELETE FROM story_labels WHERE story_id = ?",
+                (story_id,),
+            )
+        self.db.connection.executemany(
+            """
+            INSERT INTO story_labels (story_id, axis, label, disposition)
+            VALUES (?, ?, ?, ?)
+            """,
+            [(row.story_id, row.axis, row.label, row.disposition) for row in labels],
+        )
+        self.db.connection.commit()
+
+    def list_by_story(self, story_id: str) -> tuple[StoryLabel, ...]:
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id, axis, label, disposition
+            FROM story_labels
+            WHERE story_id = ?
+            ORDER BY axis, label
+            """,
+            (story_id,),
+        ).fetchall()
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
+
+    def list_by_axis(self, axis: str) -> tuple[StoryLabel, ...]:
+        normalized = axis.strip().lower()
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id, axis, label, disposition
+            FROM story_labels
+            WHERE axis = ?
+            ORDER BY story_id, label
+            """,
+            (normalized,),
+        ).fetchall()
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
 
 
 @dataclass

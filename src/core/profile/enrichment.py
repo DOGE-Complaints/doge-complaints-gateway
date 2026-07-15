@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Mapping, Sequence
 
 from core.cluster.vocabulary import (
     AFFECTED_GROUP_DEFAULT,
@@ -12,8 +12,10 @@ from core.cluster.vocabulary import (
     FAILURE_PATTERN_VOCABULARY,
 )
 from core.domain import SignalDimension, StoryRecord
+from core.taxonomy import signals_from_story_labels
 
 if TYPE_CHECKING:
+    from core.domain import StoryLabelRepository
     from core.logging_setup import StoryPipelineDebugLog
 
 
@@ -79,7 +81,21 @@ def infer_signals_from_canonical(
     }
 
 
-def get_signals_for_story(story: StoryRecord) -> dict[str, str]:
+def get_signals_for_story(
+    story: StoryRecord,
+    *,
+    story_label_repository: StoryLabelRepository | None = None,
+) -> dict[str, str]:
+    if story_label_repository is not None:
+        stored = story_label_repository.list_by_story(story.story_id)
+        if stored:
+            return signals_from_story_labels(
+                canonical_type=story.narrative_canonical_type,
+                labels=stored,
+                geo_normalized_label=(
+                    story.geo.normalized_label if story.geo is not None else None
+                ),
+            )
     return infer_signals_from_canonical(
         story.narrative_canonical_type,
         story.narrative_canonical_labels,

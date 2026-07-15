@@ -13,6 +13,7 @@ from core.domain import (
     IdempotencyRepository,
     SignalProfileRepository,
     StoryDraftRepository,
+    StoryLabelRepository,
     StoryRepository,
     StorySignalStore,
     LabelTranslationMissStore,
@@ -29,6 +30,7 @@ from core.infrastructure.repositories import (
     InMemorySignalProfileRepository,
     InMemoryStoryDraftRepository,
     InMemoryStoryEmbeddingStore,
+    InMemoryStoryLabelRepository,
     InMemoryStoryRepository,
     InMemoryStorySignalStore,
 )
@@ -45,6 +47,7 @@ from core.infrastructure.db_sqlite import (
     SqliteReviewAuditLogRepository,
     SqliteStoryDraftRepository,
     SqliteStoryEmbeddingStore,
+    SqliteStoryLabelRepository,
     SqliteStoryRepository,
     SqliteStorySignalStore,
 )
@@ -61,6 +64,7 @@ from core.infrastructure.db_supabase import (
     SupabaseReviewAuditLogRepository,
     SupabaseStoryDraftRepository,
     SupabaseStoryEmbeddingStore,
+    SupabaseStoryLabelRepository,
     SupabaseStoryRepository,
     SupabaseStorySignalStore,
 )
@@ -166,6 +170,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
     issue_candidate_store = provide_issue_candidate_store()
     review_audit_log_repository = provide_review_audit_log_repository()
     story_signal_store: StorySignalStore = InMemoryStorySignalStore()
+    story_label_repository: StoryLabelRepository = InMemoryStoryLabelRepository()
     cluster_membership_store: ClusterMembershipStore = InMemoryClusterMembershipStore()
     label_translation_miss_store: LabelTranslationMissStore = InMemoryLabelTranslationMissStore()
 
@@ -183,6 +188,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         review_audit_log_repository = SqliteReviewAuditLogRepository(sqlite_db)
         issue_story_link_store = SqliteIssueStoryLinkStore(sqlite_db)
         story_signal_store = SqliteStorySignalStore(sqlite_db)
+        story_label_repository = SqliteStoryLabelRepository(sqlite_db)
         cluster_membership_store = SqliteClusterMembershipStore(sqlite_db)
         label_translation_miss_store = SqliteLabelTranslationMissStore(sqlite_db)
         logger.info(
@@ -218,6 +224,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         review_audit_log_repository = SupabaseReviewAuditLogRepository(supabase_db)
         issue_story_link_store = SupabaseIssueStoryLinkStore(supabase_db)
         story_signal_store = SupabaseStorySignalStore(supabase_db)
+        story_label_repository = SupabaseStoryLabelRepository(supabase_db)
         cluster_membership_store = SupabaseClusterMembershipStore(supabase_db)
         label_translation_miss_store = SupabaseLabelTranslationMissStore(supabase_db)
         logger.info(
@@ -275,6 +282,7 @@ def provide_service_factory(config: AppConfig | None = None) -> ServiceFactory:
         issue_projection_embedding_store=issue_projection_embedding_store,
         issue_story_link_store=issue_story_link_store,
         story_signal_store=story_signal_store,
+        story_label_repository=story_label_repository,
         cluster_membership_store=cluster_membership_store,
         label_translation_miss_store=label_translation_miss_store,
     )

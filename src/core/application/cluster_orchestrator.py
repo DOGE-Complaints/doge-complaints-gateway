@@ -7,6 +7,7 @@ from core.application.issue_create import IssueCreateCommand, IssueCreateService
 from core.cluster import ClusterLens, ClusteringEngine, StoryProfileSignals
 from core.domain import (
     ClusterMembershipStore,
+    StoryLabelRepository,
     StoryLifecycleStatus,
     StoryRecord,
     StoryRepository,
@@ -31,6 +32,7 @@ class StoryClusterOrchestrator:
     clustering_engine: ClusteringEngine
     issue_create_service: IssueCreateService
     story_signal_store: StorySignalStore | None = None
+    story_label_repository: StoryLabelRepository | None = None
     cluster_membership_store: ClusterMembershipStore | None = None
     log_debug_dir: str | None = None
 
@@ -51,7 +53,10 @@ class StoryClusterOrchestrator:
             )
             if cached is not None:
                 return dict(cached)
-        signals = get_signals_for_story(story)
+        signals = get_signals_for_story(
+            story,
+            story_label_repository=self.story_label_repository,
+        )
         if self.story_signal_store is not None:
             try:
                 self.story_signal_store.save_signals(

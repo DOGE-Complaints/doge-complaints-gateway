@@ -147,6 +147,28 @@ class DraftOwnerRepository(Protocol):
         ...
 
 
+@dataclass(frozen=True)
+class StoryLabel:
+    story_id: str
+    axis: str
+    label: str
+    disposition: str
+
+
+class StoryLabelRepository(Protocol):
+    def save_labels(self, labels: tuple[StoryLabel, ...]) -> None:
+        """Persist story taxonomy labels (replace-all for story_id batch)."""
+        ...
+
+    def list_by_story(self, story_id: str) -> tuple[StoryLabel, ...]:
+        """Return all labels for a story."""
+        ...
+
+    def list_by_axis(self, axis: str) -> tuple[StoryLabel, ...]:
+        """Return all labels on a taxonomy axis."""
+        ...
+
+
 class SignalDimension(StrEnum):
     """Signal axes for profiles and clustering.
 
