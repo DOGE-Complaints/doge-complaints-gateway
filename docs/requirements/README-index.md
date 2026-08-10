@@ -70,6 +70,11 @@
 - `39-cross-layer-contract-testing.md` — **P2**: offline contract suite zones A–N (bootstrap↔Python, PostgREST coercion, intake mapping, repository parity, API facade, logging, store parity, factory wiring). EPIC-M2-18; complements REQ-24/40 acceptance tests.
 - `41-testing-production-coverage-target-state.md` — **P0–P2**: целевое покрытие 25 продакшн-сценариев (PS-01..PS-25): Layer 6 smoke (`LOCAL_SERVER_URL`), cron timing, concurrent intake, env-only config, CI `integration-live` + матрица в [`13-testing-and-quality-architecture.md`](../solution%20architecture/13-testing-and-quality-architecture.md) §6. Исполнение: EPIC-M2-18 stories M2-18-03..05, [`pkg-000021`](../tasks/gateway-active-packages/pkg-000021-20260518-req41-production-test-coverage.yaml).
 
+### Early Signal / Pre-Cluster (parent product REQ)
+
+- `48-early-signal-pre-cluster-data-readiness.md` — **Draft awaiting PA.2**: inventory существующих stores vs Level 1/2 metrics parent Early Signal Dashboard; privacy / Topic≠Issue; **без** invented public API path; sibling spa `15-early-signal-pre-cluster-public-dashboard.md`. Parent: `docs/requirements backlog/DOGEstonia-Early-Signal-Dashboard-Pre-Cluster-Product-Requirements.md`.
+- `49-early-signal-network-pulse-l1-api.md` — **Accepted 2026-08-10**: public `GET /tallinn/network-pulse` path + payload schema (GW-ES-02 T00 / pkg-000059); predecessor REQ-48.
+
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
 - `20-post-demo-orchestration-and-scheduled-jobs.md` — оркестрация, cron/queue, единый use-case слой.

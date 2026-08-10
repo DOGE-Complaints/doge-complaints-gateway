@@ -18,6 +18,8 @@ tags:
     description: Operational endpoints mapped to existing handlers
   - name: Intake
     description: Story-first intake contract surface
+  - name: EarlySignal
+    description: Public Early Signal / Network Pulse L1 aggregates (non-PII)
 components:
   securitySchemes:
     BearerAuth:
@@ -973,6 +975,69 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /tallinn/network-pulse:
+    options:
+      tags: [Ops]
+      summary: CORS preflight for Network Pulse endpoint
+      operationId: optionsTallinnNetworkPulse
+      x-runtime-state: as-is-active-fastapi-route
+      responses:
+        '200':
+          description: CORS preflight accepted
+    get:
+      tags: [EarlySignal]
+      summary: Public Network Pulse L1 aggregates (Stories collected + dims)
+      description: |
+        REQ-49 / GW-ES-02. Public route (no service auth). Non-PII aggregates only.
+        Topic/label frequencies are **not** Issues. Do not reuse `/metrics`.
+      operationId: getTallinnNetworkPulse
+      x-runtime-state: as-is-active-fastapi-route
+      responses:
+        '200':
+          description: Success envelope with Network Pulse payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - stories_collected
+                      - languages
+                      - areas
+                      - topics
+                      - recent_stories_7d
+                    properties:
+                      stories_collected:
+                        type: integer
+                      languages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key: { type: string }
+                            count: { type: integer }
+                      areas:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key: { type: string }
+                            count: { type: integer }
+                      topics:
+                        type: array
+                        description: Taxonomy topic/label frequencies (never Issues)
+                        items:
+                          type: object
+                          properties:
+                            label: { type: string }
+                            axis: { type: string }
+                            count: { type: integer }
+                      recent_stories_7d:
+                        type: integer
+                  trace_id:
+                    type: string
   /tallinn/issues:
     options:
       tags: [Ops]

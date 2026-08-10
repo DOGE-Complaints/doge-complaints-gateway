@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), and issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
+2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`), and Network Pulse L1 (`GET /tallinn/network-pulse`, GW-ES-02 / REQ-49) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -721,6 +721,25 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 - `trace_id` is preserved or generated in API envelopes (`ensure_trace_id`).
 - Auth failure metrics are exposed via `ApiMetrics` and can be checked by `alert_contract`.
 
+### `GET /tallinn/network-pulse` (GW-ES-02 / REQ-49)
+
+- **HTTP binding state**: implemented — `asgi_app.py` → `handle_network_pulse` (`handlers.py`); service `NetworkPulseService` (`application/network_pulse.py`)
+- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
+- **Contract SSOT**: [`49-early-signal-network-pulse-l1-api.md`](../../requirements/49-early-signal-network-pulse-l1-api.md)
+- **Returns**: `200` with `data` non-PII L1 aggregates for Early Signal Network Pulse
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `stories_collected` | int | `len(list_stories())` |
+| `languages` | `{key, count}[]` | by `narrative_language` |
+| `areas` | `{key, count}[]` | district → settlement → region fallback; small sample ≠ city coverage |
+| `topics` | `{label, axis, count}[]` | **topic/label** frequencies from public `story_labels` — **never Issues** |
+| `recent_stories_7d` | int | UTC 7-day window on `created_at` |
+
+**Normative:** Topic ≠ Issue; no «N Stories until Issue»; no `submitter_*` / narrative / Voices. Do **not** use `/metrics` for Pulse. `GET /tallinn/issues` unchanged (L3).
+
+---
+
 Sources:
 
 - `src/core/api/envelope.py`
@@ -743,7 +762,8 @@ Sources:
   - `GET /ready`
   - `POST /story-drafts` (201 Created — GPT stash; no story yet)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
-  - `GET /tallinn/issues` (15-parameter filter API)
+  - `GET /tallinn/network-pulse` (GW-ES-02 / REQ-49 Network Pulse L1)
+- `GET /tallinn/issues` (15-parameter filter API)
   - `GET /tallinn/issues/{issue_id}`
 - Browser Bearer operations (`require_story_draft_read_user` / submit dep):
   - `GET /story-drafts/{draft_id}`
