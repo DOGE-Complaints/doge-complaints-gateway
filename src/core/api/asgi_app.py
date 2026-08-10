@@ -23,6 +23,7 @@ from core.api.handlers import (
     handle_health,
     handle_label_miss_telemetry,
     handle_metrics,
+    handle_network_pulse,
     handle_protected_status,
     handle_readiness,
     handle_story_draft_create,
@@ -61,6 +62,7 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/story-drafts",
     "/telemetry/label-misses",
     "/tallinn/issues",
+    "/tallinn/network-pulse",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
@@ -422,6 +424,20 @@ async def tallinn_issues_options() -> Response:
 @app.options("/tallinn/issues/{issue_id}")
 async def tallinn_issue_options() -> Response:
     return Response(status_code=200)
+
+
+@app.options("/tallinn/network-pulse")
+async def tallinn_network_pulse_options() -> Response:
+    return Response(status_code=200)
+
+
+@app.get("/tallinn/network-pulse")
+async def tallinn_network_pulse(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload = handle_network_pulse(deps, trace_id=_read_trace_id(request))
+    return JSONResponse(content=payload, status_code=_json_http_status(payload))
 
 
 @app.get("/tallinn/issues")

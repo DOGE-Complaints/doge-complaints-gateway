@@ -11,6 +11,7 @@ from core.application import (
     StoryIntakeService,
 )
 from core.application.issue_create import IssueProjectionReadStore
+from core.application.network_pulse import NetworkPulseService
 from core.config import AppConfig, load_config_from_env
 from core.domain import DraftOwnerRepository, LabelTranslationMissStore, StoryDraftRepository
 from core.identity.me_client import IdentityMeClient, build_identity_me_from_config
@@ -24,6 +25,7 @@ class ApiDependencies:
     story_cluster_orchestrator: StoryClusterOrchestrator
     issue_create_service: IssueCreateService
     issue_projection_read_store: IssueProjectionReadStore
+    network_pulse_service: NetworkPulseService
     config: AppConfig = field(
         default_factory=lambda: load_config_from_env(
             {
@@ -87,6 +89,7 @@ def build_api_dependencies() -> ApiDependencies:
         story_cluster_orchestrator=service_factory.get_story_cluster_orchestrator(),
         issue_create_service=service_factory.get_issue_create_service(),
         issue_projection_read_store=service_factory.get_issue_projection_read_store(),
+        network_pulse_service=service_factory.get_network_pulse_service(),
         config=service_factory.config,
         service_auth=build_service_auth_from_env(),
         identity_me=build_identity_me_from_config(service_factory.config),

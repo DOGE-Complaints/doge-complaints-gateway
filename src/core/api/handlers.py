@@ -37,6 +37,17 @@ from core.intake import (
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
 
 
+def handle_network_pulse(
+    dependencies: ApiDependencies,
+    *,
+    trace_id: str | None = None,
+) -> dict[str, Any]:
+    """GW-ES-02 / REQ-49: public Network Pulse L1 aggregates."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    pulse = dependencies.network_pulse_service.build_pulse()
+    return build_success_envelope(data=pulse, trace_id=resolved_trace_id).as_dict()
+
+
 def _require_service_auth(
     dependencies: ApiDependencies,
     *,

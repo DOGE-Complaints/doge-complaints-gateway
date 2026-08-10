@@ -10,6 +10,7 @@ from core.application import (
     StoryIntakeService,
     StoryPromotionProjectionBridge,
 )
+from core.application.network_pulse import NetworkPulseService
 from core.application.issue_create import (
     IssueProjectionEmbeddingStore,
     IssueProjectionReadStore,
@@ -151,5 +152,11 @@ class DefaultServiceFactory:
             log_debug_dir=self.config.log_debug_dir,
             cluster_min_size_by_lens=self.config.cluster_min_size_by_lens,
             default_cluster_min_size=self.config.cluster_min_size,
+        )
+
+    def get_network_pulse_service(self) -> NetworkPulseService:
+        return NetworkPulseService(
+            story_repository=self.story_repository,
+            story_label_repository=self.story_label_repository,
         )
 
