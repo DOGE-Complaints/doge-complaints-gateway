@@ -52,6 +52,7 @@ def _deps_kwargs(health_service: Any) -> dict[str, Any]:
         "story_cluster_orchestrator": _DummyStoryClusterOrchestrator(),
         "issue_create_service": _DummyIssueCreateService(),
         "issue_projection_read_store": _DummyIssueProjectionReadStore(),
+        "network_pulse_service": object(),
     }
 
 

@@ -50,6 +50,7 @@ def _deps_base() -> dict[str, Any]:
         "story_cluster_orchestrator": cast(Any, _DummyStoryClusterOrchestrator()),
         "issue_create_service": cast(Any, object()),
         "issue_projection_read_store": cast(Any, object()),
+        "network_pulse_service": cast(Any, object()),
         "metrics": ApiMetrics(),
     }
 

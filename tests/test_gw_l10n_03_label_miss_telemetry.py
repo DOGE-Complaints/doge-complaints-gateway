@@ -95,6 +95,7 @@ def test_post_label_miss_store_failure_returns_202_degraded(client: TestClient) 
         story_cluster_orchestrator=base.story_cluster_orchestrator,
         issue_create_service=base.issue_create_service,
         issue_projection_read_store=base.issue_projection_read_store,
+        network_pulse_service=base.network_pulse_service,
         config=base.config,
         service_auth=base.service_auth,
         metrics=base.metrics,
