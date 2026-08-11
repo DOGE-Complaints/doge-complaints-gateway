@@ -87,6 +87,7 @@ Unknown: whether any internal admin/metrics route already exposes Story counts s
 
 1. Should public Pulse expose Story **count** only, or also recent activity / languages / areas?
 2. Is Level 2 based on `cluster_memberships` + readiness, `story_signals` frequency, or spa-only heuristics?
+   - **MVP close (GW-ES-03 / REQ-50):** Level 2 Emerging = top-N **public taxonomy label** frequencies excluding stories linked to cabinet-**published** Issues. Path+payload SSOT: [`50-early-signal-emerging-l2-api.md`](./50-early-signal-emerging-l2-api.md). Cluster/memberships/`story_signals` alternatives remain successor ADR territory.
 3. k-anonymity / minimum cell size for any aggregate (related to matching D3 — not decided here)?
 4. Service `/metrics` reuse vs dedicated public read — operator choice?
 5. Hosted performance: fetch-all Issues path already in-memory; aggregates must not worsen demo load without SQL plan.

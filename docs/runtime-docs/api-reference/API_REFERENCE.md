@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`), and Network Pulse L1 (`GET /tallinn/network-pulse`, GW-ES-02 / REQ-49) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
+2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`), Network Pulse L1 (`GET /tallinn/network-pulse`, GW-ES-02 / REQ-49), and Emerging L2 (`GET /tallinn/emerging-signals`, GW-ES-03 / REQ-50) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -740,6 +740,26 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 
 ---
 
+### `GET /tallinn/emerging-signals` (GW-ES-03 / REQ-50)
+
+- **HTTP binding state**: implemented — `asgi_app.py` → `handle_emerging_signals` (`handlers.py`); service `EmergingSignalsService` (`application/emerging_signals.py`)
+- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
+- **Contract SSOT**: [`50-early-signal-emerging-l2-api.md`](../../requirements/50-early-signal-emerging-l2-api.md)
+- **Returns**: `200` with `data` non-PII L2 Emerging aggregates (**not** Issues projections)
+
+| Query | Type | Default | Notes |
+|-------|------|---------|-------|
+| `top_n` | int | `10` | Clamped `[1, 50]` |
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `signals` | `{label, axis, story_count}[]` | Top-N **topic/label** frequencies from public `story_labels`; stories linked to cabinet-**published** Issues excluded |
+| `top_n` | int | Applied top_n after clamp |
+
+**Normative:** Emerging ≠ Issues (`data.signals` vs `data.issues`); Topic ≠ Issue; no «N Stories until Issue»; no PII; no persistent `EmergingSignal` table. Source = labels, **not** `list_projections`. L3 `GET /tallinn/issues` and L1 Pulse unchanged.
+
+---
+
 Sources:
 
 - `src/core/api/envelope.py`
@@ -763,6 +783,7 @@ Sources:
   - `POST /story-drafts` (201 Created — GPT stash; no story yet)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
   - `GET /tallinn/network-pulse` (GW-ES-02 / REQ-49 Network Pulse L1)
+  - `GET /tallinn/emerging-signals` (GW-ES-03 / REQ-50 Emerging L2)
 - `GET /tallinn/issues` (15-parameter filter API)
   - `GET /tallinn/issues/{issue_id}`
 - Browser Bearer operations (`require_story_draft_read_user` / submit dep):
