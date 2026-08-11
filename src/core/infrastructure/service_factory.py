@@ -10,6 +10,7 @@ from core.application import (
     StoryIntakeService,
     StoryPromotionProjectionBridge,
 )
+from core.application.emerging_signals import EmergingSignalsService
 from core.application.network_pulse import NetworkPulseService
 from core.application.issue_create import (
     IssueProjectionEmbeddingStore,
@@ -158,5 +159,15 @@ class DefaultServiceFactory:
         return NetworkPulseService(
             story_repository=self.story_repository,
             story_label_repository=self.story_label_repository,
+        )
+
+    def get_emerging_signals_service(self) -> EmergingSignalsService:
+        if self.story_label_repository is None:
+            raise RuntimeError("story_label_repository is required for EmergingSignalsService")
+        return EmergingSignalsService(
+            story_repository=self.story_repository,
+            story_label_repository=self.story_label_repository,
+            issue_story_link_store=self.issue_story_link_store,
+            issue_projection_read_store=self.get_issue_projection_read_store(),
         )
 

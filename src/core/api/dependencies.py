@@ -11,6 +11,7 @@ from core.application import (
     StoryIntakeService,
 )
 from core.application.issue_create import IssueProjectionReadStore
+from core.application.emerging_signals import EmergingSignalsService
 from core.application.network_pulse import NetworkPulseService
 from core.config import AppConfig, load_config_from_env
 from core.domain import DraftOwnerRepository, LabelTranslationMissStore, StoryDraftRepository
@@ -26,6 +27,7 @@ class ApiDependencies:
     issue_create_service: IssueCreateService
     issue_projection_read_store: IssueProjectionReadStore
     network_pulse_service: NetworkPulseService
+    emerging_signals_service: EmergingSignalsService
     config: AppConfig = field(
         default_factory=lambda: load_config_from_env(
             {
@@ -90,6 +92,7 @@ def build_api_dependencies() -> ApiDependencies:
         issue_create_service=service_factory.get_issue_create_service(),
         issue_projection_read_store=service_factory.get_issue_projection_read_store(),
         network_pulse_service=service_factory.get_network_pulse_service(),
+        emerging_signals_service=service_factory.get_emerging_signals_service(),
         config=service_factory.config,
         service_auth=build_service_auth_from_env(),
         identity_me=build_identity_me_from_config(service_factory.config),

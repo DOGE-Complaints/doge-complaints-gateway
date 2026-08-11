@@ -48,6 +48,18 @@ def handle_network_pulse(
     return build_success_envelope(data=pulse, trace_id=resolved_trace_id).as_dict()
 
 
+def handle_emerging_signals(
+    dependencies: ApiDependencies,
+    *,
+    top_n: int = 10,
+    trace_id: str | None = None,
+) -> dict[str, Any]:
+    """GW-ES-03 / REQ-50: public Emerging L2 (≠ Issues projections)."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    emerging = dependencies.emerging_signals_service.build_emerging(top_n=top_n)
+    return build_success_envelope(data=emerging, trace_id=resolved_trace_id).as_dict()
+
+
 def _require_service_auth(
     dependencies: ApiDependencies,
     *,

@@ -24,6 +24,7 @@ from core.api.handlers import (
     handle_label_miss_telemetry,
     handle_metrics,
     handle_network_pulse,
+    handle_emerging_signals,
     handle_protected_status,
     handle_readiness,
     handle_story_draft_create,
@@ -63,6 +64,7 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/telemetry/label-misses",
     "/tallinn/issues",
     "/tallinn/network-pulse",
+    "/tallinn/emerging-signals",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
@@ -437,6 +439,23 @@ async def tallinn_network_pulse(
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
     payload = handle_network_pulse(deps, trace_id=_read_trace_id(request))
+    return JSONResponse(content=payload, status_code=_json_http_status(payload))
+
+
+@app.options("/tallinn/emerging-signals")
+async def tallinn_emerging_signals_options() -> Response:
+    return Response(status_code=200)
+
+
+@app.get("/tallinn/emerging-signals")
+async def tallinn_emerging_signals(
+    request: Request,
+    top_n: int = Query(default=10, ge=1, le=50),
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    payload = handle_emerging_signals(
+        deps, top_n=top_n, trace_id=_read_trace_id(request)
+    )
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
 
 
