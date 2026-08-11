@@ -51,6 +51,7 @@ def _deps_base() -> dict[str, Any]:
         "issue_create_service": cast(Any, object()),
         "issue_projection_read_store": cast(Any, object()),
         "network_pulse_service": cast(Any, object()),
+        "emerging_signals_service": cast(Any, object()),
         "metrics": ApiMetrics(),
     }
 
