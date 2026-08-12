@@ -14,7 +14,21 @@
 GPT собрал историю, но сам её не публикует. Он **кладёт готовый JSON во временное хранилище** gateway и получает короткий `draft_id`, который передаёт браузеру через редирект. Браузер потом забирает черновик по этому id. Так контент не уходит в URL — передаём **ссылку, а не payload** (паттерн как OAuth authorization code).
 
 ## Что наблюдаю сейчас (verified по коду)
-- **POST-роуты gateway:** `/tallinn/issues` ([asgi_app.py:459](../../../../src/core/api/asgi_app.py#L459)), `/intake/stories` ([:475](../../../../src/core/api/asgi_app.py#L475)), `/telemetry/label-misses`. Роутов `/story-drafts*` **нет**.
+
+> **Контекст до реализации** — ниже; актуальное состояние после Done см. **Текущее состояние (post-Done)**.
+
+## Текущее состояние (post-Done, verified)
+
+- `POST /story-drafts` + `GET /story-drafts/{draft_id}` — live ([`asgi_app.py:521-537`](../../../../src/core/api/asgi_app.py)).
+- Stash contract: hotfix placeholder → [GW-DRAFT-05](./STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit.md); legacy `POST /intake/stories` → [GW-DRAFT-06](./STORY-GW-DRAFT-06-remove-legacy-intake-stories-route.md).
+
+> **Security model — story drafts (MVP).** Доступ = capability: `draft_id` — неугадываемый 128-битный токен (`secrets.token_urlsafe(16)`). Валидный user-Bearer + знание `draft_id` = право на чтение и сабмит; отдельная проверка владельца на GET/submit **не выполняется by design**. Ассоциация `draft_owner` на успешном GET — **first-wins** (`set_owner`: INSERT … DO NOTHING / ignore-duplicates / setdefault); `GET /story-drafts/current` scoped по первому записанному владельцу. Модель достаточна, пока `draft_id` не утекает (логи, реферер, пересланные ссылки). Strict ownership-gate — post-MVP, вне скоупа.
+>
+> SSOT: [DOC-TASK-DRAFT-OWNERSHIP-01](../cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md).
+
+## Контекст до реализации (исторический)
+
+- **POST-роуты gateway:** `/tallinn/issues`, `/intake/stories`, `/telemetry/label-misses`. Роутов `/story-drafts*` **не было**.
 - **Порт-адаптер (гексагон):** порты — Protocols в [`domain/contracts.py`](../../../../src/core/domain/contracts.py) (`StoryRepository` save/get [:70-75](../../../../src/core/domain/contracts.py#L70), `IdempotencyRepository` [:99](../../../../src/core/domain/contracts.py#L99)); адаптеры — [`infrastructure/`](../../../../src/core/infrastructure/) (`repositories.py`, `db_sqlite.py`, `db_supabase.py`); сборка per `DB_BACKEND` — `ServiceFactory` ([service_factory.py:48-49](../../../../src/core/infrastructure/service_factory.py#L48)).
 - **Сервис-авторизация (реюз):** `require_public_content_service_auth` (`ServiceTokenAuth.require(mandatory=True)`) ([asgi_app.py:291](../../../../src/core/api/asgi_app.py#L291), [security.py](../../../../src/core/api/security.py)) — **тот же** сервисный канал, что нужен GPT для стеша.
 - **Контракт истории:** `parse_story_intake_request(payload)` ([intake/contracts.py](../../../../src/core/intake/contracts.py)) → `StoryIntakeRequest`; невалид → `IntakeValidationError` → envelope `VALIDATION_ERROR` ([envelope.py:71-82](../../../../src/core/api/envelope.py#L71)).

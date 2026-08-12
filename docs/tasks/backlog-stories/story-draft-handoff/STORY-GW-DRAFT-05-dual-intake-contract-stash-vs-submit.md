@@ -3,12 +3,12 @@
 ## Meta
 - **Key:** `STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit`
 - **Пакет:** [`story-draft-handoff/`](./INDEX.md)
-- **Status:** ⚪ Backlog
+- **Status:** 🔵 Done (Awaiting Commits) — pkg-000049 gate PASS 2026-07-11; stash/submit split `parse_story_draft_stash_request` (commit `5625024`). Header-sync [audit-mvp-scope-hard-2026-07-21](../../../analysis/audit-mvp-scope-hard-2026-07-21.md) §3.
 - **Приоритет:** 🟠 MED — поведение на проде уже работает (hotfix `87fc272`); цель — убрать техдолг и выровнять SSOT
 - **Тип:** refactor (domain contracts + handlers + docs + tests)
 - **Основание:** [`audit-gpt-story-drafts-submitter-domain-error-2026-07-08`](../../../analysis/audit-gpt-story-drafts-submitter-domain-error-2026-07-08.md) §5.2 (вариант C)
 - **Зависит от:** [GW-DRAFT-01](./STORY-GW-DRAFT-01-story-draft-stash.md), [GW-DRAFT-02](./STORY-GW-DRAFT-02-browser-submit-verification-gate.md), GPT-SUBMIT-02 (GPT OpenAPI без submitter)
-- **Разблокирует:** выравнивание runtime OpenAPI с GPT Actions v0.6.0; снятие placeholder `__stash_pending_author__`
+- **Разблокирует:** [GW-DRAFT-06](./STORY-GW-DRAFT-06-remove-legacy-intake-stories-route.md); выравнивание runtime OpenAPI с GPT Actions v0.6.0; снятие placeholder `__stash_pending_author__`
 
 ## Зачем простыми словами
 GPT кладёт черновик **без автора** — автор появляется только когда браузер сабмитит (из identity `/me`). Сейчас gateway обходит это через фиктивный `submitter` и magic string. Нужно два явных контракта: **stash** (без submitter) и **intake** (с submitter), с мостом только на границе submit.
@@ -51,7 +51,7 @@ flowchart TB
 ### A. Domain types ([`contracts.py`](../../../../src/core/intake/contracts.py))
 
 1. **`StoryDraftStashRequest`** — frozen dataclass **без** `submitter`: `schema_version`, `narrative`, optional `origin`, `privacy`, `live_story_context`, `gpt_signals`.
-2. **`StoryIntakeRequest`** — семантика без изменений: **всегда** с `submitter` (legacy `/intake/stories` + финальный browser submit).
+2. **`StoryIntakeRequest`** — **всегда** с `submitter`; используется только на границе submit-bridge (internal), не как публичный GPT stash contract.
 3. **Удалить:** `STASH_PENDING_EXTERNAL_USER_ID`, флаг `require_submitter`, возврат `StoryIntakeRequest` из `parse_story_draft_stash_request`.
 4. **DRY:** общая валидация narrative/root-полей в `_parse_story_envelope_body(...)` — используют оба парсера.
 5. **Мост на границе submit:**
@@ -86,21 +86,25 @@ def intake_request_from_stash_and_submitter(
 | **T01** | Domain: `StoryDraftStashRequest` + shared parser + bridge; удалить placeholder/flag |
 | **T02** | Handlers: stash/submit/intake wiring по таблице выше |
 | **T03** | Fixtures: `valid_v2_stash_payload()` без submitter в [`intake_v2_fixtures.py`](../../../../tests/intake_v2_fixtures.py); `valid_v2_intake_payload()` оставить с submitter для legacy |
-| **T04** | Тесты: `test_story_intake_contract.py`, `test_gw_draft_01_*`, `test_gw_draft_02_*` — assert тип `StoryDraftStashRequest`, отсутствие magic string, submit bridge с `/me` |
+| **T04** | Тесты: [`test_story_intake_contract.py`](../../../../tests/test_story_intake_contract.py) (убрать assert на magic placeholder), `test_gw_draft_01_*`, `test_gw_draft_02_*` — тип `StoryDraftStashRequest`, submit bridge с `/me` |
 | **T05** | Runtime OpenAPI: schema `StoryDraftStashRequest` (без submitter); `POST /story-drafts` и `GET` response `$ref` на stash schema |
-| **T06** | Runtime docs: [`API_REFERENCE.md`](../../../runtime-docs/api-reference/API_REFERENCE.md) §6.8, [`security-env-api-access.md`](../../../runtime-docs/security-env-api-access.md) §1.1 (три пути: legacy intake / GPT stash / browser submit), [`architecture-and-layers-as-is.md`](../../../runtime-docs/architecture-and-layers-as-is.md) |
+| **T06** | Runtime docs: [`API_REFERENCE.md`](../../../runtime-docs/api-reference/API_REFERENCE.md) §6.8, [`security-env-api-access.md`](../../../runtime-docs/security-env-api-access.md) §1.1 (два пути: GPT stash / browser submit), [`architecture-and-layers-as-is.md`](../../../runtime-docs/architecture-and-layers-as-is.md) |
 | **T07** | Backlog sync: примечание в [GW-DRAFT-01](./STORY-GW-DRAFT-01-story-draft-stash.md) «тот же StoryIntakeRequest» → ссылка на GW-DRAFT-05; строка в [`INDEX.md`](./INDEX.md) |
 | **T08** | Acceptance gate: grep `STASH_PENDING` = 0; `POST /story-drafts` hosted smoke без submitter → 201; browser submit → 202 + author=`sub` |
 
 ## Acceptance Criteria
 
-- [ ] `STASH_PENDING_EXTERNAL_USER_ID` и `require_submitter` **удалены** из codebase (grep = 0)
-- [ ] `parse_story_draft_stash_request` возвращает **`StoryDraftStashRequest`**, не `StoryIntakeRequest`
-- [ ] `POST /story-drafts` принимает payload **без submitter**; stored JSON **не содержит** submitter/placeholder
-- [ ] `POST /story-drafts/{id}/submit` собирает `StoryIntakeRequest` только на границе submit с authoritative submitter из `/me`
-- [ ] Legacy `POST /intake/stories` по-прежнему требует submitter в payload (service channel)
-- [ ] Runtime OpenAPI и security SSOT описывают **два** request-контракта (stash vs intake), lockstep с GPT OpenAPI v0.6.0
-- [ ] Контракт-тесты GW-DRAFT-01/02 + intake contract зелёные; нет assert на magic placeholder
+- [x] `STASH_PENDING_EXTERNAL_USER_ID` и `require_submitter` **удалены** (`rg 'STASH_PENDING|require_submitter|\bstash_pending\b'` в `src/` `tests/` = 0); legacy `__stash_pending_author__` допустим **только** в `_LEGACY_STASH_PLACEHOLDER_EXTERNAL_USER_ID` + `_normalize_stored_draft_payload` (tolerant-read), не в active stash/intake path
+- [x] `parse_story_draft_stash_request` возвращает **`StoryDraftStashRequest`**, не `StoryIntakeRequest`
+- [x] `POST /story-drafts` принимает payload **без submitter**; stored JSON **не содержит** submitter/placeholder
+- [x] `POST /story-drafts/{id}/submit` собирает `StoryIntakeRequest` только на границе submit с authoritative submitter из `/me`
+- [x] Runtime OpenAPI и security SSOT описывают **два** request-контракта (stash vs intake bridge), lockstep с GPT OpenAPI v0.6.0
+- [x] Контракт-тесты GW-DRAFT-01/02 + intake contract зелёные; нет assert на magic placeholder
+
+## Открытые вопросы
+
+- Backward-compat: черновики в БД с placeholder `__stash_pending_author__` — миграция или tolerant read на submit? → решить в T02.
+- Публичный `POST /intake/stories` — **не целевой путь**; удаление → [GW-DRAFT-06](./STORY-GW-DRAFT-06-remove-legacy-intake-stories-route.md) после этой стори.
 
 ## Оценка элегантности
 
@@ -120,7 +124,7 @@ def intake_request_from_stash_and_submitter(
 
 - [`openapi.yaml`](../../../runtime-docs/api-reference/openapi.yaml) — `StoryDraftStashRequest` schema; paths `/story-drafts` POST/GET
 - [`API_REFERENCE.md`](../../../runtime-docs/api-reference/API_REFERENCE.md) §6.8
-- [`security-env-api-access.md`](../../../runtime-docs/security-env-api-access.md) §1.1 — три пути submitter linkage
+- [`security-env-api-access.md`](../../../runtime-docs/security-env-api-access.md) §1.1 — два пути submitter linkage (stash / browser submit)
 - [`architecture-and-layers-as-is.md`](../../../runtime-docs/architecture-and-layers-as-is.md) §4.1
 - [`story-persistence-model.md`](../../../runtime-docs/story-persistence-model.md) — `payload_json` = stash shape (без submitter)
 

@@ -25,15 +25,20 @@ GPT по сервис-авторизации кладёт готовый JSON и
 - Переиспользуемое из gpt-submit-authz: `authoritative_submitter.py` (GAUTH-04), `verification_gate.py`+`verify_url.py`+`VerificationRequiredError` (GAUTH-03), value-object `IntrospectionResult`. Осиротело: OAuth-introspection-клиент токена GPT (GAUTH-02), `require_user_token`-путь (GAUTH-01), env `IDENTITY_INTROSPECT_URL/SERVICE_TOKEN`.
 
 ## Стори пакета
-| S | Key | Требование | Приоритет | Зависит от |
-|---|-----|------------|-----------|------------|
-| 🟢 | GW-DRAFT-01 | [Стеш черновика: `POST /story-drafts` (service-auth) + `GET /story-drafts/{id}` (user-auth), TTL](./STORY-GW-DRAFT-01-story-draft-stash.md) | 🔴 HIGH | — |
-| ⚪ | GW-DRAFT-02 | [Браузер-сабмит `POST /story-drafts/{id}/submit` + гейт `phone_verified` через identity `/me`](./STORY-GW-DRAFT-02-browser-submit-verification-gate.md) | 🔴 HIGH | GW-DRAFT-01 |
-| ⚪ | GW-DRAFT-03 | [Supersede-пометки gpt-submit-authz + identity-задача на канон (docs)](./STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon.md) | 🟠 MED | GW-DRAFT-01/02 | 🔵 Done (pkg-000045) |
-| ⚪ | GW-DRAFT-04 | [Безопасное удаление осиротевшего кода gpt-submit-authz (код, по инвентарю)](./STORY-GW-DRAFT-04-safe-removal-orphaned-gpt-authz.md) | 🟠 MED | GW-DRAFT-01/02/03 | 🔵 Done (pkg-000046 + audit T08–T09) |
-| ⚪ | GW-DRAFT-05 | [Dual intake contract: stash vs submit (убрать placeholder submitter)](./STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit.md) | 🟠 MED | GW-DRAFT-01/02, GPT-SUBMIT-02 | — |
 
-**Порядок:** 01 стеш → 02 браузер-сабмит+гейт → 03 канон/supersede (docs + identity-задача) → 04 безопасное удаление осиротевшего кода → **05** раздельные domain-контракты stash/intake (рефакторинг hotfix `87fc272`).
+| Order | Story | Status | Depends |
+|-------|-------|--------|---------|
+| 1 | [GW-DRAFT-01 — Стеш черновика](./STORY-GW-DRAFT-01-story-draft-stash.md) | Done | — |
+| 2 | [GW-DRAFT-02 — Браузер-сабмит + гейт phone_verified](./STORY-GW-DRAFT-02-browser-submit-verification-gate.md) | Done | GW-DRAFT-01 |
+| 3 | [GW-DRAFT-03 — Supersede gpt-submit-authz canon](./STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon.md) | Done | GW-DRAFT-01/02 |
+| 4 | [GW-DRAFT-04 — Безопасное удаление осиротевшего GAUTH-кода](./STORY-GW-DRAFT-04-safe-removal-orphaned-gpt-authz.md) | Done | GW-DRAFT-01/02/03 |
+| 5 | [GW-DRAFT-05 — Dual intake contract stash vs submit](./STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit.md) | Done (Awaiting Commits) | GW-DRAFT-01/02 |
+| 6 | [GW-DRAFT-06 — Удаление legacy `POST /intake/stories`](./STORY-GW-DRAFT-06-remove-legacy-intake-stories-route.md) | Done (P3 gate PASS pkg-000050) | GW-DRAFT-05 |
+| 7 | [GW-DRAFT-07 — Hosted schema blocks browser submit](./STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit.md) | 🔵 Done (Awaiting Commits) · gate PASS pkg-000056 · pipeline [`STORY-GW-DRAFT-07`](../../epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit.md) · [`evidence`](../../../analysis/evidence-STORY-GW-DRAFT-07-hosted-submit-2026-08-07T070417Z.md) | GW-DRAFT-02 Done · TAX-01 код Done / hosted DDL applied |
+
+**Progress:** 7/7 Done (100%); **DRAFT-07** closed P3 2026-08-07 — hosted `story_labels` + `/ready` + submit 202.
+
+**Порядок:** 01 стеш → 02 браузер-сабмит+гейт → 03 канон/supersede → 04 безопасное удаление осиротевшего GAUTH-кода → **05** dual contract stash/intake → **06** удаление публичного `/intake/stories` + runner на story-drafts → **07** hosted schema ready для browser submit (ops / Public Node DDL + redeploy).
 
 ## Граница
 - Идентичность/логин/verify/OAuth — identity + spa (reuse ID-08/ID-04). Здесь только gateway-часть: стеш, браузер-сабмит, гейт, гигиена кода.
@@ -43,3 +48,4 @@ GPT по сервис-авторизации кладёт готовый JSON и
 ## Связи (traceability)
 - Контекст/gap-лист: [`mvp-integration-plan-2026-07-02.md`](../../../../../doge-identity-service/docs/analysis/mvp-integration-plan-2026-07-02.md) (M-3/M-7).
 - Потребитель (spa): [SPA-ID-12](../../../../../spa-app/docs/tasks/backlog-stories/identity-auth/STORY-SPA-ID-12-story-draft-handoff-submit.md). Поставщик (GPT): [GPT-SUBMIT-01](../../../../../GPT%20UI/docs/tasks/backlog-stories/story-submit-handoff/STORY-GPT-SUBMIT-01-redirect-handoff.md).
+- Hosted submit blocker (DRAFT-07): [SPA-BUG-01](../../../../../spa-app/docs/tasks/backlog-stories/bugs/STORY-SPA-BUG-01-story-submission-unavailable.md) · FE-HANDOFF-03.
