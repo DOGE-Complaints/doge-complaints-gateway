@@ -1,0 +1,22 @@
+{
+  "captured_at": "2026-06-21T19:24:41Z",
+  "gateway_url": "https://dogestonia-tallinn.up.railway.app",
+  "response": {
+    "data": {
+      "status": "ready",
+      "db": {
+        "backend": "supabase",
+        "ready": true,
+        "checks": {
+          "connectivity": true,
+          "schema": true,
+          "columns": true,
+          "columns_geo_admin": true,
+          "columns_v2": true,
+          "policy_probe": true
+        }
+      }
+    },
+    "trace_id": "c9d279b6-4e6a-4bb6-a2bf-badc4c17b1e9"
+  }
+}

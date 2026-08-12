@@ -1,0 +1,15 @@
+{
+  "decision": "delete_unrecoverable_test_seeds",
+  "rationale": "4/5 integration test-* rows had empty title_json/summary_json and zero issue_story_links; reproject dry-run updated=0. Deleted as test garbage per D-RC05-3.",
+  "deleted_issue_ids": [
+    "test-2f10a3c8-5269-40ba-a917-025f4d5f2e60",
+    "test-9bc69528-123b-4f00-a7ea-333a7791ffe3",
+    "test-bdcae6aa-1663-41ca-871b-2b4cdd43f9dc",
+    "test-5e350194-30dc-4ad6-b3d6-b68c3c66bfb3"
+  ],
+  "kept_issue_id": "test-7ef193be-dc51-4ddb-a582-24a6977dfd51",
+  "reproject": {
+    "dry_run": "updated=0 skipped=0",
+    "apply": "N/A \u2014 no links"
+  }
+}

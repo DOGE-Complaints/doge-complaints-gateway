@@ -1,0 +1,53 @@
+{
+  "data": {
+    "issues": [
+      {
+        "type": "INCIDENT",
+        "id": "b549b663-ffaf-4840-a19b-56327fd12dff",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "06a0a818-6ac6-44a1-a419-4ca95258f007",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "bdc01a24-62ac-4498-88d3-9ca22cc18abd",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "fe389169-3d03-46a3-8f96-de5d7f133936",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "d75c3f76-9c8d-4e2d-91d8-fc0d33cd3228",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "345b6bf9-0037-4c9f-bcfa-20e2e648e6ca",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "3d50b062-6565-4fbf-877a-f29947d79d8f",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "INCIDENT",
+        "id": "d7810f2f-b951-4445-83c0-42ab13f00848",
+        "status": "PUBLISHED"
+      },
+      {
+        "type": "IMPROVEMENT",
+        "id": "test-7ef193be-dc51-4ddb-a582-24a6977dfd51",
+        "status": "PUBLISHED"
+      }
+    ]
+  },
+  "trace_id": "c4e19652-503b-4283-a488-1910c51cf9cc",
+  "_note": "Abbreviated snapshot; full body from live curl 2026-07-10T10:28Z"
+}

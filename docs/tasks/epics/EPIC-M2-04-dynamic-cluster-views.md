@@ -58,3 +58,4 @@
 | STORY-M2-04-02 | [Multi-membership story-to-cluster mapping](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-02-multi-membership-story-to-cluster-mapping.md) | Done (Committed) |
 | STORY-M2-04-03 | [Cluster narrative generator baseline](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-03-cluster-narrative-generator-baseline.md) | Done (Committed) |
 | STORY-M2-04-04 | [Cluster readiness scoring baseline](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-04-cluster-readiness-scoring-baseline.md) | Done (Committed) |
+| STORY-M2-04-05 | [Civic canonical signal pipeline (REQ-34)](./EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-05-civic-canonical-signal-pipeline/STORY-M2-04-05-civic-canonical-signal-pipeline.md) | Todo | REQ-34; pkg-000013; follow-up to legacy lens baseline (M2-04-01) |

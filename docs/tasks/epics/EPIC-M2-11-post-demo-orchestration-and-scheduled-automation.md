@@ -12,6 +12,8 @@
 ## Problem Statement
 Без явного «automation plane» фоновые задачи неизбежно превращаются в отдельные скрипты и расходятся с API-поведением.
 
+**NB (MVP vs этот эпик):** MVP уже содержит минимальный in-process `ClusterCronJob` (`CLUSTER_CRON_ENABLED`, default ON) как триггер promotion → доска. Этот эпик — про **обобщённый** automation plane (job runner / named tasks / queue / ручной replay) **поверх** существующих application services, не про замену MVP-cron.
+
 ## Scope
 ### In Scope
 - контракт **job runner** / **named tasks**, вызывающих существующие application services через DI;
@@ -21,7 +23,8 @@
 
 ### Out of Scope
 - выбор конкретного cloud scheduler как обязательный deliverable (Kubernetes CronJob vs managed cron vs `pg_cron`) — остаётся решением инфраструктуры;
-- изменение семантики EPIC-M2-05 (promotion/review) без отдельного product decision.
+- изменение семантики EPIC-M2-05 (promotion/review) без отдельного product decision;
+- замена или выключение MVP in-process `ClusterCronJob` — он остаётся в MVP; эпик расширяет эксплуатационный слой, а не подменяет этот минимальный триггер.
 
 ## Stakeholders
 - CTO/Architecture
