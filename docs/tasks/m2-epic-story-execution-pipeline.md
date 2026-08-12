@@ -7,6 +7,27 @@
 ## Назначение
 Канонический SSOT-процесс для запуска и ведения работ Module 2 в проекте `doge-complaints-gateway`.
 
+## Backlog SSOT layers
+
+| Слой | Путь |
+|------|------|
+| Backlog stories | `docs/tasks/backlog-stories/STORY-GW-*.md` + [`backlog-stories/INDEX.md`](./backlog-stories/INDEX.md) |
+| Очередь исполнения | immutable `gateway-active-packages/pkg-*.yaml` |
+| Launch index | [`bullrun-launch-index.md`](./bullrun-launch-index.md) |
+| Progress snapshot | [`gateway-backlog-dashboard.md`](./gateway-backlog-dashboard.md) |
+
+### Sync after story close
+
+В той же итерации, что и story gate / P6 audit:
+
+1. Story file `Status` / AC
+2. Package [`backlog-stories/*/INDEX.md`](./backlog-stories/)
+3. Root [`backlog-stories/INDEX.md`](./backlog-stories/INDEX.md)
+4. [`bullrun-launch-index.md`](./bullrun-launch-index.md) registry + §Актуальная точка при смене волны
+5. [`gateway-backlog-dashboard.md`](./gateway-backlog-dashboard.md) — recount from package indexes ([maintenance guide](../../../docs/methodology/Zeya888-builder-queue/workflow/backlog-dashboard-maintenance.md))
+
+**SSOT order при конфликтах:** pipeline gate → package INDEX → root INDEX → bullrun → dashboard (derived).
+
 ## Input Source
 Этот блок обязателен перед любым запуском и определяет входной источник выполнения.
 
@@ -39,9 +60,12 @@
 ## Оркестрация batch-run (перед каждым запуском)
 Источник истины по текущей точке работ — только [`docs/tasks/bullrun-launch-index.md`](./bullrun-launch-index.md), отдельный файл «текущий эпик» не ведётся.
 
-1. Если эпик не присутствует в индексе — считать его не декомпозированным.
+Контракт gateway (process-reminder todos): [`gateway-operator-contract.md`](../../../docs/methodology/Zeya888-builder-queue/contracts/gateway-operator-contract.md) — `resolve-start-epic-from-index`, `treat-missing-epic-as-not-decomposed`, `sync-index-after-each-story`.
+
+1. Если эпик не присутствует в индексе — считать его не декомпозированным → `bullrun-epic-decompose`, не P3 Execute.
 2. Если эпик присутствует, но в нем есть story не в `Done (Committed)` — продолжать с этого эпика.
 3. Если текущий эпик полностью `Done (Committed)` — переходить к следующему.
+4. После каждого закрытого task/story — обновить индекс в **той же** итерации (§«Актуальная точка» при смене волны).
 
 ## Контракт ролей (обязательный)
 - **Epic decomposition:** `@.cursor/commands/bullrun-epic-decompose.md`
@@ -121,9 +145,17 @@
 - Любая смена статуса Story отражается в `docs/tasks/bullrun-launch-index.md` в той же итерации.
 - Для `task-*` из `Cross-Epic Task Backlog` применяется та же дисциплина синхронизации статуса в индексе.
 
+## Artifact dates (pkg / gate / run-summary)
+
+SSOT методологии: [`builder-artifact-dates.md`](../../../docs/methodology/Zeya888-builder-queue/guides/builder-artifact-dates.md).
+
+- Перед записью дат: `python3 docs/methodology/Zeya888-builder-queue/cli/builder_resolve_queue.py --print-utc-now`
+- Gate `Date:` и `acceptance-verification-*.md` — только после live pytest + `--verify` в той же сессии
+- Перед story Done: `--verify --check-dates` (см. gateway-operator-contract §5)
+
 ## Run Summary Report (timestamped)
 Для каждого запуска (`epic/story/task batch`) обязателен единый агрегированный отчет:
-- Формат имени: `run-summary-YYYYMMDD-HHMM.md`
+- Формат имени: `run-summary-YYYYMMDD-HHMM.md` (prefix из `--print-utc-now`, см. artifact dates guide)
 - Локация: `docs/tasks/run-reports/`
 - Частота: один отчет на один запуск
 
