@@ -43,6 +43,7 @@ from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import IssueCandidateStore, ReviewAuditLogRepository
 from core.config import AppConfig
+from core.schema import LocalSchemaRuntime
 
 
 @dataclass(frozen=True)
@@ -81,6 +82,7 @@ class DefaultServiceFactory:
             story_signal_store=self.story_signal_store,
             story_label_repository=self.story_label_repository,
             log_debug_dir=self.config.log_debug_dir,
+            schema_runtime=LocalSchemaRuntime(),
         )
 
     def get_signal_profile_service(self) -> SignalProfileService:

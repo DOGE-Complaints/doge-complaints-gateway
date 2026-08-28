@@ -24,8 +24,10 @@ from core.taxonomy import story_labels_from_narrative
 from core.redaction import redact_pii
 from core.geo import GeoService
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
-from core.intake import GptSignalsBlock, StoryIntakeRequest
+from core.intake import GptSignalsBlock, IntakeValidationError, StoryIntakeRequest
 from core.logging_setup import StoryDebugLogger, open_story_debug_logger
+from core.schema import LocalSchemaRuntime, SchemaRef, SchemaRuntimeError
+from core.schema.payload import authoritative_payload_hash
 from core.profile import (
     infer_signals_from_canonical,
     normalize_signal_map,
@@ -99,6 +101,7 @@ class StoryIntakeService:
     story_signal_store: StorySignalStore | None = None
     story_label_repository: StoryLabelRepository | None = None
     log_debug_dir: str | None = None
+    schema_runtime: LocalSchemaRuntime | None = None
 
     def _persist_gpt_classifier_signals(
         self, *, story_id: str, gpt_signals: GptSignalsBlock
@@ -233,6 +236,36 @@ class StoryIntakeService:
                 if request.live_story_context is not None
                 else None
             )
+            binding = request.schema_binding
+            bound_schema_id: str | None = None
+            bound_schema_version: str | None = None
+            bound_profile_id: str | None = None
+            bound_profile_version: str | None = None
+            structured_payload: dict | None = None
+            payload_hash: str | None = None
+            if binding is not None:
+                runtime = (
+                    self.schema_runtime
+                    if self.schema_runtime is not None
+                    else LocalSchemaRuntime()
+                )
+                try:
+                    context = runtime.resolve(
+                        SchemaRef(
+                            schema_id=binding.schema_id,
+                            schema_version=binding.schema_version,
+                        ),
+                        profile_ref=binding.profile_id,
+                    )
+                    runtime.validate(context, binding.structured_payload)
+                except SchemaRuntimeError as exc:
+                    raise IntakeValidationError(str(exc)) from exc
+                bound_schema_id = binding.schema_id
+                bound_schema_version = binding.schema_version
+                bound_profile_id = binding.profile_id
+                bound_profile_version = binding.profile_version
+                structured_payload = dict(binding.structured_payload)
+                payload_hash = authoritative_payload_hash(structured_payload)
             record = StoryRecord(
                 story_id=story_id,
                 schema_version=request.schema_version,
@@ -279,6 +312,12 @@ class StoryIntakeService:
                     if request.privacy is not None
                     else False
                 ),
+                schema_id=bound_schema_id,
+                bound_schema_version=bound_schema_version,
+                profile_id=bound_profile_id,
+                profile_version=bound_profile_version,
+                structured_payload=structured_payload,
+                payload_hash=payload_hash,
             )
             repository_class = self.repository.__class__.__name__
             backend_hint = _backend_from_repository_name(repository_class)

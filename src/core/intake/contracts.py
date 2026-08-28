@@ -89,6 +89,28 @@ def gpt_signals_block_has_values(block: GptSignalsBlock) -> bool:
     )
 
 
+SCHEMA_BINDING_ALLOWED_KEYS = frozenset(
+    {
+        "schema_id",
+        "schema_version",
+        "profile_id",
+        "profile_version",
+        "structured_payload",
+    }
+)
+
+
+@dataclass(frozen=True)
+class SchemaBinding:
+    """Optional v2 sidecar (D-SSR-1). Inner schema_version is the semantic pack, not envelope."""
+
+    schema_id: str
+    schema_version: str
+    structured_payload: dict[str, Any]
+    profile_id: str | None = None
+    profile_version: str | None = None
+
+
 @dataclass(frozen=True)
 class StoryDraftStashRequest:
     schema_version: str
@@ -97,6 +119,7 @@ class StoryDraftStashRequest:
     privacy: Privacy | None = None
     live_story_context: LiveStoryContext | None = None
     gpt_signals: GptSignalsBlock | None = None
+    schema_binding: SchemaBinding | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -111,6 +134,7 @@ class StoryIntakeRequest:
     privacy: Privacy | None = None
     live_story_context: LiveStoryContext | None = None
     gpt_signals: GptSignalsBlock | None = None
+    schema_binding: SchemaBinding | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -189,6 +213,58 @@ def _parse_gpt_signal_enum(
     return normalized
 
 
+def _optional_binding_string(
+    payload: Mapping[str, Any], key: str, *, parent: str
+) -> str | None:
+    if key not in payload or payload.get(key) is None:
+        return None
+    raw_value = payload.get(key)
+    if not isinstance(raw_value, str) or not raw_value.strip():
+        raise IntakeValidationError(f"Missing or invalid {parent}.{key}.")
+    return raw_value.strip()
+
+
+def _parse_schema_binding_block(raw: object) -> SchemaBinding | None:
+    """Parse optional schema_binding sidecar. Empty object / null = civic (None)."""
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        raise IntakeValidationError("Missing or invalid root.schema_binding.")
+    unknown = set(raw.keys()) - SCHEMA_BINDING_ALLOWED_KEYS
+    if unknown:
+        raise IntakeValidationError(
+            "Unknown schema_binding keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+            + "."
+        )
+    if not raw:
+        return None
+    schema_id = _require_non_empty_string(raw, "schema_id", parent="schema_binding")
+    semantic_version = _require_non_empty_string(
+        raw, "schema_version", parent="schema_binding"
+    )
+    if semantic_version == INTAKE_SCHEMA_VERSION:
+        raise IntakeValidationError(
+            "schema_binding.schema_version must not equal envelope schema_version."
+        )
+    structured_payload = raw.get("structured_payload")
+    if not isinstance(structured_payload, Mapping):
+        raise IntakeValidationError(
+            "Missing or invalid schema_binding.structured_payload."
+        )
+    return SchemaBinding(
+        schema_id=schema_id,
+        schema_version=semantic_version,
+        structured_payload=dict(structured_payload),
+        profile_id=_optional_binding_string(
+            raw, "profile_id", parent="schema_binding"
+        ),
+        profile_version=_optional_binding_string(
+            raw, "profile_version", parent="schema_binding"
+        ),
+    )
+
+
 def _parse_gpt_signals_block(gpt_payload: object) -> GptSignalsBlock:
     if gpt_payload is None:
         return GptSignalsBlock()
@@ -232,6 +308,7 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
     Privacy | None,
     LiveStoryContext | None,
     GptSignalsBlock | None,
+    SchemaBinding | None,
 ]:
     schema_version = _require_non_empty_string(payload, "schema_version")
     if schema_version == INTAKE_SCHEMA_VERSION_V1:
@@ -400,6 +477,10 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         if gpt_signals_block_has_values(parsed_gpt_signals):
             gpt_signals = parsed_gpt_signals
 
+    schema_binding: SchemaBinding | None = None
+    if "schema_binding" in payload:
+        schema_binding = _parse_schema_binding_block(payload.get("schema_binding"))
+
     return (
         schema_version,
         narrative,
@@ -407,6 +488,7 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         privacy,
         live_story_context,
         gpt_signals,
+        schema_binding,
     )
 
 
@@ -418,6 +500,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         privacy,
         live_story_context,
         gpt_signals,
+        schema_binding,
     ) = _parse_story_envelope_body(payload)
     submitter_payload = payload.get("submitter")
     if not isinstance(submitter_payload, Mapping):
@@ -439,6 +522,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         privacy=privacy,
         live_story_context=live_story_context,
         gpt_signals=gpt_signals,
+        schema_binding=schema_binding,
     )
 
 
@@ -455,6 +539,7 @@ def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftSta
         privacy,
         live_story_context,
         gpt_signals,
+        schema_binding,
     ) = _parse_story_envelope_body(payload)
     return StoryDraftStashRequest(
         schema_version=schema_version,
@@ -463,6 +548,7 @@ def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftSta
         privacy=privacy,
         live_story_context=live_story_context,
         gpt_signals=gpt_signals,
+        schema_binding=schema_binding,
     )
 
 
@@ -496,6 +582,7 @@ def intake_request_from_stash_and_submitter(
         privacy=stash.privacy,
         live_story_context=stash.live_story_context,
         gpt_signals=stash.gpt_signals,
+        schema_binding=stash.schema_binding,
     )
 
 
