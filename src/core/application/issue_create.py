@@ -9,6 +9,7 @@ from typing import Protocol
 from uuid import uuid4
 
 from core.domain import StoryLabelRepository, StoryRecord, StoryRepository
+from core.promotion.gates import PromotionGatePolicy
 from core.promotion.types import IssueCandidateRecord
 from core.projection import (
     DeterministicStoryToProjectionPolicy,
@@ -32,6 +33,7 @@ class IssueCreateCommand:
     readiness_score: int
     title: str
     min_stories: int | None = None
+    gate_policy: PromotionGatePolicy | None = None
 
 
 @dataclass(frozen=True)
@@ -227,6 +229,7 @@ class IssueCreateService:
             candidate.candidate_id,
             cluster_canonical_types=tuple(cluster_canonical_types),
             min_stories=command.min_stories,
+            policy=command.gate_policy,
         )
         self.promotion_service.start_review(candidate.candidate_id)
         promoted = self.promotion_service.record_review(

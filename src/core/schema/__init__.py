@@ -26,6 +26,7 @@ from core.schema.pack_engine import (
     is_schema_bound,
     pack_cluster_id,
 )
+from core.schema.pack_policy import promotion_gate_policy_from_pack
 from core.schema.legacy import LEGACY_M2_ENVELOPE_ID, LegacyM2StorySchema
 from core.schema.payload import (
     authoritative_payload_hash,
@@ -59,6 +60,7 @@ __all__ = [
     "authoritative_payload_hash",
     "is_schema_bound",
     "pack_cluster_id",
+    "promotion_gate_policy_from_pack",
     "canonical_payload_json",
     "payload_hash_for",
 ]

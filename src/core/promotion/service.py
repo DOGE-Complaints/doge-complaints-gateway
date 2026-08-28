@@ -78,12 +78,14 @@ class IssuePromotionService:
         *,
         cluster_canonical_types: tuple[str, ...] | None = None,
         min_stories: int | None = None,
+        policy: PromotionGatePolicy | None = None,
     ) -> IssueCandidateRecord:
         current = self._get(candidate_id)
         _require_transition(current.status, IssueCandidateStatus.DRAFT)
+        effective_policy = self.gate_policy if policy is None else policy
         gate = evaluate_promotion_gates(
             current,
-            self.gate_policy,
+            effective_policy,
             cluster_canonical_types=cluster_canonical_types,
             min_stories=min_stories,
         )

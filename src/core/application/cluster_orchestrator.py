@@ -23,7 +23,8 @@ from core.promotion.gates import evaluate_promotion_gates
 from core.promotion.service import PromotionStateError
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
 from core.schema.errors import PackLensMissingPathError, SchemaRuntimeError
-from core.schema.pack_engine import SchemaPackClusterEngine, is_schema_bound
+from core.schema.pack_engine import PackMembership, SchemaPackClusterEngine, is_schema_bound
+from core.schema.pack_policy import promotion_gate_policy_from_pack
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +87,8 @@ class StoryClusterOrchestrator:
     def _civic_ready(self, stories: list[StoryRecord]) -> list[StoryRecord]:
         return [story for story in stories if not is_schema_bound(story)]
 
-    def _process_pack_bound_story(self, story: StoryRecord) -> None:
-        """Save pack memberships; do not create Issue or set CLUSTERED."""
+    def _process_pack_bound_story(self, story: StoryRecord) -> str | None:
+        """Save pack memberships; promote + CLUSTERED only if pack gate passes."""
         try:
             memberships = self._pack_engine().memberships_for_story(story)
         except PackLensMissingPathError as exc:
@@ -95,16 +96,16 @@ class StoryClusterOrchestrator:
                 "cluster.pack_lens_path_miss",
                 extra={"story_id": story.story_id, "error": str(exc)},
             )
-            return
+            return None
         except SchemaRuntimeError as exc:
             logger.warning(
                 "cluster.pack_engine_failed",
                 extra={"story_id": story.story_id, "error": str(exc)},
             )
-            return
+            return None
         store = self.cluster_membership_store
         if store is None:
-            return
+            return None
         for item in memberships:
             try:
                 store.save_membership(
@@ -121,6 +122,98 @@ class StoryClusterOrchestrator:
                         "error": str(exc),
                     },
                 )
+        issue_id: str | None = None
+        for item in memberships:
+            promoted = self._promote_pack_membership(story, item)
+            if promoted is not None:
+                issue_id = promoted
+        return issue_id
+
+    def _pack_readiness_score(self, member_count: int, min_size: int, min_readiness_score: int) -> int:
+        """T-wave pack score: at/above pack threshold iff membership meets min_size."""
+        if member_count >= min_size:
+            return min_readiness_score
+        return min_readiness_score - 1
+
+    def _promote_pack_membership(
+        self, story: StoryRecord, item: PackMembership
+    ) -> str | None:
+        store = self.cluster_membership_store
+        if store is None:
+            return None
+        member_ids = tuple(store.get_cluster_members(item.cluster_id, item.lens))
+        if not member_ids:
+            return None
+        lens = self._pack_engine().lens_block_for(story, item.lens)
+        if lens is None:
+            return None
+        gate_policy = promotion_gate_policy_from_pack(lens.readiness_policy)
+        readiness_score = self._pack_readiness_score(
+            len(member_ids),
+            lens.min_size,
+            lens.readiness_policy.min_readiness_score,
+        )
+        first = self.story_repository.get_story(member_ids[0]) or story
+        primary_title = story_primary_title(
+            narrative_title=first.narrative_title,
+            narrative_session_language=first.narrative_session_language,
+            narrative_language=first.narrative_language,
+        )
+        issue_title = primary_title or first.narrative_original_text or f"pack:{item.lens}"
+        try:
+            result = self.issue_create_service.create_issue(
+                IssueCreateCommand(
+                    cluster_id=item.cluster_id,
+                    story_ids=member_ids,
+                    readiness_score=readiness_score,
+                    title=issue_title,
+                    gate_policy=gate_policy,
+                )
+            )
+        except (ValueError, PromotionStateError) as exc:
+            logger.info(
+                "story_cluster_issue_pending",
+                extra={
+                    "story_id": story.story_id,
+                    "cluster_id": item.cluster_id,
+                    "lens": item.lens,
+                    "story_count": len(member_ids),
+                    "readiness_score": readiness_score,
+                    "gate_reason": str(exc),
+                    "outcome": "not_clustered",
+                    "path": "pack",
+                },
+            )
+            return None
+        issue_id = result.issue_id
+        for member_id in member_ids:
+            try:
+                self.story_repository.update_lifecycle_status(
+                    member_id, StoryLifecycleStatus.CLUSTERED
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.error(
+                    "cluster.lifecycle_update_failed",
+                    extra={
+                        "story_id": member_id,
+                        "issue_id": issue_id,
+                        "error": str(exc),
+                    },
+                )
+        logger.info(
+            "story_cluster_issue_created",
+            extra={
+                "story_id": story.story_id,
+                "issue_id": issue_id,
+                "cluster_id": item.cluster_id,
+                "lens": item.lens,
+                "story_count": len(member_ids),
+                "readiness_score": readiness_score,
+                "outcome": "clustered",
+                "path": "pack",
+            },
+        )
+        return issue_id
 
     def process_story(self, story_id: str) -> str | None:
         logger.debug("cluster.process_story_start", extra={"story_id": story_id})
@@ -141,8 +234,7 @@ class StoryClusterOrchestrator:
             return None
 
         if is_schema_bound(target):
-            self._process_pack_bound_story(target)
-            return None
+            return self._process_pack_bound_story(target)
 
         ready_stories = self._civic_ready(
             self.story_repository.list_stories_ready_for_clustering()
@@ -217,8 +309,11 @@ class StoryClusterOrchestrator:
         logger.debug("cluster.batch_start", extra={"ready_count": len(ready_stories)})
         pack_stories = [story for story in ready_stories if is_schema_bound(story)]
         civic_stories = self._civic_ready(ready_stories)
+        created_issue_ids: list[str] = []
         for story in pack_stories:
-            self._process_pack_bound_story(story)
+            issue_id = self._process_pack_bound_story(story)
+            if issue_id is not None:
+                created_issue_ids.append(issue_id)
         primary_lens = self.clustering_engine.resolved_primary_lens()
         min_size_guard = max(1, self._resolve_min_size_guard(primary_lens.value))
         if len(civic_stories) < min_size_guard:
@@ -229,13 +324,12 @@ class StoryClusterOrchestrator:
                     "min_size_guard": min_size_guard,
                 },
             )
-            return []
+            return created_issue_ids
 
         profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
             civic_stories
         )
         clusters = self._cluster_members(primary.value, profiles, memberships)
-        created_issue_ids: list[str] = []
         for cluster_id, member_story_ids in clusters.items():
             logger.debug(
                 "cluster.batch_cluster_candidate",

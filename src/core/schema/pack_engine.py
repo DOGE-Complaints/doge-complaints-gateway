@@ -68,6 +68,19 @@ class SchemaPackClusterEngine:
         )
         return self.memberships_for_context(story, context)
 
+    def lens_block_for(self, story: StoryRecord, lens_id: str) -> ExactLensBlock | None:
+        """Return the pack ExactLensBlock matching lens_id, or None."""
+        if not is_schema_bound(story):
+            return None
+        context = self._runtime.resolve(
+            SchemaRef(schema_id=story.schema_id or "", schema_version=story.bound_schema_version or ""),
+            profile_ref=story.profile_id,
+        )
+        for lens in context.exact_lenses:
+            if lens.lens_id == lens_id:
+                return lens
+        return None
+
     def memberships_for_context(
         self, story: StoryRecord, context: SchemaContext
     ) -> tuple[PackMembership, ...]:
