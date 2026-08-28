@@ -13,11 +13,18 @@ from core.schema.errors import (
     InvalidConstraintError,
     InvalidTypeError,
     MissingRequiredError,
+    PackLensMissingPathError,
     PolicyViolationError,
     ProfileIncompatibilityError,
     SchemaRuntimeError,
     UnknownSchemaError,
     UnsupportedVersionError,
+)
+from core.schema.pack_engine import (
+    PackMembership,
+    SchemaPackClusterEngine,
+    is_schema_bound,
+    pack_cluster_id,
 )
 from core.schema.legacy import LEGACY_M2_ENVELOPE_ID, LegacyM2StorySchema
 from core.schema.payload import (
@@ -37,16 +44,21 @@ __all__ = [
     "LegacyM2StorySchema",
     "LocalSchemaRuntime",
     "MissingRequiredError",
+    "PackLensMissingPathError",
+    "PackMembership",
     "PolicyViolationError",
     "ProfileIncompatibilityError",
     "ReadinessPolicy",
     "SchemaContext",
     "SchemaRef",
     "SchemaRuntime",
+    "SchemaPackClusterEngine",
     "SchemaRuntimeError",
     "UnknownSchemaError",
     "UnsupportedVersionError",
     "authoritative_payload_hash",
+    "is_schema_bound",
+    "pack_cluster_id",
     "canonical_payload_json",
     "payload_hash_for",
 ]

@@ -22,6 +22,8 @@ from core.profile.enrichment import log_story_signals_inferred
 from core.promotion.gates import evaluate_promotion_gates
 from core.promotion.service import PromotionStateError
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
+from core.schema.errors import PackLensMissingPathError, SchemaRuntimeError
+from core.schema.pack_engine import SchemaPackClusterEngine, is_schema_bound
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +41,7 @@ class StoryClusterOrchestrator:
     log_debug_dir: str | None = None
     cluster_min_size_by_lens: Mapping[str, int] = field(default_factory=dict)
     default_cluster_min_size: int = 1
+    schema_pack_engine: SchemaPackClusterEngine | None = None
 
     def _cluster_key_from_signals(self, signals: dict[str, str]) -> str:
         civic_domain, failure_pattern = composite_primary_signal_pair(signals)
@@ -77,6 +80,48 @@ class StoryClusterOrchestrator:
         log_story_signals_inferred(debug_logger, signals=signals)
         return signals
 
+    def _pack_engine(self) -> SchemaPackClusterEngine:
+        return self.schema_pack_engine or SchemaPackClusterEngine()
+
+    def _civic_ready(self, stories: list[StoryRecord]) -> list[StoryRecord]:
+        return [story for story in stories if not is_schema_bound(story)]
+
+    def _process_pack_bound_story(self, story: StoryRecord) -> None:
+        """Save pack memberships; do not create Issue or set CLUSTERED."""
+        try:
+            memberships = self._pack_engine().memberships_for_story(story)
+        except PackLensMissingPathError as exc:
+            logger.warning(
+                "cluster.pack_lens_path_miss",
+                extra={"story_id": story.story_id, "error": str(exc)},
+            )
+            return
+        except SchemaRuntimeError as exc:
+            logger.warning(
+                "cluster.pack_engine_failed",
+                extra={"story_id": story.story_id, "error": str(exc)},
+            )
+            return
+        store = self.cluster_membership_store
+        if store is None:
+            return
+        for item in memberships:
+            try:
+                store.save_membership(
+                    story_id=item.story_id,
+                    lens=item.lens,
+                    cluster_id=item.cluster_id,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "cluster.pack_membership_persist_failed",
+                    extra={
+                        "story_id": item.story_id,
+                        "lens": item.lens,
+                        "error": str(exc),
+                    },
+                )
+
     def process_story(self, story_id: str) -> str | None:
         logger.debug("cluster.process_story_start", extra={"story_id": story_id})
         target = self.story_repository.get_story(story_id)
@@ -95,7 +140,13 @@ class StoryClusterOrchestrator:
             )
             return None
 
-        ready_stories = self.story_repository.list_stories_ready_for_clustering()
+        if is_schema_bound(target):
+            self._process_pack_bound_story(target)
+            return None
+
+        ready_stories = self._civic_ready(
+            self.story_repository.list_stories_ready_for_clustering()
+        )
         logger.debug(
             "cluster.ready_snapshot",
             extra={"story_id": story_id, "ready_count": len(ready_stories)},
@@ -164,20 +215,24 @@ class StoryClusterOrchestrator:
     def process_all_pending(self) -> list[str]:
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
         logger.debug("cluster.batch_start", extra={"ready_count": len(ready_stories)})
+        pack_stories = [story for story in ready_stories if is_schema_bound(story)]
+        civic_stories = self._civic_ready(ready_stories)
+        for story in pack_stories:
+            self._process_pack_bound_story(story)
         primary_lens = self.clustering_engine.resolved_primary_lens()
         min_size_guard = max(1, self._resolve_min_size_guard(primary_lens.value))
-        if len(ready_stories) < min_size_guard:
+        if len(civic_stories) < min_size_guard:
             logger.info(
                 "cluster.batch_skipped_min_size",
                 extra={
-                    "ready_count": len(ready_stories),
+                    "ready_count": len(civic_stories),
                     "min_size_guard": min_size_guard,
                 },
             )
             return []
 
         profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
-            ready_stories
+            civic_stories
         )
         clusters = self._cluster_members(primary.value, profiles, memberships)
         created_issue_ids: list[str] = []

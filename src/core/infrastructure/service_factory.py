@@ -43,7 +43,7 @@ from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import IssueCandidateStore, ReviewAuditLogRepository
 from core.config import AppConfig
-from core.schema import LocalSchemaRuntime
+from core.schema import LocalSchemaRuntime, SchemaPackClusterEngine
 
 
 @dataclass(frozen=True)
@@ -155,6 +155,7 @@ class DefaultServiceFactory:
             log_debug_dir=self.config.log_debug_dir,
             cluster_min_size_by_lens=self.config.cluster_min_size_by_lens,
             default_cluster_min_size=self.config.cluster_min_size,
+            schema_pack_engine=SchemaPackClusterEngine(),
         )
 
     def get_network_pulse_service(self) -> NetworkPulseService:

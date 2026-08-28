@@ -44,3 +44,9 @@ class PolicyViolationError(SchemaRuntimeError):
 
 class ProfileIncompatibilityError(SchemaRuntimeError):
     code = "profile_incompatibility"
+
+
+class PackLensMissingPathError(SchemaRuntimeError):
+    """Typed miss for exact-lens source_fields when missing_value_policy is not skip."""
+
+    code = "pack_lens_missing_path"
