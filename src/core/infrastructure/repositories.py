@@ -12,6 +12,7 @@ from core.projection.read_filters import filter_projection_rows
 import logging
 from typing import Mapping
 
+from core.schema.payload import authoritative_payload_hash
 from core.domain import (
     HealthReport,
     IdempotencyRecord,
@@ -55,19 +56,21 @@ class InMemoryStoryRepository:
 
     def save_story(self, record: StoryRecord) -> StoryRecord:
         assert self._records is not None
-        self._records[record.story_id] = record
+        digest = authoritative_payload_hash(record.structured_payload)
+        stored = record if record.payload_hash == digest else replace(record, payload_hash=digest)
+        self._records[stored.story_id] = stored
         logger.info(
             "repo.in_memory.save_story_done story_id=%s",
             record.story_id,
             extra={
-                "story_id": record.story_id,
+                "story_id": stored.story_id,
                 "backend": "in_memory",
                 "repository_class": self.__class__.__name__,
                 "stage": "repository.in_memory.save_story",
                 "outcome": "success",
             },
         )
-        return record
+        return stored
 
     def get_story(self, story_id: str) -> StoryRecord | None:
         assert self._records is not None

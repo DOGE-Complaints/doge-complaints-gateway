@@ -20,6 +20,11 @@ from core.schema.errors import (
     UnsupportedVersionError,
 )
 from core.schema.legacy import LEGACY_M2_ENVELOPE_ID, LegacyM2StorySchema
+from core.schema.payload import (
+    authoritative_payload_hash,
+    canonical_payload_json,
+    payload_hash_for,
+)
 from core.schema.runtime import LocalSchemaRuntime
 
 __all__ = [
@@ -41,4 +46,7 @@ __all__ = [
     "SchemaRuntimeError",
     "UnknownSchemaError",
     "UnsupportedVersionError",
+    "authoritative_payload_hash",
+    "canonical_payload_json",
+    "payload_hash_for",
 ]

@@ -15,6 +15,7 @@ from core.domain import (
     StoryRecord,
 )
 from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json
+from core.schema.payload import authoritative_payload_hash
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
 try:
@@ -70,7 +71,8 @@ _STORY_SELECT_FIELDS = (
     "submitter_identity_issuer,lifecycle_status,created_at,updated_at,origin_source,origin_conversation_id,"
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
     "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json,"
-    "geo_admin_district,geo_admin_settlement,geo_admin_region,geo_admin_country"
+    "geo_admin_district,geo_admin_settlement,geo_admin_region,geo_admin_country,"
+    "schema_id,bound_schema_version,profile_id,profile_version,structured_payload,payload_hash"
 )
 
 
@@ -104,6 +106,18 @@ def _institution_dict_from_supabase_row(row: dict[str, Any]) -> dict[str, str] |
     parsed = json.loads(str(raw))
     if isinstance(parsed, dict):
         return {str(k): str(v) for k, v in parsed.items()}
+    return None
+
+
+def _structured_payload_from_supabase_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    raw = row.get("structured_payload")
+    if raw is None or raw == "":
+        return None
+    if isinstance(raw, dict):
+        return dict(raw)
+    parsed = json.loads(str(raw))
+    if isinstance(parsed, dict):
+        return dict(parsed)
     return None
 
 
@@ -177,6 +191,12 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
         privacy_contains_pii=bool(row["privacy_contains_pii"]),
         privacy_redaction_requested=bool(row["privacy_redaction_requested"]),
         geo=geo,
+        schema_id=row.get("schema_id"),
+        bound_schema_version=row.get("bound_schema_version"),
+        profile_id=row.get("profile_id"),
+        profile_version=row.get("profile_version"),
+        structured_payload=_structured_payload_from_supabase_row(row),
+        payload_hash=row.get("payload_hash"),
     )
 
 
@@ -310,6 +330,16 @@ class SupabaseDatabase:
             "geo_admin_country",
         }
     )
+    _STORIES_BINDING_COLUMNS = frozenset(
+        {
+            "schema_id",
+            "bound_schema_version",
+            "profile_id",
+            "profile_version",
+            "structured_payload",
+            "payload_hash",
+        }
+    )
 
     def required_stories_geo_admin_columns_ready(self) -> bool:
         """True when migration 20260510_* geo_admin_* columns exist on hosted stories."""
@@ -331,6 +361,28 @@ class SupabaseDatabase:
         if cached is None:
             cached = self.required_stories_geo_admin_columns_ready()
             self._stories_geo_admin_columns_ready = cached
+        return cached
+
+    def required_stories_binding_columns_ready(self) -> bool:
+        """True when GW-SSR-02 binding columns exist on hosted stories."""
+        try:
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={
+                    "select": ",".join(sorted(self._STORIES_BINDING_COLUMNS)),
+                    "limit": "1",
+                },
+            )
+            return True
+        except Exception:
+            return False
+
+    def stories_binding_columns_ready(self) -> bool:
+        cached = getattr(self, "_stories_binding_columns_ready", None)
+        if cached is None:
+            cached = self.required_stories_binding_columns_ready()
+            self._stories_binding_columns_ready = cached
         return cached
 
     def required_columns_ready(self) -> bool:
@@ -416,13 +468,18 @@ class SupabaseDatabase:
 
 
 def _story_select_fields_for_db(db: SupabaseDatabase) -> str:
-    """SELECT list for hosted DB; omits geo_admin_* when migration 20260510_* not applied."""
-    if db.stories_geo_admin_columns_ready():
+    """SELECT list for hosted DB; omits geo_admin_* / binding cols when not migrated."""
+    omit: set[str] = set()
+    if not db.stories_geo_admin_columns_ready():
+        omit |= set(SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS)
+    if not db.stories_binding_columns_ready():
+        omit |= set(SupabaseDatabase._STORIES_BINDING_COLUMNS)
+    if not omit:
         return _STORY_SELECT_FIELDS
     parts = [
         field.strip()
         for field in _STORY_SELECT_FIELDS.split(",")
-        if field.strip() and field.strip() not in SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS
+        if field.strip() and field.strip() not in omit
     ]
     return ",".join(parts)
 
@@ -459,10 +516,19 @@ class SupabaseStoryRepository:
             "origin_tool_call_id": record.origin_tool_call_id,
             "privacy_contains_pii": record.privacy_contains_pii,
             "privacy_redaction_requested": record.privacy_redaction_requested,
+            "schema_id": record.schema_id,
+            "bound_schema_version": record.bound_schema_version,
+            "profile_id": record.profile_id,
+            "profile_version": record.profile_version,
+            "structured_payload": record.structured_payload,
+            "payload_hash": authoritative_payload_hash(record.structured_payload),
         }
         row.update(_story_geo_supabase_fields(record))
         if not self.db.stories_geo_admin_columns_ready():
             for key in SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS:
+                row.pop(key, None)
+        if not self.db.stories_binding_columns_ready():
+            for key in SupabaseDatabase._STORIES_BINDING_COLUMNS:
                 row.pop(key, None)
         try:
             self.db._request(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 import logging
@@ -458,30 +458,10 @@ class StoryIntakeService:
             )
             return current
 
-        updated = StoryRecord(
-            story_id=current.story_id,
-            schema_version=current.schema_version,
-            narrative_original_text=current.narrative_original_text,
-            submitter_external_user_id=current.submitter_external_user_id,
-            submitter_identity_issuer=current.submitter_identity_issuer,
+        updated = replace(
+            current,
             lifecycle_status=next_status,
-            created_at=current.created_at,
             updated_at=datetime.now(UTC),
-            narrative_language=current.narrative_language,
-            narrative_title=current.narrative_title,
-            narrative_description=current.narrative_description,
-            narrative_summary=current.narrative_summary,
-            narrative_institution=current.narrative_institution,
-            narrative_session_language=current.narrative_session_language,
-            narrative_consistency_notes=current.narrative_consistency_notes,
-            narrative_canonical_type=current.narrative_canonical_type,
-            narrative_canonical_labels=current.narrative_canonical_labels,
-            geo=current.geo,
-            origin_source=current.origin_source,
-            origin_conversation_id=current.origin_conversation_id,
-            origin_tool_call_id=current.origin_tool_call_id,
-            privacy_contains_pii=current.privacy_contains_pii,
-            privacy_redaction_requested=current.privacy_redaction_requested,
         )
         result = self.repository.save_story(updated)
         logger.info(

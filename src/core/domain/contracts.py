@@ -43,7 +43,7 @@ class StoryGeoSnapshot:
 @dataclass(frozen=True)
 class StoryRecord:
     story_id: str
-    schema_version: str
+    schema_version: str  # envelope id (parent envelope_version); not semantic pack version
     narrative_original_text: str
     submitter_external_user_id: str
     submitter_identity_issuer: str
@@ -65,6 +65,13 @@ class StoryRecord:
     origin_tool_call_id: str | None = None
     privacy_contains_pii: bool = False
     privacy_redaction_requested: bool = False
+    # SSR-02 persist map: parent schema_version (semantic) → bound_schema_version.
+    schema_id: str | None = None
+    bound_schema_version: str | None = None
+    profile_id: str | None = None
+    profile_version: str | None = None
+    structured_payload: dict[str, Any] | None = None
+    payload_hash: str | None = None
 
 
 class StoryRepository(Protocol):

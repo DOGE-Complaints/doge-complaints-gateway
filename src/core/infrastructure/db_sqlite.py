@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
 from core.domain import (
     IdempotencyRecord,
@@ -17,6 +17,7 @@ from core.domain import (
     StoryRecord,
 )
 from core.domain.narrative_i18n import I18N_LANGS, i18n_dict_from_json, i18n_dict_to_json
+from core.schema.payload import authoritative_payload_hash
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus, ReviewAuditEntry, ReviewDecision
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,46 @@ def _geo_bind(record: StoryRecord) -> tuple:
         geo.admin_settlement,
         geo.admin_region,
         geo.admin_country,
+    )
+
+
+def _opt_sqlite_text(row: sqlite3.Row, keys: set[str], column: str) -> str | None:
+    if column not in keys or row[column] is None:
+        return None
+    value = str(row[column]).strip()
+    return value or None
+
+
+def _structured_payload_to_sqlite(payload: dict[str, Any] | None) -> str | None:
+    if payload is None:
+        return None
+    return json.dumps(payload, ensure_ascii=False)
+
+
+def _structured_payload_from_sqlite(row: sqlite3.Row, keys: set[str]) -> dict[str, Any] | None:
+    if "structured_payload" not in keys or row["structured_payload"] is None:
+        return None
+    raw = row["structured_payload"]
+    if isinstance(raw, dict):
+        return dict(raw)
+    text = str(raw).strip()
+    if not text:
+        return None
+    parsed = json.loads(text)
+    if isinstance(parsed, dict):
+        return dict(parsed)
+    return None
+
+
+def _binding_bind(record: StoryRecord) -> tuple:
+    payload = record.structured_payload
+    return (
+        record.schema_id,
+        record.bound_schema_version,
+        record.profile_id,
+        record.profile_version,
+        _structured_payload_to_sqlite(payload),
+        authoritative_payload_hash(payload),
     )
 
 
@@ -78,7 +119,8 @@ _STORY_SELECT_COLUMNS = """
     origin_source, origin_conversation_id, origin_tool_call_id,
     privacy_contains_pii, privacy_redaction_requested,
     geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
-    geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country
+    geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country,
+    schema_id, bound_schema_version, profile_id, profile_version, structured_payload, payload_hash
 """
 
 
@@ -149,6 +191,12 @@ def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
         privacy_contains_pii=bool(row["privacy_contains_pii"]),
         privacy_redaction_requested=bool(row["privacy_redaction_requested"]),
         geo=geo,
+        schema_id=_opt_sqlite_text(row, keys, "schema_id"),
+        bound_schema_version=_opt_sqlite_text(row, keys, "bound_schema_version"),
+        profile_id=_opt_sqlite_text(row, keys, "profile_id"),
+        profile_version=_opt_sqlite_text(row, keys, "profile_version"),
+        structured_payload=_structured_payload_from_sqlite(row, keys),
+        payload_hash=_opt_sqlite_text(row, keys, "payload_hash"),
     )
 
 
@@ -334,6 +382,18 @@ class SqliteDatabase:
                 "institution_json",
                 "ALTER TABLE stories ADD COLUMN institution_json TEXT",
             ),
+            ("schema_id", "ALTER TABLE stories ADD COLUMN schema_id TEXT"),
+            (
+                "bound_schema_version",
+                "ALTER TABLE stories ADD COLUMN bound_schema_version TEXT",
+            ),
+            ("profile_id", "ALTER TABLE stories ADD COLUMN profile_id TEXT"),
+            ("profile_version", "ALTER TABLE stories ADD COLUMN profile_version TEXT"),
+            (
+                "structured_payload",
+                "ALTER TABLE stories ADD COLUMN structured_payload TEXT",
+            ),
+            ("payload_hash", "ALTER TABLE stories ADD COLUMN payload_hash TEXT"),
         ):
             if name not in cols:
                 self.connection.execute(ddl)
@@ -544,8 +604,9 @@ class SqliteStoryRepository:
                 origin_source, origin_conversation_id, origin_tool_call_id,
                 privacy_contains_pii, privacy_redaction_requested,
                 geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
-                geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country,
+                schema_id, bound_schema_version, profile_id, profile_version, structured_payload, payload_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
@@ -576,7 +637,13 @@ class SqliteStoryRepository:
                 geo_admin_district = excluded.geo_admin_district,
                 geo_admin_settlement = excluded.geo_admin_settlement,
                 geo_admin_region = excluded.geo_admin_region,
-                geo_admin_country = excluded.geo_admin_country
+                geo_admin_country = excluded.geo_admin_country,
+                schema_id = excluded.schema_id,
+                bound_schema_version = excluded.bound_schema_version,
+                profile_id = excluded.profile_id,
+                profile_version = excluded.profile_version,
+                structured_payload = excluded.structured_payload,
+                payload_hash = excluded.payload_hash
             """,
             (
                 record.story_id,
@@ -602,15 +669,18 @@ class SqliteStoryRepository:
                 int(record.privacy_contains_pii),
                 int(record.privacy_redaction_requested),
                 *geo,
+                *_binding_bind(record),
             ),
         )
         self.db.connection.commit()
+        digest = authoritative_payload_hash(record.structured_payload)
+        stored = record if record.payload_hash == digest else replace(record, payload_hash=digest)
         logger.info(
             "repo.sqlite.save_story_done story_id=%s rows_affected=%s",
-            record.story_id,
+            stored.story_id,
             cursor.rowcount,
             extra={
-                "story_id": record.story_id,
+                "story_id": stored.story_id,
                 "rows_affected": cursor.rowcount,
                 "backend": "sqlite",
                 "repository_class": self.__class__.__name__,
@@ -618,7 +688,7 @@ class SqliteStoryRepository:
                 "outcome": "success",
             },
         )
-        return record
+        return stored
 
     def get_story(self, story_id: str) -> StoryRecord | None:
         row = self.db.connection.execute(
