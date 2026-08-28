@@ -239,16 +239,11 @@ def test_sqlite_alter_adds_binding_columns_without_create_rewrite() -> None:
     assert "bound_schema_version = excluded.bound_schema_version" in src
 
 
-def test_intake_parser_has_no_schema_binding() -> None:
-    assert "schema_binding" not in StoryIntakeRequest.__dataclass_fields__
-    contracts = (GATEWAY_ROOT / "src" / "core" / "intake" / "contracts.py").read_text(
-        encoding="utf-8"
-    )
-    init_mod = (GATEWAY_ROOT / "src" / "core" / "intake" / "__init__.py").read_text(
-        encoding="utf-8"
-    )
-    assert "schema_binding" not in contracts
-    assert "schema_binding" not in init_mod
+def test_intake_parser_schema_binding_is_optional_sidecar() -> None:
+    """SSR-03 closed the SSR-02 guard: sidecar exists; civic path still omits it."""
+    assert "schema_binding" in StoryIntakeRequest.__dataclass_fields__
+    civic = parse_story_intake_request(valid_v2_intake_payload())
+    assert civic.schema_binding is None
 
 
 def test_readiness_probe_does_not_require_binding_columns() -> None:

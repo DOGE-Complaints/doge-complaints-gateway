@@ -255,13 +255,13 @@ def test_payload_deeper_than_max_nesting_depth_rejected() -> None:
     assert MAX_NESTING_DEPTH == 32
 
 
-def test_intake_contracts_have_no_schema_binding() -> None:
+def test_intake_contracts_define_schema_binding_sidecar() -> None:
+    """SSR-03: parser now owns optional schema_binding (SSR-01 guard closed)."""
     text = (GATEWAY_ROOT / "src/core/intake/contracts.py").read_text(encoding="utf-8")
-    assert "schema_binding" not in text
+    assert "schema_binding" in text
 
 
-def test_intake_services_do_not_call_schema_runtime() -> None:
+def test_intake_services_wire_local_schema_runtime() -> None:
+    """SSR-03: validate hook before save_story (SSR-01 guard closed)."""
     text = (GATEWAY_ROOT / "src/core/application/services.py").read_text(encoding="utf-8")
-    assert "core.schema" not in text
-    assert "LocalSchemaRuntime" not in text
-    assert "SchemaRuntime" not in text
+    assert "LocalSchemaRuntime" in text
