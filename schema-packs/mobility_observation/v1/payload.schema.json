@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["route_id"],
+  "properties": {
+    "route_id": { "type": "string", "minLength": 1 },
+    "vehicle": {
+      "type": "string",
+      "enum": ["bus", "tram", "train"]
+    },
+    "internal_tracker": { "type": "string" }
+  }
+}

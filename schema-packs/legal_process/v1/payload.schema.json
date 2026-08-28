@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["institution"],
+  "properties": {
+    "institution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["office_id"],
+      "properties": {
+        "office_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": ["filed", "hearing", "closed"]
+        }
+      }
+    },
+    "secret_note": { "type": "string" }
+  }
+}

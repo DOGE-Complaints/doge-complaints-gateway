@@ -1,0 +1,29 @@
+{
+  "schema_id": "legal_process",
+  "schema_version": "v1",
+  "payload_schema": "payload.schema.json",
+  "field_policy": {
+    "institution.office_id": "required",
+    "institution.name": "optional",
+    "process.stage": "optional",
+    "secret_note": "forbidden"
+  },
+  "compatible_profiles": ["legal_access"],
+  "exact_lenses": [
+    {
+      "lens_id": "police_station",
+      "source_fields": ["institution.office_id"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 40,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    }
+  ]
+}
