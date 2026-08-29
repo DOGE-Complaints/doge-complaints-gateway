@@ -1,0 +1,32 @@
+{
+  "schema_version": "m2.story_intake_envelope.v2",
+  "submitter": {
+    "external_user_id": "telegram:123456789",
+    "identity_issuer": "telegram"
+  },
+  "narrative": {
+    "original_text": "Pothole on the tram line.",
+    "language": "en",
+    "title": { "en": "Tram pothole" },
+    "description": { "en": "Recurring pothole on the tram line." },
+    "canonical_type": "complaint"
+  },
+  "schema_binding": {
+    "schema_id": "tallinn_civic",
+    "schema_version": "v1",
+    "structured_payload": {
+      "signals": {
+        "civic_domain": "transport",
+        "failure_pattern": "broken_infrastructure",
+        "civic_weight": "recurring_issue",
+        "desired_outcome": "better_maintenance",
+        "affected_group": "residents",
+        "service_object": "tram_line",
+        "need": "unknown",
+        "ecosystem_signal": "unknown",
+        "canonical_type": "complaint"
+      },
+      "geo": { "district": "kesklinn" }
+    }
+  }
+}
