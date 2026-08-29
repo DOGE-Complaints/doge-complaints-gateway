@@ -1,3 +1,4 @@
+from core.projection.card_fields import project_card_fields
 from core.projection.dto import DOGEIssue
 from core.projection.enums import DOGEIssueStatus, DOGEIssueType, DOGEIssueLabel
 from core.projection.i18n import I18nText
@@ -38,6 +39,7 @@ __all__ = [
     "spa_labels_from_canonical",
     "ProjectionContractError",
     "apply_summary_fallback",
+    "project_card_fields",
     "project_distinct_issue",
     "validate_governed_enums",
 ]

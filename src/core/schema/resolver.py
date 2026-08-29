@@ -47,6 +47,23 @@ def _parse_dual_civic_lenses(manifest: Mapping[str, Any]) -> bool:
     raise UnsupportedVersionError("dual_civic_lenses must be a boolean when present")
 
 
+def _parse_card_fields(manifest: Mapping[str, Any]) -> tuple[str, ...]:
+    """Optional dotted-path allowlist for named Issue card leaves. Absent/empty = civic form."""
+    if "card_fields" not in manifest:
+        return ()
+    raw = manifest["card_fields"]
+    if raw is None:
+        return ()
+    if not isinstance(raw, list):
+        raise UnsupportedVersionError("card_fields must be an array of strings when present")
+    paths: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError("card_fields entries must be non-empty strings")
+        paths.append(item.strip())
+    return tuple(paths)
+
+
 def _parse_readiness(raw: Mapping[str, Any]) -> ReadinessPolicy:
     return ReadinessPolicy(
         min_readiness_score=int(raw["min_readiness_score"]),
@@ -114,6 +131,7 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         compatible_profiles=profiles,
         pack_dir=pack_dir,
         dual_civic_lenses=_parse_dual_civic_lenses(manifest),
+        card_fields=_parse_card_fields(manifest),
     )
 
 

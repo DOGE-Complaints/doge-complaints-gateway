@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from hashlib import sha256
 import json
 import logging
+from pathlib import Path
 from typing import Any
 from typing import Protocol
 from uuid import uuid4
@@ -17,10 +18,15 @@ from core.projection import (
     ProjectionInput,
     StoryToProjectionPolicy,
     build_projection_input_from_draft,
+    project_card_fields,
     select_dominant_story,
 )
+from core.projection.dto import DOGEIssue
 from core.projection.i18n import i18n_text_from_optional_dict, original_locale_from_languages
 from core.promotion import IssuePromotionService, ReviewDecision
+from core.schema.contracts import SchemaRef
+from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+from core.schema.resolver import resolve_pack
 
 DERIVATION_POLICY_VERSION = "m3.doge_issue_derivation.v1"
 logger = logging.getLogger(__name__)
@@ -180,6 +186,36 @@ class IssueCreateService:
     issue_projection_store: IssueProjectionStore | None = None
     issue_projection_embedding_store: IssueProjectionEmbeddingStore | None = None
     issue_story_link_store: IssueStoryLinkStore | None = None
+    packs_root: Path | None = None
+
+    def _schema_card_for_stories(self, story_ids: tuple[str, ...]) -> dict[str, Any] | None:
+        for story_id in story_ids:
+            record = self.bridge.story_repository.get_story(story_id)
+            if record is None or not record.schema_id or not record.bound_schema_version:
+                continue
+            payload = record.structured_payload
+            if not isinstance(payload, dict) or not payload:
+                continue
+            try:
+                context = resolve_pack(
+                    SchemaRef(record.schema_id, record.bound_schema_version),
+                    packs_root=self.packs_root,
+                )
+            except (UnknownSchemaError, UnsupportedVersionError):
+                continue
+            card = project_card_fields(
+                payload, context.card_fields, context.field_policy
+            )
+            if card:
+                return card
+        return None
+
+    def _to_public_payload(
+        self, projection: DOGEIssue, story_ids: tuple[str, ...]
+    ) -> dict[str, Any]:
+        return projection.to_public_dict(
+            schema_card=self._schema_card_for_stories(story_ids)
+        )
 
     def create_issue(self, command: IssueCreateCommand) -> IssueCreateResult:
         logger.debug(
@@ -249,7 +285,7 @@ class IssueCreateService:
             story_ids=promoted.story_ids,
         )
         projection = self.projection_service.project(projection_input)
-        projection_payload = projection.to_public_dict()
+        projection_payload = self._to_public_payload(projection, story_ids)
         if self.issue_story_link_store is not None:
             self.issue_story_link_store.save_issue_story_links(
                 issue_id=promoted.candidate_id,
@@ -304,7 +340,7 @@ class IssueCreateService:
                 story_ids=existing.story_ids,
             )
             projection = self.projection_service.project(projection_input)
-            projection_payload = projection.to_public_dict()
+            projection_payload = self._to_public_payload(projection, existing.story_ids)
             return IssueCreateResult(
                 issue_id=existing.candidate_id,
                 status=existing.status.value,
@@ -330,7 +366,7 @@ class IssueCreateService:
             story_ids=updated.story_ids,
         )
         projection = self.projection_service.project(projection_input)
-        projection_payload = projection.to_public_dict()
+        projection_payload = self._to_public_payload(projection, updated.story_ids)
 
         if self.issue_story_link_store is not None:
             self.issue_story_link_store.save_issue_story_links(
@@ -396,7 +432,7 @@ class IssueCreateService:
             story_ids=normalized_story_ids,
         )
         projection = self.projection_service.project(projection_input)
-        projection_payload = projection.to_public_dict()
+        projection_payload = self._to_public_payload(projection, normalized_story_ids)
         projection_payload["title"] = _manual_title_i18n(title, promoted_title=promoted_title)
         projection_payload["type"] = issue_type.strip()
         if self.issue_projection_store is None:

@@ -57,6 +57,7 @@ class SchemaContext:
     compatible_profiles: tuple[str, ...]
     pack_dir: Path
     dual_civic_lenses: bool = False
+    card_fields: tuple[str, ...] = ()
 
 
 class SchemaRuntime(Protocol):

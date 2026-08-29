@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True)
@@ -23,8 +23,14 @@ class DOGEIssue:
     geo: dict[str, object] | None = None
     original_locale: tuple[str, ...] = ()
 
-    def to_public_dict(self) -> dict[str, Any]:
-        """JSON-serializable shape for contract tests and API mapping."""
+    def to_public_dict(
+        self, *, schema_card: Mapping[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """JSON-serializable shape for contract tests and API mapping.
+
+        Civic card keys stay required as today. Optional ``schema_card`` is a named
+        sidecar (flat dotted-path keys) — never a raw payload dump.
+        """
         out: dict[str, Any] = {
             "id": self.id,
             "status": self.status,
@@ -48,4 +54,6 @@ class DOGEIssue:
             out["geo"] = self.geo
         if self.original_locale:
             out["original_locale"] = list(self.original_locale)
+        if schema_card:
+            out["schema_card"] = dict(schema_card)
         return out
