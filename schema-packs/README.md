@@ -25,6 +25,7 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `field_policy` | object | Map `dotted.path` → SCHEMA-003 state |
 | `exact_lenses` | array | ≥1 exact-lens block (CL-001 example **shape**) |
 | `compatible_profiles` | array of string, optional | If set, `policy_context.profile_ref` must be a member (RUNTIME-005 profile incompatibility) |
+| `dual_civic_lenses` | boolean, optional | SSR-10 Path B. `true` = bound story also gets civic `ClusterLens` memberships from labels / `infer_signals_from_canonical` **and** pack exact-lenses from payload. Absent or `false` = T-wave exact-only. Not required on existing packs (`legal_process`, `tallinn_civic`). This loader only (SCHEMA-005) — not a frozen YAML dialect. |
 
 ### `field_policy` states (SCHEMA-003, representable)
 
