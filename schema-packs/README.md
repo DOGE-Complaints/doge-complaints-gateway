@@ -26,6 +26,7 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `exact_lenses` | array | ≥1 exact-lens block (CL-001 example **shape**) |
 | `compatible_profiles` | array of string, optional | If set, `policy_context.profile_ref` must be a member (RUNTIME-005 profile incompatibility) |
 | `dual_civic_lenses` | boolean, optional | SSR-10 Path B. `true` = bound story also gets civic `ClusterLens` memberships from labels / `infer_signals_from_canonical` **and** pack exact-lenses from payload. Absent or `false` = T-wave exact-only. Not required on existing packs (`legal_process`, `tallinn_civic`). This loader only (SCHEMA-005) — not a frozen YAML dialect. |
+| `card_fields` | array of string, optional | SSR-11. Dotted paths from `structured_payload` that MAY appear as **named** leaves on `GET /node/issues` under sidecar `schema_card` (flat keys = the dotted path). Absent, `null`, or `[]` = civic card form (no sidecar). This loader only (SCHEMA-005). `field_policy` `forbidden` / `node_private` are never projected even if listed. Do **not** dump the whole payload. Existing packs without the key stay civic-form. |
 
 ### `field_policy` states (SCHEMA-003, representable)
 
