@@ -170,7 +170,7 @@ def test_tallinn_list_and_get_return_original_locale(client: TestClient) -> None
     stories.save_story(ru_story)
 
     create_response = client.post(
-        "/tallinn/issues",
+        "/node/issues",
         headers=_auth_headers(),
         json={
             "cluster_id": "cluster:api-original-locale",
@@ -182,13 +182,13 @@ def test_tallinn_list_and_get_return_original_locale(client: TestClient) -> None
     assert create_response.status_code == 201
     issue_id = str(create_response.json()["data"]["issue_id"])
 
-    list_response = client.get("/tallinn/issues")
+    list_response = client.get("/node/issues")
     assert list_response.status_code == 200
     listed = list_response.json()["data"]["issues"]
     match = next(item for item in listed if item["id"] == issue_id)
     assert match["original_locale"] == ["et", "ru"]
 
-    get_response = client.get(f"/tallinn/issues/{issue_id}")
+    get_response = client.get(f"/node/issues/{issue_id}")
     assert get_response.status_code == 200
     issue = get_response.json()["data"]["issue"]
     assert issue["original_locale"] == ["et", "ru"]

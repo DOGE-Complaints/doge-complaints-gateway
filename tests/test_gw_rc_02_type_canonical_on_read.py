@@ -146,13 +146,13 @@ def test_http_list_get_canonicalizes_legacy_lowercase_type(client: TestClient) -
         policy_version=PolicyVersion,
     )
 
-    list_response = client.get("/tallinn/issues")
+    list_response = client.get("/node/issues")
     assert list_response.status_code == 200
     issues = list_response.json()["data"]["issues"]
     match = next(item for item in issues if item["id"] == "gw-rc-02-http-legacy")
     assert match["type"] == "IMPROVEMENT"
 
-    get_response = client.get("/tallinn/issues/gw-rc-02-http-legacy")
+    get_response = client.get("/node/issues/gw-rc-02-http-legacy")
     assert get_response.status_code == 200
     issue = get_response.json()["data"]["issue"]
     assert issue["type"] == "IMPROVEMENT"
@@ -173,7 +173,7 @@ def test_http_type_filter_matches_legacy_lowercase_payload(client: TestClient) -
         policy_version=PolicyVersion,
     )
 
-    response = client.get("/tallinn/issues", params={"type": "IMPROVEMENT"})
+    response = client.get("/node/issues", params={"type": "IMPROVEMENT"})
     assert response.status_code == 200
     ids = {item["id"] for item in response.json()["data"]["issues"]}
     assert "http-legacy-type" in ids
@@ -195,7 +195,7 @@ def test_http_type_filter_accepts_lowercase_query_param(client: TestClient) -> N
         policy_version=PolicyVersion,
     )
 
-    response = client.get("/tallinn/issues", params={"type": "improvement"})
+    response = client.get("/node/issues", params={"type": "improvement"})
     assert response.status_code == 200
     ids = {item["id"] for item in response.json()["data"]["issues"]}
     assert "http-legacy-query" in ids

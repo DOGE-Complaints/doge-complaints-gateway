@@ -93,7 +93,7 @@ def test_http_list_get_contract_guarantee_incomplete_legacy_payload(
         policy_version=PolicyVersion,
     )
 
-    list_response = client.get("/tallinn/issues")
+    list_response = client.get("/node/issues")
     assert list_response.status_code == 200
     issue = next(
         item
@@ -106,7 +106,7 @@ def test_http_list_get_contract_guarantee_incomplete_legacy_payload(
     for key in _CONTRACT_KEYS:
         assert key in issue
 
-    get_response = client.get("/tallinn/issues/gw-rc-03-http-contract")
+    get_response = client.get("/node/issues/gw-rc-03-http-contract")
     assert get_response.status_code == 200
     fetched = get_response.json()["data"]["issue"]
     assert fetched["id"] == "gw-rc-03-http-contract"

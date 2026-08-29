@@ -138,8 +138,8 @@ def test_network_pulse_service_topics_empty_without_label_repo() -> None:
 
 
 def test_gw_es_02_public_get_without_auth_returns_200(client: TestClient) -> None:
-    assert "/tallinn/network-pulse" in PUBLIC_ROUTES
-    response = client.get("/tallinn/network-pulse")
+    assert "/node/network-pulse" in PUBLIC_ROUTES
+    response = client.get("/node/network-pulse")
     assert response.status_code == 200
     body = response.json()
     assert "data" in body
@@ -154,6 +154,6 @@ def test_gw_es_02_public_get_without_auth_returns_200(client: TestClient) -> Non
 
 
 def test_gw_es_02_issues_list_regression_still_public(client: TestClient) -> None:
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     assert "issues" in response.json()["data"]

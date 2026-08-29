@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from core.logging_setup import configure_logging
 
-_SERVICE_WRITE_PATH_SUFFIXES = ("/tallinn/issues",)
+_SERVICE_WRITE_PATH_SUFFIXES = ("/node/issues",)
 _ORIGINAL_TESTCLIENT_REQUEST: Callable[..., Any] | None = None
 _GAUTH_RAW_CLIENT_MARKER = "gauth_raw_client"
 GAUTH_TEST_SERVICE_TOKEN = "gauth-test-service-token"
@@ -81,7 +81,7 @@ def gauth_intake_headers(
     user_token: str | None = None,
     extra: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    """Service token headers for POST /story-drafts stash and /tallinn/issues."""
+    """Service token headers for POST /story-drafts stash and /node/issues."""
     resolved_service = (
         service_token
         or os.environ.get("SERVICE_API_TOKEN")

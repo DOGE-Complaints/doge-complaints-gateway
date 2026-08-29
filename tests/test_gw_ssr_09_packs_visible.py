@@ -51,4 +51,4 @@ def test_asgi_has_no_new_filter_http() -> None:
     text = (GATEWAY_ROOT / "src" / "core" / "api" / "asgi_app.py").read_text(encoding="utf-8")
     assert "story_dimensions" not in text
     assert "/schema-filter" not in text
-    assert '@app.get("/tallinn/issues")' in text
+    assert '@app.get("/node/issues")' in text

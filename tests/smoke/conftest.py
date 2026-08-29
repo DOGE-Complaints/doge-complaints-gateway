@@ -7,6 +7,7 @@ import os
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 import pytest
@@ -39,6 +40,11 @@ def _load_dotenv_test() -> None:
     _load_env_file(_REPO_ROOT / ".env.test", overwrite=True)
     _load_env_file(_REPO_ROOT / ".env", overwrite=False)
     _ENV_TEST_LOADED = True
+
+
+def _is_local_smoke_target(url: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return host in {"localhost", "127.0.0.1", "::1"}
 
 
 def resolve_local_server_url() -> tuple[str, str]:
@@ -161,10 +167,14 @@ def first_scenario_for_group(group: str) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def local_server_url() -> str:
-    configured, _ = resolve_local_server_url()
+    configured, source = resolve_local_server_url()
     if not configured:
         pytest.fail("GATEWAY_URL must be set for smoke target resolution")
     base = configured.rstrip("/")
+    if not _is_local_smoke_target(base):
+        pytest.skip(
+            f"hosted {source} is not local smoke target (G15 offline): {base}"
+        )
     try:
         health = httpx.get(f"{base}/health", timeout=3.0)
     except httpx.HTTPError as exc:

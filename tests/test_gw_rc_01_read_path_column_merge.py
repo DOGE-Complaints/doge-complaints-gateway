@@ -107,14 +107,14 @@ def test_http_list_get_merge_incomplete_payload(client: TestClient) -> None:
         policy_version=PolicyVersion,
     )
 
-    list_response = client.get("/tallinn/issues")
+    list_response = client.get("/node/issues")
     assert list_response.status_code == 200
     issues = list_response.json()["data"]["issues"]
     match = next(item for item in issues if item["id"] == "gw-rc-http-incomplete")
     assert match["status"] == "PUBLISHED"
     assert "created_at" in match
 
-    get_response = client.get("/tallinn/issues/gw-rc-http-incomplete")
+    get_response = client.get("/node/issues/gw-rc-http-incomplete")
     assert get_response.status_code == 200
     issue = get_response.json()["data"]["issue"]
     assert issue["id"] == "gw-rc-http-incomplete"
@@ -137,7 +137,7 @@ def test_http_status_filter_uses_column_not_payload(client: TestClient) -> None:
         policy_version=PolicyVersion,
     )
 
-    response = client.get("/tallinn/issues", params={"status": "PUBLISHED"})
+    response = client.get("/node/issues", params={"status": "PUBLISHED"})
     assert response.status_code == 200
     ids = {item["id"] for item in response.json()["data"]["issues"]}
     assert "http-col-published" in ids

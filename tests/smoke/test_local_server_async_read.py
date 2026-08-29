@@ -32,7 +32,7 @@ async def test_ac01_async_get_tallinn_issues_returns_json(
     seeded_issue_list_base: str,
 ) -> None:
     async with httpx.AsyncClient(base_url=seeded_issue_list_base, timeout=30.0) as client:
-        response = await client.get("/tallinn/issues")
+        response = await client.get("/node/issues")
     assert response.status_code == 200
     body = response.json()
     assert isinstance(body, dict)
@@ -44,7 +44,7 @@ async def test_ac02_async_get_published_filter_returns_200(
     seeded_issue_list_base: str,
 ) -> None:
     async with httpx.AsyncClient(base_url=seeded_issue_list_base, timeout=30.0) as client:
-        response = await client.get("/tallinn/issues", params={"status": "PUBLISHED"})
+        response = await client.get("/node/issues", params={"status": "PUBLISHED"})
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert isinstance(issues, list)
@@ -56,9 +56,9 @@ async def test_ac03_parallel_async_gets_return_identical_bodies(
 ) -> None:
     async with httpx.AsyncClient(base_url=seeded_issue_list_base, timeout=30.0) as client:
         responses = await asyncio.gather(
-            client.get("/tallinn/issues"),
-            client.get("/tallinn/issues"),
-            client.get("/tallinn/issues"),
+            client.get("/node/issues"),
+            client.get("/node/issues"),
+            client.get("/node/issues"),
         )
     assert all(r.status_code == 200 for r in responses)
     issue_payloads = [r.json()["data"] for r in responses]

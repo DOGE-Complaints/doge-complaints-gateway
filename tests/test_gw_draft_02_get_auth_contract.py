@@ -155,7 +155,9 @@ def test_get_verified_session_returns_200(
 
 
 def test_missing_identity_config_returns_503(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("IDENTITY_BASE_URL", raising=False)
+    # Empty string = None in schema; beats autouse IDENTITY_BASE_URL and
+    # provide_app_config(None) dotenv fill (delenv re-opens .env merge).
+    monkeypatch.setenv("IDENTITY_BASE_URL", "")
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("SERVICE_API_TOKEN", GAUTH_TEST_SERVICE_TOKEN)

@@ -153,7 +153,7 @@ def test_req24_ac2_sqlite_write_path_uses_doge_issues_table(tmp_path: Path) -> N
 
 
 def test_req24_ac3_empty_list(client: TestClient) -> None:
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     payload = response.json()
     assert payload["data"]["issues"] == []
@@ -161,7 +161,7 @@ def test_req24_ac3_empty_list(client: TestClient) -> None:
 
 def test_req24_ac4_list_after_intake(client: TestClient) -> None:
     issue_id = _seed_via_intake(client)
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert any(item["id"] == issue_id for item in issues)
@@ -172,10 +172,10 @@ def test_req24_ac4_list_after_intake(client: TestClient) -> None:
 
 def test_req24_ac5_status_filter(client: TestClient) -> None:
     issue_id = _seed_via_intake(client)
-    listed = client.get("/tallinn/issues").json()["data"]["issues"]
+    listed = client.get("/node/issues").json()["data"]["issues"]
     issue = next(item for item in listed if item["id"] == issue_id)
     status = str(issue["status"])
-    response = client.get("/tallinn/issues", params={"status": status})
+    response = client.get("/node/issues", params={"status": status})
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert issues
@@ -187,7 +187,7 @@ def test_req24_ac6_type_filter(client: TestClient) -> None:
     issue = get_api_dependencies().issue_projection_read_store.get_projection(issue_id)
     assert issue is not None
     issue_type = str(issue["type"])
-    response = client.get("/tallinn/issues", params={"type": issue_type})
+    response = client.get("/node/issues", params={"type": issue_type})
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert all(item["type"] == issue_type for item in issues)
@@ -195,20 +195,20 @@ def test_req24_ac6_type_filter(client: TestClient) -> None:
 
 def test_req24_ac7_get_by_id(client: TestClient) -> None:
     issue_id = _seed_via_intake(client)
-    response = client.get(f"/tallinn/issues/{issue_id}")
+    response = client.get(f"/node/issues/{issue_id}")
     assert response.status_code == 200
     assert response.json()["data"]["issue"]["id"] == issue_id
 
 
 def test_req24_ac8_get_missing_returns_404(client: TestClient) -> None:
-    response = client.get("/tallinn/issues/nonexistent-issue-id")
+    response = client.get("/node/issues/nonexistent-issue-id")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "DOMAIN_ERROR"
 
 
 def test_req24_ac9_cors_options(client: TestClient) -> None:
     response = client.options(
-        "/tallinn/issues",
+        "/node/issues",
         headers={"Origin": "http://localhost:5173"},
     )
     assert response.status_code == 200
@@ -218,7 +218,7 @@ def test_req24_ac9_cors_options(client: TestClient) -> None:
 @pytest.mark.gauth_raw_client
 def test_req24_ac10_post_without_bearer_returns_401(client: TestClient) -> None:
     response = client.post(
-        "/tallinn/issues",
+        "/node/issues",
         json={
             "cluster_id": "cluster:test",
             "story_ids": ["s1"],
@@ -240,7 +240,7 @@ def test_req24_ac11_post_with_bearer_creates_issue(client: TestClient) -> None:
         )
     )
     response = client.post(
-        "/tallinn/issues",
+        "/node/issues",
         headers=_auth_headers(),
         json={
             "cluster_id": "cluster:manual-1",
@@ -264,7 +264,7 @@ def test_req24_ac12_manual_issue_appears_in_list(client: TestClient) -> None:
         )
     )
     create = client.post(
-        "/tallinn/issues",
+        "/node/issues",
         headers=_auth_headers(),
         json={
             "cluster_id": "cluster:manual-2",
@@ -275,7 +275,7 @@ def test_req24_ac12_manual_issue_appears_in_list(client: TestClient) -> None:
     )
     assert create.status_code == 201
     issue_id = create.json()["data"]["issue_id"]
-    listed = client.get("/tallinn/issues").json()["data"]["issues"]
+    listed = client.get("/node/issues").json()["data"]["issues"]
     assert any(item["id"] == issue_id for item in listed)
 
 
@@ -300,7 +300,7 @@ def test_req24_ac14_bbox_filter(client: TestClient) -> None:
     )
     deps.story_cluster_orchestrator.process_all_pending()
     response = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params={
             "geo_lat_min": 59.43,
             "geo_lat_max": 59.46,
@@ -320,7 +320,7 @@ def test_req24_ac14_bbox_filter(client: TestClient) -> None:
 def test_req24_ac15_geo_less_excluded_when_bbox_active(client: TestClient) -> None:
     _save_projection("geo-yes", geo={"lat": 59.44, "lon": 24.75, "district": "Põhja-Tallinn"})
     _save_projection("geo-no")
-    response = client.get("/tallinn/issues", params={"geo_lat_min": 59.43})
+    response = client.get("/node/issues", params={"geo_lat_min": 59.43})
     assert response.status_code == 200
     ids = {item["id"] for item in response.json()["data"]["issues"]}
     assert "geo-yes" in ids
@@ -338,7 +338,7 @@ def test_req24_ac16_district_normalized(client: TestClient) -> None:
     )
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
     response = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params={"geo_district": "põhja-tallinn"},
     )
     assert response.status_code == 200
@@ -357,7 +357,7 @@ def test_req24_ac17_geo_district_multi_value_or(client: TestClient) -> None:
         geo={"lat": 59.41, "lon": 24.70, "district": "Mustamäe"},
     )
     response = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params=[("geo_district", "põhja-tallinn"), ("geo_district", "mustamäe")],
     )
     assert response.status_code == 200
@@ -375,7 +375,7 @@ def test_req24_ac18_bbox_and_district_and(client: TestClient) -> None:
         geo={"lat": 59.40, "lon": 24.75, "district": "Põhja-Tallinn"},
     )
     response = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params={
             "geo_lat_min": 59.43,
             "geo_lat_max": 59.46,
@@ -399,7 +399,7 @@ def test_req24_ac19_created_after_before(client: TestClient) -> None:
     rows["time-old"]["created_at"] = "2026-01-01T00:00:00+00:00"
     rows["time-new"]["created_at"] = "2026-06-01T00:00:00+00:00"
     after = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params={"created_after": "2026-03-01T00:00:00+00:00"},
     )
     assert after.status_code == 200
@@ -407,7 +407,7 @@ def test_req24_ac19_created_after_before(client: TestClient) -> None:
     assert "time-new" in after_ids
     assert "time-old" not in after_ids
     before = client.get(
-        "/tallinn/issues",
+        "/node/issues",
         params={"created_before": "2026-03-01T00:00:00+00:00"},
     )
     assert before.status_code == 200
@@ -418,8 +418,8 @@ def test_req24_ac19_created_after_before(client: TestClient) -> None:
 
 def test_req24_ac20_empty_geo_param_ignored(client: TestClient) -> None:
     _seed_via_intake(client)
-    all_issues = client.get("/tallinn/issues").json()["data"]["issues"]
-    filtered = client.get("/tallinn/issues", params={"geo_district": ""}).json()["data"][
+    all_issues = client.get("/node/issues").json()["data"]["issues"]
+    filtered = client.get("/node/issues", params={"geo_district": ""}).json()["data"][
         "issues"
     ]
     assert len(filtered) == len(all_issues)
@@ -484,6 +484,6 @@ def test_openapi_contains_tallinn_paths() -> None:
         Path(__file__).resolve().parents[1]
         / "docs/runtime-docs/api-reference/openapi.yaml"
     ).read_text(encoding="utf-8")
-    assert "/tallinn/issues:" in text
+    assert "/node/issues:" in text
     assert "get:" in text
     assert "post:" in text

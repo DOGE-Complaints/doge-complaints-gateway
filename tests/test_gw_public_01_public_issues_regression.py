@@ -55,7 +55,7 @@ def _save_projection(issue_id: str) -> None:
 
 
 def test_gw_public_01_t01_list_without_auth_returns_200(client: TestClient) -> None:
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     assert response.status_code not in _FORBIDDEN_READ_STATUSES
     assert "issues" in response.json()["data"]
@@ -64,7 +64,7 @@ def test_gw_public_01_t01_list_without_auth_returns_200(client: TestClient) -> N
 def test_gw_public_01_t02_get_by_id_unknown_without_auth_not_401(
     client: TestClient,
 ) -> None:
-    response = client.get("/tallinn/issues/gw-public-01-nonexistent")
+    response = client.get("/node/issues/gw-public-01-nonexistent")
     assert response.status_code == 404
     assert response.status_code not in _FORBIDDEN_READ_STATUSES
 
@@ -74,7 +74,7 @@ def test_gw_public_01_t02_get_by_id_known_without_auth_returns_200(
 ) -> None:
     issue_id = "gw-public-01-known-issue"
     _save_projection(issue_id)
-    response = client.get(f"/tallinn/issues/{issue_id}")
+    response = client.get(f"/node/issues/{issue_id}")
     assert response.status_code == 200
     assert response.status_code not in _FORBIDDEN_READ_STATUSES
     assert response.json()["data"]["issue"]["id"] == issue_id
@@ -92,6 +92,6 @@ def test_gw_public_01_t03_post_story_drafts_without_service_token_401(
 def test_gw_public_01_t04_post_tallinn_issues_without_service_token_401(
     client: TestClient,
 ) -> None:
-    response = client.post("/tallinn/issues", json={"title": "regression probe"})
+    response = client.post("/node/issues", json={"title": "regression probe"})
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "UNAUTHORIZED"

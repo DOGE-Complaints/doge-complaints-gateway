@@ -145,7 +145,7 @@ def test_stash_and_submit_share_binding() -> None:
 
 def test_get_tallinn_issues_route_stays() -> None:
     paths = {getattr(route, "path", None) for route in app.routes}
-    assert "/tallinn/issues" in paths
+    assert "/node/issues" in paths
     assert not any(
         path and ("schema-filter" in path or "story_dimensions" in path)
         for path in paths

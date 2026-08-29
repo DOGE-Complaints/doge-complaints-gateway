@@ -54,7 +54,7 @@ def test_ls03_intake_all_four_canvas_groups_accepted(http_client: httpx.Client) 
 
 
 def test_ls04_get_tallinn_issues_json(http_client: httpx.Client) -> None:
-    response = http_client.get("/tallinn/issues")
+    response = http_client.get("/node/issues")
     assert response.status_code == 200
     assert response.headers.get("content-type", "").startswith("application/json")
     assert "issues" in response.json()["data"]

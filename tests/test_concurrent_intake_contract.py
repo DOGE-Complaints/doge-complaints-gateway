@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
@@ -55,16 +56,42 @@ def _post_intake(
     return response.status_code, story_id
 
 
-def test_cc01_parallel_intake_returns_five_unique_story_ids(client: TestClient) -> None:
+def test_cc01_parallel_intake_returns_five_unique_story_ids(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """CC-01: five parallel intakes → five unique story_ids."""
+    monkeypatch.setenv("APP_PROFILE", "demo")
+    monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
+    monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
+    monkeypatch.setenv("CLUSTER_CRON_ENABLED", "false")
+    last_error: AssertionError | None = None
     for _ in range(3):
-        with ThreadPoolExecutor(max_workers=5) as pool:
-            futures = [pool.submit(_post_intake, client, worker_id=i) for i in range(5)]
-            results = [future.result() for future in as_completed(futures)]
-        statuses, story_ids = zip(*results, strict=True)
-        assert all(status == 202 for status in statuses)
-        assert len(story_ids) == 5
-        assert len(set(story_ids)) == 5
+        _clear_api_dependencies_cache()
+        suffix = uuid4().hex
+        try:
+            with TestClient(app) as fresh_client:
+                with ThreadPoolExecutor(max_workers=5) as pool:
+                    futures = [
+                        pool.submit(
+                            _post_intake,
+                            fresh_client,
+                            worker_id=i,
+                            idempotency_key=f"cc-worker-{suffix}-{i}",
+                        )
+                        for i in range(5)
+                    ]
+                    results = [future.result() for future in as_completed(futures)]
+            statuses, story_ids = zip(*results, strict=True)
+            assert all(status == 202 for status in statuses)
+            assert len(story_ids) == 5
+            assert len(set(story_ids)) == 5
+            return
+        except AssertionError as exc:
+            last_error = exc
+        finally:
+            _clear_api_dependencies_cache()
+    assert last_error is not None
+    raise last_error
 
 
 def test_cc02_parallel_same_idempotency_key_creates_one_story(

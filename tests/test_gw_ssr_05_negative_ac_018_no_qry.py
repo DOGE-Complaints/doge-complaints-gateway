@@ -1,4 +1,4 @@
-"""GW-SSR-05 T05: no generic filter HTTP; build_index stays stub; GET /tallinn/issues stays."""
+"""GW-SSR-05 T05: no generic filter HTTP; build_index stays stub; GET /node/issues stays."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def test_asgi_has_no_filter_route_and_keeps_tallinn_issues() -> None:
     assert "story_dimensions" not in text
     assert "/schema-filter" not in text
     assert "generic.filter" not in text
-    assert '@app.get("/tallinn/issues")' in text
+    assert '@app.get("/node/issues")' in text
 
 
 def test_build_index_and_project_remain_stubs() -> None:

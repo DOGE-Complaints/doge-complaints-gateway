@@ -97,10 +97,10 @@ def test_story_drafts_stash_rejects_when_service_token_env_unset(
 
 
 def test_tallinn_issues_post_requires_service_auth(client: TestClient) -> None:
-    bare = client.post("/tallinn/issues", json={"title": "test"})
+    bare = client.post("/node/issues", json={"title": "test"})
     assert bare.status_code == 401
     with_service = client.post(
-        "/tallinn/issues",
+        "/node/issues",
         json={"title": "test"},
         headers={"Authorization": f"Bearer {GAUTH_TEST_SERVICE_TOKEN}"},
     )

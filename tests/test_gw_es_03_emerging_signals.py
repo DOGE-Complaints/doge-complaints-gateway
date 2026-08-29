@@ -180,8 +180,8 @@ def test_emerging_payload_shape_differs_from_issues_list() -> None:
 
 
 def test_gw_es_03_public_get_without_auth_returns_200(client: TestClient) -> None:
-    assert "/tallinn/emerging-signals" in PUBLIC_ROUTES
-    response = client.get("/tallinn/emerging-signals")
+    assert "/node/emerging-signals" in PUBLIC_ROUTES
+    response = client.get("/node/emerging-signals")
     assert response.status_code == 200
     body = response.json()
     assert "data" in body
@@ -194,20 +194,20 @@ def test_gw_es_03_public_get_without_auth_returns_200(client: TestClient) -> Non
 
 
 def test_gw_es_03_top_n_query_applied(client: TestClient) -> None:
-    response = client.get("/tallinn/emerging-signals", params={"top_n": 3})
+    response = client.get("/node/emerging-signals", params={"top_n": 3})
     assert response.status_code == 200
     assert response.json()["data"]["top_n"] == 3
 
 
 def test_gw_es_03_issues_list_regression_still_public(client: TestClient) -> None:
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     assert "issues" in response.json()["data"]
 
 
 def test_gw_es_03_emerging_http_not_issues_shape(client: TestClient) -> None:
-    emerging = client.get("/tallinn/emerging-signals").json()["data"]
-    issues = client.get("/tallinn/issues").json()["data"]
+    emerging = client.get("/node/emerging-signals").json()["data"]
+    issues = client.get("/node/issues").json()["data"]
     assert "signals" in emerging
     assert "issues" in issues
     assert emerging.keys() != issues.keys()

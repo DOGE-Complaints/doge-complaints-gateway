@@ -1,4 +1,4 @@
-"""REQ-39 Zone N: E2E sandbox canvas → intake → clustering → GET /tallinn/issues."""
+"""REQ-39 Zone N: E2E sandbox canvas → intake → clustering → GET /node/issues."""
 
 from __future__ import annotations
 
@@ -64,7 +64,7 @@ def test_n02_after_clustering_issues_exist(client: TestClient) -> None:
 
 def test_n03_get_tallinn_issues_returns_results(client: TestClient) -> None:
     _intake_and_cluster_all_canvas(client)
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert len(issues) > 0
@@ -72,7 +72,7 @@ def test_n03_get_tallinn_issues_returns_results(client: TestClient) -> None:
 
 def test_n04_status_filter_works_on_real_data(client: TestClient) -> None:
     _intake_and_cluster_all_canvas(client)
-    response = client.get("/tallinn/issues", params={"status": "PUBLISHED"})
+    response = client.get("/node/issues", params={"status": "PUBLISHED"})
     assert response.status_code == 200
     issues = response.json()["data"]["issues"]
     assert issues
@@ -81,7 +81,7 @@ def test_n04_status_filter_works_on_real_data(client: TestClient) -> None:
 
 def test_n05_every_issue_has_required_fields(client: TestClient) -> None:
     _intake_and_cluster_all_canvas(client)
-    response = client.get("/tallinn/issues")
+    response = client.get("/node/issues")
     issues = response.json()["data"]["issues"]
     required_fields = {"id", "status", "type", "labels", "title", "summary", "description"}
     for issue in issues:
@@ -91,7 +91,7 @@ def test_n05_every_issue_has_required_fields(client: TestClient) -> None:
 
 def test_n06_geo_filter_matches_real_data(client: TestClient) -> None:
     _intake_and_cluster_all_canvas(client)
-    response_all = client.get("/tallinn/issues")
+    response_all = client.get("/node/issues")
     issues_all = response_all.json()["data"]["issues"]
     geo_issues = [
         item
@@ -101,7 +101,7 @@ def test_n06_geo_filter_matches_real_data(client: TestClient) -> None:
     if not geo_issues:
         pytest.skip("No geo-district issues in canvas — skip geo filter test")
     district = str(geo_issues[0]["geo"]["district"])
-    response_filtered = client.get("/tallinn/issues", params={"geo_district": district})
+    response_filtered = client.get("/node/issues", params={"geo_district": district})
     assert response_filtered.status_code == 200
     filtered_ids = {item["id"] for item in response_filtered.json()["data"]["issues"]}
     assert geo_issues[0]["id"] in filtered_ids
