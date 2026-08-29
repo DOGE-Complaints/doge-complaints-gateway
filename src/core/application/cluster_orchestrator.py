@@ -87,6 +87,44 @@ class StoryClusterOrchestrator:
     def _civic_ready(self, stories: list[StoryRecord]) -> list[StoryRecord]:
         return [story for story in stories if not is_schema_bound(story)]
 
+    def _dual_civic_enabled(self, story: StoryRecord) -> bool:
+        """Pack-declared opt-in. Absent/false pack flag stays exact-only."""
+        try:
+            return self._pack_engine().dual_civic_lenses_for(story)
+        except SchemaRuntimeError:
+            return False
+
+    def _process_dual_civic_membership(self, story: StoryRecord) -> str | None:
+        """Civic memberships + civic-policy promote. Separate from pack candidate."""
+        profiles, memberships, primary, id_algorithm = self._compute_cluster_inputs(
+            [story],
+            trigger_story_id=story.story_id,
+        )
+        if story.story_id not in memberships:
+            return None
+        self._persist_memberships((story.story_id,), memberships)
+        lens_key = primary.value
+        cluster_id = memberships[story.story_id].get(lens_key)
+        if cluster_id is None:
+            return None
+        return self._create_issue_for_cluster(
+            trigger_story_id=story.story_id,
+            target=story,
+            cluster_id=cluster_id,
+            member_story_ids=(story.story_id,),
+            primary_lens=primary.value,
+            profiles=profiles,
+            id_algorithm=id_algorithm,
+            memberships=memberships,
+        )
+
+    def _process_bound_story(self, story: StoryRecord) -> str | None:
+        pack_issue = self._process_pack_bound_story(story)
+        if not self._dual_civic_enabled(story):
+            return pack_issue
+        civic_issue = self._process_dual_civic_membership(story)
+        return civic_issue or pack_issue
+
     def _process_pack_bound_story(self, story: StoryRecord) -> str | None:
         """Save pack memberships; promote + CLUSTERED only if pack gate passes."""
         try:
@@ -234,7 +272,7 @@ class StoryClusterOrchestrator:
             return None
 
         if is_schema_bound(target):
-            return self._process_pack_bound_story(target)
+            return self._process_bound_story(target)
 
         ready_stories = self._civic_ready(
             self.story_repository.list_stories_ready_for_clustering()
@@ -311,7 +349,7 @@ class StoryClusterOrchestrator:
         civic_stories = self._civic_ready(ready_stories)
         created_issue_ids: list[str] = []
         for story in pack_stories:
-            issue_id = self._process_pack_bound_story(story)
+            issue_id = self._process_bound_story(story)
             if issue_id is not None:
                 created_issue_ids.append(issue_id)
         primary_lens = self.clustering_engine.resolved_primary_lens()

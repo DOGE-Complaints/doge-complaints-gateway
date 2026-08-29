@@ -35,6 +35,18 @@ def _read_json(path: Path) -> Any:
     return json.loads(text)
 
 
+def _parse_dual_civic_lenses(manifest: Mapping[str, Any]) -> bool:
+    """Opt-in civic+exact on one bound story. Absent/false = T-wave exact-only."""
+    if "dual_civic_lenses" not in manifest:
+        return False
+    raw = manifest["dual_civic_lenses"]
+    if raw is False:
+        return False
+    if raw is True:
+        return True
+    raise UnsupportedVersionError("dual_civic_lenses must be a boolean when present")
+
+
 def _parse_readiness(raw: Mapping[str, Any]) -> ReadinessPolicy:
     return ReadinessPolicy(
         min_readiness_score=int(raw["min_readiness_score"]),
@@ -101,6 +113,7 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         exact_lenses=lenses,
         compatible_profiles=profiles,
         pack_dir=pack_dir,
+        dual_civic_lenses=_parse_dual_civic_lenses(manifest),
     )
 
 

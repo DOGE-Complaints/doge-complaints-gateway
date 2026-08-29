@@ -56,6 +56,7 @@ class SchemaContext:
     exact_lenses: tuple[ExactLensBlock, ...]
     compatible_profiles: tuple[str, ...]
     pack_dir: Path
+    dual_civic_lenses: bool = False
 
 
 class SchemaRuntime(Protocol):
