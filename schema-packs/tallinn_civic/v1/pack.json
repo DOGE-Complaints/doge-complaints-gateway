@@ -1,0 +1,169 @@
+{
+  "schema_id": "tallinn_civic",
+  "schema_version": "v1",
+  "payload_schema": "payload.schema.json",
+  "field_policy": {
+    "signals.civic_domain": "required",
+    "signals.failure_pattern": "required",
+    "signals.civic_weight": "optional",
+    "signals.desired_outcome": "optional",
+    "signals.affected_group": "optional",
+    "signals.service_object": "optional",
+    "signals.need": "optional",
+    "signals.ecosystem_signal": "optional",
+    "signals.canonical_type": "optional",
+    "geo.district": "optional"
+  },
+  "exact_lenses": [
+    {
+      "lens_id": "civic_domain_micro",
+      "source_fields": ["signals.civic_domain"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "failure_pattern_micro",
+      "source_fields": ["signals.failure_pattern"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "civic_weight_systemic",
+      "source_fields": ["signals.civic_weight"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "systemic",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "desired_outcome_local",
+      "source_fields": ["signals.desired_outcome"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "local",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "affected_group_local",
+      "source_fields": ["signals.affected_group"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "local",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "geographic_district_micro",
+      "source_fields": ["geo.district"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "service_object_micro",
+      "source_fields": ["signals.service_object"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "deep_need_local",
+      "source_fields": ["signals.need"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "local",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "ecosystem_signal_systemic",
+      "source_fields": ["signals.ecosystem_signal"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "systemic",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    },
+    {
+      "lens_id": "composite_primary_micro",
+      "source_fields": ["signals.civic_domain", "signals.failure_pattern"],
+      "algorithm": "exact",
+      "scope": "node",
+      "scale": "micro",
+      "missing_value_policy": "skip",
+      "min_size": 3,
+      "version": "v1",
+      "readiness_policy": {
+        "min_readiness_score": 35,
+        "min_stories": 3,
+        "require_actionable_canonical_type": false
+      }
+    }
+  ]
+}

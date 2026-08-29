@@ -10,7 +10,7 @@ schema-packs/<schema_id>/<schema_version>/
   payload.schema.json    # JSON Schema for structured_payload
 ```
 
-Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation.v1`
+Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation.v1`, `tallinn_civic.v1`
 
 - Resolve key: `(schema_id, schema_version)` → directory `schema-packs/<schema_id>/<schema_version>/`
 - Packs root: env `SCHEMA_PACKS_ROOT` or default `<gateway-root>/schema-packs/`

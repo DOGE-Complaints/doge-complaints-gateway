@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["signals"],
+  "properties": {
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["civic_domain", "failure_pattern"],
+      "properties": {
+        "civic_domain": { "type": "string", "minLength": 1 },
+        "failure_pattern": { "type": "string", "minLength": 1 },
+        "civic_weight": { "type": "string", "minLength": 1 },
+        "desired_outcome": { "type": "string", "minLength": 1 },
+        "affected_group": { "type": "string", "minLength": 1 },
+        "service_object": { "type": "string", "minLength": 1 },
+        "need": { "type": "string", "minLength": 1 },
+        "ecosystem_signal": { "type": "string", "minLength": 1 },
+        "canonical_type": { "type": "string", "minLength": 1 }
+      }
+    },
+    "geo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "district": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
