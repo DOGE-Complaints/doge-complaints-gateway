@@ -284,7 +284,7 @@ components:
           nullable: true
     IssueProjection:
       type: object
-      description: Public issue shape returned by GET /tallinn/issues and GET /tallinn/issues/{issue_id}. Source — DOGEIssue.to_public_dict().
+      description: Public issue shape returned by GET /node/issues and GET /node/issues/{issue_id}. Source — DOGEIssue.to_public_dict().
       required: [id, status, type, labels, title, summary, description]
       properties:
         id:
@@ -975,7 +975,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /tallinn/network-pulse:
+  /node/network-pulse:
     options:
       tags: [Ops]
       summary: CORS preflight for Network Pulse endpoint
@@ -1038,7 +1038,7 @@ paths:
                         type: integer
                   trace_id:
                     type: string
-  /tallinn/emerging-signals:
+  /node/emerging-signals:
     options:
       tags: [Ops]
       summary: CORS preflight for Emerging Signals endpoint
@@ -1093,12 +1093,12 @@ paths:
                         type: integer
                   trace_id:
                     type: string
-  /tallinn/issues:
+  /node/issues:
     options:
       tags: [Ops]
       summary: CORS preflight for issues list endpoint
       description: |
-        Registered in asgi_app.py as @app.options("/tallinn/issues").
+        Registered in asgi_app.py as @app.options("/node/issues").
         Returns 200. Not intended for direct API use — handled by CORS middleware.
       operationId: optionsTallinnIssues
       x-runtime-state: as-is-active-fastapi-route
@@ -1110,7 +1110,7 @@ paths:
       summary: List clustered issues for Tallinn SPA read model
       description: |
         Runtime state:
-        - implemented in `src/core/api/asgi_app.py` (`GET /tallinn/issues`);
+        - implemented in `src/core/api/asgi_app.py` (`GET /node/issues`);
         - public route; reads `doge_issues` projections via `IssueProjectionReadStore`.
       operationId: listTallinnIssues
       x-runtime-state: as-is-active-fastapi-route
@@ -1231,7 +1231,7 @@ paths:
       summary: Manually create issue (operator)
       description: |
         Runtime state:
-        - implemented in `src/core/api/asgi_app.py` (`POST /tallinn/issues`);
+        - implemented in `src/core/api/asgi_app.py` (`POST /node/issues`);
         - Bearer protected via `require_service_auth`.
       operationId: createTallinnIssue
       x-runtime-state: as-is-active-fastapi-route
@@ -1268,12 +1268,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /tallinn/issues/{issue_id}:
+  /node/issues/{issue_id}:
     options:
       tags: [Ops]
       summary: CORS preflight for single issue endpoint
       description: |
-        Registered in asgi_app.py as @app.options("/tallinn/issues/{issue_id}").
+        Registered in asgi_app.py as @app.options("/node/issues/{issue_id}").
         Returns 200. Not intended for direct API use — handled by CORS middleware.
       operationId: optionsTallinnIssueById
       x-runtime-state: as-is-active-fastapi-route

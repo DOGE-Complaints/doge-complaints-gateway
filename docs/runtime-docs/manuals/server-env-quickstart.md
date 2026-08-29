@@ -55,7 +55,7 @@ python -m pip install -e '.[dev]'
 - `LOG_LEVEL` (default `INFO`)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
 
-**Авторизация legacy public-content writes (GW-DRAFT-04) — для `POST /intake/stories` и `POST /tallinn/issues`:**
+**Авторизация legacy public-content writes (GW-DRAFT-04) — для `POST /intake/stories` и `POST /node/issues`:**
 
 Мутации публичного контента на legacy-маршрутах требуют **только** сервисный токен канала (`SERVICE_API_TOKEN`). Пользовательский слой OAuth-introspection снят (GW-DRAFT-04); маршруты — **trusted service channel** для seed/simulation/операторских скриптов, не для браузерного submit.
 

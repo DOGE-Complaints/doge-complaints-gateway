@@ -73,8 +73,8 @@
 ### Early Signal / Pre-Cluster (parent product REQ)
 
 - `48-early-signal-pre-cluster-data-readiness.md` — **Draft awaiting PA.2**: inventory существующих stores vs Level 1/2 metrics parent Early Signal Dashboard; privacy / Topic≠Issue; **без** invented public API path; sibling spa `15-early-signal-pre-cluster-public-dashboard.md`. Parent: `docs/requirements backlog/DOGEstonia-Early-Signal-Dashboard-Pre-Cluster-Product-Requirements.md`.
-- `49-early-signal-network-pulse-l1-api.md` — **Accepted 2026-08-10**: public `GET /tallinn/network-pulse` path + payload schema (GW-ES-02 T00 / pkg-000059); predecessor REQ-48.
-- `50-early-signal-emerging-l2-api.md` — **Accepted 2026-08-10**: public `GET /tallinn/emerging-signals` path + payload + MVP L2 rule closing REQ-48 open Q2 for MVP (GW-ES-03 T00 / pkg-000060).
+- `49-early-signal-network-pulse-l1-api.md` — **Accepted 2026-08-10**: public `GET /node/network-pulse` path + payload schema (GW-ES-02 T00 / pkg-000059); predecessor REQ-48.
+- `50-early-signal-emerging-l2-api.md` — **Accepted 2026-08-10**: public `GET /node/emerging-signals` path + payload + MVP L2 rule closing REQ-48 open Q2 for MVP (GW-ES-03 T00 / pkg-000060).
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 

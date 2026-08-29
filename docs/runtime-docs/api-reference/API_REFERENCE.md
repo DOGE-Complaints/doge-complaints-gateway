@@ -18,7 +18,7 @@ Current runtime is **ASGI/FastAPI-driven** under `src/core/api/asgi_app.py`.
 This means:
 
 1. Operational behaviors (`health`, `ready`, `protected`, `metrics`) are implemented and routable over HTTP.
-2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), issues (`GET /tallinn/issues`, `GET /tallinn/issues/{issue_id}`, `POST /tallinn/issues`), Network Pulse L1 (`GET /tallinn/network-pulse`, GW-ES-02 / REQ-49), and Emerging L2 (`GET /tallinn/emerging-signals`, GW-ES-03 / REQ-50) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
+2. Story draft handoff (`POST /story-drafts`, `GET /story-drafts/{draft_id}`, `POST /story-drafts/{draft_id}/submit`), user cabinet read (`GET /story-activity`), issues (`GET /node/issues`, `GET /node/issues/{issue_id}`, `POST /node/issues`), Network Pulse L1 (`GET /node/network-pulse`, GW-ES-02 / REQ-49), and Emerging L2 (`GET /node/emerging-signals`, GW-ES-03 / REQ-50) are implemented and routable. Legacy public `POST /intake/stories` removed (GW-DRAFT-06); story creation is internal via submit-bridge only.
 3. Public/protected policy is declared in route definitions and validated by transport smoke tests.
 4. Demo static routes are also active in the same ASGI process:
    - `GET /demo/auth-page`
@@ -544,11 +544,11 @@ Test evidence: `tests/test_gw_cab_01_story_activity_api.py`
 
 ## 7. Issues API (as-is behavior, active HTTP binding)
 
-All three `POST /tallinn/issues` endpoints are registered in `asgi_app.py` and routable in the current runtime.
+All three `POST /node/issues` endpoints are registered in `asgi_app.py` and routable in the current runtime.
 
 ### Issue projection i18n (GW-L10N-01)
 
-Public issue fields `title`, `summary`, and `description` are stored as `{ et, ru, en }` objects. **Locale values may differ** — the gateway preserves per-locale text from the dominant linked story (cluster projection) or from the operator-supplied title on manual `POST /tallinn/issues`; identical copies across all three keys are not required when source narratives differ.
+Public issue fields `title`, `summary`, and `description` are stored as `{ et, ru, en }` objects. **Locale values may differ** — the gateway preserves per-locale text from the dominant linked story (cluster projection) or from the operator-supplied title on manual `POST /node/issues`; identical copies across all three keys are not required when source narratives differ.
 
 **`original_locale`** (GW-L10N-02): optional `string[]` on list/get responses. Unique `narrative_language` values from all linked stories in canonical order `et`, `ru`, `en`. Omitted when no known language. SPA treats locales outside the list as machine-translated.
 
@@ -556,9 +556,9 @@ Source: `extraction_policy.py` (`DeterministicStoryToProjectionPolicy.build_draf
 
 ---
 
-### `GET /tallinn/issues`
+### `GET /node/issues`
 
-- **HTTP binding state**: implemented — `asgi_app.py:322-361` → `handle_tallinn_issues_list` (`handlers.py:281-333`)
+- **HTTP binding state**: implemented — `asgi_app.py:462` → `handle_issues_list` (`handlers.py:385`)
 - **Auth**: public (no token required)
 - **Returns**: `200` with `data.issues` — list of `DOGEIssue.to_public_dict()` shapes
 
@@ -622,9 +622,9 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 
 ---
 
-### `GET /tallinn/issues/{issue_id}`
+### `GET /node/issues/{issue_id}`
 
-- **HTTP binding state**: implemented — `asgi_app.py:364-375` → `handle_tallinn_issue_get` (`handlers.py:336-362`)
+- **HTTP binding state**: implemented — `asgi_app.py:504` → `handle_issue_get` (`handlers.py:433`)
 - **Auth**: public (no token required)
 - **Returns**: `200` with `data.issue` on success, `404` if no issue with that `issue_id` exists
 
@@ -664,9 +664,9 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 
 ---
 
-### `POST /tallinn/issues`
+### `POST /node/issues`
 
-- **HTTP binding state**: implemented — `asgi_app.py:378-391` → `handle_tallinn_issue_create` (`handlers.py:365-396`)
+- **HTTP binding state**: implemented — `asgi_app.py:518` → `handle_issue_create` (`handlers.py:462`)
 - **Auth required**: Bearer token or `X-Service-Token` — same service-auth gate as `/protected/status`
 - **Purpose**: operator-initiated manual issue creation from a set of story IDs
 - **Returns**: `201` on success, `400` on validation error, `401` on auth failure
@@ -721,7 +721,7 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 - `trace_id` is preserved or generated in API envelopes (`ensure_trace_id`).
 - Auth failure metrics are exposed via `ApiMetrics` and can be checked by `alert_contract`.
 
-### `GET /tallinn/network-pulse` (GW-ES-02 / REQ-49)
+### `GET /node/network-pulse` (GW-ES-02 / REQ-49)
 
 - **HTTP binding state**: implemented — `asgi_app.py` → `handle_network_pulse` (`handlers.py`); service `NetworkPulseService` (`application/network_pulse.py`)
 - **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
@@ -736,11 +736,11 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 | `topics` | `{label, axis, count}[]` | **topic/label** frequencies from public `story_labels` — **never Issues** |
 | `recent_stories_7d` | int | UTC 7-day window on `created_at` |
 
-**Normative:** Topic ≠ Issue; no «N Stories until Issue»; no `submitter_*` / narrative / Voices. Do **not** use `/metrics` for Pulse. `GET /tallinn/issues` unchanged (L3).
+**Normative:** Topic ≠ Issue; no «N Stories until Issue»; no `submitter_*` / narrative / Voices. Do **not** use `/metrics` for Pulse. `GET /node/issues` unchanged (L3).
 
 ---
 
-### `GET /tallinn/emerging-signals` (GW-ES-03 / REQ-50)
+### `GET /node/emerging-signals` (GW-ES-03 / REQ-50)
 
 - **HTTP binding state**: implemented — `asgi_app.py` → `handle_emerging_signals` (`handlers.py`); service `EmergingSignalsService` (`application/emerging_signals.py`)
 - **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
@@ -756,7 +756,7 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 | `signals` | `{label, axis, story_count}[]` | Top-N **topic/label** frequencies from public `story_labels`; stories linked to cabinet-**published** Issues excluded |
 | `top_n` | int | Applied top_n after clamp |
 
-**Normative:** Emerging ≠ Issues (`data.signals` vs `data.issues`); Topic ≠ Issue; no «N Stories until Issue»; no PII; no persistent `EmergingSignal` table. Source = labels, **not** `list_projections`. L3 `GET /tallinn/issues` and L1 Pulse unchanged.
+**Normative:** Emerging ≠ Issues (`data.signals` vs `data.issues`); Topic ≠ Issue; no «N Stories until Issue»; no PII; no persistent `EmergingSignal` table. Source = labels, **not** `list_projections`. L3 `GET /node/issues` and L1 Pulse unchanged.
 
 ---
 
@@ -776,16 +776,16 @@ Sources:
 - Service-token gate on protected operations:
   - `GET /protected/status`
   - `GET /metrics`
-  - `POST /tallinn/issues`
+  - `POST /node/issues`
 - Public operations (no auth required):
   - `GET /health`
   - `GET /ready`
   - `POST /story-drafts` (201 Created — GPT stash; no story yet)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
-  - `GET /tallinn/network-pulse` (GW-ES-02 / REQ-49 Network Pulse L1)
-  - `GET /tallinn/emerging-signals` (GW-ES-03 / REQ-50 Emerging L2)
-- `GET /tallinn/issues` (15-parameter filter API)
-  - `GET /tallinn/issues/{issue_id}`
+  - `GET /node/network-pulse` (GW-ES-02 / REQ-49 Network Pulse L1)
+  - `GET /node/emerging-signals` (GW-ES-03 / REQ-50 Emerging L2)
+- `GET /node/issues` (15-parameter filter API)
+  - `GET /node/issues/{issue_id}`
 - Browser Bearer operations (`require_story_draft_read_user` / submit dep):
   - `GET /story-drafts/{draft_id}`
   - `GET /story-activity` (GW-CAB-01 — user cabinet list + metrics)
@@ -795,7 +795,7 @@ Sources:
 
 - Formal key lifecycle policy (rotation/revocation/audit procedures).
 - Optional multi-key/keyset strategy for higher-assurance environments.
-- `PATCH /tallinn/issues/{issue_id}` — status transitions (DRAFT → PUBLISHED) by operator.
+- `PATCH /node/issues/{issue_id}` — status transitions (DRAFT → PUBLISHED) by operator.
 
 ## 10. Compatibility Guidance
 
@@ -804,6 +804,6 @@ For integrators:
 1. Treat `openapi.yaml` as the normative reference format.
 2. All endpoints listed in sections 5, 6, and 7 are routable in the current runtime.
 3. `POST /story-drafts/{draft_id}/submit` returns `202 Accepted` — the story is queued for clustering; do not retry on 202.
-4. `GET /tallinn/issues` multi-value filters use repeated query params, not comma-separated strings.
+4. `GET /node/issues` multi-value filters use repeated query params, not comma-separated strings.
 5. Demo static routes are active and routable in current runtime (`/demo/auth-page*`).
-6. `POST /tallinn/issues` is for operator use only and requires `SERVICE_API_TOKEN`.
+6. `POST /node/issues` is for operator use only and requires `SERVICE_API_TOKEN`.

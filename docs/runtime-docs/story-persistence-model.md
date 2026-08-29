@@ -124,7 +124,7 @@ Source: `domain/contracts.py:20-25`, `services.py:281-338`
 Geo-поля используются в:
 - `CLUSTER_GEO_FILTER` — суффикс cluster_key (`geo:{level}:{token}`)
 - `CLUSTER_GEO_SCOPE` — gate при intake (reject если вне scope)
-- `GET /tallinn/issues?geo_district=...` — фильтрация в read API через `payload_json`
+- `GET /node/issues?geo_district=...` — фильтрация в read API через `payload_json`
 
 Source: `domain/contracts.py:27-42`, `db_supabase.py:96-122`
 

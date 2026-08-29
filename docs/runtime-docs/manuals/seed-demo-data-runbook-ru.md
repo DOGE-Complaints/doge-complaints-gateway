@@ -2,7 +2,7 @@
 
 > Этот мануал — **сквозной процесс** «загрузить истории → получить карточки на доске». Детали самого загрузчика — в [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT по загрузке); здесь — вся цепочка целиком. Метод: `.cursor/rules/analysis.mdc` — шаги по фактическому коду.
 >
-> **Статус (2026-07-11, SEED-03):** цепочка stash→submit→cron→проекция→доска **проверена end-to-end локально** — расширенный датасет `v0_2` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md), Done) даёт **2 карточки** на `GET /tallinn/issues` (см. [«Локальный e2e»](#локальный-e2e--быстрая-сквозная-проверка-без-hosted) и [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)). Hosted read-path разблокирован после [GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) **Done** 2026-07-10 — hosted-прогон по §Шаг1–5 ниже.
+> **Статус (2026-07-11, SEED-03):** цепочка stash→submit→cron→проекция→доска **проверена end-to-end локально** — расширенный датасет `v0_2` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md), Done) даёт **2 карточки** на `GET /node/issues` (см. [«Локальный e2e»](#локальный-e2e--быстрая-сквозная-проверка-без-hosted) и [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)). Hosted read-path разблокирован после [GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) **Done** 2026-07-10 — hosted-прогон по §Шаг1–5 ниже.
 
 ## Главное за 30 секунд
 
@@ -10,7 +10,7 @@
 
 ```
 1) Вы грузите истории (stash+submit)   2) Система кластеризует (cron)        3) Доска
-POST /story-drafts → submit (202)  →   объединяет ≥8 похожих в issue    →   GET /tallinn/issues
+POST /story-drafts → submit (202)  →   объединяет ≥8 похожих в issue    →   GET /node/issues
 ```
 
 **Если просто загрузить истории — доска останется пустой**, пока кластеризация не соберёт группу из **≥8 похожих** историй. Это by design.
@@ -94,9 +94,9 @@ CLUSTER_CRON_INTERVAL_S=20        # на время seed; вернуть к 60 �
 ## Шаг 5 — Проверить, что доска наполнилась
 
 ```bash
-curl -sS "$GATEWAY_URL/tallinn/issues" | jq '.data.issues | length'
+curl -sS "$GATEWAY_URL/node/issues" | jq '.data.issues | length'
 # > 0  → карточки появились
-curl -sS "$GATEWAY_URL/tallinn/issues" | jq '.data.issues[0] | {id,status,type,labels}'
+curl -sS "$GATEWAY_URL/node/issues" | jq '.data.issues[0] | {id,status,type,labels}'
 ```
 И открыть SPA-доску (`/board`) в режиме GFL-DRIVEN — должны быть карточки.
 
@@ -117,7 +117,7 @@ SUPABASE_URL= SUPABASE_SERVICE_ROLE= \
 # 4 passed → кластеризация v0_2 формирует ≥2 issue-проекции при min_size=8
 ```
 
-**Фактический результат e2e (2026-06-22, [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)):** intake 18 (202) → `process_all_pending`=2 → `GET /tallinn/issues` HTTP 200, **2 карточки** PUBLISHED:
+**Фактический результат e2e (2026-06-22, [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)):** intake 18 (202) → `process_all_pending`=2 → `GET /node/issues` HTTP 200, **2 карточки** PUBLISHED:
 - `waste`/Kalamaja — «Переполненные мусорные баки во дворе Каламая»
 - `roads`/Lasnamäe — «Выбоины на жилой улице в Ласнамяэ»
 
@@ -130,10 +130,10 @@ SUPABASE_URL= SUPABASE_SERVICE_ROLE= \
 | Симптом | Причина | Что делать |
 |---|---|---|
 | `stories` пустая после загрузки | сервер не в `DB_BACKEND=supabase` (писалось не в hosted) или submit не прошёл (bad creds / не verified / missing env) | проверить конфиг сервера и вывод runner (201+202); см. [simulation-runner-manual §FAQ](../testing/simulation-runner-manual.md) |
-| `stories` есть, `/tallinn/issues` пуст | кластеры <8 ИЛИ cron выключен ИЛИ не дождались тика | проверить `CLUSTER_CRON_ENABLED=true`; подождать интервал; расширить датасет (SEED-02) |
+| `stories` есть, `/node/issues` пуст | кластеры <8 ИЛИ cron выключен ИЛИ не дождались тика | проверить `CLUSTER_CRON_ENABLED=true`; подождать интервал; расширить датасет (SEED-02) |
 | `/ready` → `checks.columns: false` | columnar-миграции RC-04 не применены на hosted | применить `20260619_1200/1210/1220` к Supabase |
-| `GET /tallinn/issues` = `INTERNAL_ERROR`, **но `/ready` зелёный** | **deploy drift** — на сервере крутится старая сборка кода (до RC-04/05/06), падает на новом формате строк. Данные при этом целы (тот же набор отдаётся локальным актуальным кодом). | передеплоить актуальный код на таргет (deploy version parity); разбор — [STORY-GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) |
-| `GET /tallinn/issues` ошибка **и** `/ready` `columns:false` | отсутствуют columnar-колонки | применить миграции, перепроверить `/ready` |
+| `GET /node/issues` = `INTERNAL_ERROR`, **но `/ready` зелёный** | **deploy drift** — на сервере крутится старая сборка кода (до RC-04/05/06), падает на новом формате строк. Данные при этом целы (тот же набор отдаётся локальным актуальным кодом). | передеплоить актуальный код на таргет (deploy version parity); разбор — [STORY-GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) |
+| `GET /node/issues` ошибка **и** `/ready` `columns:false` | отсутствуют columnar-колонки | применить миграции, перепроверить `/ready` |
 
 ---
 

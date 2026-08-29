@@ -23,10 +23,10 @@ Status: Accepted (operator P3 go-ahead 2026-08-10)
 
 | Method | Path | Auth |
 |--------|------|------|
-| `GET` | `/tallinn/network-pulse` | **Public** — no `require_*_service_auth` (same class as `GET /tallinn/issues`) |
+| `GET` | `/node/network-pulse` | **Public** — no `require_*_service_auth` (same class as `GET /node/issues`) |
 
 - Must be listed in `PUBLIC_ROUTES` (`asgi_app.py`).
-- CORS: register `@app.options("/tallinn/network-pulse")` returning 200 (parity with Issues list).
+- CORS: register `@app.options("/node/network-pulse")` returning 200 (parity with Issues list).
 - **Do not** reuse `/metrics` (service-auth; no Story counts).
 
 ---
@@ -57,7 +57,7 @@ Small sample `areas` ≠ city coverage. Document in API_REFERENCE.
 
 ## 4) Acceptance criteria
 
-1. AC-49-01: Path `GET /tallinn/network-pulse` is the sole SSOT path for Pulse L1 in this REQ.
+1. AC-49-01: Path `GET /node/network-pulse` is the sole SSOT path for Pulse L1 in this REQ.
 2. AC-49-02: Payload keys match §3 table; Topic≠Issue naming.
 3. AC-49-03: Public route (no service-auth); Issues L3 path unchanged.
 4. AC-49-04: Implementation story = GW-ES-02 (pkg-000059); no Emerging L2 here (→ ES-03).

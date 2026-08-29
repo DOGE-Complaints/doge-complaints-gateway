@@ -24,11 +24,11 @@ Status: Accepted (operator P3 go-ahead 2026-08-10)
 
 | Method | Path | Auth |
 |--------|------|------|
-| `GET` | `/tallinn/emerging-signals` | **Public** — no `require_*_service_auth` (same class as `GET /tallinn/issues` / Network Pulse) |
+| `GET` | `/node/emerging-signals` | **Public** — no `require_*_service_auth` (same class as `GET /node/issues` / Network Pulse) |
 
 - Must be listed in `PUBLIC_ROUTES` (`asgi_app.py`).
-- CORS: register `@app.options("/tallinn/emerging-signals")` returning 200.
-- **Do not** reuse `/tallinn/issues` (L3 Issues projections) or `/tallinn/network-pulse` (L1 Pulse).
+- CORS: register `@app.options("/node/emerging-signals")` returning 200.
+- **Do not** reuse `/node/issues` (L3 Issues projections) or `/node/network-pulse` (L1 Pulse).
 
 ### Query parameters
 
@@ -75,7 +75,7 @@ Emerging is **derived / ephemeral** (parent §6.2) — not a persistent `Emergin
 
 ## 5) Acceptance criteria
 
-1. AC-50-01: Path `GET /tallinn/emerging-signals` is the sole SSOT path for Emerging L2 in this REQ.
+1. AC-50-01: Path `GET /node/emerging-signals` is the sole SSOT path for Emerging L2 in this REQ.
 2. AC-50-02: Payload keys match §3; Topic/label language; `top_n` present.
 3. AC-50-03: MVP rule §4 is normative for GW-ES-03 implementation.
 4. AC-50-04: Public route (no service-auth); Issues L3 and Pulse L1 paths unchanged.

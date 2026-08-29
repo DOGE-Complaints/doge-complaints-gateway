@@ -102,7 +102,7 @@ Gateway does **not** validate Supabase JWT locally on either path; trust boundar
 
 ### 4.1.1) Legacy public-content writes — trusted service channel (GW-DRAFT-04)
 
-**`POST /story-drafts` and `POST /tallinn/issues`:**
+**`POST /story-drafts` and `POST /node/issues`:**
 
 - Auth: `require_public_content_service_auth` — valid `SERVICE_API_TOKEN` only (`asgi_app.py`).
 - **No user-token layer** — OAuth introspection removed (GW-DRAFT-04); payload `submitter` fields persist as provided (no authoritative override when `user_introspection=None`).
