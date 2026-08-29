@@ -32,9 +32,9 @@ from core.api.handlers import (
     handle_story_draft_get,
     handle_story_draft_submit,
     handle_story_activity,
-    handle_tallinn_issue_create,
-    handle_tallinn_issue_get,
-    handle_tallinn_issues_list,
+    handle_issue_create,
+    handle_issue_get,
+    handle_issues_list,
 )
 from core.api.security import (
     UnauthorizedError,
@@ -62,9 +62,9 @@ PUBLIC_ROUTES: tuple[str, ...] = (
     "/demo/auth-page",
     "/story-drafts",
     "/telemetry/label-misses",
-    "/tallinn/issues",
-    "/tallinn/network-pulse",
-    "/tallinn/emerging-signals",
+    "/node/issues",
+    "/node/network-pulse",
+    "/node/emerging-signals",
 )
 PROTECTED_ROUTES: tuple[str, ...] = ("/protected/status", "/metrics")
 _DEMO_DIR = Path(__file__).resolve().parents[3] / "demo" / "auth-page"
@@ -418,23 +418,23 @@ async def demo_auth_styles() -> FileResponse:
     return FileResponse(_DEMO_DIR / "styles.css", media_type="text/css")
 
 
-@app.options("/tallinn/issues")
-async def tallinn_issues_options() -> Response:
+@app.options("/node/issues")
+async def issues_options() -> Response:
     return Response(status_code=200)
 
 
-@app.options("/tallinn/issues/{issue_id}")
-async def tallinn_issue_options() -> Response:
+@app.options("/node/issues/{issue_id}")
+async def issue_options() -> Response:
     return Response(status_code=200)
 
 
-@app.options("/tallinn/network-pulse")
-async def tallinn_network_pulse_options() -> Response:
+@app.options("/node/network-pulse")
+async def network_pulse_options() -> Response:
     return Response(status_code=200)
 
 
-@app.get("/tallinn/network-pulse")
-async def tallinn_network_pulse(
+@app.get("/node/network-pulse")
+async def network_pulse(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
@@ -442,13 +442,13 @@ async def tallinn_network_pulse(
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
 
 
-@app.options("/tallinn/emerging-signals")
-async def tallinn_emerging_signals_options() -> Response:
+@app.options("/node/emerging-signals")
+async def emerging_signals_options() -> Response:
     return Response(status_code=200)
 
 
-@app.get("/tallinn/emerging-signals")
-async def tallinn_emerging_signals(
+@app.get("/node/emerging-signals")
+async def emerging_signals(
     request: Request,
     top_n: int = Query(default=10, ge=1, le=50),
     deps: ApiDependencies = Depends(get_api_dependencies),
@@ -459,8 +459,8 @@ async def tallinn_emerging_signals(
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
 
 
-@app.get("/tallinn/issues")
-async def tallinn_issues_list(
+@app.get("/node/issues")
+async def issues_list(
     request: Request,
     status: list[str] | None = Query(default=None),
     type: str | None = Query(default=None),
@@ -479,7 +479,7 @@ async def tallinn_issues_list(
     geo_postal_code: list[str] | None = Query(default=None),
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
-    payload = handle_tallinn_issues_list(
+    payload = handle_issues_list(
         deps,
         status=status,
         issue_type=type,
@@ -501,13 +501,13 @@ async def tallinn_issues_list(
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
 
 
-@app.get("/tallinn/issues/{issue_id}")
-async def tallinn_issue_get(
+@app.get("/node/issues/{issue_id}")
+async def issue_get(
     issue_id: str,
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
-    payload, status_code = handle_tallinn_issue_get(
+    payload, status_code = handle_issue_get(
         deps,
         issue_id=issue_id,
         trace_id=_read_trace_id(request),
@@ -515,15 +515,15 @@ async def tallinn_issue_get(
     return JSONResponse(content=payload, status_code=status_code)
 
 
-@app.post("/tallinn/issues", dependencies=[Depends(require_public_content_service_auth)])
-async def tallinn_issue_create(
+@app.post("/node/issues", dependencies=[Depends(require_public_content_service_auth)])
+async def issue_create(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
     body = await request.json()
     if not isinstance(body, dict):
         body = {}
-    payload, status_code = handle_tallinn_issue_create(
+    payload, status_code = handle_issue_create(
         deps,
         body=body,
         trace_id=_read_trace_id(request),

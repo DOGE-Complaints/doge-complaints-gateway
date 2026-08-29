@@ -382,7 +382,7 @@ def handle_story_intake(
         clear_log_context()
 
 
-def handle_tallinn_issues_list(
+def handle_issues_list(
     dependencies: ApiDependencies,
     *,
     status: list[str] | None = None,
@@ -430,7 +430,7 @@ def handle_tallinn_issues_list(
         return envelope.as_dict()
 
 
-def handle_tallinn_issue_get(
+def handle_issue_get(
     dependencies: ApiDependencies,
     *,
     issue_id: str,
@@ -459,7 +459,7 @@ def handle_tallinn_issue_get(
         return envelope.as_dict(), 500
 
 
-def handle_tallinn_issue_create(
+def handle_issue_create(
     dependencies: ApiDependencies,
     *,
     body: dict[str, Any],
