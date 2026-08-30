@@ -71,6 +71,31 @@ Civic knobs (`min_size`, `readiness_threshold`, `active_lenses`, `primary_lens`,
 
 Нет публичного `GET /schema-active`. Клиент не выбирает pack: intake `schema_binding` должен совпасть с `NODE_SCHEMA_*`.
 
+### `geo_detail`, `geo_intake` и два пути кластеризации
+
+Envelope sidecar `geo_detail` (рядом с `narrative` / `schema_binding`) несёт адресную глубину: street / house / house_range / houses плюс admin leaves. Это не второй binding и не HTTP geo-filter.
+
+Блок pack `geo_intake` (SCHEMA-005) задаёт три режима:
+
+| `mode` | Поведение на intake |
+|--------|---------------------|
+| `optional` | omit / пустой sidecar → 202, как раньше |
+| `require_location_or_detail` | нужен `location_query` **или** непустой `geo_detail` |
+| `require_detail` | нужен непустой `geo_detail` |
+
+`merge=true` — клиентский `geo_detail` перекрывает miss провайдера / накладывает admin leaves. Address-only + miss провайдера **не** изобретает координаты.
+
+`mirror_to_payload=true` пишет `structured_payload.geo.*` (district / settlement / region / country / street / house / house_range / houses) **до** pack validate. `tallinn_civic` зеркалит; `legal_process` / `mobility_observation` — нет.
+
+Два независимых пути после persist:
+
+| Путь | Что читает | Что **не** читает |
+|------|------------|-------------------|
+| Civic (`ClusteringEngine` + `geo_filter`) | только `admin_*` через `geo_filter_bucket` | street / house / houses / `structured_payload.geo.*` |
+| Pack exact (`SchemaPackClusterEngine`) | dotted path в `structured_payload` (`geo.district`, опционально `geo.street`, …) | civic snapshot street как ключ; `ClusterLens` не расширяют |
+
+Civic unlabeled / без admin остаётся `geo:unknown` / `geo:agnostic`. Pack missing path при `missing_value_policy=skip` не даёт membership. Enum `ClusterLens` = 10 членов. Публичного HTTP geo-filter нет.
+
 ### Как сменить пороги / линзы / geo без `.env`
 
 1. Править **активный** каталог: `schema-packs/<NODE_SCHEMA_ID>/<NODE_SCHEMA_VERSION>/pack.json` → блок `node_clustering.civic` (civic) или элемент `exact_lenses[]` (pack exact, включая его `readiness_policy` / `min_size`).

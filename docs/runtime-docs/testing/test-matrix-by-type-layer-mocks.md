@@ -40,6 +40,7 @@
 | `test_signal_vocabulary.py` | unit | cluster vocabulary | CIVIC_DOMAIN, FAILURE_PATTERN, CIVIC_SIGNAL completeness |
 | `test_clustering_engine.py` | unit | cluster engine | SHA-256 детерминизм, readiness formula, AC-02/03/05/06 |
 | `test_gw_ssr_18_cluster_active_schema.py` | unit | cluster orchestrator | pack iff persist == `NODE_SCHEMA_*`; mismatch skip; unbound civic |
+| `test_gw_ssr_25_*.py` | unit | cluster + pack exact | civic snapshot depth ignores street; pack exact membership on `geo.*` |
 | `test_doge_issue_projection.py` | unit/contract | issue projection | Projection happy-path, locale fallback, unknown label rejection |
 | `test_translation_locale_differentiation.py` | unit | projection locale | Locale field preservation (title/description) |
 | `test_unit_branch_closure_by_layer.py` | unit | API + application | trace_id generation, empty cluster_id/story_ids rejection |

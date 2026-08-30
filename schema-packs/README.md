@@ -99,4 +99,4 @@ Root object next to `narrative` / `schema_binding` (same class as `gpt_signals` 
 | `merge` | boolean | `true` = client `geo_detail` wins over provider miss / overlays admin leaves. Address-only + provider miss does **not** invent coordinates (→24). |
 | `mirror_to_payload` | boolean | When `true`, write `structured_payload.geo.*` (district / settlement / region / country / street / house / house_range / houses) **before** pack validate |
 
-Official three packs ship `mode=optional` so omit stays 202. `tallinn_civic` sets `mirror_to_payload=true` (has `geo.*` lens paths). `legal_process` / `mobility_observation` set `mirror_to_payload=false`. Persistence of street/houses columns is SSR-24.
+Official three packs ship `mode=optional` so omit stays 202. `tallinn_civic` sets `mirror_to_payload=true` (has `geo.*` lens paths). `legal_process` / `mobility_observation` set `mirror_to_payload=false`. Persistence of street/houses columns is SSR-24. Clustering: civic still buckets `admin_*` only (`geo_filter`); pack exact joins mirrored `structured_payload.geo.*` — see [manual](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) §geo_detail.
