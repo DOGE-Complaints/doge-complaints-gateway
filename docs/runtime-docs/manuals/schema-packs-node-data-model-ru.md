@@ -1,82 +1,95 @@
-# Schema packs: модель данных ноды (операторский мануал)
+# Schema packs: как устроена модель данных ноды
 
-**Дата:** 2026-08-29T09:20:52Z  
-**Метод:** [`.cursor/rules/analysis.mdc`](../../../../.cursor/rules/analysis.mdc) — claims только из `src/core` / tests / SQL.  
-**Пакет:** [`backlog-stories/semantic-schema-runtime/INDEX.md`](../../tasks/backlog-stories/semantic-schema-runtime/INDEX.md) (T-wave SSR-01…05 Done).  
-**Loader keys SSOT:** [`schema-packs/README.md`](../../../schema-packs/README.md) (не универсальный YAML-диалект).  
-**Wire:** [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md) §`schema_binding`.
+**Дата:** 2026-08-30T12:50:26Z (склад vs рабочая env — SSR-18)  
+Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke.
 
-Вопрос: **как после T-wave настраивать модель ноды, что менять в БД, и чего ещё нет.**
+Этот текст для человека, который поднимает ноду: что лежит на диске (склад), какая пара **рабочая** (`NODE_SCHEMA_*`), куда ходит публичный API.
 
 ---
 
-## Current state (implemented now)
+## Коротко
 
-### Два мира на одном intake
+Модель ноды — это **файлы pack**, не новые колонки на каждое поле и не город в URL.
 
-Один HTTP-контракт: envelope `schema_version` = `m2.story_intake_envelope.v2` ([`contracts.py`](../../../src/core/intake/contracts.py) `INTAKE_SCHEMA_VERSION`). Кластеризация **не** синхронна на submit — cron зовёт `StoryClusterOrchestrator.process_all_pending` ([`cluster_cron.py:64`](../../../src/core/scheduler/cluster_cron.py)).
+`schema-packs/` на диске — **склад** (библиотека каталогов). Рабочая модель ноды — пара из env: **`NODE_SCHEMA_ID`** + **`NODE_SCHEMA_VERSION`** (оба required в `AppConfig`, fail-fast при старте). Клиент не выбирает произвольный pack телом intake.
 
-| Если в теле | Что происходит |
-|-------------|----------------|
-| Нет ключа `schema_binding` или `{}` | Civic: ярлыки + `ClusterLens` (10 членов, [`types.py:10–22`](../../../src/core/cluster/types.py)). Binding-поля `StoryRecord` остаются `None`. |
-| Объект `schema_binding` | Pack: `LocalSchemaRuntime.validate` **до** `save_story` ([`services.py`](../../../src/core/application/services.py)). Потом pack exact-lens. Civic engine эту story **не** берёт (`is_schema_bound` = оба `schema_id` и `bound_schema_version` truthy, [`pack_engine.py:16–18`](../../../src/core/schema/pack_engine.py)). |
+Новый intake: `schema_binding.schema_id` + `schema_binding.schema_version` должны **ровно** совпасть с `NODE_SCHEMA_*`. Нет ключа, `{}`, `null` или чужая пара → **4xx**, story не пишется. Кластеризация pack-веткой только если persist binding == той же env-паре; чужой bound (legacy) — skip (лог), не membership чужим `pack.json`. Unbound legacy READY_FOR_PROFILE — civic engine as-is (десять `ClusterLens`).
 
-Ветка orchestrator: schema-bound → `_process_pack_bound_story`; иначе civic pool `_civic_ready` ([`cluster_orchestrator.py:236–241`](../../../src/core/application/cluster_orchestrator.py)).
+Публичное чтение одно на всех: `GET /node/issues`, не `/tallinn/issues`. Geo вроде `settlement:tallinn` — это данные локации, не адрес API.
 
-Линза = правило «в какую кучу». Membership ≠ Issue. Civic promote: типы `complaint`/`system_bug` + default `PromotionGatePolicy` ([`gates.py:7–14`](../../../src/core/promotion/gates.py)). Pack promote: `readiness_policy` из файла пака, mapper [`pack_policy.py`](../../../src/core/schema/pack_policy.py); civic default/factory **не** меняются.
+---
 
-Pack engine читает **только** `structured_payload` по dotted path. `narrative_*`, `canonical_labels`, geo civic **не** source_fields ([`pack_engine.py:103–105`](../../../src/core/schema/pack_engine.py)).
+## Три пака на диске — нормально
 
-### Код и файлы пака
+Сейчас:
 
-```text
-src/core/schema/          # LocalSchemaRuntime, resolver, validator, pack_engine, pack_policy
-schema-packs/
-  <schema_id>/<schema_version>/
-    pack.json
-    payload.schema.json
-```
+| Каталог | Зачем |
+|---------|--------|
+| `legal_process/v1` | пример T-wave (офис / стадия процесса) |
+| `mobility_observation/v1` | второй example pack |
+| `tallinn_civic/v1` | civic-оси как поля payload (не копия enum `ClusterLens`) |
 
-Сейчас на диске: `legal_process/v1`, `mobility_observation/v1`, `tallinn_civic/v1` (civic-оси как payload map; `ClusterLens` не копируется).
+Корень: переменная **`SCHEMA_PACKS_ROOT`**, иначе каталог `schema-packs/` рядом с корнем gateway ([`resolver.py`](../../../src/core/schema/resolver.py)). В `AppConfig` этого поля нет — только `os.environ`. Если процесс стартовал не из корня gateway, без env resolver не найдёт паки.
 
-Корень: env **`SCHEMA_PACKS_ROOT`** или default `<gateway-root>/schema-packs/` ([`resolver.py:19–30`](../../../src/core/schema/resolver.py)). Поля в [`AppConfig`](../../../src/core/config/schema.py) **нет** — читается `os.environ` в resolver.
+Каждый pack — папка `<schema_id>/<schema_version>/` с `pack.json` и JSON Schema для `structured_payload`. Код рантайма: `src/core/schema/`.
 
-`build_index` / `project` бросают `NotImplementedError` ([`runtime.py:62–72`](../../../src/core/schema/runtime.py)). Это не IDX и не processor.
+`build_index` и `project` в [`runtime.py`](../../../src/core/schema/runtime.py) бросают `NotImplementedError`. Это не «сломалось»: индекс и процессоры ещё не в этом контуре.
 
-### Wire `schema_binding`
+---
 
-Разрешённые inner keys: `schema_id`, `schema_version` (semantic pack, **не** envelope), optional `profile_id` / `profile_version`, `structured_payload`. `payload_hash` на проводе запрещён (сервер считает). Inner `schema_version` ≠ `m2.story_intake_envelope.v2`.
+## Склад vs рабочая env
 
-Пример (pack `legal_process` / `v1` — поля из [`payload.schema.json`](../../../schema-packs/legal_process/v1/payload.schema.json)):
+Старт приложения ([`asgi_app.py`](../../../src/core/api/asgi_app.py) `_lifespan`) резолвит **рабочий** pack (`NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION`) и пишет пару в лог рядом с `startup.config`. Каталоги в `schema-packs/`, которых нет в env, остаются на складе — для отладки, не как «на выбор клиента».
 
-```json
-{
-  "schema_version": "m2.story_intake_envelope.v2",
-  "submitter": {
-    "external_user_id": "telegram:123456789",
-    "identity_issuer": "telegram"
-  },
-  "narrative": {
-    "original_text": "Filed at office 12.",
-    "language": "en",
-    "title": { "en": "Office filing" },
-    "description": { "en": "Process at office 12." }
-  },
-  "schema_binding": {
-    "schema_id": "legal_process",
-    "schema_version": "v1",
-    "profile_id": "legal_access",
-    "structured_payload": {
-      "institution": { "office_id": "office-12", "name": "Station" },
-      "process": { "stage": "filed" }
-    }
-  }
-}
-```
+Цепочка на **каждой** story:
 
-Нарратив (title/description) по-прежнему обязателен. Pack-поля живут в payload, не вместо civic envelope.
+1. Intake envelope `schema_version` = `m2.story_intake_envelope.v2`. Кластеризация не в том же HTTP-ответе: cron зовёт `process_all_pending` ([`cluster_cron.py`](../../../src/core/scheduler/cluster_cron.py)).
+2. Нет `schema_binding`, `{}` или `null` → **4xx** (`IntakeValidationError`). Новый civic-вход закрыт.
+3. Есть объект `schema_binding` — пара должна совпасть с `NODE_SCHEMA_*`. Совпадение → `resolve`/`validate` **активного** pack ([`services.py`](../../../src/core/application/services.py)). Чужой id/version → **4xx**, не silent coerce на активный.
+4. Cron: persist pair == env → pack exact-lenses **этого** (активного) pack; dual только если флаг **активного** `pack.json` (`dual_civic_lenses`). Persist pair ≠ env (legacy rows) → skip + лог `cluster.skipped_schema_mismatch`, не membership. Unbound READY_FOR_PROFILE → civic as-is.
 
-Пример (pack `tallinn_civic` / `v1` — civic-оси в `structured_payload`, не labels; gateway fixture [`tests/fixtures/gw_ssr_08_tallinn_civic_envelope.json`](../../../tests/fixtures/gw_ssr_08_tallinn_civic_envelope.json); не GPT UI):
+Pack-движок смотрит `structured_payload` по dotted path. Заголовок, ярлыки и civic geo в exact-lens не подставляются.
+
+Чтобы нода кластеризовала pack-веткой, клиент шлёт binding **ровно** на `NODE_SCHEMA_*` этой ноды (например `"schema_id": "tallinn_civic"`, `"schema_version": "v1"`). Другой pack из склада сервер не примет на intake и не кластеризует.
+
+### Dual (ярлыки и payload на одной story)
+
+В `pack.json` можно поставить `"dual_civic_lenses": true`. Тогда bound story получает и pack exact-lens, и civic memberships с labels. Нет ключа или `false` — только exact, как у `legal_process` и `tallinn_civic` сейчас. Enum `ClusterLens` при этом не расширяют.
+
+### Карточка Issue
+
+На `GET /node/issues` сырой payload **не** вываливается. Если в pack есть `card_fields` (список dotted path), на карточке появляется sidecar `schema_card` — именованные листья, не весь JSON ([`dto.py`](../../../src/core/projection/dto.py), [`card_fields.py`](../../../src/core/projection/card_fields.py)). Пути `forbidden` / `node_private` не попадают даже если их перечислили. Нет `card_fields` — обычная civic-форма карточки.
+
+---
+
+## Публичный API ноды
+
+Канон (роуты в [`asgi_app.py`](../../../src/core/api/asgi_app.py)):
+
+- `GET /node/issues` — список
+- `GET /node/issues/{issue_id}` — одна карточка
+- `POST /node/issues` — запись public-content (нужен service token)
+- `GET /node/network-pulse` — Pulse L1, это **не** список issues
+- `GET /node/emerging-signals` — Emerging L2, ключ `signals`, не issues
+
+Старые `/tallinn/…` сняты: запрос на них даёт 404, без редиректа.
+
+Liveness: `GET /health`. Готовность БД: `GET /ready` (`ready` или `degraded`).
+
+Как прогнать это против живого `make serve` — раздел smoke ниже и [test-matrix](../testing/test-matrix-by-type-layer-mocks.md). Без uvicorn те же пути закрывают `tests/test_gw_ssr_15_scenarios.py` и `tests/test_req24_issues_read_api.py`.
+
+---
+
+## Как добавить свою модель
+
+1. Каталог `schema-packs/<id>/<version>/`.
+2. `pack.json` по таблице loader keys (README паков): `field_policy`, хотя бы одна exact-lens, `readiness_policy` с тремя knobs. Числа порогов — **в файле пака**, не копировать civic default из Python.
+3. `payload.schema.json` — схема `structured_payload`.
+4. Чтобы **эта** нода принимала intake на новый pack, выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на ту же пару и прислать `schema_binding` = env. Второй cron не нужен.
+
+Не делать: новый член `ClusterLens`; колонки «под поле»; HTTP filter path.
+
+Пример civic-as-pack (fixture [`gw_ssr_08_tallinn_civic_envelope.json`](../../../tests/fixtures/gw_ssr_08_tallinn_civic_envelope.json)):
 
 ```json
 {
@@ -113,79 +126,35 @@ schema-packs/
 }
 ```
 
-### Как добавить ноду (данные, не колонки)
-
-1. Каталог `schema-packs/<schema_id>/<schema_version>/`.
-2. `pack.json` — ключи loader ([`schema-packs/README.md`](../../../schema-packs/README.md)): `field_policy`, ≥1 `exact_lenses`, `readiness_policy` с **тремя** knobs.
-3. `payload.schema.json` — JSON Schema для `structured_payload`.
-4. Числа порогов — **в файле пака**, не копировать civic `70`/`2` из `gates.py`.
-5. Intake с `schema_binding`. Cron тот же — второго cron нет.
-
-Не делать: новый член `ClusterLens`; domain-колонки `stories`; новый HTTP filter path.
+Нарратив (title/description) обязателен и для pack: payload его не заменяет. Для `legal_process` в binding другие поля — см. `payload.schema.json` того пака.
 
 ---
 
-## БД: ALTER `stories`, не пересоздавать контур
+## База
 
-Нужны **шесть nullable** колонок на существующей `public.stories`. Civic строки остаются `NULL`. Таблицы `cluster_memberships`, `doge_issues`, `issue_candidates` **не** меняли DDL под pack: pack пишет `cluster_memberships.lens` строкой (`police_station`), не enum.
+Pack не создаёт новые таблицы. На `stories` нужны шесть nullable колонок binding (`schema_id`, `bound_schema_version`, профили, `structured_payload`, `payload_hash`) — они уже в миграции [`20260828_1400_gw_ssr_02_stories_schema_binding.sql`](../../../supabase/migrations/20260828_1400_gw_ssr_02_stories_schema_binding.sql). Civic-строки живут с `NULL`.
 
-| Колонка | Смысл |
-|---------|--------|
-| `schema_id` | id пака |
-| `bound_schema_version` | версия пака (**не** envelope `schema_version`) |
-| `profile_id` / `profile_version` | optional |
-| `structured_payload` | JSONB |
-| `payload_hash` | SHA-256 канонического JSON, считает сервер |
-
-Где смотреть:
-
-- Hosted: [`supabase/migrations/20260828_1400_gw_ssr_02_stories_schema_binding.sql`](../../../supabase/migrations/20260828_1400_gw_ssr_02_stories_schema_binding.sql)
-- Bootstrap: [`000_full_init.sql`](../../../supabase/bootstrap/000_full_init.sql) (тот же `ADD COLUMN IF NOT EXISTS`)
-- SQLite: `_ensure_sqlite_schema_migrations` в [`db_sqlite.py`](../../../src/core/infrastructure/db_sqlite.py) при `ensure_schema()`
-- Domain: [`StoryRecord`](../../../src/core/domain/contracts.py) `:68–74`
-
-### Что сделать, чтобы заработало
-
-| Backend | Действие |
-|---------|---------|
-| `in_memory` | Ничего. Dataclass хранит поля целиком. |
-| `sqlite` | Ничего руками. Старт сам `ALTER`. |
-| Hosted Supabase | Применить миграцию `20260828_1400_*`. Пока колонок нет, omit-probe в [`db_supabase.py`](../../../src/core/infrastructure/db_supabase.py) **вырезает** binding из SELECT/save — civic живёт, pack persist на host **нет**. После apply — **рестарт** процесса (probe кэшируется). **G9:** live hosted apply + restart = **operator/deploy**, не overnight proof (как `live_integration` в T-wave). |
-
-**Не** класть binding-колонки в `required_columns_ready` (иначе `/ready` 503 до apply).
-
-Pack-файлы должны быть в дереве gateway (`schema-packs/`) или `SCHEMA_PACKS_ROOT` на volume/образе (поле **нет** в `AppConfig` — только `os.environ` в [`resolver.py:19–30`](../../../src/core/schema/resolver.py)). CWD ≠ корень gateway → выставить env. **Dockerfile в gateway не найден** (Glob 0) — не invent; фактический build (Railway/Nixpacks root) копирует исходники. Live image = operator, не overnight proof. Нет каталога → intake с binding → unknown schema.
-
-Карточка `GET /node/issues`: `DOGEIssue.to_public_dict` **без** `structured_payload` ([`dto.py`](../../../src/core/projection/dto.py)). Overlay SPA — sibling spa-16, не этот runtime.
+- **in_memory** — ничего.
+- **sqlite** — `ALTER` при `ensure_schema()`.
+- **Hosted Supabase** — применить ту же миграцию, если колонок ещё нет; иначе omit-probe вырезает binding из SELECT/save (civic живёт, pack на host не пишется). После apply — рестарт процесса. Эти имена **не** кладут в `required_columns_ready`, иначе `/ready` станет 503 до миграции.
 
 ---
 
-## Planned target
+## Чего ещё нет
 
-- Civic Tallinn как **pack-данные** (`schema-packs/tallinn_civic/v1`) для *новых* bound stories — [`STORY-GW-SSR-08`](../../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-08-tallinn-civic-schema-pack.md). Не удаляет `ClusterLens`. Pack не видит labels — значения в payload.
-- IDX `story_dimensions` / generic filter HTTP — [`STORY-GW-SSR-06`](../../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-06-analytical-index-later.md) Draft. `build_index` не реализация IDX.
-- Processors — [`STORY-GW-SSR-07`](../../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-07-processor-delivery-later.md). Validate ≠ Generic Processor.
-- GPT MAY emit `schema_binding` (sibling REQ-45). Без этого pack-intake только ручной JSON.
+- GPT UI / instruction pack — sibling REQ-45, не этот слой. Без `schema_binding` == `NODE_SCHEMA_*` прод-intake из GPT получит 4xx.
+- Overlay карточки в spa-app — sibling spa-16, не этот мануал. Пути SPA-клиентов уже `/node/…`.
+- IDX (`story_dimensions`) и generic processors — черновики SSR-06/07.
 
 ---
 
-## Gaps / risks
+## Проверка живого сервера
 
-| Gap | Факт |
-|-----|------|
-| Env не в AppConfig | `SCHEMA_PACKS_ROOT` только `os.environ` в resolver; нет fail-fast в `load_config_from_env`. |
-| Hosted без миграции | Omit-probe: civic OK, binding не пишется. |
-| Civic ≠ pack 1:1 | `infer_signals_from_canonical` ([`enrichment.py:39–84`](../../../src/core/profile/enrichment.py)) ≠ dotted payload. Нельзя «скопировать enum в pack.json». |
-| GPT | Парсер готов; instruction pack emit — не этот репозиторий-слой. |
-| IDX / PROC | Stubs. T-wave закрыт без них (AC-018). |
-| Аудит T-wave vs код | Product AC SSR-01…05 закрыты (gates pkg-000061…065). Этот мануал закрывает операторский разрыв docs. |
+Поднять gateway (`make serve`, [server-env-quickstart](./server-env-quickstart.md)). В `.env.test`: `GATEWAY_URL=http://127.0.0.1:8000` (только localhost).
 
-### Аудит T-wave (сводка)
+```bash
+cd doge-complaints-gateway
+.venv/bin/python -m pytest tests/smoke/test_local_server_smoke.py -q
+```
 
-| Стори | Код | Совпадает с AC |
-|-------|-----|----------------|
-| SSR-01 | `src/core/schema/` + `jsonschema` + example packs | Да |
-| SSR-02 | шесть колонок + sqlite ALTER + bootstrap | Да |
-| SSR-03 | sidecar parse + validate до persist | Да |
-| SSR-04 | `SchemaPackClusterEngine`; civic enum 10 | Да |
-| SSR-05 | pack promote без civic types; factory civic default True | Да |
+Там: `/health`, `/ready`, список и карточка `/node/issues`, Pulse, Emerging, 404 на `/tallinn/issues`. Подробности запуска — [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) и [06-testing-architecture](../bootstrap-infrastructure/06-testing-architecture.md) слой 6.
