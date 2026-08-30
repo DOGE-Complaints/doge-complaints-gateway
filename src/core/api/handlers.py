@@ -255,17 +255,18 @@ def handle_story_intake(
             schema_id=dependencies.config.node_schema_id,
             schema_version=dependencies.config.node_schema_version,
         ).geo_scope
+        geo_service = dependencies.story_intake_service.geo_service
+        if geo_scope is not None and geo_service is None:
+            raise IntakeValidationError("geo unavailable")
         location_query = (request.narrative.location_query or "").strip()
         if geo_scope is not None and location_query:
-            geo_service = dependencies.story_intake_service.geo_service
-            if geo_service is not None:
-                scope_level, scope_value = geo_scope
-                resolved_geo = geo_service.resolve_for_story(location_query)
-                assert_geo_in_scope(
-                    resolved_geo,
-                    level=scope_level,
-                    expected_value=scope_value,
-                )
+            scope_level, scope_value = geo_scope
+            resolved_geo = geo_service.resolve_for_story(location_query)
+            assert_geo_in_scope(
+                resolved_geo,
+                level=scope_level,
+                expected_value=scope_value,
+            )
         intake_result = dependencies.story_intake_service.create_story(
             request,
             idempotency_key=idempotency_key,
