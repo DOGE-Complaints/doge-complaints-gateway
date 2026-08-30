@@ -120,6 +120,8 @@ def _orchestrator(
         issue_create_service=_issue_service(stories),
         cluster_membership_store=store if store is not None else InMemoryClusterMembershipStore(),
         schema_pack_engine=_engine(),
+        node_schema_id="legal_process",
+        node_schema_version="v1",
     )
 
 
