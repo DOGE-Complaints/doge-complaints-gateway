@@ -34,6 +34,8 @@ class ApiDependencies:
                 "APP_PROFILE": "demo",
                 "API_BASE_URL": "https://demo.local",
                 "REQUEST_TIMEOUT_S": "15",
+                "NODE_SCHEMA_ID": "tallinn_civic",
+                "NODE_SCHEMA_VERSION": "v1",
             }
         )
     )

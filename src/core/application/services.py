@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 import logging
+import os
 from typing import Protocol
 from typing import Mapping
 from uuid import uuid4
@@ -108,6 +109,10 @@ class StoryIntakeService:
     def _active_schema_pair(self) -> tuple[str, str]:
         if self.node_schema_id and self.node_schema_version:
             return self.node_schema_id, self.node_schema_version
+        env_id = os.environ.get("NODE_SCHEMA_ID")
+        env_ver = os.environ.get("NODE_SCHEMA_VERSION")
+        if env_id and env_ver:
+            return env_id, env_ver
         from core.config import load_config_from_env
 
         config = load_config_from_env()

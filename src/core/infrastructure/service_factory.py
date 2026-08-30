@@ -158,6 +158,8 @@ class DefaultServiceFactory:
             cluster_min_size_by_lens=self.config.cluster_min_size_by_lens,
             default_cluster_min_size=self.config.cluster_min_size,
             schema_pack_engine=SchemaPackClusterEngine(),
+            node_schema_id=self.config.node_schema_id,
+            node_schema_version=self.config.node_schema_version,
         )
 
     def get_network_pulse_service(self) -> NetworkPulseService:

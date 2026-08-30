@@ -68,15 +68,31 @@ class SchemaPackClusterEngine:
         )
         return self.memberships_for_context(story, context)
 
+    def dual_civic_lenses_for_ref(
+        self,
+        schema_id: str,
+        schema_version: str,
+        *,
+        profile_ref: str | None = None,
+    ) -> bool:
+        """True only when the named pack opts into civic+exact (SSR-10 / SSR-18)."""
+        if not schema_id or not schema_version:
+            return False
+        context = self._runtime.resolve(
+            SchemaRef(schema_id=schema_id, schema_version=schema_version),
+            profile_ref=profile_ref,
+        )
+        return context.dual_civic_lenses
+
     def dual_civic_lenses_for(self, story: StoryRecord) -> bool:
         """True only when the bound pack opts into civic+exact (SSR-10)."""
         if not is_schema_bound(story):
             return False
-        context = self._runtime.resolve(
-            SchemaRef(schema_id=story.schema_id or "", schema_version=story.bound_schema_version or ""),
+        return self.dual_civic_lenses_for_ref(
+            story.schema_id or "",
+            story.bound_schema_version or "",
             profile_ref=story.profile_id,
         )
-        return context.dual_civic_lenses
 
     def lens_block_for(self, story: StoryRecord, lens_id: str) -> ExactLensBlock | None:
         """Return the pack ExactLensBlock matching lens_id, or None."""

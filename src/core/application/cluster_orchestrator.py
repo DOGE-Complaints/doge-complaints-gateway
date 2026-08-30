@@ -43,6 +43,8 @@ class StoryClusterOrchestrator:
     cluster_min_size_by_lens: Mapping[str, int] = field(default_factory=dict)
     default_cluster_min_size: int = 1
     schema_pack_engine: SchemaPackClusterEngine | None = None
+    node_schema_id: str | None = None
+    node_schema_version: str | None = None
 
     def _cluster_key_from_signals(self, signals: dict[str, str]) -> str:
         civic_domain, failure_pattern = composite_primary_signal_pair(signals)
@@ -85,12 +87,39 @@ class StoryClusterOrchestrator:
         return self.schema_pack_engine or SchemaPackClusterEngine()
 
     def _civic_ready(self, stories: list[StoryRecord]) -> list[StoryRecord]:
+        """SSR-18: civic pool is unbound-only. Mismatch bound is skipped, not civic."""
         return [story for story in stories if not is_schema_bound(story)]
 
+    def _matches_active_node_schema(self, story: StoryRecord) -> bool:
+        if not self.node_schema_id or not self.node_schema_version:
+            return False
+        return (
+            story.schema_id == self.node_schema_id
+            and story.bound_schema_version == self.node_schema_version
+        )
+
+    def _skip_schema_mismatch(self, story: StoryRecord) -> None:
+        logger.info(
+            "cluster.skipped_schema_mismatch",
+            extra={
+                "story_id": story.story_id,
+                "persist_schema_id": story.schema_id,
+                "persist_schema_version": story.bound_schema_version,
+                "node_schema_id": self.node_schema_id,
+                "node_schema_version": self.node_schema_version,
+            },
+        )
+
     def _dual_civic_enabled(self, story: StoryRecord) -> bool:
-        """Pack-declared opt-in. Absent/false pack flag stays exact-only."""
+        """Dual flag from the *active* pack.json (NODE_SCHEMA_*), not a foreign story pack."""
+        if not self.node_schema_id or not self.node_schema_version:
+            return False
         try:
-            return self._pack_engine().dual_civic_lenses_for(story)
+            return self._pack_engine().dual_civic_lenses_for_ref(
+                self.node_schema_id,
+                self.node_schema_version,
+                profile_ref=story.profile_id,
+            )
         except SchemaRuntimeError:
             return False
 
@@ -272,6 +301,9 @@ class StoryClusterOrchestrator:
             return None
 
         if is_schema_bound(target):
+            if not self._matches_active_node_schema(target):
+                self._skip_schema_mismatch(target)
+                return None
             return self._process_bound_story(target)
 
         ready_stories = self._civic_ready(
@@ -345,7 +377,14 @@ class StoryClusterOrchestrator:
     def process_all_pending(self) -> list[str]:
         ready_stories = self.story_repository.list_stories_ready_for_clustering()
         logger.debug("cluster.batch_start", extra={"ready_count": len(ready_stories)})
-        pack_stories = [story for story in ready_stories if is_schema_bound(story)]
+        pack_stories: list[StoryRecord] = []
+        for story in ready_stories:
+            if not is_schema_bound(story):
+                continue
+            if not self._matches_active_node_schema(story):
+                self._skip_schema_mismatch(story)
+                continue
+            pack_stories.append(story)
         civic_stories = self._civic_ready(ready_stories)
         created_issue_ids: list[str] = []
         for story in pack_stories:
