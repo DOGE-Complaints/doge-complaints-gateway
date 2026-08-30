@@ -43,7 +43,9 @@ from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
 from core.promotion.repositories import IssueCandidateStore, ReviewAuditLogRepository
 from core.config import AppConfig
+from core.config import schema as config_schema
 from core.schema import LocalSchemaRuntime, SchemaPackClusterEngine
+from core.schema.contracts import CivicClusteringBlock
 
 
 @dataclass(frozen=True)
@@ -90,26 +92,32 @@ class DefaultServiceFactory:
     def get_signal_profile_service(self) -> SignalProfileService:
         return SignalProfileService(repository=self.signal_profile_repository)
 
+    def _active_civic(self) -> CivicClusteringBlock:
+        return config_schema.civic_clustering_from_active_node(
+            schema_id=self.config.node_schema_id,
+            schema_version=self.config.node_schema_version,
+        )
+
     def get_clustering_engine(self) -> ClusteringEngine:
+        civic = self._active_civic()
         return ClusteringEngine(
-            active_lenses=tuple(
-                ClusterLens(lens) for lens in self.config.cluster_active_lenses
-            ),
-            primary_lens=ClusterLens(self.config.cluster_primary_lens),
-            id_algorithm=self.config.cluster_id_algorithm,
-            signal_source=self.config.cluster_signal_source,
-            geo_filter=self.config.cluster_geo_filter,
-            tie_breaker=self.config.cluster_tie_breaker,
-            type_resolution=self.config.cluster_type_resolution,
+            active_lenses=tuple(ClusterLens(lens) for lens in civic.active_lenses),
+            primary_lens=ClusterLens(civic.primary_lens),
+            id_algorithm=civic.id_algorithm,
+            signal_source=civic.signal_source,
+            geo_filter=civic.geo_filter,
+            tie_breaker=civic.tie_breaker,
+            type_resolution=civic.type_resolution,
         )
 
     def get_issue_promotion_service(self) -> IssuePromotionService:
+        civic = self._active_civic()
         return IssuePromotionService(
             candidates=self.issue_candidate_store,
             audit_log=self.review_audit_log_repository,
             gate_policy=PromotionGatePolicy(
-                min_readiness_score=self.config.cluster_readiness_threshold,
-                min_stories=self.config.cluster_min_size,
+                min_readiness_score=civic.readiness_threshold,
+                min_stories=civic.min_size,
             ),
         )
 
@@ -147,6 +155,7 @@ class DefaultServiceFactory:
         )
 
     def get_story_cluster_orchestrator(self) -> StoryClusterOrchestrator:
+        civic = self._active_civic()
         return StoryClusterOrchestrator(
             story_repository=self.story_repository,
             clustering_engine=self.get_clustering_engine(),
@@ -155,8 +164,8 @@ class DefaultServiceFactory:
             story_label_repository=self.story_label_repository,
             cluster_membership_store=self.cluster_membership_store,
             log_debug_dir=self.config.log_debug_dir,
-            cluster_min_size_by_lens=self.config.cluster_min_size_by_lens,
-            default_cluster_min_size=self.config.cluster_min_size,
+            cluster_min_size_by_lens=dict(civic.min_size_by_lens),
+            default_cluster_min_size=civic.min_size,
             schema_pack_engine=SchemaPackClusterEngine(),
             node_schema_id=self.config.node_schema_id,
             node_schema_version=self.config.node_schema_version,

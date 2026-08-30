@@ -17,6 +17,7 @@ from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
 from core.domain import StoryDraftRecord
+from core.config import schema as config_schema
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
 from core.identity.authoritative_submitter import (
     authoritative_submitter_from_introspection,
@@ -250,7 +251,10 @@ def handle_story_intake(
             stage="api.intake",
             outcome="selected",
         )
-        geo_scope = dependencies.config.cluster_geo_scope
+        geo_scope = config_schema.civic_clustering_from_active_node(
+            schema_id=dependencies.config.node_schema_id,
+            schema_version=dependencies.config.node_schema_version,
+        ).geo_scope
         location_query = (request.narrative.location_query or "").strip()
         if geo_scope is not None and location_query:
             geo_service = dependencies.story_intake_service.geo_service

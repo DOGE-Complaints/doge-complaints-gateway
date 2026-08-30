@@ -52,6 +52,7 @@ from core.identity.verification_gate import (
 )
 from core.identity.verify_url import build_verify_url
 from core.config import ConfigError
+from core.config import schema as config_schema
 from core.logging_setup import log_runtime_exception
 from core.scheduler import ClusterCronJob
 from core.logging_setup import configure_logging
@@ -117,21 +118,30 @@ async def _lifespan(_: FastAPI):
         log_format=deps.config.log_format,
         log_debug_dir=deps.config.log_debug_dir,
     )
+    civic = config_schema.civic_clustering_from_active_node(
+        schema_id=deps.config.node_schema_id,
+        schema_version=deps.config.node_schema_version,
+    )
     logging.getLogger(__name__).info(
         "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s node_schema_id=%s node_schema_version=%s",
         deps.config.db_backend,
-        deps.config.cluster_primary_lens,
-        deps.config.cluster_min_size,
+        civic.primary_lens,
+        civic.min_size,
         deps.config.cluster_cron_enabled,
         deps.config.cluster_cron_interval_s,
         deps.config.node_schema_id,
         deps.config.node_schema_version,
         extra={
             "db_backend": deps.config.db_backend,
-            "cluster_active_lenses": ",".join(deps.config.cluster_active_lenses),
-            "cluster_primary_lens": deps.config.cluster_primary_lens,
-            "cluster_min_size": deps.config.cluster_min_size,
-            "cluster_readiness_threshold": deps.config.cluster_readiness_threshold,
+            "cluster_active_lenses": ",".join(civic.active_lenses),
+            "cluster_primary_lens": civic.primary_lens,
+            "cluster_min_size": civic.min_size,
+            "cluster_readiness_threshold": civic.readiness_threshold,
+            "cluster_geo_scope": (
+                f"{civic.geo_scope[0]}:{civic.geo_scope[1]}"
+                if civic.geo_scope is not None
+                else None
+            ),
             "log_level": deps.config.log_level,
             "cron_enabled": deps.config.cluster_cron_enabled,
             "cron_interval_s": deps.config.cluster_cron_interval_s,
@@ -181,7 +191,7 @@ async def _lifespan(_: FastAPI):
             cron_job = ClusterCronJob(
                 orchestrator=deps.story_cluster_orchestrator,
                 interval_s=deps.config.cluster_cron_interval_s,
-                min_size_guard=deps.config.cluster_min_size,
+                min_size_guard=civic.min_size,
             )
             cron_job.start()
     try:

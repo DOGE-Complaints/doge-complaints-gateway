@@ -5,6 +5,7 @@ from core.config.schema import (
     ENV_SCHEMA,
     EnvSpec,
     FeatureFlags,
+    civic_clustering_from_active_node,
     load_config_from_env,
 )
 
@@ -15,6 +16,7 @@ __all__ = [
     "ENV_SCHEMA",
     "EnvSpec",
     "FeatureFlags",
+    "civic_clustering_from_active_node",
     "load_config_from_env",
 ]
 
