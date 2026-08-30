@@ -231,6 +231,11 @@ def test_no_code_exec_from_pack_bytes(tmp_path: Path) -> None:
                         "type_resolution": "canonical_priority",
                     }
                 },
+                "geo_intake": {
+                    "mode": "optional",
+                    "merge": True,
+                    "mirror_to_payload": False,
+                },
             }
         ),
         encoding="utf-8",
