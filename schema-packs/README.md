@@ -28,6 +28,7 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `dual_civic_lenses` | boolean, optional | SSR-10 Path B. `true` = bound story also gets civic `ClusterLens` memberships from labels / `infer_signals_from_canonical` **and** pack exact-lenses from payload. Absent or `false` = T-wave exact-only. Not required on existing packs (`legal_process`, `tallinn_civic`). This loader only (SCHEMA-005) — not a frozen YAML dialect. |
 | `card_fields` | array of string, optional | SSR-11. Dotted paths from `structured_payload` that MAY appear as **named** leaves on `GET /node/issues` under sidecar `schema_card` (flat keys = the dotted path). Absent, `null`, or `[]` = civic card form (no sidecar). This loader only (SCHEMA-005). `field_policy` `forbidden` / `node_private` are never projected even if listed. Do **not** dump the whole payload. Existing packs without the key stay civic-form. |
 | `node_clustering` | object, required | SSR-19/20. Civic `ClusterLens` knobs for this node pack. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. Factory/handlers read this block (not AppConfig semantic `CLUSTER_*`). Cron stays env (`CLUSTER_CRON_*`). |
+| `geo_intake` | object, required | SSR-23. Pack policy for envelope sidecar `geo_detail` + merge with `narrative.location_query`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. No env override. |
 
 ### `field_policy` states (SCHEMA-003, representable)
 
@@ -76,3 +77,26 @@ Example packs carry **different** numbers (data, not code defaults).
 | `type_resolution` | string | e.g. `canonical_priority` |
 
 Example packs copy former EnvSpec defaults: min_size `5`; `min_size_by_lens` includes `composite_primary_micro=8`; readiness `60`; 10 civic lenses; primary `composite_primary_micro`; signal `canonical`; id `sha256`; geo_filter `country`; tie `alpha`; type `canonical_priority`. `tallinn_civic` sets `geo_scope` to `settlement:tallinn`; `legal_process` / `mobility_observation` use `null`. Do not put `CLUSTER_CRON_*` in pack.json. How-to: [schema-packs-node-data-model-ru.md](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) §два контура.
+
+### Envelope sidecar `geo_detail` (SSR-23)
+
+Root object next to `narrative` / `schema_binding` (same class as `gpt_signals` — **not** a second binding). Parse shared on stash+submit. Invalid → `IntakeValidationError`. Empty / omitted → absent.
+
+| Field | Notes |
+|-------|--------|
+| `latitude` / `longitude` | Optional pair; both or neither |
+| `address` | Optional object. Components: `country`, `region`, `settlement`, `district`, `street`; house depth is `house` **XOR** `house_range` **XOR** `houses[]` |
+| `normalized_label` | Optional string |
+| `confidence` / `provider` | Optional |
+
+`location_query` stays for fuzzy resolve. Scope gate SSR-22 is unchanged (scope check only when `location_query` is present).
+
+### `geo_intake` (SSR-23)
+
+| Field | Type | Notes |
+|-------|------|--------|
+| `mode` | string | `optional` \| `require_location_or_detail` \| `require_detail` |
+| `merge` | boolean | `true` = client `geo_detail` wins over provider miss / overlays admin leaves. Address-only + provider miss does **not** invent coordinates (→24). |
+| `mirror_to_payload` | boolean | When `true`, write `structured_payload.geo.*` (district / settlement / region / country / street / house / house_range / houses) **before** pack validate |
+
+Official three packs ship `mode=optional` so omit stays 202. `tallinn_civic` sets `mirror_to_payload=true` (has `geo.*` lens paths). `legal_process` / `mobility_observation` set `mirror_to_payload=false`. Persistence of street/houses columns is SSR-24.
