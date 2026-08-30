@@ -111,6 +111,76 @@ class SchemaBinding:
     profile_version: str | None = None
 
 
+GEO_DETAIL_ALLOWED_KEYS = frozenset(
+    {
+        "latitude",
+        "longitude",
+        "address",
+        "normalized_label",
+        "confidence",
+        "provider",
+    }
+)
+GEO_DETAIL_ADDRESS_ALLOWED_KEYS = frozenset(
+    {
+        "country",
+        "region",
+        "settlement",
+        "district",
+        "street",
+        "house",
+        "house_range",
+        "houses",
+    }
+)
+
+
+@dataclass(frozen=True)
+class GeoDetailAddress:
+    country: str | None = None
+    region: str | None = None
+    settlement: str | None = None
+    district: str | None = None
+    street: str | None = None
+    house: str | None = None
+    house_range: str | None = None
+    houses: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class GeoDetail:
+    """Root sidecar (SSR-23). Same class of change as gpt_signals — not a second binding."""
+
+    latitude: float | None = None
+    longitude: float | None = None
+    address: GeoDetailAddress | None = None
+    normalized_label: str | None = None
+    confidence: float | None = None
+    provider: str | None = None
+
+
+def geo_detail_has_values(detail: GeoDetail | None) -> bool:
+    if detail is None:
+        return False
+    if detail.latitude is not None or detail.longitude is not None:
+        return True
+    if detail.normalized_label or detail.confidence is not None or detail.provider:
+        return True
+    addr = detail.address
+    if addr is None:
+        return False
+    return bool(
+        addr.country
+        or addr.region
+        or addr.settlement
+        or addr.district
+        or addr.street
+        or addr.house
+        or addr.house_range
+        or addr.houses
+    )
+
+
 @dataclass(frozen=True)
 class StoryDraftStashRequest:
     schema_version: str
@@ -120,6 +190,7 @@ class StoryDraftStashRequest:
     live_story_context: LiveStoryContext | None = None
     gpt_signals: GptSignalsBlock | None = None
     schema_binding: SchemaBinding | None = None
+    geo_detail: GeoDetail | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -135,6 +206,7 @@ class StoryIntakeRequest:
     live_story_context: LiveStoryContext | None = None
     gpt_signals: GptSignalsBlock | None = None
     schema_binding: SchemaBinding | None = None
+    geo_detail: GeoDetail | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -222,6 +294,100 @@ def _optional_binding_string(
     if not isinstance(raw_value, str) or not raw_value.strip():
         raise IntakeValidationError(f"Missing or invalid {parent}.{key}.")
     return raw_value.strip()
+
+
+def _optional_float(raw: object, *, field: str, parent: str) -> float | None:
+    if raw is None:
+        return None
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        raise IntakeValidationError(f"Missing or invalid {parent}.{field}.")
+    return float(raw)
+
+
+def _parse_geo_detail_address(raw: object) -> GeoDetailAddress:
+    if not isinstance(raw, Mapping):
+        raise IntakeValidationError("Missing or invalid root.geo_detail.address.")
+    unknown = set(raw.keys()) - GEO_DETAIL_ADDRESS_ALLOWED_KEYS
+    if unknown:
+        raise IntakeValidationError(
+            "Unknown geo_detail.address keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+            + "."
+        )
+    house = _optional_binding_string(raw, "house", parent="geo_detail.address")
+    house_range = _optional_binding_string(
+        raw, "house_range", parent="geo_detail.address"
+    )
+    houses_raw = raw.get("houses")
+    houses: tuple[str, ...] = ()
+    if houses_raw is not None:
+        if not isinstance(houses_raw, (list, tuple)):
+            raise IntakeValidationError(
+                "Missing or invalid geo_detail.address.houses."
+            )
+        if houses_raw:
+            parsed: list[str] = []
+            for item in houses_raw:
+                if not isinstance(item, str) or not item.strip():
+                    raise IntakeValidationError(
+                        "Missing or invalid geo_detail.address.houses."
+                    )
+                parsed.append(item.strip())
+            houses = tuple(parsed)
+    exclusive = sum(bool(v) for v in (house, house_range, houses))
+    if exclusive > 1:
+        raise IntakeValidationError(
+            "geo_detail.address: use house or house_range or houses[], not more than one."
+        )
+    return GeoDetailAddress(
+        country=_optional_binding_string(raw, "country", parent="geo_detail.address"),
+        region=_optional_binding_string(raw, "region", parent="geo_detail.address"),
+        settlement=_optional_binding_string(
+            raw, "settlement", parent="geo_detail.address"
+        ),
+        district=_optional_binding_string(raw, "district", parent="geo_detail.address"),
+        street=_optional_binding_string(raw, "street", parent="geo_detail.address"),
+        house=house,
+        house_range=house_range,
+        houses=houses,
+    )
+
+
+def _parse_geo_detail_block(raw: object) -> GeoDetail:
+    if raw is None:
+        raise IntakeValidationError("Missing or invalid root.geo_detail.")
+    if not isinstance(raw, Mapping):
+        raise IntakeValidationError("Missing or invalid root.geo_detail.")
+    unknown = set(raw.keys()) - GEO_DETAIL_ALLOWED_KEYS
+    if unknown:
+        raise IntakeValidationError(
+            "Unknown geo_detail keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+            + "."
+        )
+    latitude = _optional_float(raw.get("latitude"), field="latitude", parent="geo_detail")
+    longitude = _optional_float(
+        raw.get("longitude"), field="longitude", parent="geo_detail"
+    )
+    if (latitude is None) ^ (longitude is None):
+        raise IntakeValidationError(
+            "geo_detail.latitude and geo_detail.longitude must be provided together."
+        )
+    address = None
+    if "address" in raw and raw.get("address") is not None:
+        address = _parse_geo_detail_address(raw.get("address"))
+    return GeoDetail(
+        latitude=latitude,
+        longitude=longitude,
+        address=address,
+        normalized_label=_optional_binding_string(
+            raw, "normalized_label", parent="geo_detail"
+        ),
+        confidence=_optional_float(
+            raw.get("confidence"), field="confidence", parent="geo_detail"
+        ),
+        provider=_optional_binding_string(raw, "provider", parent="geo_detail"),
+    )
 
 
 def _parse_schema_binding_block(raw: object) -> SchemaBinding:
@@ -481,6 +647,12 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         raise IntakeValidationError("Missing or invalid root.schema_binding.")
     schema_binding = _parse_schema_binding_block(payload.get("schema_binding"))
 
+    geo_detail: GeoDetail | None = None
+    if payload.get("geo_detail") is not None:
+        parsed_geo = _parse_geo_detail_block(payload.get("geo_detail"))
+        if geo_detail_has_values(parsed_geo):
+            geo_detail = parsed_geo
+
     return (
         schema_version,
         narrative,
@@ -489,6 +661,7 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         live_story_context,
         gpt_signals,
         schema_binding,
+        geo_detail,
     )
 
 
@@ -501,6 +674,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         live_story_context,
         gpt_signals,
         schema_binding,
+        geo_detail,
     ) = _parse_story_envelope_body(payload)
     submitter_payload = payload.get("submitter")
     if not isinstance(submitter_payload, Mapping):
@@ -523,6 +697,7 @@ def parse_story_intake_request(payload: Mapping[str, Any]) -> StoryIntakeRequest
         live_story_context=live_story_context,
         gpt_signals=gpt_signals,
         schema_binding=schema_binding,
+        geo_detail=geo_detail,
     )
 
 
@@ -540,6 +715,7 @@ def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftSta
         live_story_context,
         gpt_signals,
         schema_binding,
+        geo_detail,
     ) = _parse_story_envelope_body(payload)
     return StoryDraftStashRequest(
         schema_version=schema_version,
@@ -549,6 +725,7 @@ def parse_story_draft_stash_request(payload: Mapping[str, Any]) -> StoryDraftSta
         live_story_context=live_story_context,
         gpt_signals=gpt_signals,
         schema_binding=schema_binding,
+        geo_detail=geo_detail,
     )
 
 
@@ -583,6 +760,7 @@ def intake_request_from_stash_and_submitter(
         live_story_context=stash.live_story_context,
         gpt_signals=stash.gpt_signals,
         schema_binding=stash.schema_binding,
+        geo_detail=stash.geo_detail,
     )
 
 

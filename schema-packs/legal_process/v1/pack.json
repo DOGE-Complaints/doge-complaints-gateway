@@ -56,5 +56,10 @@
       "tie_breaker": "alpha",
       "type_resolution": "canonical_priority"
     }
+  },
+  "geo_intake": {
+    "mode": "optional",
+    "merge": true,
+    "mirror_to_payload": false
   }
 }

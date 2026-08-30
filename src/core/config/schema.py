@@ -6,7 +6,7 @@ from os import environ
 from typing import TYPE_CHECKING, Mapping
 
 if TYPE_CHECKING:
-    from core.schema.contracts import CivicClusteringBlock
+    from core.schema.contracts import CivicClusteringBlock, GeoIntakeBlock
 
 
 class ConfigError(ValueError):
@@ -324,6 +324,26 @@ def civic_clustering_from_active_node(
             f"does not resolve to a pack catalog: {exc}"
         ) from exc
     return context.node_clustering.civic
+
+
+def geo_intake_from_active_node(
+    *,
+    schema_id: str,
+    schema_version: str,
+) -> "GeoIntakeBlock":
+    """Pack ``geo_intake`` from the active NODE_SCHEMA pack. Missing/invalid → ConfigError."""
+    from core.schema.contracts import GeoIntakeBlock, SchemaRef
+    from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+    from core.schema.resolver import resolve_pack
+
+    try:
+        context = resolve_pack(SchemaRef(schema_id=schema_id, schema_version=schema_version))
+    except (UnknownSchemaError, UnsupportedVersionError) as exc:
+        raise ConfigError(
+            f"NODE_SCHEMA_ID/NODE_SCHEMA_VERSION={schema_id!r}/{schema_version!r} "
+            f"does not resolve to a pack catalog: {exc}"
+        ) from exc
+    return context.geo_intake
 
 
 def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:

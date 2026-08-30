@@ -24,6 +24,11 @@ from core.domain import (
 from core.taxonomy import story_labels_from_narrative
 from core.redaction import redact_pii
 from core.geo import GeoService
+from core.geo.intake_merge import (
+    enforce_geo_intake_mode,
+    merge_client_geo_detail,
+    mirror_geo_to_payload,
+)
 from core.domain.narrative_i18n import narrative_v2_complete, story_primary_title
 from core.intake import GptSignalsBlock, IntakeValidationError, StoryIntakeRequest
 from core.logging_setup import StoryDebugLogger, open_story_debug_logger
@@ -273,14 +278,30 @@ class StoryIntakeService:
                     SchemaRef(schema_id=active_id, schema_version=active_version),
                     profile_ref=binding.profile_id,
                 )
-                runtime.validate(context, binding.structured_payload)
+                enforce_geo_intake_mode(
+                    geo_intake=context.geo_intake,
+                    location_query=location_query,
+                    detail=request.geo_detail,
+                )
+                geo = merge_client_geo_detail(
+                    geo,
+                    request.geo_detail,
+                    merge=context.geo_intake.merge,
+                )
+                structured_payload = dict(binding.structured_payload)
+                if context.geo_intake.mirror_to_payload:
+                    mirror_geo_to_payload(
+                        structured_payload,
+                        geo=geo,
+                        detail=request.geo_detail,
+                    )
+                runtime.validate(context, structured_payload)
             except SchemaRuntimeError as exc:
                 raise IntakeValidationError(str(exc)) from exc
             bound_schema_id = binding.schema_id
             bound_schema_version = binding.schema_version
             bound_profile_id = binding.profile_id
             bound_profile_version = binding.profile_version
-            structured_payload = dict(binding.structured_payload)
             payload_hash = authoritative_payload_hash(structured_payload)
             record = StoryRecord(
                 story_id=story_id,

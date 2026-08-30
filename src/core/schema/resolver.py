@@ -11,8 +11,10 @@ from core.cluster.types import ClusterLens
 from core.geo.scope import parse_cluster_geo_filter, parse_cluster_geo_scope
 from core.schema.contracts import (
     FIELD_POLICY_STATES,
+    GEO_INTAKE_MODES,
     CivicClusteringBlock,
     ExactLensBlock,
+    GeoIntakeBlock,
     NodeClusteringBlock,
     ReadinessPolicy,
     SchemaContext,
@@ -249,6 +251,36 @@ def _parse_readiness(raw: Mapping[str, Any]) -> ReadinessPolicy:
     )
 
 
+def _parse_geo_intake(manifest: Mapping[str, Any]) -> GeoIntakeBlock:
+    """Fail-fast: ``geo_intake`` required; no silent default. SCHEMA-005."""
+    if "geo_intake" not in manifest:
+        raise UnsupportedVersionError("geo_intake is required")
+    raw = manifest["geo_intake"]
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("geo_intake must be an object")
+    mode_raw = raw.get("mode")
+    if not isinstance(mode_raw, str) or mode_raw.strip() not in GEO_INTAKE_MODES:
+        raise UnsupportedVersionError(
+            "geo_intake.mode must be optional | require_location_or_detail | require_detail"
+        )
+    merge = raw.get("merge")
+    if not isinstance(merge, bool):
+        raise UnsupportedVersionError("geo_intake.merge must be a boolean")
+    mirror = raw.get("mirror_to_payload")
+    if not isinstance(mirror, bool):
+        raise UnsupportedVersionError("geo_intake.mirror_to_payload must be a boolean")
+    unknown = set(raw.keys()) - {"mode", "merge", "mirror_to_payload"}
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown geo_intake keys: " + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GeoIntakeBlock(
+        mode=mode_raw.strip(),
+        merge=merge,
+        mirror_to_payload=mirror,
+    )
+
+
 def _parse_lens(raw: Mapping[str, Any]) -> ExactLensBlock:
     fields = raw.get("source_fields") or ()
     return ExactLensBlock(
@@ -308,6 +340,7 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         compatible_profiles=profiles,
         pack_dir=pack_dir,
         node_clustering=NodeClusteringBlock(civic=_parse_civic_clustering(manifest)),
+        geo_intake=_parse_geo_intake(manifest),
         dual_civic_lenses=_parse_dual_civic_lenses(manifest),
         card_fields=_parse_card_fields(manifest),
     )

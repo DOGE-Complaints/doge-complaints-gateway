@@ -18,6 +18,7 @@ from core.logging_setup import clear_log_context, log_runtime_exception, set_log
 from core.api.security import UnauthorizedError
 from core.domain import StoryDraftRecord
 from core.config import schema as config_schema
+from core.geo.intake_merge import enforce_geo_intake_mode
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
 from core.identity.authoritative_submitter import (
     authoritative_submitter_from_introspection,
@@ -259,6 +260,14 @@ def handle_story_intake(
         if geo_scope is not None and geo_service is None:
             raise IntakeValidationError("geo unavailable")
         location_query = (request.narrative.location_query or "").strip()
+        enforce_geo_intake_mode(
+            geo_intake=config_schema.geo_intake_from_active_node(
+                schema_id=dependencies.config.node_schema_id,
+                schema_version=dependencies.config.node_schema_version,
+            ),
+            location_query=location_query,
+            detail=request.geo_detail,
+        )
         if geo_scope is not None and location_query:
             scope_level, scope_value = geo_scope
             resolved_geo = geo_service.resolve_for_story(location_query)

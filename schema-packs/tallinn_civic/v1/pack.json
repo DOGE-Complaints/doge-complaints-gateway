@@ -12,7 +12,14 @@
     "signals.need": "optional",
     "signals.ecosystem_signal": "optional",
     "signals.canonical_type": "optional",
-    "geo.district": "optional"
+    "geo.district": "optional",
+    "geo.settlement": "optional",
+    "geo.region": "optional",
+    "geo.country": "optional",
+    "geo.street": "optional",
+    "geo.house": "optional",
+    "geo.house_range": "optional",
+    "geo.houses": "optional"
   },
   "exact_lenses": [
     {
@@ -196,5 +203,10 @@
       "tie_breaker": "alpha",
       "type_resolution": "canonical_priority"
     }
+  },
+  "geo_intake": {
+    "mode": "optional",
+    "merge": true,
+    "mirror_to_payload": true
   }
 }

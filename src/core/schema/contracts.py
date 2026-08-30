@@ -72,6 +72,20 @@ class NodeClusteringBlock:
     civic: CivicClusteringBlock
 
 
+GEO_INTAKE_MODES: frozenset[str] = frozenset(
+    {"optional", "require_location_or_detail", "require_detail"}
+)
+
+
+@dataclass(frozen=True)
+class GeoIntakeBlock:
+    """Pack geo-detail intake policy (SCHEMA-005). No env override."""
+
+    mode: str
+    merge: bool
+    mirror_to_payload: bool
+
+
 @dataclass(frozen=True)
 class SchemaContext:
     ref: SchemaRef
@@ -81,6 +95,7 @@ class SchemaContext:
     compatible_profiles: tuple[str, ...]
     pack_dir: Path
     node_clustering: NodeClusteringBlock
+    geo_intake: GeoIntakeBlock
     dual_civic_lenses: bool = False
     card_fields: tuple[str, ...] = ()
 

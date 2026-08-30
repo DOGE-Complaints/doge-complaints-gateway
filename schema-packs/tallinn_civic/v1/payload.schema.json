@@ -24,7 +24,17 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "district": { "type": "string", "minLength": 1 }
+        "district": { "type": "string", "minLength": 1 },
+        "settlement": { "type": "string", "minLength": 1 },
+        "region": { "type": "string", "minLength": 1 },
+        "country": { "type": "string", "minLength": 1 },
+        "street": { "type": "string", "minLength": 1 },
+        "house": { "type": "string", "minLength": 1 },
+        "house_range": { "type": "string", "minLength": 1 },
+        "houses": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
       }
     }
   }
