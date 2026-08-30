@@ -72,6 +72,7 @@ _STORY_SELECT_FIELDS = (
     "origin_tool_call_id,privacy_contains_pii,privacy_redaction_requested,"
     "geo_normalized_label,geo_latitude,geo_longitude,geo_confidence,geo_provider,geo_cluster_tags_json,"
     "geo_admin_district,geo_admin_settlement,geo_admin_region,geo_admin_country,"
+    "geo_street,geo_house,geo_house_range,geo_houses_json,geo_address_line,"
     "schema_id,bound_schema_version,profile_id,profile_version,structured_payload,payload_hash"
 )
 
@@ -121,6 +122,18 @@ def _structured_payload_from_supabase_row(row: dict[str, Any]) -> dict[str, Any]
     return None
 
 
+def _houses_from_supabase_row(row: dict[str, Any]) -> tuple[str, ...]:
+    raw = row.get("geo_houses_json")
+    if not raw:
+        return ()
+    if isinstance(raw, list):
+        return tuple(str(item) for item in raw)
+    parsed = json.loads(str(raw))
+    if not isinstance(parsed, list):
+        return ()
+    return tuple(str(item) for item in parsed)
+
+
 def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
     if record.geo is None:
         return {
@@ -134,6 +147,11 @@ def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
             "geo_admin_settlement": None,
             "geo_admin_region": None,
             "geo_admin_country": None,
+            "geo_street": None,
+            "geo_house": None,
+            "geo_house_range": None,
+            "geo_houses_json": "[]",
+            "geo_address_line": None,
         }
     geo = record.geo
     return {
@@ -147,6 +165,11 @@ def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
         "geo_admin_settlement": geo.admin_settlement,
         "geo_admin_region": geo.admin_region,
         "geo_admin_country": geo.admin_country,
+        "geo_street": geo.street,
+        "geo_house": geo.house,
+        "geo_house_range": geo.house_range,
+        "geo_houses_json": json.dumps(list(geo.houses)),
+        "geo_address_line": geo.address_line,
     }
 
 
@@ -164,6 +187,11 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
             admin_settlement=row.get("geo_admin_settlement"),
             admin_region=row.get("geo_admin_region"),
             admin_country=row.get("geo_admin_country"),
+            street=row.get("geo_street"),
+            house=row.get("geo_house"),
+            house_range=row.get("geo_house_range"),
+            houses=_houses_from_supabase_row(row),
+            address_line=row.get("geo_address_line"),
         )
     return StoryRecord(
         story_id=str(row["story_id"]),
@@ -340,6 +368,15 @@ class SupabaseDatabase:
             "payload_hash",
         }
     )
+    _STORIES_GEO_DETAIL_COLUMNS = frozenset(
+        {
+            "geo_street",
+            "geo_house",
+            "geo_house_range",
+            "geo_houses_json",
+            "geo_address_line",
+        }
+    )
 
     def required_stories_geo_admin_columns_ready(self) -> bool:
         """True when migration 20260510_* geo_admin_* columns exist on hosted stories."""
@@ -383,6 +420,28 @@ class SupabaseDatabase:
         if cached is None:
             cached = self.required_stories_binding_columns_ready()
             self._stories_binding_columns_ready = cached
+        return cached
+
+    def required_stories_geo_detail_columns_ready(self) -> bool:
+        """True when GW-SSR-24 geo depth columns exist on hosted stories."""
+        try:
+            self._request(
+                method="GET",
+                path="/rest/v1/stories",
+                params={
+                    "select": ",".join(sorted(self._STORIES_GEO_DETAIL_COLUMNS)),
+                    "limit": "1",
+                },
+            )
+            return True
+        except Exception:
+            return False
+
+    def stories_geo_detail_columns_ready(self) -> bool:
+        cached = getattr(self, "_stories_geo_detail_columns_ready", None)
+        if cached is None:
+            cached = self.required_stories_geo_detail_columns_ready()
+            self._stories_geo_detail_columns_ready = cached
         return cached
 
     def required_columns_ready(self) -> bool:
@@ -468,12 +527,15 @@ class SupabaseDatabase:
 
 
 def _story_select_fields_for_db(db: SupabaseDatabase) -> str:
-    """SELECT list for hosted DB; omits geo_admin_* / binding cols when not migrated."""
+    """SELECT list for hosted DB; omits geo_admin_* / binding / geo-detail cols when not migrated."""
     omit: set[str] = set()
     if not db.stories_geo_admin_columns_ready():
         omit |= set(SupabaseDatabase._STORIES_GEO_ADMIN_COLUMNS)
     if not db.stories_binding_columns_ready():
         omit |= set(SupabaseDatabase._STORIES_BINDING_COLUMNS)
+    detail_probe = getattr(db, "stories_geo_detail_columns_ready", None)
+    if detail_probe is not None and not detail_probe():
+        omit |= set(SupabaseDatabase._STORIES_GEO_DETAIL_COLUMNS)
     if not omit:
         return _STORY_SELECT_FIELDS
     parts = [
@@ -529,6 +591,9 @@ class SupabaseStoryRepository:
                 row.pop(key, None)
         if not self.db.stories_binding_columns_ready():
             for key in SupabaseDatabase._STORIES_BINDING_COLUMNS:
+                row.pop(key, None)
+        if not self.db.stories_geo_detail_columns_ready():
+            for key in SupabaseDatabase._STORIES_GEO_DETAIL_COLUMNS:
                 row.pop(key, None)
         try:
             self.db._request(

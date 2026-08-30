@@ -38,6 +38,11 @@ class StoryGeoSnapshot:
     admin_settlement: str | None = None
     admin_region: str | None = None
     admin_country: str | None = None
+    street: str | None = None
+    house: str | None = None
+    house_range: str | None = None
+    houses: tuple[str, ...] = ()
+    address_line: str | None = None
 
 
 @dataclass(frozen=True)

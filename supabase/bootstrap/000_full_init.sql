@@ -41,6 +41,14 @@ alter table if exists public.stories
     add column if not exists geo_admin_region text,
     add column if not exists geo_admin_country text;
 
+-- STORY-GW-SSR-24: persist address depth (omit-probe; not required_columns_ready)
+alter table if exists public.stories
+    add column if not exists geo_street text,
+    add column if not exists geo_house text,
+    add column if not exists geo_house_range text,
+    add column if not exists geo_houses_json text,
+    add column if not exists geo_address_line text;
+
 -- STORY-M2-02-06 §16: summary JSON, live_story consistency notes
 alter table if exists public.stories
     add column if not exists narrative_summary_json text,

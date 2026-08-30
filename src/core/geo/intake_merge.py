@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from core.domain import StoryGeoSnapshot
-from core.intake.contracts import GeoDetail, geo_detail_has_values
+from core.intake.contracts import GeoDetail, GeoDetailAddress, geo_detail_has_values
 from core.intake import IntakeValidationError
 from core.schema.contracts import GeoIntakeBlock
 
@@ -58,6 +58,11 @@ def merge_client_geo_detail(
             admin_settlement=addr.settlement if addr is not None else None,
             admin_region=addr.region if addr is not None else None,
             admin_country=addr.country if addr is not None else None,
+            street=addr.street if addr is not None else None,
+            house=addr.house if addr is not None else None,
+            house_range=addr.house_range if addr is not None else None,
+            houses=addr.houses if addr is not None else (),
+            address_line=_address_line(detail, addr, None),
         )
     return StoryGeoSnapshot(
         normalized_label=detail.normalized_label or provider.normalized_label,
@@ -76,11 +81,40 @@ def merge_client_geo_detail(
         ),
         admin_region=_overlay(addr.region if addr else None, provider.admin_region),
         admin_country=_overlay(addr.country if addr else None, provider.admin_country),
+        street=_overlay(addr.street if addr else None, provider.street),
+        house=_overlay(addr.house if addr else None, provider.house),
+        house_range=_overlay(addr.house_range if addr else None, provider.house_range),
+        houses=addr.houses if addr is not None and addr.houses else provider.houses,
+        address_line=_address_line(detail, addr, provider),
     )
 
 
 def _overlay(client: str | None, provider: str | None) -> str | None:
     return client if client else provider
+
+
+def _address_line(
+    detail: GeoDetail,
+    addr: GeoDetailAddress | None,
+    provider: StoryGeoSnapshot | None,
+) -> str | None:
+    if detail.normalized_label:
+        return detail.normalized_label
+    parts: list[str] = []
+    if addr is not None:
+        if addr.street:
+            parts.append(addr.street)
+        if addr.house:
+            parts.append(addr.house)
+        elif addr.house_range:
+            parts.append(addr.house_range)
+        elif addr.houses:
+            parts.append(", ".join(addr.houses))
+    if parts:
+        return ", ".join(parts)
+    if provider is not None:
+        return provider.address_line
+    return None
 
 
 def mirror_geo_to_payload(
@@ -101,6 +135,14 @@ def mirror_geo_to_payload(
             geo_obj["region"] = geo.admin_region
         if geo.admin_country:
             geo_obj["country"] = geo.admin_country
+        if geo.street:
+            geo_obj["street"] = geo.street
+        if geo.house:
+            geo_obj["house"] = geo.house
+        if geo.house_range:
+            geo_obj["house_range"] = geo.house_range
+        if geo.houses:
+            geo_obj["houses"] = list(geo.houses)
     addr = detail.address if detail is not None else None
     if addr is not None:
         if addr.district:
