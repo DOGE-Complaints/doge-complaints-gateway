@@ -51,9 +51,23 @@ python -m pip install -e '.[dev]'
 
 - `APP_PROFILE` (`demo` или `pilot`, default `demo`)
 - `API_BASE_URL` (required)
+- `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` (оба required — см. секцию ниже)
 - `REQUEST_TIMEOUT_S` (default `15`)
 - `LOG_LEVEL` (default `INFO`)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
+
+### Node active schema (GW-SSR-16)
+
+Рабочая модель ноды — **одна** пара required env (без default, fail-fast). Несколько каталогов в `schema-packs/` — склад для отладки; процесс поднимает только эту пару. Не invent `DEFAULT_SCHEMA_PACK` и не «первый pack».
+
+| Переменная | Назначение | Если не задана / пустая / нет каталога |
+|---|---|---|
+| `NODE_SCHEMA_ID` | id каталога `schema-packs/<id>/` | `ConfigError`, процесс не стартует |
+| `NODE_SCHEMA_VERSION` | версия `schema-packs/<id>/<version>/` | `ConfigError`, процесс не стартует |
+
+Пример на диске: `NODE_SCHEMA_ID=tallinn_civic` и `NODE_SCHEMA_VERSION=v1`.
+
+`SCHEMA_PACKS_ROOT` остаётся optional override корня склада: читает [`resolver.py`](../../../src/core/schema/resolver.py) через `os.environ`, **не** поле `AppConfig`.
 
 **Авторизация legacy public-content writes (GW-DRAFT-04) — для `POST /intake/stories` и `POST /node/issues`:**
 
@@ -273,13 +287,24 @@ Install-step в `railpack.json` не задаем вручную: Python provide
 - `No module named uvicorn` → подтверждается H3 (проверить, что build использует root с `pyproject.toml`, а install не переопределен кастомным `steps`);
 - `No module named core` → подтверждается H2 (проверить Root Directory сервиса в Railway, должен указывать на `doge-complaints-gateway`).
 
-### 4.9 Smoke проверка реального URL через `sh` + `curl`
+### 4.9 Живой pytest smoke (`tests/smoke`) — канон `/node/*`
 
-В репозитории есть POSIX smoke-скрипт:
+Против **уже запущенного** `make serve` (не in-process TestClient). Цель только localhost: `GATEWAY_URL=http://127.0.0.1:8000` в `.env.test`.
 
-- `scripts/smoke_real_urls.sh`
+Покрывает `GET /health`, `GET /ready`, список и карточку `GET /node/issues`, Pulse, Emerging, 404 на старый `GET /tallinn/issues`.
 
-Он проверяет:
+Команды и таблица кейсов: [test-matrix — Local real-HTTP smoke](../testing/test-matrix-by-type-layer-mocks.md).
+
+```bash
+cd /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway
+make serve
+# другой терминал:
+.venv/bin/python -m pytest tests/smoke/test_local_server_smoke.py -q
+```
+
+### 4.10 Curl-скрипт `scripts/smoke_real_urls.sh`
+
+POSIX-скрипт **отдельный** от pytest `tests/smoke`. Он проверяет:
 
 - `GET /health` (ожидается HTTP 200)
 - `POST /intake/stories` с валидным payload (ожидается HTTP 200)
