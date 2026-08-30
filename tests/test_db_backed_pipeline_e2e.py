@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 from collections.abc import Iterator
 import json
@@ -9,7 +10,7 @@ import pytest  # pyright: ignore[reportMissingImports]
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
-from tests.intake_v2_fixtures import intake_payload_simple, valid_v2_intake_payload
+from tests.intake_v2_fixtures import intake_payload_simple, unbind_ready_stories, valid_v2_intake_payload
 from tests.story_draft_intake_helpers import (
     patch_identity_me_verified,
     post_intake_via_story_drafts,
@@ -31,6 +32,7 @@ def client(monkeypatch: pytest.MonkeyPatch, sqlite_db_url: str) -> Iterator[Test
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("2"))
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", sqlite_db_url)
     monkeypatch.setenv("SUPABASE_URL", "")
@@ -61,6 +63,7 @@ def test_db_backed_pipeline_persists_stories_projections_and_embeddings(
         client, json=_intake_payload(1))
     post_intake_via_story_drafts(
         client, json=_intake_payload(2))
+    unbind_ready_stories(get_api_dependencies().story_cluster_orchestrator.story_repository)
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)
@@ -176,6 +179,7 @@ def test_sqlite_living_issue_extend_persists_merged_candidate_and_audit(
     post_intake_via_story_drafts(
         client, json=_intake_payload(2))
     deps = get_api_dependencies()
+    unbind_ready_stories(deps.story_cluster_orchestrator.story_repository)
     first_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
     assert len(first_issue_ids) == 1
     issue_id = first_issue_ids[0]
@@ -184,6 +188,7 @@ def test_sqlite_living_issue_extend_persists_merged_candidate_and_audit(
         client, json=_intake_payload(3))
     post_intake_via_story_drafts(
         client, json=_intake_payload(4))
+    unbind_ready_stories(deps.story_cluster_orchestrator.story_repository)
     second_issue_ids = deps.story_cluster_orchestrator.process_all_pending()
     assert second_issue_ids == [issue_id]
 

@@ -13,14 +13,10 @@ import core.api.asgi_app as asgi_app
 class _ConfigStub:
     cluster_cron_enabled: bool
     cluster_cron_interval_s: int = 1
-    cluster_min_size: int = 2
     log_level: str = "INFO"
     log_format: str = "text"
     log_debug_dir: str | None = None
     db_backend: str = "in_memory"
-    cluster_active_lenses: tuple[str, ...] = ("civic_domain_micro",)
-    cluster_primary_lens: str = "civic_domain_micro"
-    cluster_readiness_threshold: int = 60
     node_schema_id: str = "tallinn_civic"
     node_schema_version: str = "v1"
 

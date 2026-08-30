@@ -175,18 +175,23 @@ def test_get_signals_for_story_uses_story_label_repository_when_present() -> Non
     assert signals["failure_pattern"] == "maintenance_gap"
 
 
-def test_per_lens_min_size_config_parsed_from_env() -> None:
+def test_per_lens_min_size_comes_from_active_pack() -> None:
+    from core.config.schema import civic_clustering_from_active_node
+
     config = load_config_from_env(
         with_node_schema(
             {
                 "API_BASE_URL": "https://example.test/api",
-                "CLUSTER_MIN_SIZE_BY_LENS": "composite_primary_micro=8,service_object_micro=3",
             }
         )
     )
-    assert config.cluster_min_size_by_lens["composite_primary_micro"] == 8
-    assert config.cluster_min_size_by_lens["service_object_micro"] == 3
-    assert config.cluster_min_size == 5
+    civic = civic_clustering_from_active_node(
+        schema_id=config.node_schema_id,
+        schema_version=config.node_schema_version,
+    )
+    assert civic.min_size_by_lens["composite_primary_micro"] == 8
+    assert civic.min_size_by_lens["service_object_micro"] == 3
+    assert civic.min_size == 5
 
 
 def test_orchestrator_honors_per_lens_min_size_for_primary() -> None:

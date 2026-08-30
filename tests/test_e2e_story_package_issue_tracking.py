@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 from collections.abc import Iterator
 
@@ -7,7 +8,13 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
-from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.intake_v2_fixtures import (
+    intake_payload_simple,
+    make_story_record,
+    narrative_dict,
+    unbind_ready_stories,
+    with_active_schema_binding,
+)
 from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
@@ -17,6 +24,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("2"))
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -24,7 +32,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 
 
 def _payload(user: str, text: str) -> dict[str, object]:
-    return {
+    body = {
         "schema_version": INTAKE_SCHEMA_VERSION,
         "submitter": {"external_user_id": user, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
@@ -37,6 +45,7 @@ def _payload(user: str, text: str) -> dict[str, object]:
             "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }
+    return with_active_schema_binding(body)
 
 
 def test_story_package_issue_tracking_materialization_and_audit(client: TestClient) -> None:
@@ -55,6 +64,7 @@ def test_story_package_issue_tracking_materialization_and_audit(client: TestClie
     story_id_b = response_b.json()["data"]["story_id"]
 
     deps = get_api_dependencies()
+    unbind_ready_stories(deps.story_cluster_orchestrator.story_repository)
     deps.story_cluster_orchestrator.process_all_pending()
     issue_create = deps.story_cluster_orchestrator.issue_create_service
 

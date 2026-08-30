@@ -1,6 +1,7 @@
 """REQ-39 Zone N: E2E sandbox canvas → intake → clustering → GET /node/issues."""
 
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 import json
 from collections.abc import Iterator
@@ -24,6 +25,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "1")
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "1")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("1"), readiness_threshold=int("1"))
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -62,7 +64,7 @@ def test_n02_after_clustering_issues_exist(client: TestClient) -> None:
     assert len(issues) > 0, "No issues created after clustering full canvas"
 
 
-def test_n03_get_tallinn_issues_returns_results(client: TestClient) -> None:
+def test_n03_get_node_issues_returns_results(client: TestClient) -> None:
     _intake_and_cluster_all_canvas(client)
     response = client.get("/node/issues")
     assert response.status_code == 200

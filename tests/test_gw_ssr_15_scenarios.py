@@ -1,6 +1,7 @@
 """GW-SSR-15: civic / pack / Pulse≠Issues / dual + public path / legacy 404."""
 
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -15,7 +16,7 @@ from core.infrastructure.repositories import (
     InMemoryStoryRepository,
 )
 from tests.conftest import GAUTH_TEST_IDENTITY_URL, GAUTH_TEST_SERVICE_TOKEN
-from tests.test_gw_ssr_04_schema_driven_cluster_lens import _pack_story
+from tests.test_gw_ssr_08_civic_unbound_regression import _tallinn_bound
 from tests.test_gw_ssr_10_orchestrator_dual import (
     _dual_bound_story,
     _dual_orchestrator,
@@ -33,6 +34,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("IDENTITY_BASE_URL", GAUTH_TEST_IDENTITY_URL)
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "1")
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "1")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("1"), readiness_threshold=int("1"))
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -66,14 +68,16 @@ def test_ssr15_civic_unbound_lists_on_node_issues(client: TestClient) -> None:
     assert any(row["id"] == "ssr15-civic-unbound" for row in issues)
     civic = next(row for row in issues if row["id"] == "ssr15-civic-unbound")
     assert "structured_payload" not in civic
+    detail = client.get("/node/issues/ssr15-civic-unbound")
+    assert detail.status_code == 200
+    assert detail.json()["data"]["issue"]["id"] == "ssr15-civic-unbound"
+    assert "structured_payload" not in detail.json()["data"]["issue"]
 
 
 def test_ssr15_pack_bound_card_on_same_node_issues(client: TestClient) -> None:
     orchestrator = get_api_dependencies().story_cluster_orchestrator
     for sid in ("ssr15-p1", "ssr15-p2", "ssr15-p3"):
-        orchestrator.story_repository.save_story(
-            _pack_story(sid, office_id="ssr15-station")
-        )
+        orchestrator.story_repository.save_story(_tallinn_bound(sid))
     created = orchestrator.process_all_pending()
     assert created
     response = client.get("/node/issues")

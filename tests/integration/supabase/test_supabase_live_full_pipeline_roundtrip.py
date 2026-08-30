@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 import os
 from collections.abc import Iterator
@@ -28,6 +29,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "20")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("2"))
     monkeypatch.setenv("DB_BACKEND", "supabase")
     monkeypatch.setenv("SUPABASE_URL", supabase_url)
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE", service_role_key)

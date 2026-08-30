@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 import sqlite3
 from collections.abc import Iterator
@@ -9,7 +10,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
-from tests.intake_v2_fixtures import intake_payload_simple
+from tests.intake_v2_fixtures import intake_payload_simple, unbind_ready_stories
 from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
@@ -25,6 +26,7 @@ def client(monkeypatch: pytest.MonkeyPatch, sqlite_db_url: str) -> Iterator[Test
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("2"))
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", sqlite_db_url)
     monkeypatch.setenv("SUPABASE_URL", "")
@@ -69,6 +71,7 @@ def test_cross_layer_api_app_infra_side_effects_roundtrip(
     assert ok_1.status_code == 202
     assert ok_2.status_code == 202
     assert bad.status_code == 400
+    unbind_ready_stories(get_api_dependencies().story_cluster_orchestrator.story_repository)
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
 
     db_path = _sqlite_path_from_url(sqlite_db_url)

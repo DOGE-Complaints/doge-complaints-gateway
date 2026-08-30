@@ -1,6 +1,7 @@
 """REQ-41 GAP-41-02: full-stack cron timing via ASGI lifespan (CT-01..03)."""
 
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 import time
 from collections.abc import Iterator
@@ -9,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImports]
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
-from tests.intake_v2_fixtures import intake_payload_simple
+from tests.intake_v2_fixtures import intake_payload_simple, unbind_ready_stories
 from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
@@ -25,6 +26,7 @@ def _cron_client(monkeypatch: pytest.MonkeyPatch, *, cron_enabled: bool) -> Iter
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "1")
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "1")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("1"), readiness_threshold=int("1"))
     monkeypatch.setenv("CLUSTER_CRON_INTERVAL_S", "1")
     monkeypatch.setenv("CLUSTER_CRON_ENABLED", "true" if cron_enabled else "false")
     _clear_api_dependencies_cache()
@@ -47,6 +49,7 @@ def _intake_pair(client: TestClient, *, prefix: str) -> None:
             headers={"idempotency-key": f"cron-{prefix}-{suffix}"},
         )
         assert response.status_code == 202, response.text
+    unbind_ready_stories(get_api_dependencies().story_cluster_orchestrator.story_repository)
 
 
 @pytest.fixture()

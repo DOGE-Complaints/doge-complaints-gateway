@@ -1,6 +1,7 @@
 """GW-ES-03: Emerging L2 unit + public HTTP smoke + Issues regression + ≠ Issues shape."""
 
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 from collections.abc import Iterator
 from typing import Any
@@ -32,6 +33,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("IDENTITY_BASE_URL", GAUTH_TEST_IDENTITY_URL)
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "1")
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", "1")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("1"), readiness_threshold=int("1"))
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client

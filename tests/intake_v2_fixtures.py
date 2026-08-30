@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
 
@@ -26,6 +27,51 @@ def narrative_dict(
     en: str = "t",
 ) -> dict[str, str]:
     return {"et": et, "ru": ru, "en": en}
+
+
+def with_active_schema_binding(payload: dict[str, Any]) -> dict[str, Any]:
+    """SSR-17/18: civic HTTP/parse fixtures must send NODE_SCHEMA_* pair."""
+    if "schema_binding" in payload:
+        return payload
+    merged = dict(payload)
+    merged["schema_binding"] = active_node_schema_binding()
+    return merged
+
+
+def as_unbound_civic(story: StoryRecord) -> StoryRecord:
+    """Drop persist binding so civic cluster path runs (legacy row)."""
+    return replace(
+        story,
+        schema_id=None,
+        bound_schema_version=None,
+        structured_payload=None,
+        payload_hash=None,
+    )
+
+
+def unbind_ready_stories(repository: Any) -> None:
+    for story in repository.list_stories_ready_for_clustering():
+        if story.schema_id:
+            repository.save_story(as_unbound_civic(story))
+
+
+def unbound_civic_ready(
+    story_id: str,
+    *,
+    text: str = "broken road in district center",
+    labels: tuple[str, ...] = ("roads", "broken_infrastructure"),
+) -> StoryRecord:
+    """Legacy civic row (no persist binding) for cluster-engine tests after SSR-18."""
+    return make_story_record(
+        story_id=story_id,
+        narrative_original_text=text,
+        submitter_external_user_id=f"user-{story_id}",
+        lifecycle_status=StoryLifecycleStatus.READY_FOR_PROFILE,
+        narrative_title=narrative_dict(en="hint"),
+        narrative_description=narrative_dict(en="hint description"),
+        narrative_canonical_type="complaint",
+        narrative_canonical_labels=labels,
+    )
 
 
 def valid_v2_intake_payload(

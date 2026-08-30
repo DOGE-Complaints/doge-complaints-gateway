@@ -39,8 +39,8 @@ def test_civic_factory_and_default_type_gate_untouched() -> None:
     end = factory.index("\n    def get_issue_projection_service")
     block = factory[start:end]
     assert "PromotionGatePolicy(" in block
-    assert "min_readiness_score=self.config.cluster_readiness_threshold" in block
-    assert "min_stories=self.config.cluster_min_size" in block
+    assert "min_readiness_score=civic.readiness_threshold" in block
+    assert "min_stories=civic.min_size" in block
     assert "require_actionable_canonical_type" not in block
     gates = GATES.read_text(encoding="utf-8")
     assert "require_actionable_canonical_type: bool = True" in gates

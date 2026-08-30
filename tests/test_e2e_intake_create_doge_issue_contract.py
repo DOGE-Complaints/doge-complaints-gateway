@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 from collections.abc import Iterator
 
@@ -7,7 +8,13 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app, get_api_dependencies
 from core.intake import INTAKE_SCHEMA_VERSION
-from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.intake_v2_fixtures import (
+    intake_payload_simple,
+    make_story_record,
+    narrative_dict,
+    unbind_ready_stories,
+    with_active_schema_binding,
+)
 from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 REQUIRED_DOGE_ISSUE_KEYS = frozenset({"id", "status", "type", "labels", "title", "summary", "description"})
@@ -19,6 +26,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", "2")
+    monkeypatch_civic_knobs(monkeypatch, min_size=int("2"))
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
         yield test_client
@@ -26,7 +34,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
 
 
 def _intake_payload(external_user_id: str, text: str) -> dict[str, object]:
-    return {
+    body = {
         "schema_version": INTAKE_SCHEMA_VERSION,
         "submitter": {"external_user_id": external_user_id, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
@@ -39,6 +47,7 @@ def _intake_payload(external_user_id: str, text: str) -> dict[str, object]:
             "canonical_labels": ["roads", "broken_infrastructure"],
         },
     }
+    return with_active_schema_binding(body)
 
 
 def _create_story(client: TestClient, *, external_user_id: str, text: str) -> str:
@@ -62,6 +71,7 @@ def test_e2e_intake_create_issue_to_spa_contract_happy_path(client: TestClient) 
         text="Road lights are broken and unsafe for pedestrians in district A.",
     )
     deps = get_api_dependencies()
+    unbind_ready_stories(deps.story_cluster_orchestrator.story_repository)
     deps.story_cluster_orchestrator.process_all_pending()
     issue_create = deps.story_cluster_orchestrator.issue_create_service
     projection_store = issue_create.issue_projection_store
@@ -109,6 +119,7 @@ def test_e2e_story_first_boundary_and_min_stories_gate(client: TestClient) -> No
         text="Single story is not enough for promotion gate baseline.",
     )
     deps = get_api_dependencies()
+    unbind_ready_stories(deps.story_cluster_orchestrator.story_repository)
     deps.story_cluster_orchestrator.process_all_pending()
     projection_store = deps.story_cluster_orchestrator.issue_create_service.issue_projection_store
     assert projection_store is not None

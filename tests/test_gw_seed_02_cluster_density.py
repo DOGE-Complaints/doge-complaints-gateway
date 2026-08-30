@@ -1,6 +1,7 @@
 """GW-SEED-02: v0_2 canvas produces clusters ≥8 under CLUSTER_MIN_SIZE=8."""
 
 from __future__ import annotations
+from tests.civic_pack_overrides import monkeypatch_civic_knobs
 
 import json
 from collections import Counter
@@ -176,6 +177,7 @@ def sqlite_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("CLUSTER_MIN_SIZE", str(CLUSTER_MIN_SIZE))
     monkeypatch.setenv("CLUSTER_READINESS_THRESHOLD", str(READINESS_THRESHOLD))
+    monkeypatch_civic_knobs(monkeypatch, min_size=int(str(CLUSTER_MIN_SIZE)), readiness_threshold=int(str(READINESS_THRESHOLD)))
     monkeypatch.setenv("DB_BACKEND", "sqlite")
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'gw_seed_02.sqlite'}")
     monkeypatch.setenv("SUPABASE_URL", "")

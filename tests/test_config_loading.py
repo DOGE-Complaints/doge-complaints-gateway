@@ -51,32 +51,12 @@ def test_load_config_demo_defaults() -> None:
     assert config.db_backend == "in_memory"
     assert config.db_enabled is False
     assert config.database_url is None
-    assert config.cluster_min_size == 5
-    assert config.cluster_readiness_threshold == 60
-    assert config.cluster_active_lenses
-    assert config.cluster_active_lenses == (
-        "composite_primary_micro",
-        "civic_domain_micro",
-        "failure_pattern_micro",
-        "civic_weight_systemic",
-        "desired_outcome_local",
-        "affected_group_local",
-        "geographic_district_micro",
-        "service_object_micro",
-        "deep_need_local",
-        "ecosystem_signal_systemic",
-    )
-    assert "topic_micro" not in config.cluster_active_lenses
-    assert config.cluster_primary_lens == "composite_primary_micro"
-    assert config.cluster_min_size_by_lens["composite_primary_micro"] == 8
-    assert config.cluster_signal_source == "canonical"
-    assert config.cluster_geo_filter == "country"
-    assert config.cluster_geo_scope is None
-    assert config.cluster_tie_breaker == "alpha"
-    assert config.cluster_type_resolution == "canonical_priority"
-    assert config.cluster_id_algorithm == "sha256"
+    assert not hasattr(config, "cluster_min_size")
+    assert not hasattr(config, "cluster_active_lenses")
     assert config.cluster_cron_interval_s == 60
     assert config.cluster_cron_enabled is True
+    assert config.node_schema_id == "tallinn_civic"
+    assert config.node_schema_version == "v1"
 
 
 def test_load_config_pilot_defaults() -> None:
@@ -124,15 +104,18 @@ def test_invalid_profile_raises() -> None:
         )
 
 
-def test_cluster_tie_breaker_non_alpha_raises() -> None:
-    with pytest.raises(ConfigError, match="Invalid CLUSTER_TIE_BREAKER"):
-        load_config_from_env(
-            {
-                "APP_PROFILE": "demo",
-                "API_BASE_URL": "https://demo.example/api",
-                "CLUSTER_TIE_BREAKER": "lexical",
-            }
-        )
+def test_leftover_semantic_cluster_env_is_ignored() -> None:
+    config = load_config_from_env(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+            "CLUSTER_TIE_BREAKER": "lexical",
+            "CLUSTER_MIN_SIZE": "1",
+            "CLUSTER_ACTIVE_LENSES": "civic_domain_micro",
+        }
+    )
+    assert config.cluster_cron_enabled is True
+    assert not hasattr(config, "cluster_min_size")
 
 
 def test_invalid_timeout_raises() -> None:
@@ -216,28 +199,20 @@ def test_env_schema_contains_required_fields() -> None:
     assert "DATABASE_URL" in names
     assert "SUPABASE_URL" in names
     assert "SUPABASE_SERVICE_ROLE" in names
-    assert "CLUSTER_MIN_SIZE" in names
-    assert "CLUSTER_READINESS_THRESHOLD" in names
-    assert "CLUSTER_ACTIVE_LENSES" in names
-    assert "CLUSTER_PRIMARY_LENS" in names
-    assert "CLUSTER_SIGNAL_SOURCE" in names
-    assert "CLUSTER_ID_ALGORITHM" in names
-    assert "CLUSTER_GEO_FILTER" in names
-    assert "CLUSTER_TIE_BREAKER" in names
-    assert "CLUSTER_TYPE_RESOLUTION" in names
+    assert "CLUSTER_MIN_SIZE" not in names
+    assert "CLUSTER_READINESS_THRESHOLD" not in names
+    assert "CLUSTER_ACTIVE_LENSES" not in names
+    assert "CLUSTER_PRIMARY_LENS" not in names
+    assert "CLUSTER_SIGNAL_SOURCE" not in names
+    assert "CLUSTER_ID_ALGORITHM" not in names
+    assert "CLUSTER_GEO_FILTER" not in names
+    assert "CLUSTER_GEO_SCOPE" not in names
+    assert "CLUSTER_TIE_BREAKER" not in names
+    assert "CLUSTER_TYPE_RESOLUTION" not in names
     assert "CLUSTER_CRON_INTERVAL_S" in names
     assert "CLUSTER_CRON_ENABLED" in names
-
-
-def test_invalid_cluster_active_lenses_raises() -> None:
-    with pytest.raises(ConfigError, match="Invalid CLUSTER_ACTIVE_LENSES values"):
-        load_config_from_env(
-            {
-                "APP_PROFILE": "demo",
-                "API_BASE_URL": "https://demo.example/api",
-                "CLUSTER_ACTIVE_LENSES": "civic_domain_micro,invalid_lens",
-            }
-        )
+    assert "NODE_SCHEMA_ID" in names
+    assert "NODE_SCHEMA_VERSION" in names
 
 
 def test_pilot_profile_requires_service_api_token() -> None:
@@ -312,20 +287,15 @@ def test_sqlite_backend_rejects_supabase_keys() -> None:
         )
 
 
-def test_cluster_primary_lens_must_appear_in_cluster_active_lenses() -> None:
-    """H4: primary lens must be a member of CLUSTER_ACTIVE_LENSES (fail-fast contract)."""
-    with pytest.raises(
-        ConfigError,
-        match=r"CLUSTER_PRIMARY_LENS=.*must appear in CLUSTER_ACTIVE_LENSES=",
-    ):
-        load_config_from_env(
-            {
-                "APP_PROFILE": "demo",
-                "API_BASE_URL": "https://demo.example/api",
-                "CLUSTER_ACTIVE_LENSES": "civic_domain_micro,failure_pattern_micro,civic_weight_systemic",
-                "CLUSTER_PRIMARY_LENS": "geographic_district_micro",
-            }
-        )
+def test_missing_cluster_min_size_env_is_not_config_error() -> None:
+    config = load_config_from_env(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+        }
+    )
+    assert config.cluster_cron_enabled is True
+    assert not hasattr(config, "cluster_min_size")
 
 
 def test_provide_app_config_merges_dotenv_when_env_is_none(tmp_path, monkeypatch) -> None:
