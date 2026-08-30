@@ -8,6 +8,16 @@ from core.config import ConfigError, DeploymentProfile, ENV_SCHEMA, load_config_
 from core.config import schema as config_schema
 from core.infrastructure.providers import provide_app_config, provide_service_factory
 from core.infrastructure.repositories import InMemoryStoryRepository
+from gw_ssr_16_node_schema import with_node_schema
+
+_load_config_from_env = load_config_from_env
+
+
+def load_config_from_env(env: dict[str, str] | None = None):
+    """GW-SSR-16: inject NODE_SCHEMA_* into explicit env dicts (setdefault)."""
+    if env is not None:
+        return _load_config_from_env(with_node_schema(env))
+    return _load_config_from_env(env)
 
 
 def test_db_backend_env_default_matches_schema() -> None:
@@ -337,7 +347,7 @@ def test_provide_app_config_os_environ_overrides_dotenv(tmp_path, monkeypatch) -
 
 def test_db_backend_defaults_to_in_memory_via_provide_app_config() -> None:
     """REQ-39 I-01: empty explicit env → in_memory backend."""
-    config = provide_app_config(env={})
+    config = provide_app_config(env=with_node_schema({}))
     assert config.db_backend == "in_memory"
     assert config.db_enabled is False
 
@@ -345,11 +355,13 @@ def test_db_backend_defaults_to_in_memory_via_provide_app_config() -> None:
 def test_db_backend_supabase_from_env() -> None:
     """REQ-39 I-02: DB_BACKEND=supabase with contract env keys."""
     config = provide_app_config(
-        env={
-            "DB_BACKEND": "supabase",
-            "SUPABASE_URL": "https://example.supabase.co",
-            "SUPABASE_SERVICE_ROLE": "service-role-secret",
-        }
+        env=with_node_schema(
+            {
+                "DB_BACKEND": "supabase",
+                "SUPABASE_URL": "https://example.supabase.co",
+                "SUPABASE_SERVICE_ROLE": "service-role-secret",
+            }
+        )
     )
     assert config.db_backend == "supabase"
     assert config.db_enabled is True
@@ -358,11 +370,13 @@ def test_db_backend_supabase_from_env() -> None:
 def test_factory_in_memory_uses_inmemory_repos() -> None:
     """REQ-39 I-03: provide_service_factory wires InMemoryStoryRepository."""
     config = provide_app_config(
-        {
-            "APP_PROFILE": "demo",
-            "API_BASE_URL": "https://demo.example/api",
-            "DB_BACKEND": "in_memory",
-        }
+        with_node_schema(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "in_memory",
+            }
+        )
     )
     factory = provide_service_factory(config)
     service = factory.get_story_intake_service()
@@ -380,10 +394,12 @@ def test_provide_app_config_explicit_env_does_not_read_dotenv(tmp_path, monkeypa
     (tmp_path / ".env").write_text("LOG_LEVEL=ERROR\n", encoding="utf-8")
     monkeypatch.delenv("LOG_LEVEL", raising=False)
     cfg = provide_app_config(
-        {
-            "APP_PROFILE": "demo",
-            "API_BASE_URL": "https://demo.example/api",
-        }
+        with_node_schema(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+            }
+        )
     )
     assert cfg.log_level == "INFO"
 

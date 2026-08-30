@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from gw_ssr_16_node_schema import with_node_schema
+
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _SRC = _REPO_ROOT / "src"
 
@@ -54,7 +56,7 @@ def _demo_env(**overrides: str) -> dict[str, str]:
         "SUPABASE_SERVICE_ROLE": "",
     }
     base.update(overrides)
-    return base
+    return with_node_schema(base)
 
 
 def _run_config_subprocess(

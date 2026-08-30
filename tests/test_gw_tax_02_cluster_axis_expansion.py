@@ -19,6 +19,7 @@ from core.cluster.engine import (
     lens_dimension,
 )
 from core.config.schema import load_config_from_env
+from gw_ssr_16_node_schema import with_node_schema
 from core.domain import SignalDimension, StoryLabel, StoryLifecycleStatus, StoryRecord
 from core.infrastructure.repositories import (
     InMemoryIssueProjectionStore,
@@ -176,10 +177,12 @@ def test_get_signals_for_story_uses_story_label_repository_when_present() -> Non
 
 def test_per_lens_min_size_config_parsed_from_env() -> None:
     config = load_config_from_env(
-        {
-            "API_BASE_URL": "https://example.test/api",
-            "CLUSTER_MIN_SIZE_BY_LENS": "composite_primary_micro=8,service_object_micro=3",
-        }
+        with_node_schema(
+            {
+                "API_BASE_URL": "https://example.test/api",
+                "CLUSTER_MIN_SIZE_BY_LENS": "composite_primary_micro=8,service_object_micro=3",
+            }
+        )
     )
     assert config.cluster_min_size_by_lens["composite_primary_micro"] == 8
     assert config.cluster_min_size_by_lens["service_object_micro"] == 3

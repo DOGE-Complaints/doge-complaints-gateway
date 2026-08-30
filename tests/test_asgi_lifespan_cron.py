@@ -21,7 +21,8 @@ class _ConfigStub:
     cluster_active_lenses: tuple[str, ...] = ("civic_domain_micro",)
     cluster_primary_lens: str = "civic_domain_micro"
     cluster_readiness_threshold: int = 60
-    db_backend: str = "in_memory"
+    node_schema_id: str = "tallinn_civic"
+    node_schema_version: str = "v1"
 
 
 def _deps_stub(*, cron_enabled: bool, db_backend: str = "in_memory") -> Any:

@@ -6,23 +6,28 @@ from core.adapters import (
     build_adapter_bundle,
 )
 from core.config import load_config_from_env
+from gw_ssr_16_node_schema import with_node_schema
 
 
 def _demo_env() -> dict[str, str]:
-    return {
-        "APP_PROFILE": "demo",
-        "API_BASE_URL": "https://demo.example/api",
-        "REQUEST_TIMEOUT_S": "15",
-    }
+    return with_node_schema(
+        {
+            "APP_PROFILE": "demo",
+            "API_BASE_URL": "https://demo.example/api",
+            "REQUEST_TIMEOUT_S": "15",
+        }
+    )
 
 
 def _pilot_env() -> dict[str, str]:
-    return {
-        "APP_PROFILE": "pilot",
-        "API_BASE_URL": "https://pilot.example/api",
-        "REQUEST_TIMEOUT_S": "15",
-        "SERVICE_API_TOKEN": "pilot-test-token",
-    }
+    return with_node_schema(
+        {
+            "APP_PROFILE": "pilot",
+            "API_BASE_URL": "https://pilot.example/api",
+            "REQUEST_TIMEOUT_S": "15",
+            "SERVICE_API_TOKEN": "pilot-test-token",
+        }
+    )
 
 
 def test_build_adapter_bundle_returns_typed_bundle() -> None:

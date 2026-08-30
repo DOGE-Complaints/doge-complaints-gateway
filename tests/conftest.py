@@ -12,6 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.logging_setup import configure_logging
+from gw_ssr_16_node_schema import monkeypatch_node_schema
 
 _SERVICE_WRITE_PATH_SUFFIXES = ("/node/issues",)
 _ORIGINAL_TESTCLIENT_REQUEST: Callable[..., Any] | None = None
@@ -73,6 +74,7 @@ def _block_dotenv_leakage(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLUSTER_TIE_BREAKER", "alpha")
     monkeypatch.setenv("SERVICE_API_TOKEN", "gauth-test-service-token")
     monkeypatch.setenv("IDENTITY_BASE_URL", GAUTH_TEST_IDENTITY_URL)
+    monkeypatch_node_schema(monkeypatch)
 
 
 def gauth_intake_headers(

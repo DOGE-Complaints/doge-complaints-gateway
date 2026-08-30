@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.infrastructure.providers import provide_app_config, provide_service_factory
+from gw_ssr_16_node_schema import with_node_schema
 from core.infrastructure.repositories import InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, IntakeValidationError, parse_story_intake_request
 from tests.intake_v2_fixtures import valid_v2_intake_payload
@@ -105,11 +106,13 @@ def test_idempotency_key_deduplicates_story(
 def test_api_dependencies_wires_correct_repo_for_in_memory() -> None:
     """REQ-39 E-06: in_memory backend → InMemoryStoryRepository."""
     config = provide_app_config(
-        {
-            "APP_PROFILE": "demo",
-            "API_BASE_URL": "https://demo.example/api",
-            "DB_BACKEND": "in_memory",
-        }
+        with_node_schema(
+            {
+                "APP_PROFILE": "demo",
+                "API_BASE_URL": "https://demo.example/api",
+                "DB_BACKEND": "in_memory",
+            }
+        )
     )
     factory = provide_service_factory(config)
     svc = factory.get_story_intake_service()
