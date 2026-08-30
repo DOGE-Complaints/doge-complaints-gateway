@@ -47,31 +47,34 @@ def _intake_service() -> StoryIntakeService:
     return StoryIntakeService(
         repository=InMemoryStoryRepository(),
         idempotency_repository=InMemoryIdempotencyRepository(),
+        node_schema_id="legal_process",
+        node_schema_version="v1",
     )
+
+
+def _omit_binding(payload: dict) -> dict:
+    body = dict(payload)
+    body.pop("schema_binding", None)
+    return body
 
 
 def test_clusterlens_baseline_unchanged() -> None:
     assert tuple(member.value for member in ClusterLens) == CLUSTERLENS_BASELINE
 
 
-def test_absent_schema_binding_is_civic_legacy() -> None:
-    request = parse_story_intake_request(valid_v2_intake_payload())
-    assert request.schema_version == INTAKE_SCHEMA_VERSION
-    assert request.schema_binding is None
-    saved = _intake_service().create_story(request).story
-    assert saved.schema_version == INTAKE_SCHEMA_VERSION
-    assert saved.schema_id is None
-    assert saved.bound_schema_version is None
-    assert saved.structured_payload is None
-    assert saved.payload_hash is None
+def test_absent_schema_binding_is_rejected() -> None:
+    with pytest.raises(IntakeValidationError, match="schema_binding"):
+        parse_story_intake_request(_omit_binding(valid_v2_intake_payload()))
 
 
-def test_empty_schema_binding_object_is_civic() -> None:
-    request = parse_story_intake_request(valid_v2_intake_payload(schema_binding={}))
-    assert request.schema_binding is None
-    saved = _intake_service().create_story(request).story
-    assert saved.schema_id is None
-    assert saved.structured_payload is None
+def test_empty_schema_binding_object_is_rejected() -> None:
+    with pytest.raises(IntakeValidationError, match="schema_binding"):
+        parse_story_intake_request(valid_v2_intake_payload(schema_binding={}))
+
+
+def test_null_schema_binding_is_rejected() -> None:
+    with pytest.raises(IntakeValidationError, match="schema_binding"):
+        parse_story_intake_request(valid_v2_intake_payload(schema_binding=None))
 
 
 def test_present_schema_binding_persists_and_hashes_server_side() -> None:
@@ -143,9 +146,10 @@ def test_stash_and_submit_share_binding() -> None:
     assert saved.payload_hash == payload_hash_for(LEGAL_BINDING["structured_payload"])
 
 
-def test_get_tallinn_issues_route_stays() -> None:
+def test_get_node_issues_route_present() -> None:
     paths = {getattr(route, "path", None) for route in app.routes}
     assert "/node/issues" in paths
+    assert "/tallinn/issues" not in paths
     assert not any(
         path and ("schema-filter" in path or "story_dimensions" in path)
         for path in paths

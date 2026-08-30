@@ -5,13 +5,15 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
+import pytest
+
 from core.application import StoryIntakeService
 from core.cluster.types import ClusterLens
 from core.domain import StoryLifecycleStatus, StoryRecord
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.infrastructure.db_sqlite import SqliteDatabase, SqliteStoryRepository
 from core.infrastructure.db_supabase import REQUIRED_READINESS_TABLES, SupabaseDatabase
-from core.intake import parse_story_intake_request
+from core.intake import IntakeValidationError, parse_story_intake_request
 from core.intake.contracts import INTAKE_SCHEMA_VERSION, StoryIntakeRequest
 from core.schema.payload import authoritative_payload_hash, payload_hash_for
 from tests.intake_v2_fixtures import make_story_record, valid_v2_intake_payload
@@ -168,17 +170,11 @@ def test_civic_save_all_none_binding_stays_green() -> None:
     assert memory_fetched.schema_version == INTAKE_SCHEMA_VERSION
 
 
-def test_civic_intake_create_leaves_binding_none() -> None:
-    service = StoryIntakeService(
-        repository=InMemoryStoryRepository(),
-        idempotency_repository=InMemoryIdempotencyRepository(),
-    )
-    saved = service.create_story(parse_story_intake_request(valid_v2_intake_payload())).story
-    assert saved.schema_version == INTAKE_SCHEMA_VERSION
-    assert saved.schema_id is None
-    assert saved.bound_schema_version is None
-    assert saved.structured_payload is None
-    assert saved.payload_hash is None
+def test_civic_intake_create_without_binding_raises() -> None:
+    payload = valid_v2_intake_payload()
+    payload.pop("schema_binding", None)
+    with pytest.raises(IntakeValidationError, match="schema_binding"):
+        parse_story_intake_request(payload)
 
 
 def test_lifecycle_advance_keeps_binding() -> None:
@@ -239,11 +235,13 @@ def test_sqlite_alter_adds_binding_columns_without_create_rewrite() -> None:
     assert "bound_schema_version = excluded.bound_schema_version" in src
 
 
-def test_intake_parser_schema_binding_is_optional_sidecar() -> None:
-    """SSR-03 closed the SSR-02 guard: sidecar exists; civic path still omits it."""
+def test_intake_parser_schema_binding_is_required_sidecar() -> None:
+    """D-SSR-8: sidecar exists; omit is 4xx (civic-absent closed)."""
     assert "schema_binding" in StoryIntakeRequest.__dataclass_fields__
-    civic = parse_story_intake_request(valid_v2_intake_payload())
-    assert civic.schema_binding is None
+    payload = valid_v2_intake_payload()
+    payload.pop("schema_binding", None)
+    with pytest.raises(IntakeValidationError, match="schema_binding"):
+        parse_story_intake_request(payload)
 
 
 def test_readiness_probe_does_not_require_binding_columns() -> None:

@@ -5,6 +5,7 @@ from typing import Any
 
 from core.domain import StoryLifecycleStatus, StoryRecord
 from core.intake import INTAKE_SCHEMA_VERSION
+from gw_ssr_16_node_schema import active_node_schema_binding
 
 _I18N = {
     "et": "Pealkiri ET",
@@ -58,6 +59,8 @@ def valid_v2_intake_payload(
             )
         else:
             payload[key] = value
+    if "schema_binding" not in overrides:
+        payload["schema_binding"] = active_node_schema_binding()
     return payload
 
 

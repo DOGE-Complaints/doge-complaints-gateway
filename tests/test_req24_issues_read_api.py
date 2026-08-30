@@ -44,17 +44,22 @@ def _app_story_repository():
     return get_api_dependencies().story_cluster_orchestrator.story_repository
 
 
-def _seed_via_intake(client: TestClient) -> str:
+def _post_civic_intake(client: TestClient, *, suffix: str) -> str:
+    """HTTP intake with NODE_SCHEMA_* binding (SSR-17). Pack promote needs min_size=3."""
     payload = intake_payload_simple(
-        external_user_id="req24-user",
-        original_text="Broken pavement near Kalamaja street lights",
-        title_en="Kalamaja pavement",
+        external_user_id=f"req24-user-{suffix}",
+        original_text=f"Broken pavement near Kalamaja street lights {suffix}",
+        title_en=f"Kalamaja pavement {suffix}",
     )
     payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = post_intake_via_story_drafts(
-        client, json=payload)
+    response = post_intake_via_story_drafts(client, json=payload)
     assert response.status_code == 202
-    story_id = str(response.json()["data"]["story_id"])
+    return str(response.json()["data"]["story_id"])
+
+
+def _seed_via_intake(client: TestClient) -> str:
+    for index in range(3):
+        _post_civic_intake(client, suffix=f"seed-{index}")
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
     deps = get_api_dependencies()
     store = deps.issue_create_service.issue_projection_store
@@ -110,15 +115,8 @@ def test_req24_ac1_sqlite_doge_issues_table_exists(tmp_path: Path) -> None:
 
 
 def test_req24_ac2_write_path_uses_doge_issues(client: TestClient) -> None:
-    payload = intake_payload_simple(
-        external_user_id="req24-ac2-user",
-        original_text="write path regression for doge_issues table",
-        title_en="AC2 write path",
-    )
-    payload["narrative"]["location_query"] = "Kalamaja, Tallinn"
-    response = post_intake_via_story_drafts(
-        client, json=payload)
-    assert response.status_code == 202
+    for index in range(3):
+        _post_civic_intake(client, suffix=f"ac2-{index}")
     get_api_dependencies().story_cluster_orchestrator.process_all_pending()
     in_memory = get_api_dependencies().issue_create_service.issue_projection_store
     assert in_memory is not None

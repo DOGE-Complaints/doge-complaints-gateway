@@ -111,6 +111,9 @@ def _scenario_to_payload(scenario: dict[str, Any]) -> dict[str, Any]:
     location_query = scenario.get("resident_input", {}).get("location_query")
     if isinstance(location_query, str) and location_query.strip():
         payload["narrative"]["location_query"] = location_query.strip()
+    from gw_ssr_16_node_schema import active_node_schema_binding
+
+    payload["schema_binding"] = active_node_schema_binding()
     return payload
 
 

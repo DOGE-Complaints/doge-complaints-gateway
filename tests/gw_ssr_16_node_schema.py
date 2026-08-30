@@ -31,6 +31,26 @@ def with_node_schema(env: Mapping[str, str]) -> dict[str, str]:
     return merged
 
 
+def active_node_schema_binding(
+    *,
+    schema_id: str = DEFAULT_TEST_NODE_SCHEMA_ID,
+    schema_version: str = DEFAULT_TEST_NODE_SCHEMA_VERSION,
+    structured_payload: Mapping[str, object] | None = None,
+) -> dict[str, object]:
+    """Match-pair binding for civic HTTP / fixtures (GW-SSR-17)."""
+    payload = structured_payload or {
+        "signals": {
+            "civic_domain": "infrastructure",
+            "failure_pattern": "blocked",
+        }
+    }
+    return {
+        "schema_id": schema_id,
+        "schema_version": schema_version,
+        "structured_payload": dict(payload),
+    }
+
+
 def monkeypatch_node_schema(
     monkeypatch: pytest.MonkeyPatch,
     *,
