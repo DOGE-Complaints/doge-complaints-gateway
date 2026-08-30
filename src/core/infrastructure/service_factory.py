@@ -83,6 +83,8 @@ class DefaultServiceFactory:
             story_label_repository=self.story_label_repository,
             log_debug_dir=self.config.log_debug_dir,
             schema_runtime=LocalSchemaRuntime(),
+            node_schema_id=self.config.node_schema_id,
+            node_schema_version=self.config.node_schema_version,
         )
 
     def get_signal_profile_service(self) -> SignalProfileService:

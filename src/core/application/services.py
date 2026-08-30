@@ -102,6 +102,16 @@ class StoryIntakeService:
     story_label_repository: StoryLabelRepository | None = None
     log_debug_dir: str | None = None
     schema_runtime: LocalSchemaRuntime | None = None
+    node_schema_id: str | None = None
+    node_schema_version: str | None = None
+
+    def _active_schema_pair(self) -> tuple[str, str]:
+        if self.node_schema_id and self.node_schema_version:
+            return self.node_schema_id, self.node_schema_version
+        from core.config import load_config_from_env
+
+        config = load_config_from_env()
+        return config.node_schema_id, config.node_schema_version
 
     def _persist_gpt_classifier_signals(
         self, *, story_id: str, gpt_signals: GptSignalsBlock
@@ -237,35 +247,36 @@ class StoryIntakeService:
                 else None
             )
             binding = request.schema_binding
-            bound_schema_id: str | None = None
-            bound_schema_version: str | None = None
-            bound_profile_id: str | None = None
-            bound_profile_version: str | None = None
-            structured_payload: dict | None = None
-            payload_hash: str | None = None
-            if binding is not None:
-                runtime = (
-                    self.schema_runtime
-                    if self.schema_runtime is not None
-                    else LocalSchemaRuntime()
+            if binding is None:
+                raise IntakeValidationError("Missing or invalid root.schema_binding.")
+            active_id, active_version = self._active_schema_pair()
+            if (
+                binding.schema_id != active_id
+                or binding.schema_version != active_version
+            ):
+                raise IntakeValidationError(
+                    "schema_binding must match NODE_SCHEMA_ID/NODE_SCHEMA_VERSION="
+                    f"{active_id!r}/{active_version!r}."
                 )
-                try:
-                    context = runtime.resolve(
-                        SchemaRef(
-                            schema_id=binding.schema_id,
-                            schema_version=binding.schema_version,
-                        ),
-                        profile_ref=binding.profile_id,
-                    )
-                    runtime.validate(context, binding.structured_payload)
-                except SchemaRuntimeError as exc:
-                    raise IntakeValidationError(str(exc)) from exc
-                bound_schema_id = binding.schema_id
-                bound_schema_version = binding.schema_version
-                bound_profile_id = binding.profile_id
-                bound_profile_version = binding.profile_version
-                structured_payload = dict(binding.structured_payload)
-                payload_hash = authoritative_payload_hash(structured_payload)
+            runtime = (
+                self.schema_runtime
+                if self.schema_runtime is not None
+                else LocalSchemaRuntime()
+            )
+            try:
+                context = runtime.resolve(
+                    SchemaRef(schema_id=active_id, schema_version=active_version),
+                    profile_ref=binding.profile_id,
+                )
+                runtime.validate(context, binding.structured_payload)
+            except SchemaRuntimeError as exc:
+                raise IntakeValidationError(str(exc)) from exc
+            bound_schema_id = binding.schema_id
+            bound_schema_version = binding.schema_version
+            bound_profile_id = binding.profile_id
+            bound_profile_version = binding.profile_version
+            structured_payload = dict(binding.structured_payload)
+            payload_hash = authoritative_payload_hash(structured_payload)
             record = StoryRecord(
                 story_id=story_id,
                 schema_version=request.schema_version,

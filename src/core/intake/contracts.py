@@ -224,10 +224,10 @@ def _optional_binding_string(
     return raw_value.strip()
 
 
-def _parse_schema_binding_block(raw: object) -> SchemaBinding | None:
-    """Parse optional schema_binding sidecar. Empty object / null = civic (None)."""
+def _parse_schema_binding_block(raw: object) -> SchemaBinding:
+    """Parse required schema_binding sidecar. Absent / empty / null = 4xx (D-SSR-8)."""
     if raw is None:
-        return None
+        raise IntakeValidationError("Missing or invalid root.schema_binding.")
     if not isinstance(raw, Mapping):
         raise IntakeValidationError("Missing or invalid root.schema_binding.")
     unknown = set(raw.keys()) - SCHEMA_BINDING_ALLOWED_KEYS
@@ -238,7 +238,7 @@ def _parse_schema_binding_block(raw: object) -> SchemaBinding | None:
             + "."
         )
     if not raw:
-        return None
+        raise IntakeValidationError("Missing or invalid root.schema_binding.")
     schema_id = _require_non_empty_string(raw, "schema_id", parent="schema_binding")
     semantic_version = _require_non_empty_string(
         raw, "schema_version", parent="schema_binding"
@@ -477,9 +477,9 @@ def _parse_story_envelope_body(payload: Mapping[str, Any]) -> tuple[
         if gpt_signals_block_has_values(parsed_gpt_signals):
             gpt_signals = parsed_gpt_signals
 
-    schema_binding: SchemaBinding | None = None
-    if "schema_binding" in payload:
-        schema_binding = _parse_schema_binding_block(payload.get("schema_binding"))
+    if "schema_binding" not in payload:
+        raise IntakeValidationError("Missing or invalid root.schema_binding.")
+    schema_binding = _parse_schema_binding_block(payload.get("schema_binding"))
 
     return (
         schema_version,
