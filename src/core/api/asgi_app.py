@@ -118,12 +118,14 @@ async def _lifespan(_: FastAPI):
         log_debug_dir=deps.config.log_debug_dir,
     )
     logging.getLogger(__name__).info(
-        "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s",
+        "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s node_schema_id=%s node_schema_version=%s",
         deps.config.db_backend,
         deps.config.cluster_primary_lens,
         deps.config.cluster_min_size,
         deps.config.cluster_cron_enabled,
         deps.config.cluster_cron_interval_s,
+        deps.config.node_schema_id,
+        deps.config.node_schema_version,
         extra={
             "db_backend": deps.config.db_backend,
             "cluster_active_lenses": ",".join(deps.config.cluster_active_lenses),
@@ -133,6 +135,8 @@ async def _lifespan(_: FastAPI):
             "log_level": deps.config.log_level,
             "cron_enabled": deps.config.cluster_cron_enabled,
             "cron_interval_s": deps.config.cluster_cron_interval_s,
+            "node_schema_id": deps.config.node_schema_id,
+            "node_schema_version": deps.config.node_schema_version,
         },
     )
     logging.getLogger(__name__).info(

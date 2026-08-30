@@ -60,6 +60,8 @@ class AppConfig:
     identity_base_url: str | None
     spa_verify_base_url: str | None
     story_draft_ttl_seconds: int
+    node_schema_id: str
+    node_schema_version: str
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -255,6 +257,18 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         description=(
             "TTL for story draft stash entries in seconds (GW-DRAFT-01; recommended 3600–86400)."
         ),
+    ),
+    EnvSpec(
+        name="NODE_SCHEMA_ID",
+        required=True,
+        default=None,
+        description="Active node schema pack id (schema-packs/<id>/<version>/).",
+    ),
+    EnvSpec(
+        name="NODE_SCHEMA_VERSION",
+        required=True,
+        default=None,
+        description="Active node schema pack version (schema-packs/<id>/<version>/).",
     ),
 )
 
@@ -489,6 +503,21 @@ def _profile_defaults(profile: DeploymentProfile) -> FeatureFlags:
     )
 
 
+def _resolve_node_schema_pack(*, schema_id: str, schema_version: str) -> None:
+    """Fail-fast: active pair must resolve to an on-disk pack. No civic fallback."""
+    from core.schema.contracts import SchemaRef
+    from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+    from core.schema.resolver import resolve_pack
+
+    try:
+        resolve_pack(SchemaRef(schema_id=schema_id, schema_version=schema_version))
+    except (UnknownSchemaError, UnsupportedVersionError) as exc:
+        raise ConfigError(
+            f"NODE_SCHEMA_ID/NODE_SCHEMA_VERSION={schema_id!r}/{schema_version!r} "
+            f"does not resolve to a pack catalog: {exc}"
+        ) from exc
+
+
 def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
     source = env or environ
     profile = _parse_profile(_get_value(source, "APP_PROFILE"))
@@ -652,6 +681,13 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
             f"Invalid STORY_DRAFT_TTL_SECONDS={story_draft_ttl_seconds}. Must be positive."
         )
 
+    node_schema_id = _require_value(source, name="NODE_SCHEMA_ID")
+    node_schema_version = _require_value(source, name="NODE_SCHEMA_VERSION")
+    _resolve_node_schema_pack(
+        schema_id=node_schema_id,
+        schema_version=node_schema_version,
+    )
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
@@ -681,5 +717,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         identity_base_url=identity_base_url,
         spa_verify_base_url=spa_verify_base_url,
         story_draft_ttl_seconds=story_draft_ttl_seconds,
+        node_schema_id=node_schema_id,
+        node_schema_version=node_schema_version,
     )
 
