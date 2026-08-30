@@ -76,7 +76,7 @@
 | `test_intake_observability.py` | unit/integration | intake telemetry | Error classification + telemetry |
 | `test_asgi_lifespan_cron.py` | integration | cron lifecycle | Cron не стартует при `CLUSTER_CRON_ENABLED=false` |
 | `test_cluster_cron_job.py` | integration | cron job | Start/stop loop, min_size guard, idempotent start |
-| `test_cluster_active_lenses_runtime_effect.py` | integration | cluster config | CLUSTER_ACTIVE_LENSES меняет prefix cluster_id в runtime (SQLite) |
+| `test_cluster_active_lenses_runtime_effect.py` | integration | cluster config | `node_clustering.civic.active_lenses` активного pack меняет prefix `cluster_id` (не env `CLUSTER_ACTIVE_LENSES`) |
 | `test_db_backend_switching.py` | integration | infra/config | Корректный switch in_memory/sqlite/supabase |
 | `test_process_linkage_sqlite.py` | integration | persistence | SQL persistence issue_candidates/review_audit_log/issue_story_links |
 | `test_integration_cross_layer_api_app_infra.py` | integration | cross-layer | Side-effects roundtrip через все три слоя |

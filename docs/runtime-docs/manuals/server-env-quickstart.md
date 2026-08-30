@@ -115,12 +115,9 @@ python -m pip install -e '.[dev]'
 
 `LOG_DEBUG_DIR` на Railway пишет файлы в ephemeral filesystem контейнера, поэтому они исчезают после redeploy/restart. Используйте это как временную диагностику, а не постоянное хранилище.
 
-**Cluster-specific (обязателен при нестандартном `CLUSTER_ACTIVE_LENSES`):**
+**Cluster knobs (не env):** семантические `CLUSTER_ACTIVE_LENSES` / `CLUSTER_PRIMARY_LENS` / `CLUSTER_MIN_SIZE` **не** кастомизируют ноду. Пороги, линзы и geo — в активном pack `node_clustering.civic`; смена = правка `pack.json` + рестарт. См. [мануал ноды](./schema-packs-node-data-model-ru.md) §два контура. В env остаются только `CLUSTER_CRON_*` (процесс) + `NODE_SCHEMA_*`.
 
-- `CLUSTER_ACTIVE_LENSES` (default: `civic_domain_micro,failure_pattern_micro,civic_weight_systemic`)
-- `CLUSTER_PRIMARY_LENS` (default: `civic_domain_micro`) — **должен входить в `CLUSTER_ACTIVE_LENSES`**; если вы переопределяете лензы, явно задайте и primary.
-
-Источник: `src/core/config/schema.py`.
+Источник civic knobs: активный `pack.json`. Cron/env: `src/core/config/schema.py`.
 
 ### Пример для demo (in_memory, только локально)
 
@@ -140,8 +137,7 @@ export API_BASE_URL=https://demo.local
 export DB_BACKEND=supabase
 export SUPABASE_URL=https://<ref>.supabase.co
 export SUPABASE_SERVICE_ROLE=<service-role-key>
-export CLUSTER_ACTIVE_LENSES=topic_micro,need_local,failure_systemic,failure_micro,repeatability_local,relevance_systemic
-export CLUSTER_PRIMARY_LENS=topic_micro
+# Civic lenses/min_size — в pack node_clustering.civic, не CLUSTER_ACTIVE_LENSES.
 # или просто: source .env && make serve
 ```
 
@@ -344,9 +340,9 @@ SMOKE_BASE_URL="https://dogestonia-tallinn-demo.up.railway.app" sh scripts/smoke
    - стартовый лог показывает `db_backend=in_memory` → `.env` не загружен в процесс uvicorn.
    - Используйте `make serve` вместо голого `python -m uvicorn ...`.
    - Проверьте: `make check-env` должен показывать `DB_BACKEND = supabase`.
-7. `ConfigError: CLUSTER_PRIMARY_LENS must appear in CLUSTER_ACTIVE_LENSES`
-   - В `.env` переопределён `CLUSTER_ACTIVE_LENSES` без явного `CLUSTER_PRIMARY_LENS`.
-   - Добавьте `CLUSTER_PRIMARY_LENS=topic_micro` (или первый lens из вашего списка).
+7. Loader/`ConfigError` на `node_clustering.civic` (missing block / `primary_lens` ∉ `active_lenses`)
+   - Исторический env `CLUSTER_PRIMARY_LENS` / `CLUSTER_ACTIVE_LENSES` больше не читается.
+   - Править активный `pack.json` → `node_clustering.civic`, затем рестарт. См. [мануал ноды](./schema-packs-node-data-model-ru.md).
 8. `ConfigError: DB_BACKEND='in_memory' does not allow SUPABASE_URL`
    - В env одновременно заданы Supabase-кредс и отсутствует `DB_BACKEND=supabase`.
    - Добавьте `DB_BACKEND=supabase` в `.env`.

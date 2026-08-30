@@ -27,7 +27,7 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `compatible_profiles` | array of string, optional | If set, `policy_context.profile_ref` must be a member (RUNTIME-005 profile incompatibility) |
 | `dual_civic_lenses` | boolean, optional | SSR-10 Path B. `true` = bound story also gets civic `ClusterLens` memberships from labels / `infer_signals_from_canonical` **and** pack exact-lenses from payload. Absent or `false` = T-wave exact-only. Not required on existing packs (`legal_process`, `tallinn_civic`). This loader only (SCHEMA-005) — not a frozen YAML dialect. |
 | `card_fields` | array of string, optional | SSR-11. Dotted paths from `structured_payload` that MAY appear as **named** leaves on `GET /node/issues` under sidecar `schema_card` (flat keys = the dotted path). Absent, `null`, or `[]` = civic card form (no sidecar). This loader only (SCHEMA-005). `field_policy` `forbidden` / `node_private` are never projected even if listed. Do **not** dump the whole payload. Existing packs without the key stay civic-form. |
-| `node_clustering` | object, required | SSR-19. Civic `ClusterLens` knobs for this node pack. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader error. Factory still reads AppConfig `CLUSTER_*` until SSR-20. Cron stays env (`CLUSTER_CRON_*`). |
+| `node_clustering` | object, required | SSR-19/20. Civic `ClusterLens` knobs for this node pack. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. Factory/handlers read this block (not AppConfig semantic `CLUSTER_*`). Cron stays env (`CLUSTER_CRON_*`). |
 
 ### `field_policy` states (SCHEMA-003, representable)
 
@@ -65,8 +65,8 @@ Example packs carry **different** numbers (data, not code defaults).
 |-------|------|-------|
 | `active_lenses` | array of string | Known `ClusterLens` ids; non-empty; `primary_lens` must be a member |
 | `primary_lens` | string | Must be a known lens id and ∈ `active_lenses` |
-| `min_size` | integer | Positive (mirrors `CLUSTER_MIN_SIZE`) |
-| `min_size_by_lens` | object | Map known lens id → positive int (mirrors `CLUSTER_MIN_SIZE_BY_LENS`) |
+| `min_size` | integer | Positive (former env `CLUSTER_MIN_SIZE`; now pack-only) |
+| `min_size_by_lens` | object | Map known lens id → positive int (former env `CLUSTER_MIN_SIZE_BY_LENS`) |
 | `readiness_threshold` | integer | Range 1–100 |
 | `signal_source` | string | `canonical` |
 | `id_algorithm` | string | `legacy_hash` \| `sha256` |
@@ -75,4 +75,4 @@ Example packs carry **different** numbers (data, not code defaults).
 | `tie_breaker` | string | `alpha` |
 | `type_resolution` | string | e.g. `canonical_priority` |
 
-Example packs copy **current EnvSpec defaults** (`schema.py` `ENV_SCHEMA`): min_size `5`; `min_size_by_lens` includes `composite_primary_micro=8`; readiness `60`; 10 civic lenses; primary `composite_primary_micro`; signal `canonical`; id `sha256`; geo_filter `country`; tie `alpha`; type `canonical_priority`. `tallinn_civic` sets `geo_scope` to `settlement:tallinn`; `legal_process` / `mobility_observation` use `null`. Do not put `CLUSTER_CRON_*` in pack.json.
+Example packs copy former EnvSpec defaults: min_size `5`; `min_size_by_lens` includes `composite_primary_micro=8`; readiness `60`; 10 civic lenses; primary `composite_primary_micro`; signal `canonical`; id `sha256`; geo_filter `country`; tie `alpha`; type `canonical_priority`. `tallinn_civic` sets `geo_scope` to `settlement:tallinn`; `legal_process` / `mobility_observation` use `null`. Do not put `CLUSTER_CRON_*` in pack.json. How-to: [schema-packs-node-data-model-ru.md](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) §два контура.

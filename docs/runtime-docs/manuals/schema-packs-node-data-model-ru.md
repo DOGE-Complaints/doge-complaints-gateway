@@ -1,6 +1,6 @@
 # Schema packs: как устроена модель данных ноды
 
-**Дата:** 2026-08-30T12:50:26Z (склад vs рабочая env — SSR-18)  
+**Дата:** 2026-08-30T19:53:57Z (два контура — SSR-21; склад vs рабочая env — SSR-18)  
 Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke.
 
 Этот текст для человека, который поднимает ноду: что лежит на диске (склад), какая пара **рабочая** (`NODE_SCHEMA_*`), куда ходит публичный API.
@@ -56,6 +56,29 @@ Pack-движок смотрит `structured_payload` по dotted path. Заго
 
 В `pack.json` можно поставить `"dual_civic_lenses": true`. Тогда bound story получает и pack exact-lens, и civic memberships с labels. Нет ключа или `false` — только exact, как у `legal_process` и `tallinn_civic` сейчас. Enum `ClusterLens` при этом не расширяют.
 
+### Два контура: `exact_lenses` vs `node_clustering.civic`
+
+На одной ноде два независимых контура кластеризации. Оба читаются из **активного** pack (`NODE_SCHEMA_*`), не из семантических `CLUSTER_*` в `.env`.
+
+| Контур | Ключ в `pack.json` | Кто крутит | Что режет |
+|--------|--------------------|------------|-----------|
+| Pack exact | `exact_lenses[]` | `SchemaPackClusterEngine` | dotted path в `structured_payload` |
+| Civic | `node_clustering.civic` | `ClusteringEngine` + civic `PromotionGatePolicy` + orchestrator min | `ClusterLens` (десять членов). Dual + unbound legacy |
+
+Civic knobs (`min_size`, `readiness_threshold`, `active_lenses`, `primary_lens`, `geo_filter`, `geo_scope`, …) живут в `node_clustering.civic`. Factory и handlers берут их оттуда ([`service_factory.py`](../../../src/core/infrastructure/service_factory.py), [`handlers.py`](../../../src/core/api/handlers.py)). Семантические `CLUSTER_MIN_SIZE` / `CLUSTER_ACTIVE_LENSES` / `CLUSTER_GEO_SCOPE` в env **игнорируются** (нет полей в `AppConfig`). Dual-source «env wins» нет.
+
+`geo_scope` вроде `settlement:tallinn` на `tallinn_civic` — данные зоны civic-gate, не URL `/tallinn`. Публичный API остаётся `/node/issues`.
+
+Нет публичного `GET /schema-active`. Клиент не выбирает pack: intake `schema_binding` должен совпасть с `NODE_SCHEMA_*`.
+
+### Как сменить пороги / линзы / geo без `.env`
+
+1. Править **активный** каталог: `schema-packs/<NODE_SCHEMA_ID>/<NODE_SCHEMA_VERSION>/pack.json` → блок `node_clustering.civic` (civic) или элемент `exact_lenses[]` (pack exact, включая его `readiness_policy` / `min_size`).
+2. Рестарт процесса (`make serve` / redeploy). Boot резолвит pack заново; битый / missing `node_clustering` → `ConfigError`.
+3. Не добавлять семантические `CLUSTER_*` в `.env` «поверх» pack — они не читаются.
+
+Cron — **процесс**, не pack: `CLUSTER_CRON_ENABLED` / `CLUSTER_CRON_INTERVAL_S` остаются в env. Второй cron не нужен. Unbound legacy READY_FOR_PROFILE идёт в civic engine, собранный из того же активного `node_clustering.civic`.
+
 ### Карточка Issue
 
 На `GET /node/issues` сырой payload **не** вываливается. Если в pack есть `card_fields` (список dotted path), на карточке появляется sidecar `schema_card` — именованные листья, не весь JSON ([`dto.py`](../../../src/core/projection/dto.py), [`card_fields.py`](../../../src/core/projection/card_fields.py)). Пути `forbidden` / `node_private` не попадают даже если их перечислили. Нет `card_fields` — обычная civic-форма карточки.
@@ -83,7 +106,7 @@ Liveness: `GET /health`. Готовность БД: `GET /ready` (`ready` или
 ## Как добавить свою модель
 
 1. Каталог `schema-packs/<id>/<version>/`.
-2. `pack.json` по таблице loader keys (README паков): `field_policy`, хотя бы одна exact-lens, `readiness_policy` с тремя knobs. Числа порогов — **в файле пака**, не копировать civic default из Python.
+2. `pack.json` по таблице loader keys (README паков): `field_policy`, хотя бы одна exact-lens, `readiness_policy` с тремя knobs, обязательный `node_clustering.civic`. Числа порогов civic и exact — **в файле пака**, не в `.env` и не копировать civic default из Python.
 3. `payload.schema.json` — схема `structured_payload`.
 4. Чтобы **эта** нода принимала intake на новый pack, выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на ту же пару и прислать `schema_binding` = env. Второй cron не нужен.
 
