@@ -125,7 +125,8 @@ def _intake_with_location(location: str) -> dict:
 def test_intake_geo_scope_rejects_narva_when_tallinn_node(
     monkeypatch: pytest.MonkeyPatch, client: TestClient
 ) -> None:
-    monkeypatch.setenv("CLUSTER_GEO_SCOPE", "settlement:tallinn")
+    # Scope from active pack node_clustering.civic (tallinn_civic), not CLUSTER_GEO_SCOPE env.
+    _ = monkeypatch
     _clear_api_dependencies_cache()
     response = post_intake_via_story_drafts(
         client,
@@ -139,7 +140,8 @@ def test_intake_geo_scope_rejects_narva_when_tallinn_node(
 def test_intake_geo_scope_allows_story_without_location(
     monkeypatch: pytest.MonkeyPatch, client: TestClient
 ) -> None:
-    monkeypatch.setenv("CLUSTER_GEO_SCOPE", "settlement:tallinn")
+    # Optional / no location stays geo-agnostic (REQ-35). No global require-geo.
+    _ = monkeypatch
     _clear_api_dependencies_cache()
     payload = _intake_with_location("")
     payload["narrative"].pop("location_query", None)
@@ -154,7 +156,7 @@ def test_intake_geo_scope_allows_story_without_location(
 def test_intake_geo_scope_accepts_tallinn_location(
     monkeypatch: pytest.MonkeyPatch, client: TestClient
 ) -> None:
-    monkeypatch.setenv("CLUSTER_GEO_SCOPE", "settlement:tallinn")
+    _ = monkeypatch
     _clear_api_dependencies_cache()
     payload = deepcopy(_intake_with_location("Tallinn, Estonia"))
     payload["submitter"] = {
