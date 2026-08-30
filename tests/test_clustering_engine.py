@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from core.cluster import CANONICAL_LENSES, ClusteringEngine, ClusterLens, ClusteringMode, StoryProfileSignals
-from core.cluster.engine import build_cluster_narrative, stable_cluster_id
+from core.cluster.engine import build_cluster_narrative, cluster_key_for_lens, stable_cluster_id
 from core.cluster.types import ClusterMember
-from core.domain import SignalDimension
+from core.domain import SignalDimension, StoryGeoSnapshot
 from core.profile import infer_signals_from_canonical
 
 
@@ -310,3 +310,33 @@ def test_ac05_desired_outcome_local_separates_digital_fix() -> None:
     desired = ClusterLens.DESIRED_OUTCOME_LOCAL.value
 
     assert memberships["s-digital"][desired] != memberships["s-other"][desired]
+
+
+def test_snapshot_depth_does_not_split_civic_district_bucket() -> None:
+    geo_a = StoryGeoSnapshot(
+        normalized_label="Pikk 12",
+        latitude=59.437,
+        longitude=24.7536,
+        confidence=0.9,
+        provider="client",
+        admin_district="kesklinn",
+        street="Pikk",
+        house="12",
+        houses=("12",),
+    )
+    geo_b = StoryGeoSnapshot(
+        normalized_label="Lai 3",
+        latitude=59.438,
+        longitude=24.754,
+        confidence=0.8,
+        provider="client",
+        admin_district="kesklinn",
+        street="Lai",
+        house="3",
+    )
+    signals = {"civic_domain": "roads"}
+    a = StoryProfileSignals("depth-a", signals, geo=geo_a)
+    b = StoryProfileSignals("depth-b", signals, geo=geo_b)
+    assert cluster_key_for_lens(a, ClusterLens.CIVIC_DOMAIN_MICRO, geo_filter="district") == (
+        cluster_key_for_lens(b, ClusterLens.CIVIC_DOMAIN_MICRO, geo_filter="district")
+    )
