@@ -49,6 +49,30 @@ class ExactLensBlock:
 
 
 @dataclass(frozen=True)
+class CivicClusteringBlock:
+    """Civic ClusterLens knobs from pack.json ``node_clustering.civic`` (SCHEMA-005)."""
+
+    active_lenses: tuple[str, ...]
+    primary_lens: str
+    min_size: int
+    min_size_by_lens: Mapping[str, int]
+    readiness_threshold: int
+    signal_source: str
+    id_algorithm: str
+    geo_filter: str
+    geo_scope: tuple[str, str] | None
+    tie_breaker: str
+    type_resolution: str
+
+
+@dataclass(frozen=True)
+class NodeClusteringBlock:
+    """Pack clustering contract. Civic contour only in SSR-19; exact stays ``exact_lenses``."""
+
+    civic: CivicClusteringBlock
+
+
+@dataclass(frozen=True)
 class SchemaContext:
     ref: SchemaRef
     payload_schema: Mapping[str, Any]
@@ -56,6 +80,7 @@ class SchemaContext:
     exact_lenses: tuple[ExactLensBlock, ...]
     compatible_profiles: tuple[str, ...]
     pack_dir: Path
+    node_clustering: NodeClusteringBlock
     dual_civic_lenses: bool = False
     card_fields: tuple[str, ...] = ()
 
