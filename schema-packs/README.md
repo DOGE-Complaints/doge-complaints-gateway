@@ -30,6 +30,8 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `card_fields` | array of string, optional | SSR-11. Dotted paths from `structured_payload` that MAY appear as **named** leaves on `GET /node/issues` under sidecar `schema_card` (flat keys = the dotted path). Absent, `null`, or `[]` = civic card form (no sidecar). This loader only (SCHEMA-005). `field_policy` `forbidden` / `node_private` are never projected even if listed. Do **not** dump the whole payload. Existing packs without the key stay civic-form. |
 | `node_clustering` | object, required | SSR-19/20. Civic `ClusterLens` knobs for this node pack. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. Factory/handlers read this block (not AppConfig semantic `CLUSTER_*`). Cron stays env (`CLUSTER_CRON_*`). |
 | `geo_intake` | object, required | SSR-23. Pack policy for envelope sidecar `geo_detail` + merge with `narrative.location_query`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. No env override. |
+| `geo_model` | object, optional | SSR-27. Precision vocabulary (`precision_levels[]` ∈ `GEO_PRECISION_LEVELS`; optional `default_precision_inference`). **Absent** → `SchemaContext.geo_model is None`. Invalid level → `UnsupportedVersionError`. This loader only (SCHEMA-005). |
+| `gpt_instance_territory` | object, optional | SSR-27. GPT instance territory (stricter/narrower than node `geo_scope`). Gateway **parse only** (enforce = GPT STOP / GPT-SSR-08). Rule types: `admin_id` / `admin_token` / `bbox` (OR). **Absent** → `SchemaContext.gpt_instance_territory is None`. Do **not** merge with node `geo_scope`. This loader only (SCHEMA-005). |
 | `taxonomy_schema` | string, optional | SSR-26. Filename relative to pack dir (symmetric with `payload_schema`). **Absent** = no taxonomy block (`SchemaContext.taxonomy is None`); on-disk `taxonomy.json` without this key is **not** auto-loaded. **Present** = file **required**; missing file → loader `UnsupportedVersionError`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Tallinn official seed = SSR-28. Operator copy-paste manual = SSR-29 (placeholder). |
 
 ### `taxonomy.json` blocks (SSR-26; Contour2 pack vocabulary)
@@ -105,8 +107,47 @@ Root object next to `narrative` / `schema_binding` (same class as `gpt_signals` 
 | `address` | Optional object. Components: `country`, `region`, `settlement`, `district`, `street`; house depth is `house` **XOR** `house_range` **XOR** `houses[]` |
 | `normalized_label` | Optional string |
 | `confidence` / `provider` | Optional |
+| `detail_level` | Optional precision index (SSR-27). ∈ `region` \| `settlement` \| `district` \| `street` \| `house` \| `house_range` \| `coordinates`. Counts as has-values for parse acceptance. Wire → `StoryGeoSnapshot.detail_level` → Issue.`geo.detail_level`. |
 
 `location_query` stays for fuzzy resolve. Scope gate SSR-22 is unchanged (scope check only when `location_query` is present).
+
+### Three-level geo (SSR-22 / SSR-27 — do not mix)
+
+| Level | Pack / wire | Enforced by |
+|-------|-------------|-------------|
+| Node acceptance | `node_clustering.civic.geo_scope` | Gateway 422 `GEO_SCOPE_MISMATCH` (SSR-22) |
+| Instance acceptance | `gpt_instance_territory` | GPT STOP (MVP); gateway parse-only |
+| Place precision | `geo_model` + wire `geo_detail.detail_level` | GPT emit; gateway persist/project if sent |
+
+Instance scope **may be narrower** than node scope (district ⊂ Tallinn). Node gate **does not** replace instance gate.
+
+### `geo_model` (SSR-27)
+
+```json
+"geo_model": {
+  "precision_levels": ["region", "settlement", "district", "street", "house", "house_range", "coordinates"],
+  "default_precision_inference": "from_address_depth"
+}
+```
+
+### `gpt_instance_territory` (SSR-27)
+
+```json
+"gpt_instance_territory": {
+  "enabled": true,
+  "rules": [
+    { "type": "admin_token", "level": "settlement", "value": "tallinn" }
+  ]
+}
+```
+
+| Rule `type` | Required fields |
+|-------------|-----------------|
+| `admin_id` | `level`, `scheme`, `value` |
+| `admin_token` | `level`, `value` |
+| `bbox` | `west`, `south`, `east`, `north` (numbers) |
+
+Multiple rules = **OR**. Tallinn demo seed uses settlement `admin_token` (mirrors node `geo_scope`); do not invent district/bbox without operator sign-off. How-to: [schema-packs-node-data-model-ru.md](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) §три уровня geo.
 
 ### `geo_intake` (SSR-23)
 

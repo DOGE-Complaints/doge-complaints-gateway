@@ -28,4 +28,5 @@ class ProjectionInput:
     geo_admin_settlement: str | None = None
     geo_admin_region: str | None = None
     geo_admin_country: str | None = None
+    geo_detail_level: str | None = None
     original_locale: tuple[str, ...] = ()

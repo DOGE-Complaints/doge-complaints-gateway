@@ -107,6 +107,53 @@ class TaxonomyPack:
     dispositions: tuple[str, ...]
 
 
+GEO_PRECISION_LEVELS: frozenset[str] = frozenset(
+    {
+        "region",
+        "settlement",
+        "district",
+        "street",
+        "house",
+        "house_range",
+        "coordinates",
+    }
+)
+
+GPT_INSTANCE_RULE_TYPES: frozenset[str] = frozenset(
+    {"admin_id", "admin_token", "bbox"}
+)
+
+
+@dataclass(frozen=True)
+class GeoModelBlock:
+    """Pack precision vocabulary (SSR-27). Optional on SchemaContext."""
+
+    precision_levels: tuple[str, ...]
+    default_precision_inference: str | None = None
+
+
+@dataclass(frozen=True)
+class GptInstanceTerritoryRule:
+    """One OR-rule under ``gpt_instance_territory.rules`` (parse-only MVP)."""
+
+    type: str
+    level: str | None = None
+    scheme: str | None = None
+    value: str | None = None
+    west: float | None = None
+    south: float | None = None
+    east: float | None = None
+    north: float | None = None
+
+
+@dataclass(frozen=True)
+class GptInstanceTerritoryBlock:
+    """GPT instance territory (SSR-27). Gateway parses; GPT enforces STOP."""
+
+    enabled: bool
+    rules: tuple[GptInstanceTerritoryRule, ...]
+
+
 @dataclass(frozen=True)
 class SchemaContext:
     ref: SchemaRef
@@ -120,6 +167,8 @@ class SchemaContext:
     dual_civic_lenses: bool = False
     card_fields: tuple[str, ...] = ()
     taxonomy: TaxonomyPack | None = None
+    geo_model: GeoModelBlock | None = None
+    gpt_instance_territory: GptInstanceTerritoryBlock | None = None
 
 
 class SchemaRuntime(Protocol):

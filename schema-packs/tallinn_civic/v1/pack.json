@@ -19,7 +19,8 @@
     "geo.street": "optional",
     "geo.house": "optional",
     "geo.house_range": "optional",
-    "geo.houses": "optional"
+    "geo.houses": "optional",
+    "geo.detail_level": "optional"
   },
   "exact_lenses": [
     {
@@ -208,5 +209,27 @@
     "mode": "optional",
     "merge": true,
     "mirror_to_payload": true
+  },
+  "geo_model": {
+    "precision_levels": [
+      "region",
+      "settlement",
+      "district",
+      "street",
+      "house",
+      "house_range",
+      "coordinates"
+    ],
+    "default_precision_inference": "from_address_depth"
+  },
+  "gpt_instance_territory": {
+    "enabled": true,
+    "rules": [
+      {
+        "type": "admin_token",
+        "level": "settlement",
+        "value": "tallinn"
+      }
+    ]
   }
 }

@@ -14,6 +14,7 @@ from core.taxonomy import (
     canonical_flat_labels_from_taxonomy,
     parse_taxonomy_payload,
 )
+from core.schema.contracts import GEO_PRECISION_LEVELS
 
 
 INTAKE_SCHEMA_VERSION = "m2.story_intake_envelope.v2"
@@ -119,6 +120,7 @@ GEO_DETAIL_ALLOWED_KEYS = frozenset(
         "normalized_label",
         "confidence",
         "provider",
+        "detail_level",
     }
 )
 GEO_DETAIL_ADDRESS_ALLOWED_KEYS = frozenset(
@@ -157,6 +159,7 @@ class GeoDetail:
     normalized_label: str | None = None
     confidence: float | None = None
     provider: str | None = None
+    detail_level: str | None = None
 
 
 def geo_detail_has_values(detail: GeoDetail | None) -> bool:
@@ -165,6 +168,8 @@ def geo_detail_has_values(detail: GeoDetail | None) -> bool:
     if detail.latitude is not None or detail.longitude is not None:
         return True
     if detail.normalized_label or detail.confidence is not None or detail.provider:
+        return True
+    if detail.detail_level:
         return True
     addr = detail.address
     if addr is None:
@@ -376,6 +381,13 @@ def _parse_geo_detail_block(raw: object) -> GeoDetail:
     address = None
     if "address" in raw and raw.get("address") is not None:
         address = _parse_geo_detail_address(raw.get("address"))
+    detail_level = _optional_binding_string(raw, "detail_level", parent="geo_detail")
+    if detail_level is not None and detail_level not in GEO_PRECISION_LEVELS:
+        raise IntakeValidationError(
+            f"geo_detail.detail_level must be one of: "
+            + ", ".join(sorted(GEO_PRECISION_LEVELS))
+            + "."
+        )
     return GeoDetail(
         latitude=latitude,
         longitude=longitude,
@@ -387,6 +399,7 @@ def _parse_geo_detail_block(raw: object) -> GeoDetail:
             raw.get("confidence"), field="confidence", parent="geo_detail"
         ),
         provider=_optional_binding_string(raw, "provider", parent="geo_detail"),
+        detail_level=detail_level,
     )
 
 

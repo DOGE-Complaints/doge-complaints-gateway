@@ -96,6 +96,20 @@ Envelope sidecar `geo_detail` (рядом с `narrative` / `schema_binding`) н�
 
 Civic unlabeled / без admin остаётся `geo:unknown` / `geo:agnostic`. Pack missing path при `missing_value_policy=skip` не даёт membership. Enum `ClusterLens` = 10 членов. Публичного HTTP geo-filter нет.
 
+### Три уровня geo (node / instance / precision)
+
+Не смешивать:
+
+| Уровень | Ключ | Кто enforce |
+|---------|------|-------------|
+| Node acceptance | `node_clustering.civic.geo_scope` | Gateway 422 (SSR-22) |
+| Instance acceptance | `gpt_instance_territory` | GPT STOP (GPT-SSR-08); gateway **parse only** |
+| Place precision | `geo_model` + `geo_detail.detail_level` | GPT emit; gateway persist → `Issue.geo.detail_level` |
+
+Instance может быть **уже** node scope (район ⊂ Tallinn). Node gate **не** заменяет instance gate. `detail_level` ∈ `region` \| `settlement` \| `district` \| `street` \| `house` \| `house_range` \| `coordinates`. UC-G03: Issue.`geo` может нести `detail_level` / admin **без** lat/lon (без ложного pin). Street/house **не** на Issue projection.
+
+Sibling GPT: [GPT-SSR-08](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-08-geo-precision-instance-territory.md) · [GPT-SSR-06](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-06-inbound-validation-post-ssr-delta.md) §6.
+
 ### Как сменить пороги / линзы / geo без `.env`
 
 1. Править **активный** каталог: `schema-packs/<NODE_SCHEMA_ID>/<NODE_SCHEMA_VERSION>/pack.json` → блок `node_clustering.civic` (civic) или элемент `exact_lenses[]` (pack exact, включая его `readiness_policy` / `min_size`).

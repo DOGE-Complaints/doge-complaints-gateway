@@ -12,9 +12,14 @@ from core.geo.scope import parse_cluster_geo_filter, parse_cluster_geo_scope
 from core.schema.contracts import (
     FIELD_POLICY_STATES,
     GEO_INTAKE_MODES,
+    GEO_PRECISION_LEVELS,
+    GPT_INSTANCE_RULE_TYPES,
     CivicClusteringBlock,
     ExactLensBlock,
     GeoIntakeBlock,
+    GeoModelBlock,
+    GptInstanceTerritoryBlock,
+    GptInstanceTerritoryRule,
     NodeClusteringBlock,
     ReadinessPolicy,
     SchemaContext,
@@ -450,6 +455,161 @@ def _parse_geo_intake(manifest: Mapping[str, Any]) -> GeoIntakeBlock:
     )
 
 
+def _parse_geo_model(manifest: Mapping[str, Any]) -> GeoModelBlock | None:
+    """Optional pack precision vocabulary. Absent → None."""
+    if "geo_model" not in manifest:
+        return None
+    raw = manifest["geo_model"]
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("geo_model must be an object")
+    levels_raw = raw.get("precision_levels")
+    if not isinstance(levels_raw, list) or not levels_raw:
+        raise UnsupportedVersionError("geo_model.precision_levels must be a non-empty array")
+    levels: list[str] = []
+    for item in levels_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "geo_model.precision_levels entries must be non-empty strings"
+            )
+        token = item.strip()
+        if token not in GEO_PRECISION_LEVELS:
+            raise UnsupportedVersionError(f"unknown geo_model precision level: {token}")
+        levels.append(token)
+    inference: str | None = None
+    if "default_precision_inference" in raw and raw.get("default_precision_inference") is not None:
+        inference_raw = raw.get("default_precision_inference")
+        if not isinstance(inference_raw, str) or not inference_raw.strip():
+            raise UnsupportedVersionError(
+                "geo_model.default_precision_inference must be a non-empty string when present"
+            )
+        inference = inference_raw.strip()
+    unknown = set(raw.keys()) - {"precision_levels", "default_precision_inference"}
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown geo_model keys: " + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GeoModelBlock(
+        precision_levels=tuple(levels),
+        default_precision_inference=inference,
+    )
+
+
+def _parse_gpt_instance_territory_rule(
+    raw: Mapping[str, Any], *, index: int
+) -> GptInstanceTerritoryRule:
+    type_raw = raw.get("type")
+    if not isinstance(type_raw, str) or not type_raw.strip():
+        raise UnsupportedVersionError(
+            f"gpt_instance_territory.rules[{index}].type must be a non-empty string"
+        )
+    rule_type = type_raw.strip()
+    if rule_type not in GPT_INSTANCE_RULE_TYPES:
+        raise UnsupportedVersionError(
+            f"unknown gpt_instance_territory rule type: {rule_type}"
+        )
+    if rule_type == "admin_token":
+        level = raw.get("level")
+        value = raw.get("value")
+        if not isinstance(level, str) or not level.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_token requires level"
+            )
+        if not isinstance(value, str) or not value.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_token requires value"
+            )
+        allowed = {"type", "level", "value"}
+        unknown = set(raw.keys()) - allowed
+        if unknown:
+            raise UnsupportedVersionError(
+                "Unknown gpt_instance_territory.rules keys: "
+                + ", ".join(sorted(str(key) for key in unknown))
+            )
+        return GptInstanceTerritoryRule(
+            type=rule_type, level=level.strip(), value=value.strip()
+        )
+    if rule_type == "admin_id":
+        level = raw.get("level")
+        scheme = raw.get("scheme")
+        value = raw.get("value")
+        if not isinstance(level, str) or not level.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires level"
+            )
+        if not isinstance(scheme, str) or not scheme.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires scheme"
+            )
+        if not isinstance(value, str) or not value.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires value"
+            )
+        allowed = {"type", "level", "scheme", "value"}
+        unknown = set(raw.keys()) - allowed
+        if unknown:
+            raise UnsupportedVersionError(
+                "Unknown gpt_instance_territory.rules keys: "
+                + ", ".join(sorted(str(key) for key in unknown))
+            )
+        return GptInstanceTerritoryRule(
+            type=rule_type,
+            level=level.strip(),
+            scheme=scheme.strip(),
+            value=value.strip(),
+        )
+    # bbox
+    for key in ("west", "south", "east", "north"):
+        if key not in raw or not isinstance(raw[key], (int, float)) or isinstance(raw[key], bool):
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] bbox requires numeric {key}"
+            )
+    allowed = {"type", "west", "south", "east", "north"}
+    unknown = set(raw.keys()) - allowed
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown gpt_instance_territory.rules keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GptInstanceTerritoryRule(
+        type=rule_type,
+        west=float(raw["west"]),
+        south=float(raw["south"]),
+        east=float(raw["east"]),
+        north=float(raw["north"]),
+    )
+
+
+def _parse_gpt_instance_territory(
+    manifest: Mapping[str, Any],
+) -> GptInstanceTerritoryBlock | None:
+    """Optional GPT instance territory. Absent → None. Parse-only (no intake enforce)."""
+    if "gpt_instance_territory" not in manifest:
+        return None
+    raw = manifest["gpt_instance_territory"]
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("gpt_instance_territory must be an object")
+    enabled = raw.get("enabled")
+    if not isinstance(enabled, bool):
+        raise UnsupportedVersionError("gpt_instance_territory.enabled must be a boolean")
+    rules_raw = raw.get("rules")
+    if not isinstance(rules_raw, list):
+        raise UnsupportedVersionError("gpt_instance_territory.rules must be an array")
+    rules: list[GptInstanceTerritoryRule] = []
+    for index, item in enumerate(rules_raw):
+        if not isinstance(item, dict):
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] must be an object"
+            )
+        rules.append(_parse_gpt_instance_territory_rule(item, index=index))
+    unknown = set(raw.keys()) - {"enabled", "rules"}
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown gpt_instance_territory keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GptInstanceTerritoryBlock(enabled=enabled, rules=tuple(rules))
+
+
 def _parse_lens(raw: Mapping[str, Any]) -> ExactLensBlock:
     fields = raw.get("source_fields") or ()
     return ExactLensBlock(
@@ -513,6 +673,8 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         dual_civic_lenses=_parse_dual_civic_lenses(manifest),
         card_fields=_parse_card_fields(manifest),
         taxonomy=_parse_taxonomy_pack(pack_dir, manifest, expected),
+        geo_model=_parse_geo_model(manifest),
+        gpt_instance_territory=_parse_gpt_instance_territory(manifest),
     )
 
 
