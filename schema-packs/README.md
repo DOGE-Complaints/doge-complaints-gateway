@@ -8,6 +8,7 @@
 schema-packs/<schema_id>/<schema_version>/
   pack.json              # manifest (JSON data — SEC-001: not executed)
   payload.schema.json    # JSON Schema for structured_payload
+  taxonomy.json          # optional Contour2 vocabulary (SSR-26); required only when pack.json declares taxonomy_schema
 ```
 
 Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation.v1`, `tallinn_civic.v1`
@@ -29,6 +30,22 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `card_fields` | array of string, optional | SSR-11. Dotted paths from `structured_payload` that MAY appear as **named** leaves on `GET /node/issues` under sidecar `schema_card` (flat keys = the dotted path). Absent, `null`, or `[]` = civic card form (no sidecar). This loader only (SCHEMA-005). `field_policy` `forbidden` / `node_private` are never projected even if listed. Do **not** dump the whole payload. Existing packs without the key stay civic-form. |
 | `node_clustering` | object, required | SSR-19/20. Civic `ClusterLens` knobs for this node pack. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. Factory/handlers read this block (not AppConfig semantic `CLUSTER_*`). Cron stays env (`CLUSTER_CRON_*`). |
 | `geo_intake` | object, required | SSR-23. Pack policy for envelope sidecar `geo_detail` + merge with `narrative.location_query`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. No env override. |
+| `taxonomy_schema` | string, optional | SSR-26. Filename relative to pack dir (symmetric with `payload_schema`). **Absent** = no taxonomy block (`SchemaContext.taxonomy is None`); on-disk `taxonomy.json` without this key is **not** auto-loaded. **Present** = file **required**; missing file → loader `UnsupportedVersionError`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Tallinn official seed = SSR-28. Operator copy-paste manual = SSR-29 (placeholder). |
+
+### `taxonomy.json` blocks (SSR-26; Contour2 pack vocabulary)
+
+Wire Contour1 (`narrative.taxonomy` / GW-TAX-01) is **unchanged**. This file is pack SSOT for GPT byte-copy vocabulary + `axis_to_signal_map` — not a second wire blob.
+
+| Block | Notes |
+|-------|--------|
+| `schema_id` / `schema_version` | Must match `pack.json` |
+| `axes[]` | Non-empty; each ∈ gateway `TAXONOMY_AXIS_VALUES`; **set must equal** all 13 |
+| `internal_axes[]` | Each ∈ `axes[]` |
+| `canonical_keys` | Object keyed by axis; entries `{key, meaning?}`; no duplicate `key` per axis |
+| `axis_to_signal_map` | Keys ∈ axes; values non-empty dotted paths (e.g. `signals.civic_domain`) |
+| `dispositions` | Subset of label dispositions; default all five if omitted |
+
+Do **not** invent a frozen YAML dialect here. Full operator manual / GPT lockstep checklist → SSR-29 (placeholder until that story).
 
 ### `field_policy` states (SCHEMA-003, representable)
 

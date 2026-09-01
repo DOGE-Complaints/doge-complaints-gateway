@@ -87,6 +87,27 @@ class GeoIntakeBlock:
 
 
 @dataclass(frozen=True)
+class TaxonomyCanonicalKey:
+    """One pack vocabulary entry under an axis (SCHEMA-005 taxonomy.json)."""
+
+    key: str
+    meaning: str | None = None
+
+
+@dataclass(frozen=True)
+class TaxonomyPack:
+    """Parsed pack ``taxonomy.json`` (Contour2 vocabulary). Optional on SchemaContext."""
+
+    schema_id: str
+    schema_version: str
+    axes: tuple[str, ...]
+    internal_axes: tuple[str, ...]
+    canonical_keys: Mapping[str, tuple[TaxonomyCanonicalKey, ...]]
+    axis_to_signal_map: Mapping[str, str]
+    dispositions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class SchemaContext:
     ref: SchemaRef
     payload_schema: Mapping[str, Any]
@@ -98,6 +119,7 @@ class SchemaContext:
     geo_intake: GeoIntakeBlock
     dual_civic_lenses: bool = False
     card_fields: tuple[str, ...] = ()
+    taxonomy: TaxonomyPack | None = None
 
 
 class SchemaRuntime(Protocol):

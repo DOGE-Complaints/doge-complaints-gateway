@@ -19,8 +19,12 @@ from core.schema.contracts import (
     ReadinessPolicy,
     SchemaContext,
     SchemaRef,
+    TaxonomyCanonicalKey,
+    TaxonomyPack,
 )
 from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+from core.taxonomy.axes import TAXONOMY_AXIS_VALUES
+from core.taxonomy.disposition import LABEL_DISPOSITION_VALUES
 
 _KNOWN_LENS_IDS = frozenset(member.value for member in ClusterLens)
 _ID_ALGORITHMS = frozenset({"legacy_hash", "sha256"})
@@ -243,6 +247,171 @@ def _parse_card_fields(manifest: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(paths)
 
 
+def _parse_taxonomy_pack(
+    pack_dir: Path,
+    manifest: Mapping[str, Any],
+    expected: SchemaRef,
+) -> TaxonomyPack | None:
+    """Optional Contour2 vocabulary. Absent ``taxonomy_schema`` → None (orphan file ignored)."""
+    if "taxonomy_schema" not in manifest:
+        return None
+    raw_name = manifest["taxonomy_schema"]
+    if not isinstance(raw_name, str) or not raw_name.strip():
+        raise UnsupportedVersionError(
+            "taxonomy_schema must be a non-empty string when present"
+        )
+    filename = raw_name.strip()
+    path = pack_dir / filename
+    if not path.is_file():
+        raise UnsupportedVersionError(f"taxonomy file missing: {filename}")
+    raw = _read_json(path)
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("taxonomy.json must be an object")
+
+    schema_id = str(raw.get("schema_id", ""))
+    schema_version = str(raw.get("schema_version", ""))
+    if schema_id != expected.schema_id or schema_version != expected.schema_version:
+        raise UnsupportedVersionError(
+            "taxonomy.json schema_id/schema_version must match pack.json"
+        )
+
+    axes_raw = raw.get("axes")
+    if not isinstance(axes_raw, list) or not axes_raw:
+        raise UnsupportedVersionError("taxonomy.json axes must be a non-empty array")
+    axes_list: list[str] = []
+    for item in axes_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "taxonomy.json axes entries must be non-empty strings"
+            )
+        axis = item.strip()
+        if axis not in TAXONOMY_AXIS_VALUES:
+            raise UnsupportedVersionError(f"unknown axis: {axis}")
+        if axis in axes_list:
+            raise UnsupportedVersionError(f"duplicate axis in axes[]: {axis}")
+        axes_list.append(axis)
+    axes = tuple(axes_list)
+    if set(axes) != TAXONOMY_AXIS_VALUES:
+        missing = sorted(TAXONOMY_AXIS_VALUES - set(axes))
+        raise UnsupportedVersionError(
+            f"taxonomy.json axes must equal all 13 taxonomy axes; missing: {missing}"
+        )
+
+    internal_raw = raw.get("internal_axes") or []
+    if not isinstance(internal_raw, list):
+        raise UnsupportedVersionError("taxonomy.json internal_axes must be an array")
+    internal_axes_list: list[str] = []
+    for item in internal_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "taxonomy.json internal_axes entries must be non-empty strings"
+            )
+        axis = item.strip()
+        if axis not in axes:
+            raise UnsupportedVersionError(
+                f"taxonomy.json internal_axes entry not in axes: {axis}"
+            )
+        if axis not in internal_axes_list:
+            internal_axes_list.append(axis)
+    internal_axes = tuple(internal_axes_list)
+
+    keys_raw = raw.get("canonical_keys")
+    if keys_raw is None:
+        keys_raw = {}
+    if not isinstance(keys_raw, dict):
+        raise UnsupportedVersionError("taxonomy.json canonical_keys must be an object")
+    canonical_keys: dict[str, tuple[TaxonomyCanonicalKey, ...]] = {}
+    for axis, entries in keys_raw.items():
+        if not isinstance(axis, str) or axis not in axes:
+            raise UnsupportedVersionError(f"unknown axis in canonical_keys: {axis}")
+        if not isinstance(entries, list):
+            raise UnsupportedVersionError(
+                f"taxonomy.json canonical_keys[{axis}] must be an array"
+            )
+        seen: set[str] = set()
+        parsed: list[TaxonomyCanonicalKey] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}] entries must be objects"
+                )
+            key_raw = entry.get("key")
+            if not isinstance(key_raw, str) or not key_raw.strip():
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}] key must be a non-empty string"
+                )
+            key = key_raw.strip()
+            if key in seen:
+                raise UnsupportedVersionError(
+                    f"duplicate key in canonical_keys[{axis}]: {key}"
+                )
+            seen.add(key)
+            meaning_raw = entry.get("meaning")
+            meaning: str | None
+            if meaning_raw is None:
+                meaning = None
+            elif isinstance(meaning_raw, str):
+                meaning = meaning_raw
+            else:
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}].meaning must be a string when present"
+                )
+            parsed.append(TaxonomyCanonicalKey(key=key, meaning=meaning))
+        canonical_keys[axis] = tuple(parsed)
+
+    map_raw = raw.get("axis_to_signal_map")
+    if map_raw is None:
+        map_raw = {}
+    if not isinstance(map_raw, dict):
+        raise UnsupportedVersionError(
+            "taxonomy.json axis_to_signal_map must be an object"
+        )
+    axis_to_signal_map: dict[str, str] = {}
+    for axis, path in map_raw.items():
+        if not isinstance(axis, str) or axis not in axes:
+            raise UnsupportedVersionError(
+                f"unknown axis in axis_to_signal_map: {axis}"
+            )
+        if not isinstance(path, str) or not path.strip():
+            raise UnsupportedVersionError(
+                f"axis_to_signal_map[{axis}] must be a non-empty dotted path"
+            )
+        axis_to_signal_map[axis] = path.strip()
+
+    disp_raw = raw.get("dispositions")
+    if disp_raw is None:
+        dispositions = tuple(sorted(LABEL_DISPOSITION_VALUES))
+    else:
+        if not isinstance(disp_raw, list) or not disp_raw:
+            raise UnsupportedVersionError(
+                "taxonomy.json dispositions must be a non-empty array when present"
+            )
+        dispositions_list: list[str] = []
+        for item in disp_raw:
+            if not isinstance(item, str) or not item.strip():
+                raise UnsupportedVersionError(
+                    "taxonomy.json dispositions entries must be non-empty strings"
+                )
+            value = item.strip()
+            if value not in LABEL_DISPOSITION_VALUES:
+                raise UnsupportedVersionError(
+                    f"unknown disposition in taxonomy.json: {value}"
+                )
+            if value not in dispositions_list:
+                dispositions_list.append(value)
+        dispositions = tuple(dispositions_list)
+
+    return TaxonomyPack(
+        schema_id=schema_id,
+        schema_version=schema_version,
+        axes=axes,
+        internal_axes=internal_axes,
+        canonical_keys=canonical_keys,
+        axis_to_signal_map=axis_to_signal_map,
+        dispositions=dispositions,
+    )
+
+
 def _parse_readiness(raw: Mapping[str, Any]) -> ReadinessPolicy:
     return ReadinessPolicy(
         min_readiness_score=int(raw["min_readiness_score"]),
@@ -343,6 +512,7 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         geo_intake=_parse_geo_intake(manifest),
         dual_civic_lenses=_parse_dual_civic_lenses(manifest),
         card_fields=_parse_card_fields(manifest),
+        taxonomy=_parse_taxonomy_pack(pack_dir, manifest, expected),
     )
 
 
