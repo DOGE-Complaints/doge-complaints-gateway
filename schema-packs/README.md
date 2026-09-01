@@ -32,7 +32,7 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `geo_intake` | object, required | SSR-23. Pack policy for envelope sidecar `geo_detail` + merge with `narrative.location_query`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Missing / invalid → loader/`ConfigError`. No env override. |
 | `geo_model` | object, optional | SSR-27. Precision vocabulary (`precision_levels[]` ∈ `GEO_PRECISION_LEVELS`; optional `default_precision_inference`). **Absent** → `SchemaContext.geo_model is None`. Invalid level → `UnsupportedVersionError`. This loader only (SCHEMA-005). |
 | `gpt_instance_territory` | object, optional | SSR-27. GPT instance territory (stricter/narrower than node `geo_scope`). Gateway **parse only** (enforce = GPT STOP / GPT-SSR-08). Rule types: `admin_id` / `admin_token` / `bbox` (OR). **Absent** → `SchemaContext.gpt_instance_territory is None`. Do **not** merge with node `geo_scope`. This loader only (SCHEMA-005). |
-| `taxonomy_schema` | string, optional | SSR-26. Filename relative to pack dir (symmetric with `payload_schema`). **Absent** = no taxonomy block (`SchemaContext.taxonomy is None`); on-disk `taxonomy.json` without this key is **not** auto-loaded. **Present** = file **required**; missing file → loader `UnsupportedVersionError`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Tallinn official seed = SSR-28. Operator copy-paste manual = SSR-29 (placeholder). |
+| `taxonomy_schema` | string, optional | SSR-26. Filename relative to pack dir (symmetric with `payload_schema`). **Absent** = no taxonomy block (`SchemaContext.taxonomy is None`); on-disk `taxonomy.json` without this key is **not** auto-loaded. **Present** = file **required**; missing file → loader `UnsupportedVersionError`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Tallinn official seed = SSR-28. |
 
 ### `taxonomy.json` blocks (SSR-26; Contour2 pack vocabulary)
 
@@ -47,9 +47,9 @@ Wire Contour1 (`narrative.taxonomy` / GW-TAX-01) is **unchanged**. This file is 
 | `axis_to_signal_map` | Keys ∈ axes; values non-empty dotted paths (e.g. `signals.civic_domain`) |
 | `dispositions` | Subset of label dispositions; default all five if omitted |
 
-Do **not** invent a frozen YAML dialect here. Full operator manual / GPT lockstep checklist → SSR-29.
+Do **not** invent a frozen YAML dialect here. See [manual §Taxonomy dual contour / §Operator copy-paste](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) for operator copy-paste (SSR-29). Loader shape tables stay in this README only.
 
-**SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + `axes.py` / `disposition.py` lockstep; `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. Byte-copy ready for SSR-29 checklist / GPT-SSR-05 — **gateway P3 does not edit GPT UI instructions**. legal/mobility remain without `taxonomy_schema`.
+**SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + `axes.py` / `disposition.py` lockstep; `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. **Gateway does not edit GPT UI instructions** — operator / GPT-SSR-05 performs byte-identical copy. legal/mobility remain without `taxonomy_schema`.
 
 ### `field_policy` states (SCHEMA-003, representable)
 
