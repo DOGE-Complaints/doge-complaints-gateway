@@ -47,7 +47,9 @@ Wire Contour1 (`narrative.taxonomy` / GW-TAX-01) is **unchanged**. This file is 
 | `axis_to_signal_map` | Keys ∈ axes; values non-empty dotted paths (e.g. `signals.civic_domain`) |
 | `dispositions` | Subset of label dispositions; default all five if omitted |
 
-Do **not** invent a frozen YAML dialect here. Full operator manual / GPT lockstep checklist → SSR-29 (placeholder until that story).
+Do **not** invent a frozen YAML dialect here. Full operator manual / GPT lockstep checklist → SSR-29.
+
+**SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + `axes.py` / `disposition.py` lockstep; `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. Byte-copy ready for SSR-29 checklist / GPT-SSR-05 — **gateway P3 does not edit GPT UI instructions**. legal/mobility remain without `taxonomy_schema`.
 
 ### `field_policy` states (SCHEMA-003, representable)
 
