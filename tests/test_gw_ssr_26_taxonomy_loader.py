@@ -69,14 +69,18 @@ def test_legal_and_mobility_load_without_taxonomy() -> None:
     )
     assert legal.taxonomy is None
     assert mobility.taxonomy is None
-    # Orphan on-disk file without taxonomy_schema must not auto-load (tallinn).
-    tallinn_manifest = json.loads(
-        (PACKS_ROOT / "tallinn_civic" / "v1" / "pack.json").read_text(encoding="utf-8")
+
+
+def test_orphan_taxonomy_file_without_manifest_ignored(tmp_path: Path) -> None:
+    """SSR-26: on-disk taxonomy.json without taxonomy_schema must not auto-load."""
+    dest = _copy_legal_pack(tmp_path / "legal_process" / "v1")
+    assert "taxonomy_schema" not in json.loads((dest / "pack.json").read_text(encoding="utf-8"))
+    (dest / "taxonomy.json").write_text(
+        json.dumps(_minimal_taxonomy(schema_id="legal_process")),
+        encoding="utf-8",
     )
-    assert "taxonomy_schema" not in tallinn_manifest
-    assert (PACKS_ROOT / "tallinn_civic" / "v1" / "taxonomy.json").is_file()
-    tallinn = resolve_pack(SchemaRef("tallinn_civic", "v1"), packs_root=PACKS_ROOT)
-    assert tallinn.taxonomy is None
+    ctx = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    assert ctx.taxonomy is None
 
 
 def test_missing_taxonomy_file_when_declared_fails(tmp_path: Path) -> None:
