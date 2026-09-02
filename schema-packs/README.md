@@ -51,6 +51,8 @@ Do **not** invent a frozen YAML dialect here. See [manual §Taxonomy dual contou
 
 **SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + `axes.py` / `disposition.py` lockstep; `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. **Gateway does not edit GPT UI instructions** — operator / GPT-SSR-05 performs byte-identical copy. legal/mobility remain without `taxonomy_schema`.
 
+**SSR-30 Declare (tallinn only):** `tallinn_civic/v1/pack.json` MVP `card_fields` = `signals.desired_outcome`, `signals.affected_group`, `signals.service_object` (M141). Mechanism = SSR-11 (no redesign). After pack change, operator byte-copies updated `pack.json` → GPT `instructions/schema-packs/tallinn_civic/v1/` (SSR-29 checklist). SPA L10N ids (sibling): `schemaRuntime.cardField.signals.desired_outcome` / `.affected_group` / `.service_object`. legal/mobility remain without `card_fields` until their owners declare.
+
 ### `field_policy` states (SCHEMA-003, representable)
 
 `required` · `optional` · `disabled` · `forbidden` · `node_private` · `derived` · `computed_aggregate_only`
