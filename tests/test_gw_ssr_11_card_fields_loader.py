@@ -22,11 +22,17 @@ def test_legal_process_absent_card_fields_is_civic_form() -> None:
     assert ctx.card_fields == ()
 
 
-def test_tallinn_civic_absent_card_fields_is_civic_form() -> None:
+def test_tallinn_civic_mvp_card_fields_present() -> None:
+    """SSR-30 Declare: tallinn exposes MVP allowlist (was absent → civic form)."""
+    mvp = (
+        "signals.desired_outcome",
+        "signals.affected_group",
+        "signals.service_object",
+    )
     manifest = json.loads((PACKS_ROOT / "tallinn_civic" / "v1" / "pack.json").read_text())
-    assert "card_fields" not in manifest
+    assert manifest.get("card_fields") == list(mvp)
     ctx = resolve_pack(SchemaRef("tallinn_civic", "v1"), packs_root=PACKS_ROOT)
-    assert ctx.card_fields == ()
+    assert ctx.card_fields == mvp
 
 
 def test_empty_array_is_civic_form(tmp_path: Path) -> None:
