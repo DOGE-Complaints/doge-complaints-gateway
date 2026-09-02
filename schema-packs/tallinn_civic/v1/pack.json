@@ -3,6 +3,11 @@
   "schema_version": "v1",
   "payload_schema": "payload.schema.json",
   "taxonomy_schema": "taxonomy.json",
+  "card_fields": [
+    "signals.desired_outcome",
+    "signals.affected_group",
+    "signals.service_object"
+  ],
   "field_policy": {
     "signals.civic_domain": "required",
     "signals.failure_pattern": "required",
