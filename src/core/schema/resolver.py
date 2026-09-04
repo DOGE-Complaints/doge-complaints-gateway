@@ -28,7 +28,6 @@ from core.schema.contracts import (
     TaxonomyPack,
 )
 from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
-from core.taxonomy.axes import TAXONOMY_AXIS_VALUES
 from core.taxonomy.disposition import LABEL_DISPOSITION_VALUES
 
 _KNOWN_LENS_IDS = frozenset(member.value for member in ClusterLens)
@@ -290,17 +289,10 @@ def _parse_taxonomy_pack(
                 "taxonomy.json axes entries must be non-empty strings"
             )
         axis = item.strip()
-        if axis not in TAXONOMY_AXIS_VALUES:
-            raise UnsupportedVersionError(f"unknown axis: {axis}")
         if axis in axes_list:
             raise UnsupportedVersionError(f"duplicate axis in axes[]: {axis}")
         axes_list.append(axis)
     axes = tuple(axes_list)
-    if set(axes) != TAXONOMY_AXIS_VALUES:
-        missing = sorted(TAXONOMY_AXIS_VALUES - set(axes))
-        raise UnsupportedVersionError(
-            f"taxonomy.json axes must equal all 13 taxonomy axes; missing: {missing}"
-        )
 
     internal_raw = raw.get("internal_axes") or []
     if not isinstance(internal_raw, list):
