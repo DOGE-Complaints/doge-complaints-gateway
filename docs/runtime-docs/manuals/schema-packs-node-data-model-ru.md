@@ -1,6 +1,6 @@
 # Schema packs: как устроена модель данных ноды
 
-**Дата:** 2026-09-01T13:46:26Z (taxonomy dual contour + operator copy-paste — SSR-29; три уровня geo — SSR-27; два контура — SSR-21)  
+**Дата:** 2026-09-04T13:26:15Z (D-SSR-11 node-taxonomy docs — SSR-33; taxonomy dual contour + operator copy-paste — SSR-29; три уровня geo — SSR-27; два контура clustering — SSR-21)  
 Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke.
 
 Этот текст для человека, который поднимает ноду: что лежит на диске (склад), какая пара **рабочая** (`NODE_SCHEMA_*`), куда ходит публичный API.
@@ -119,18 +119,31 @@ Instance может быть **уже** node scope (район ⊂ Tallinn). Nod
 
 Sibling GPT: [GPT-SSR-08](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-08-geo-precision-instance-territory.md) · [GPT-SSR-06](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-06-inbound-validation-post-ssr-delta.md) §6.
 
-### Taxonomy dual contour (wire vs pack)
+### Taxonomy dual contour (wire vs pack) — D-SSR-11
 
-Два **разных** контура ярлыков. Документы **не** говорят, что wire envelope или GW-TAX-01 «переехали» в payload.
+Два **разных** контура ярлыков. Документы **не** говорят, что wire envelope или GW-TAX-01 «переехали» в payload. Arch: [`architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md`](../../analysis/architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md).
 
 | Concern | SSOT | Consumer |
 |---------|------|----------|
-| Per-axis labels on wire | OpenAPI `narrative.taxonomy` | Gateway intake → `story_labels` (GW-TAX-01) |
-| Allowed keys + axis→signal | **`taxonomy.json` in pack dir** | GPT normalizer + operator copy |
+| Per-axis labels on wire (**Contour1**) | OpenAPI `narrative.taxonomy` | Gateway intake → `story_labels` (GW-TAX-01). **SSR-32:** любая непустая ось (strip/lower); civic **skip** unmapped → SignalDimension |
+| Pack vocabulary (**Contour2**) | **`taxonomy.json` in pack dir** | GPT normalizer + operator copy. **SSR-31:** `axes[]` = **node-defined** (не lockstep к 13); structural: unique / non-empty; `internal_axes` ⊆ axes; map keys ∈ axes |
 | Payload validate | `payload.schema.json` | `SchemaRuntime.validate` |
 | Content admission | GPT `inbound-validation.md` | GPT interview only |
 
+`TAXONOMY_AXIS_VALUES` (13) = **tallinn / civic reference** set (seed + docs), **не** reject SSOT для Contour1/Contour2. Tallinn 13 = exemplar data.
+
 Pack Contour2 (`taxonomy.json`) — словарь + `axis_to_signal_map` для copy-paste. Wire Contour1 остаётся на `narrative.taxonomy`.
+
+### Authoring node taxonomy (operator setup)
+
+1. Выбрать оси ноды (язык домена); tallinn 13 — только стартовая точка (trim/extend свободно).
+2. Заполнить `canonical_keys` + `axis_to_signal_map` согласованно с `axes[]`.
+3. В `pack.json` задать `"taxonomy_schema": "taxonomy.json"`, когда нужен Contour2.
+4. Wire GPT taxonomy может использовать **те же** axis ids (после SSR-32 Contour1 open).
+5. **Не** изобретать `ClusterLens` ids из имён осей.
+6. Копировать tallinn taxonomy только как шаблон — не как закон «ровно 13».
+
+Sibling conflict: [GPT-SSR-15](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-15-taxonomy-meta-axis-lockstep.md) (lock Pack Builder meta to 13) must be **superseded/inverted** in a GPT wave — gateway D-SSR-11 wins. Gateway SSR-33 **only records** this handoff; it does **not** edit GPT files.
 
 ### Operator copy-paste (gateway → GPT, byte-identical)
 
@@ -158,7 +171,7 @@ Gateway `schema-packs/` = **SSOT**. GPT Instructions получают **byte-ide
 | same dir `payload.schema.json` | same |
 | same dir `taxonomy.json` | same |
 
-**Deprecation policy (document, don't delete GPT file):** после copy GPT [`story-label-taxonomy.md`](../../../../GPT%20UI/instructions/story-label-taxonomy.md) **больше не SSOT** для canonical keys — SSOT = gateway pack + GPT mirror. Финальное GPT-side решение: GPT-SSR-09.
+**Deprecation policy (document, don't delete GPT file):** GPT [`story-label-taxonomy.md`](../../../../GPT%20UI/instructions/story-label-taxonomy.md) — **redirect stub** (GPT-SSR-10). Enum SSOT = gateway pack + GPT mirror `taxonomy.json`. Process rules: GPT `ingest-validation.md` Label process rules. Archive: `GPT UI/instructions/archive/story-label-taxonomy.v0.2.3.md`.
 
 Residual: mobility/legal taxonomy copy-paste — **tallinn first** (пока без `taxonomy_schema` на legal/mobility).
 

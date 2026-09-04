@@ -34,22 +34,22 @@ Example ids (parent §29 Integration): `legal_process.v1`, `mobility_observation
 | `gpt_instance_territory` | object, optional | SSR-27. GPT instance territory (stricter/narrower than node `geo_scope`). Gateway **parse only** (enforce = GPT STOP / GPT-SSR-08). Rule types: `admin_id` / `admin_token` / `bbox` (OR). **Absent** → `SchemaContext.gpt_instance_territory is None`. Do **not** merge with node `geo_scope`. This loader only (SCHEMA-005). |
 | `taxonomy_schema` | string, optional | SSR-26. Filename relative to pack dir (symmetric with `payload_schema`). **Absent** = no taxonomy block (`SchemaContext.taxonomy is None`); on-disk `taxonomy.json` without this key is **not** auto-loaded. **Present** = file **required**; missing file → loader `UnsupportedVersionError`. This loader only (SCHEMA-005) — **not** a frozen YAML dialect. Tallinn official seed = SSR-28. |
 
-### `taxonomy.json` blocks (SSR-26; Contour2 pack vocabulary)
+### `taxonomy.json` blocks (SSR-26; Contour2 pack vocabulary; **D-SSR-11**)
 
-Wire Contour1 (`narrative.taxonomy` / GW-TAX-01) is **unchanged**. This file is pack SSOT for GPT byte-copy vocabulary + `axis_to_signal_map` — not a second wire blob.
+Wire Contour1 (`narrative.taxonomy` / GW-TAX-01): any **non-empty** axis id after strip/lower (SSR-32). Civic enrichment **skips** axes not in the civic SignalDimension map. Contour2 (`taxonomy.json`) is pack SSOT for GPT byte-copy vocabulary + `axis_to_signal_map` — not a second wire blob. Arch: [`architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md`](../docs/analysis/architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md).
 
 | Block | Notes |
 |-------|--------|
 | `schema_id` / `schema_version` | Must match `pack.json` |
-| `axes[]` | Non-empty; each ∈ gateway `TAXONOMY_AXIS_VALUES`; **set must equal** all 13 |
+| `axes[]` | **Node-defined** (D-SSR-11 / SSR-31): non-empty unique strings; **not** locked to gateway `TAXONOMY_AXIS_VALUES` / «must equal all 13». Tallinn 13 = **exemplar data**, not reject SSOT. Structural: no empty entries; no duplicates |
 | `internal_axes[]` | Each ∈ `axes[]` |
-| `canonical_keys` | Object keyed by axis; entries `{key, meaning?}`; no duplicate `key` per axis |
+| `canonical_keys` | Object keyed by axis; entries `{key, meaning?}`; no duplicate `key` per axis; keys ∈ `axes[]` |
 | `axis_to_signal_map` | Keys ∈ axes; values non-empty dotted paths (e.g. `signals.civic_domain`) |
 | `dispositions` | Subset of label dispositions; default all five if omitted |
 
-Do **not** invent a frozen YAML dialect here. See [manual §Taxonomy dual contour / §Operator copy-paste](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) for operator copy-paste (SSR-29). Loader shape tables stay in this README only.
+Do **not** invent a frozen YAML dialect here. See [manual §Taxonomy dual contour / §Authoring node taxonomy](../docs/runtime-docs/manuals/schema-packs-node-data-model-ru.md) for operator setup (SSR-29 + SSR-33). Loader shape tables stay in this README only.
 
-**SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + `axes.py` / `disposition.py` lockstep; `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. **Gateway does not edit GPT UI instructions** — operator / GPT-SSR-05 performs byte-identical copy. legal/mobility remain without `taxonomy_schema`.
+**SSR-28 seed (tallinn only):** `tallinn_civic/v1/taxonomy.json` is materialised from GPT `story-label-taxonomy.md` §4/§5/§6 + tallinn/reference `TAXONOMY_AXIS_VALUES` as **seed content** (13 axes); `pack.json` declares `"taxonomy_schema": "taxonomy.json"`. Loader no longer rejects other node axis sets (SSR-31). **Gateway does not edit GPT UI instructions** — operator / GPT-SSR-05 performs byte-identical copy. legal/mobility remain without `taxonomy_schema`.
 
 **SSR-30 Declare (tallinn only):** `tallinn_civic/v1/pack.json` MVP `card_fields` = `signals.desired_outcome`, `signals.affected_group`, `signals.service_object` (M141). Mechanism = SSR-11 (no redesign). After pack change, operator byte-copies updated `pack.json` → GPT `instructions/schema-packs/tallinn_civic/v1/` (SSR-29 checklist). SPA L10N ids (sibling): `schemaRuntime.cardField.signals.desired_outcome` / `.affected_group` / `.service_object`. legal/mobility remain without `card_fields` until their owners declare.
 
