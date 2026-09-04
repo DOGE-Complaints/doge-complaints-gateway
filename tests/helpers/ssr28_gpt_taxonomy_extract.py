@@ -1,7 +1,12 @@
-"""SSR-28: section-scoped extract of GPT story-label-taxonomy.md §4/§5/§6.
+"""SSR-28: section-scoped extract of archived GPT story-label-taxonomy.md §4/§5/§6.
 
+Historical seed helper (GPT-SSR-10): live enum SSOT is pack taxonomy.json.
+Default path = instructions/archive/story-label-taxonomy.v0.2.3.md.
 No invent: only markdown tables inside those sections. Do not parse §7
 disposition tokens into canonical_keys.
+
+TAXONOMY_AXIS_VALUES here is the **tallinn/reference extract expected set**
+(SSR-28 seed inventory), not Contour2 loader reject SSOT (SSR-31 / D-SSR-11).
 """
 
 from __future__ import annotations
@@ -91,11 +96,13 @@ def workspace_root_from_gateway(gateway_root: Path) -> Path:
 
 
 def default_gpt_taxonomy_md(gateway_root: Path) -> Path:
+    # GPT-SSR-10: live path is redirect stub; extract §4/§5/§6 from archive snapshot.
     return (
         workspace_root_from_gateway(gateway_root)
         / "GPT UI"
         / "instructions"
-        / "story-label-taxonomy.md"
+        / "archive"
+        / "story-label-taxonomy.v0.2.3.md"
     )
 
 

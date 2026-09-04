@@ -35,7 +35,12 @@ def test_manifest_declares_taxonomy_schema() -> None:
     assert tax_path.read_bytes().endswith(b"\n")
 
 
-def test_taxonomy_axes_lockstep_thirteen() -> None:
+def test_taxonomy_axes_seed_content_thirteen() -> None:
+    """SSR-28 seed invariant: tallinn taxonomy.json *content* has reference 13 axes.
+
+    Contour2 loader (SSR-31) no longer rejects packs with other axis sets;
+    this assert is data lockstep for the official tallinn seed only.
+    """
     body = json.loads((TALLINN_DIR / "taxonomy.json").read_text(encoding="utf-8"))
     assert body["schema_id"] == "tallinn_civic"
     assert body["schema_version"] == "v1"
@@ -85,7 +90,11 @@ def test_vocabulary_overlap_axes_subset_of_taxonomy_keys() -> None:
 
 
 def test_tallinn_resolve_requires_taxonomy_pack() -> None:
-    """AC-GW-SSR28-06 — resolve_pack loads TaxonomyPack for tallinn."""
+    """AC-GW-SSR28-06 — resolve_pack loads TaxonomyPack for tallinn.
+
+    Axes equality to TAXONOMY_AXIS_VALUES is tallinn *seed content* (SSR-31),
+    not a Contour2 loader reject rule for arbitrary packs.
+    """
     ctx = resolve_pack(SchemaRef("tallinn_civic", "v1"), packs_root=PACKS_ROOT)
     assert isinstance(ctx.taxonomy, TaxonomyPack)
     assert ctx.taxonomy.schema_id == "tallinn_civic"

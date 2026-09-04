@@ -26,14 +26,28 @@ def _minimal_taxonomy(
     schema_version: str = "v1",
     axes: tuple[str, ...] | None = None,
     extra_canonical: dict[str, list[dict[str, str]]] | None = None,
+    axis_to_signal_map: dict[str, str] | None = None,
+    internal_axes: list[str] | None = None,
 ) -> dict:
+    axes_list = list(axes if axes is not None else _AXES_ORDERED)
+    axes_set = set(axes_list)
+    if internal_axes is None:
+        internal_axes = [
+            a for a in ("risk_privacy_safety", "confidence_state") if a in axes_set
+        ]
+    if axis_to_signal_map is None:
+        axis_to_signal_map = (
+            {"topic_domain": "signals.civic_domain"}
+            if "topic_domain" in axes_set
+            else {}
+        )
     body: dict = {
         "schema_id": schema_id,
         "schema_version": schema_version,
-        "axes": list(axes if axes is not None else _AXES_ORDERED),
-        "internal_axes": ["risk_privacy_safety", "confidence_state"],
+        "axes": axes_list,
+        "internal_axes": internal_axes,
         "canonical_keys": {},
-        "axis_to_signal_map": {"topic_domain": "signals.civic_domain"},
+        "axis_to_signal_map": axis_to_signal_map,
         "dispositions": [
             "canonical",
             "metadata_only",
@@ -92,21 +106,60 @@ def test_missing_taxonomy_file_when_declared_fails(tmp_path: Path) -> None:
         resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
 
 
-def test_invalid_axis_in_taxonomy_file_fails(tmp_path: Path) -> None:
+def test_canonical_key_axis_not_in_axes_fails(tmp_path: Path) -> None:
+    """SSR-31: structural — map keys must belong to axes[] (not frozen 13 set)."""
     dest = _copy_legal_pack(
         tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
     )
-    bad_axes = tuple(a for a in _AXES_ORDERED if a != "topic_domain") + (
-        "not_a_real_axis",
+    body = _minimal_taxonomy(
+        schema_id="legal_process",
+        axes=("topic_domain", "signal_type"),
+        axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+        extra_canonical={
+            "not_in_axes": [{"key": "x", "meaning": "orphan axis key"}],
+        },
     )
+    (dest / "taxonomy.json").write_text(json.dumps(body), encoding="utf-8")
+    with pytest.raises(UnsupportedVersionError, match="unknown axis in canonical_keys"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_duplicate_axis_in_axes_fails(tmp_path: Path) -> None:
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    body = _minimal_taxonomy(
+        schema_id="legal_process",
+        axes=("topic_domain", "topic_domain"),
+        axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+        internal_axes=[],
+    )
+    (dest / "taxonomy.json").write_text(json.dumps(body), encoding="utf-8")
+    with pytest.raises(UnsupportedVersionError, match="duplicate axis"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_node_defined_axes_not_equal_thirteen_loads(tmp_path: Path) -> None:
+    """SSR-31: Contour2 accepts pack-defined axes ≠ TAXONOMY_AXIS_VALUES."""
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    axes = ("topic_domain", "signal_type")
     (dest / "taxonomy.json").write_text(
         json.dumps(
-            _minimal_taxonomy(schema_id="legal_process", axes=bad_axes)
+            _minimal_taxonomy(
+                schema_id="legal_process",
+                axes=axes,
+                axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+                internal_axes=[],
+            )
         ),
         encoding="utf-8",
     )
-    with pytest.raises(UnsupportedVersionError, match="unknown axis"):
-        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    ctx = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    assert isinstance(ctx.taxonomy, TaxonomyPack)
+    assert ctx.taxonomy.axes == axes
+    assert set(ctx.taxonomy.axes) != TAXONOMY_AXIS_VALUES
 
 
 def test_duplicate_canonical_key_fails(tmp_path: Path) -> None:
