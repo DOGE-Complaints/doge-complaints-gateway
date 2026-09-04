@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-# REQ-20 §3 + functional spec §18.3 canonical axes (13).
+# Tallinn/civic reference axes (D-SSR-11 / REQ-20 §3 / §18.3).
+# Reference frozenset for docs, tallinn seed, and helpers — NOT Contour1 wire reject SSOT.
 TAXONOMY_AXIS_VALUES = frozenset(
     {
         "topic_domain",
@@ -21,9 +22,10 @@ TAXONOMY_AXIS_VALUES = frozenset(
 
 
 def normalize_axis(raw: object) -> str:
+    """Normalize a Contour1 wire axis id: non-empty str → strip → lower.
+
+    Pack-/node-defined axis ids are accepted. Empty or non-string values still raise.
+    """
     if not isinstance(raw, str) or not raw.strip():
         raise ValueError("axis must be a non-empty string.")
-    normalized = raw.strip().lower()
-    if normalized not in TAXONOMY_AXIS_VALUES:
-        raise ValueError(f"Unsupported taxonomy axis: {raw!r}.")
-    return normalized
+    return raw.strip().lower()
