@@ -41,7 +41,8 @@ def test_intake_accepts_per_axis_taxonomy_and_derives_canonical_flat_labels() ->
     assert request.narrative.canonical_labels == ("transport",)
 
 
-def test_intake_rejects_invalid_axis() -> None:
+def test_intake_accepts_custom_axis() -> None:
+    """SSR-32 Contour1: axis ids are open; civic skip handles unmapped later."""
     payload = valid_v2_intake_payload(
         narrative={
             "taxonomy": {
@@ -49,8 +50,10 @@ def test_intake_rejects_invalid_axis() -> None:
             }
         }
     )
-    with pytest.raises(IntakeValidationError, match="Unsupported taxonomy axis"):
-        parse_story_intake_request(payload)
+    request = parse_story_intake_request(payload)
+    assert len(request.narrative.taxonomy) == 1
+    assert request.narrative.taxonomy[0].axis == "not_a_real_axis"
+    assert request.narrative.taxonomy[0].label == "roads"
 
 
 def test_intake_rejects_invalid_disposition() -> None:
