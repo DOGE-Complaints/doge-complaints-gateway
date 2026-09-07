@@ -72,8 +72,9 @@ python -m pip install -e '.[dev]'
 | Имя | Что это | Эта волна |
 |-----|---------|-----------|
 | `SCHEMA_PACKS_ROOT` | Путь к **диску / Volume mount** (склад nested packs) | **SSR-34** — local optional; Railway = mount |
-| `SCHEMA_ROOT_URL` | URL **удалённого** federation registry / manifest | **SSR-35 later** — **не** mount path; в runtime **absent** |
-| `NODE_SCHEMA_*` | Active pair identity | local + Railway одинаково |
+| `SCHEMA_ROOT_URL` | URL **удалённого** federation registry root (http/https) | **SSR-35 shipped** — **не** mount path |
+| `SCHEMA_PACK_REFRESH` | `true`/`false` — re-fetch overwrite cache | **SSR-35 shipped** (default false) |
+| `NODE_SCHEMA_*` | Active pair identity | local + Railway + federation одинаково |
 
 **Volume mount path ≠ `SCHEMA_ROOT_URL`.** Путь вроде `/data/schema-packs` → только `SCHEMA_PACKS_ROOT`.
 
@@ -82,7 +83,7 @@ python -m pip install -e '.[dev]'
 1. Положить nested pack: `schema-packs/<id>/<ver>/{pack,payload.schema,taxonomy?}.json` (например loadable `uus_veerenni_civic/v2`).
 2. Выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на эту пару.
 3. `SCHEMA_PACKS_ROOT` обычно **не** нужен (default in-tree root).
-4. **Не** задавать `SCHEMA_ROOT_URL` (ещё не shipped).
+4. `SCHEMA_ROOT_URL` **не** нужен для hand-copy (SSR-34 path).
 5. Node packs (uus…) **не коммитить** — см. `.gitignore`; demo/seed (`tallinn_civic`, `legal_process`, `mobility_observation`) остаются tracked для pytest.
 6. GPT `schema_binding` в Instructions должен **ровно** совпасть с `NODE_SCHEMA_*` (иначе intake **4xx**, SSR-17). Gateway P3 **не** правит GPT files.
 
@@ -108,7 +109,33 @@ export NODE_SCHEMA_VERSION=v2
 3. Copy nested tree на Volume: `<id>/<ver>/pack.json` (+ payload / taxonomy as needed).
 4. Same `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` as local active pair.
 5. Redeploy; boot log must show resolved pair (`startup.config`). Missing/invalid → fail-fast, **не** tallinn.
-6. Do **not** set Volume path into `SCHEMA_ROOT_URL` — that name is federation later (SSR-35).
+6. Do **not** set Volume path into `SCHEMA_ROOT_URL` — that name is federation registry URL only (SSR-35).
+
+#### Federation remote playbook (SSR-35 — SCHEMA_ROOT_URL)
+
+Когда pack живёт в **удалённом** federation registry (не hand-copy на Volume):
+
+1. Env: **`SCHEMA_ROOT_URL=https://…/schema-packs`** (http/https root; **не** `/data/...` mount).
+2. Optional cache root: `SCHEMA_PACKS_ROOT` (Volume/disk) или default `schema-packs/`.
+3. Same `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION`.
+4. Boot: cache miss → GET `{SCHEMA_ROOT_URL}/{id}/{ver}/manifest.json` (stub) → download `files` → nested `<id>/<ver>/` → `resolve_pack`.
+5. Fresh cache (`pack.json` already present) → **no** re-fetch unless `SCHEMA_PACK_REFRESH=true` (overwrite).
+6. Corrupt/missing remote → `ConfigError`; **no** silent tallinn/foreign default.
+
+Stub manifest shape (minimal until federation SSOT):
+
+```json
+{
+  "schema_id": "<NODE_SCHEMA_ID>",
+  "schema_version": "<NODE_SCHEMA_VERSION>",
+  "files": {
+    "pack.json": "https://…/pack.json",
+    "payload.schema.json": "https://…/payload.schema.json"
+  }
+}
+```
+
+Code: [`remote_fetch.py`](../../../src/core/schema/remote_fetch.py). Tests use HTTP mock — CI does **not** need a live registry.
 
 Sibling: keep GPT Instructions `schema_binding` aligned with the active pair after any env change.
 
