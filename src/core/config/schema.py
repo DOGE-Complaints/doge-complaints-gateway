@@ -54,6 +54,8 @@ class AppConfig:
     story_draft_ttl_seconds: int
     node_schema_id: str
     node_schema_version: str
+    schema_root_url: str | None
+    schema_pack_refresh: bool
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -186,6 +188,24 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
         default=None,
         description="Active node schema pack version (schema-packs/<id>/<version>/).",
     ),
+    EnvSpec(
+        name="SCHEMA_ROOT_URL",
+        required=False,
+        default=None,
+        description=(
+            "Optional http(s) federation registry root URL (SSR-35). "
+            "NOT a Volume/filesystem mount — use SCHEMA_PACKS_ROOT for disk."
+        ),
+    ),
+    EnvSpec(
+        name="SCHEMA_PACK_REFRESH",
+        required=False,
+        default="false",
+        description=(
+            "When true with SCHEMA_ROOT_URL, re-fetch and overwrite nested cache "
+            "even if pack.json already exists (SSR-35)."
+        ),
+    ),
 )
 
 
@@ -221,6 +241,37 @@ def _validate_http_url(url: str, *, env_name: str) -> str:
             f"{env_name} must start with http:// or https://, got {url!r}."
         )
     return trimmed
+
+
+def _looks_like_filesystem_path(value: str) -> bool:
+    """True for Volume/mount-style paths that must not be SCHEMA_ROOT_URL."""
+    trimmed = value.strip()
+    if not trimmed:
+        return False
+    if trimmed.startswith("/") or trimmed.startswith("\\\\"):
+        return True
+    if len(trimmed) >= 3 and trimmed[1] == ":" and trimmed[2] in {"/", "\\"}:
+        return True
+    lower = trimmed.lower()
+    if lower.startswith("file:"):
+        return True
+    return False
+
+
+def _parse_schema_root_url(raw: str | None) -> str | None:
+    """Optional federation registry URL; reject filesystem/Volume mounts (D-SSR-12)."""
+    if raw is None:
+        return None
+    trimmed = raw.strip()
+    if not trimmed:
+        return None
+    if _looks_like_filesystem_path(trimmed):
+        raise ConfigError(
+            f"SCHEMA_ROOT_URL must be an http(s) federation registry URL, "
+            f"not a filesystem/Volume path ({trimmed!r}). "
+            "Use SCHEMA_PACKS_ROOT for disk mounts."
+        )
+    return _validate_http_url(trimmed, env_name="SCHEMA_ROOT_URL").rstrip("/")
 
 
 def _parse_log_level(raw: str | None) -> str:
@@ -301,23 +352,37 @@ def _profile_defaults(profile: DeploymentProfile) -> FeatureFlags:
     )
 
 
-def _resolve_node_schema_pack(*, schema_id: str, schema_version: str) -> None:
+def _resolve_node_schema_pack(
+    *,
+    schema_id: str,
+    schema_version: str,
+    environ: Mapping[str, str] | None = None,
+) -> None:
     """Fail-fast: active pair must resolve to an on-disk pack. No civic fallback."""
-    civic_clustering_from_active_node(schema_id=schema_id, schema_version=schema_version)
+    civic_clustering_from_active_node(
+        schema_id=schema_id,
+        schema_version=schema_version,
+        environ=environ,
+    )
 
 
 def civic_clustering_from_active_node(
     *,
     schema_id: str,
     schema_version: str,
+    environ: Mapping[str, str] | None = None,
 ) -> CivicClusteringBlock:
     """Civic knobs from the active NODE_SCHEMA pack. Missing/invalid → ConfigError."""
     from core.schema.contracts import CivicClusteringBlock, SchemaRef
     from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
-    from core.schema.resolver import resolve_pack
+    from core.schema.resolver import default_packs_root, resolve_pack
 
+    packs_root = default_packs_root(environ=environ) if environ is not None else None
     try:
-        context = resolve_pack(SchemaRef(schema_id=schema_id, schema_version=schema_version))
+        context = resolve_pack(
+            SchemaRef(schema_id=schema_id, schema_version=schema_version),
+            packs_root=packs_root,
+        )
     except (UnknownSchemaError, UnsupportedVersionError) as exc:
         raise ConfigError(
             f"NODE_SCHEMA_ID/NODE_SCHEMA_VERSION={schema_id!r}/{schema_version!r} "
@@ -330,14 +395,19 @@ def geo_intake_from_active_node(
     *,
     schema_id: str,
     schema_version: str,
+    environ: Mapping[str, str] | None = None,
 ) -> "GeoIntakeBlock":
     """Pack ``geo_intake`` from the active NODE_SCHEMA pack. Missing/invalid → ConfigError."""
     from core.schema.contracts import GeoIntakeBlock, SchemaRef
     from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
-    from core.schema.resolver import resolve_pack
+    from core.schema.resolver import default_packs_root, resolve_pack
 
+    packs_root = default_packs_root(environ=environ) if environ is not None else None
     try:
-        context = resolve_pack(SchemaRef(schema_id=schema_id, schema_version=schema_version))
+        context = resolve_pack(
+            SchemaRef(schema_id=schema_id, schema_version=schema_version),
+            packs_root=packs_root,
+        )
     except (UnknownSchemaError, UnsupportedVersionError) as exc:
         raise ConfigError(
             f"NODE_SCHEMA_ID/NODE_SCHEMA_VERSION={schema_id!r}/{schema_version!r} "
@@ -470,9 +540,31 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
 
     node_schema_id = _require_value(source, name="NODE_SCHEMA_ID")
     node_schema_version = _require_value(source, name="NODE_SCHEMA_VERSION")
+
+    schema_root_url = _parse_schema_root_url(_get_value(source, "SCHEMA_ROOT_URL"))
+    refresh_raw = _get_value(source, "SCHEMA_PACK_REFRESH")
+    if refresh_raw is None:
+        schema_pack_refresh = False
+    else:
+        schema_pack_refresh = _parse_bool(
+            refresh_raw, env_name="SCHEMA_PACK_REFRESH"
+        )
+
+    if schema_root_url is not None:
+        from core.schema.remote_fetch import maybe_fetch_active_pack
+
+        maybe_fetch_active_pack(
+            schema_root_url=schema_root_url,
+            schema_id=node_schema_id,
+            schema_version=node_schema_version,
+            refresh=schema_pack_refresh,
+            environ=dict(source),
+        )
+
     _resolve_node_schema_pack(
         schema_id=node_schema_id,
         schema_version=node_schema_version,
+        environ=dict(source),
     )
 
     return AppConfig(
@@ -495,5 +587,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         story_draft_ttl_seconds=story_draft_ttl_seconds,
         node_schema_id=node_schema_id,
         node_schema_version=node_schema_version,
+        schema_root_url=schema_root_url,
+        schema_pack_refresh=schema_pack_refresh,
     )
 
