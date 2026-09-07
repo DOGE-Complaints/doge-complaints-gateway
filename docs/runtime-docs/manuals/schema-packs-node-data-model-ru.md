@@ -1,7 +1,7 @@
 # Schema packs: как устроена модель данных ноды
 
-**Дата:** 2026-09-04T13:26:15Z (D-SSR-11 node-taxonomy docs — SSR-33; taxonomy dual contour + operator copy-paste — SSR-29; три уровня geo — SSR-27; два контура clustering — SSR-21)  
-Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke.
+**Дата:** 2026-09-07T08:32:02Z (D-SSR-12 local warehouse + Railway Volume — SSR-34; D-SSR-11 node-taxonomy — SSR-33; taxonomy dual contour + operator copy-paste — SSR-29; три уровня geo — SSR-27; два контура clustering — SSR-21)  
+Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke. Env playbooks: [`server-env-quickstart.md`](./server-env-quickstart.md) §Node active schema + warehouse ops.
 
 Этот текст для человека, который поднимает ноду: что лежит на диске (склад), какая пара **рабочая** (`NODE_SCHEMA_*`), куда ходит публичный API.
 
@@ -30,6 +30,22 @@
 | `tallinn_civic/v1` | civic-оси как поля payload (не копия enum `ClusterLens`) |
 
 Корень: переменная **`SCHEMA_PACKS_ROOT`**, иначе каталог `schema-packs/` рядом с корнем gateway ([`resolver.py`](../../../src/core/schema/resolver.py)). В `AppConfig` этого поля нет — только `os.environ`. Если процесс стартовал не из корня gateway, без env resolver не найдёт паки.
+
+### Warehouse model (D-SSR-12 / SSR-34)
+
+| Среда | Корень склада | Active | Git |
+|-------|---------------|--------|-----|
+| Local | default `doge-complaints-gateway/schema-packs/` (`SCHEMA_PACKS_ROOT` unset) | `NODE_SCHEMA_*` | demo/seed tracked; **node packs (uus…) ignored / not committed** |
+| Railway | Volume mount = **`SCHEMA_PACKS_ROOT`** (напр. `/data/schema-packs`) | те же `NODE_SCHEMA_*` | N/A (Volume, не git) |
+| Federation later | fetch → тот же cache root | без смены identity | **SSR-35** (`SCHEMA_ROOT_URL`) |
+
+**Glossary:** `SCHEMA_PACKS_ROOT` = диск / Volume mount. **`SCHEMA_ROOT_URL` ≠ mount** — remote federation registry URL, **absent** in runtime today (SSR-35 later). Не подставлять путь Volume в `SCHEMA_ROOT_URL`.
+
+**Git policy:** ignore node trees (напр. `schema-packs/uus_veerenni_civic/` в gateway `.gitignore`). **Не** ignore весь `schema-packs/` — иначе сломается CI (tallinn/legal/mobility fixtures).
+
+**Fail-fast:** missing/invalid active pack → boot `ConfigError`; **не** silent tallinn. Pack content repair / geo enum expand — **вне** SSR-34 (precondition operator).
+
+**GPT lockstep:** Instructions `schema_binding` == env `NODE_SCHEMA_*` (SSR-17). Смена active pair без обновления GPT → intake 4xx. Gateway docs only — GPT files правятся sibling wave.
 
 Каждый pack — папка `<schema_id>/<schema_version>/`:
 

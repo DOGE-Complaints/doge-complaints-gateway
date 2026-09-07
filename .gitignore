@@ -12,3 +12,7 @@ docs/analysis/*
 src/doge_complaints_gateway.egg-info/
 supabase/.temp/
 .vscode/
+
+# Node schema packs (D-SSR-12 / SSR-34): keep on disk for local/Volume ops; do not commit.
+# Demo/seed packs (tallinn_civic, legal_process, mobility_observation) stay tracked for pytest.
+schema-packs/uus_veerenni_civic/

@@ -56,18 +56,61 @@ python -m pip install -e '.[dev]'
 - `LOG_LEVEL` (default `INFO`)
 - `SERVICE_API_TOKEN` (для strict auth режима; обязателен при `APP_PROFILE=pilot`)
 
-### Node active schema (GW-SSR-16)
+### Node active schema (GW-SSR-16) + warehouse ops (D-SSR-12 / GW-SSR-34)
 
-Рабочая модель ноды — **одна** пара required env (без default, fail-fast). Несколько каталогов в `schema-packs/` — склад для отладки; процесс поднимает только эту пару. Не invent `DEFAULT_SCHEMA_PACK` и не «первый pack».
+Рабочая модель ноды — **одна** пара required env (без default, fail-fast). Несколько каталогов в `schema-packs/` — склад для отладки; процесс поднимает только эту пару. Не invent `DEFAULT_SCHEMA_PACK` и не «первый pack». Нет / пустой / невалидный каталог → `ConfigError`, **не** silent fallback на `tallinn_civic`.
 
 | Переменная | Назначение | Если не задана / пустая / нет каталога |
 |---|---|---|
-| `NODE_SCHEMA_ID` | id каталога `schema-packs/<id>/` | `ConfigError`, процесс не стартует |
-| `NODE_SCHEMA_VERSION` | версия `schema-packs/<id>/<version>/` | `ConfigError`, процесс не стартует |
+| `NODE_SCHEMA_ID` | id каталога под корнем склада `<id>/` | `ConfigError`, процесс не стартует |
+| `NODE_SCHEMA_VERSION` | версия `<id>/<version>/` | `ConfigError`, процесс не стартует |
 
-Пример на диске: `NODE_SCHEMA_ID=tallinn_civic` и `NODE_SCHEMA_VERSION=v1`.
+`SCHEMA_PACKS_ROOT` — optional override **корня склада на диске** (Volume mount / abs path): читает [`resolver.py`](../../../src/core/schema/resolver.py) через `os.environ`, **не** поле `AppConfig`. Если unset — default `doge-complaints-gateway/schema-packs/`.
 
-`SCHEMA_PACKS_ROOT` остаётся optional override корня склада: читает [`resolver.py`](../../../src/core/schema/resolver.py) через `os.environ`, **не** поле `AppConfig`.
+#### Glossary (не путать)
+
+| Имя | Что это | Эта волна |
+|-----|---------|-----------|
+| `SCHEMA_PACKS_ROOT` | Путь к **диску / Volume mount** (склад nested packs) | **SSR-34** — local optional; Railway = mount |
+| `SCHEMA_ROOT_URL` | URL **удалённого** federation registry / manifest | **SSR-35 later** — **не** mount path; в runtime **absent** |
+| `NODE_SCHEMA_*` | Active pair identity | local + Railway одинаково |
+
+**Volume mount path ≠ `SCHEMA_ROOT_URL`.** Путь вроде `/data/schema-packs` → только `SCHEMA_PACKS_ROOT`.
+
+#### Local playbook (без Volume)
+
+1. Положить nested pack: `schema-packs/<id>/<ver>/{pack,payload.schema,taxonomy?}.json` (например loadable `uus_veerenni_civic/v2`).
+2. Выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на эту пару.
+3. `SCHEMA_PACKS_ROOT` обычно **не** нужен (default in-tree root).
+4. **Не** задавать `SCHEMA_ROOT_URL` (ещё не shipped).
+5. Node packs (uus…) **не коммитить** — см. `.gitignore`; demo/seed (`tallinn_civic`, `legal_process`, `mobility_observation`) остаются tracked для pytest.
+6. GPT `schema_binding` в Instructions должен **ровно** совпасть с `NODE_SCHEMA_*` (иначе intake **4xx**, SSR-17). Gateway P3 **не** правит GPT files.
+
+Пример demo seed:
+
+```bash
+export NODE_SCHEMA_ID=tallinn_civic
+export NODE_SCHEMA_VERSION=v1
+```
+
+Пример node pack (после loadable precondition):
+
+```bash
+export NODE_SCHEMA_ID=uus_veerenni_civic
+export NODE_SCHEMA_VERSION=v2
+# SCHEMA_PACKS_ROOT unset → doge-complaints-gateway/schema-packs/
+```
+
+#### Railway playbook (Volume = SCHEMA_PACKS_ROOT)
+
+1. Create Railway Volume; mount (напр. `/data/schema-packs`).
+2. Env: **`SCHEMA_PACKS_ROOT=/data/schema-packs`** (mount path, **не** URL).
+3. Copy nested tree на Volume: `<id>/<ver>/pack.json` (+ payload / taxonomy as needed).
+4. Same `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` as local active pair.
+5. Redeploy; boot log must show resolved pair (`startup.config`). Missing/invalid → fail-fast, **не** tallinn.
+6. Do **not** set Volume path into `SCHEMA_ROOT_URL` — that name is federation later (SSR-35).
+
+Sibling: keep GPT Instructions `schema_binding` aligned with the active pair after any env change.
 
 **Авторизация legacy public-content writes (GW-DRAFT-04) — для `POST /intake/stories` и `POST /node/issues`:**
 
