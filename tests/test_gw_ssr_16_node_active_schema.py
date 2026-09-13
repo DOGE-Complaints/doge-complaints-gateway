@@ -63,6 +63,7 @@ def test_existing_pack_loads() -> None:
     config = load_config_from_env(with_node_schema(_BASE))
     assert config.node_schema_id == DEFAULT_TEST_NODE_SCHEMA_ID
     assert config.node_schema_version == DEFAULT_TEST_NODE_SCHEMA_VERSION
+    assert config.schema_pack_ready is True
 
 
 def test_unknown_schema_id_raises_config_error() -> None:
@@ -70,6 +71,17 @@ def test_unknown_schema_id_raises_config_error() -> None:
     env[NODE_SCHEMA_ID_ENV] = "no_such_pack"
     with pytest.raises(ConfigError, match="does not resolve to a pack catalog"):
         load_config_from_env(env)
+
+
+def test_missing_pack_under_schema_packs_root_soft_boots(tmp_path) -> None:
+    """Empty Volume chicken-egg: SCHEMA_PACKS_ROOT set → soft boot, not ConfigError."""
+    env = with_node_schema(_BASE)
+    env["SCHEMA_PACKS_ROOT"] = str(tmp_path)
+    env[NODE_SCHEMA_ID_ENV] = "uus_veerenni_civic"
+    env[NODE_SCHEMA_VERSION_ENV] = "v3"
+    config = load_config_from_env(env)
+    assert config.schema_pack_ready is False
+    assert config.node_schema_id == "uus_veerenni_civic"
 
 
 def test_missing_version_dir_raises_config_error() -> None:

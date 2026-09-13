@@ -118,12 +118,28 @@ async def _lifespan(_: FastAPI):
         log_format=deps.config.log_format,
         log_debug_dir=deps.config.log_debug_dir,
     )
-    civic = config_schema.civic_clustering_from_active_node(
-        schema_id=deps.config.node_schema_id,
-        schema_version=deps.config.node_schema_version,
-    )
+    if not deps.config.schema_pack_ready:
+        logging.getLogger(__name__).error(
+            "startup.schema_pack_degraded node_schema_id=%s node_schema_version=%s "
+            "hint=upload pack under SCHEMA_PACKS_ROOT; cluster cron skipped; intake blocked",
+            deps.config.node_schema_id,
+            deps.config.node_schema_version,
+            extra={
+                "stage": "api.startup",
+                "outcome": "degraded",
+                "node_schema_id": deps.config.node_schema_id,
+                "node_schema_version": deps.config.node_schema_version,
+                "schema_pack_ready": False,
+            },
+        )
+        civic = config_schema._boot_placeholder_civic()
+    else:
+        civic = config_schema.civic_clustering_from_active_node(
+            schema_id=deps.config.node_schema_id,
+            schema_version=deps.config.node_schema_version,
+        )
     logging.getLogger(__name__).info(
-        "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s node_schema_id=%s node_schema_version=%s",
+        "startup.config db_backend=%s cluster_primary_lens=%s cluster_min_size=%s cron_enabled=%s cron_interval_s=%s node_schema_id=%s node_schema_version=%s schema_pack_ready=%s",
         deps.config.db_backend,
         civic.primary_lens,
         civic.min_size,
@@ -131,6 +147,7 @@ async def _lifespan(_: FastAPI):
         deps.config.cluster_cron_interval_s,
         deps.config.node_schema_id,
         deps.config.node_schema_version,
+        deps.config.schema_pack_ready,
         extra={
             "db_backend": deps.config.db_backend,
             "cluster_active_lenses": ",".join(civic.active_lenses),
@@ -147,6 +164,7 @@ async def _lifespan(_: FastAPI):
             "cron_interval_s": deps.config.cluster_cron_interval_s,
             "node_schema_id": deps.config.node_schema_id,
             "node_schema_version": deps.config.node_schema_version,
+            "schema_pack_ready": deps.config.schema_pack_ready,
         },
     )
     logging.getLogger(__name__).info(
@@ -172,7 +190,16 @@ async def _lifespan(_: FastAPI):
             extra={"hint": "set DB_BACKEND=supabase for persistent remote writes"},
         )
     cron_job: ClusterCronJob | None = None
-    if deps.config.cluster_cron_enabled:
+    if deps.config.cluster_cron_enabled and not deps.config.schema_pack_ready:
+        logging.getLogger(__name__).warning(
+            "startup.cluster_cron_skipped schema_pack_ready=False",
+            extra={
+                "stage": "api.startup",
+                "schema_pack_ready": False,
+                "hint": "upload schema pack under SCHEMA_PACKS_ROOT then redeploy/restart",
+            },
+        )
+    elif deps.config.cluster_cron_enabled:
         if deps.config.db_backend == "supabase" and not deps.db_ready:
             logging.getLogger(__name__).warning(
                 "startup.cluster_cron_skipped db_ready=False checks=%s",
