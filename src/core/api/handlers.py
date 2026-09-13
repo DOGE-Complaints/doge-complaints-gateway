@@ -284,8 +284,11 @@ def handle_story_intake(
             detail=request.geo_detail,
         )
         if geo_scope is not None and location_query:
+            active_geo = geo_service
+            if active_geo is None:
+                raise IntakeValidationError("geo unavailable")
             scope_level, scope_value = geo_scope
-            resolved_geo = geo_service.resolve_for_story(location_query)
+            resolved_geo = active_geo.resolve_for_story(location_query)
             assert_geo_in_scope(
                 resolved_geo,
                 level=scope_level,
