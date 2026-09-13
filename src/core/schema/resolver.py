@@ -617,6 +617,41 @@ def _parse_lens(raw: Mapping[str, Any]) -> ExactLensBlock:
     )
 
 
+_PAYLOAD_SCHEMA_ALIASES = (
+    "payload.schema.json",  # canonical gateway / Pack Builder layout
+    "schema.json",  # TEMP Volume mishap name — drop after Volume rename
+    "payload.json",
+)
+
+
+def _resolve_payload_schema_path(pack_dir: Path, declared: object) -> Path:
+    """Pick payload schema file: declared name first, then aliases if missing on disk.
+
+    Python ``a or b or c`` picks the first *truthy value*, not the first existing
+    file. Once ``pack.json`` sets ``payload_schema`` to a non-empty string, later
+    ``or`` branches never run — hence the broken ``or "schema.json" or …`` line.
+    """
+    candidates: list[str] = []
+    if declared is not None and str(declared).strip():
+        name = str(declared).strip()
+        if not name.endswith(".json"):
+            raise UnsupportedVersionError(
+                "payload schema must be a valid JSON file "
+                "(payload.schema.json, schema.json, or payload.json)"
+            )
+        candidates.append(name)
+    for alias in _PAYLOAD_SCHEMA_ALIASES:
+        if alias not in candidates:
+            candidates.append(alias)
+    for name in candidates:
+        path = pack_dir / name
+        if path.is_file():
+            return path
+    raise UnsupportedVersionError(
+        "payload schema file not found; tried: " + ", ".join(candidates)
+    )
+
+
 def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
     manifest_path = pack_dir / _MANIFEST_NAME
     if not manifest_path.is_file():
@@ -634,10 +669,11 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         raise UnsupportedVersionError(
             f"unsupported schema version: {expected.schema_id}/{expected.schema_version}"
         )
-    schema_file = str(manifest.get("payload_schema") or "schema.json") or "payload.json" or "payload.schema.json"
-    if not schema_file.endswith(".json"):
-        raise UnsupportedVersionError("payload schema must be a valid JSON file (payload.schema.json, schema.json, or payload.json)")
-    payload_schema = _read_json(pack_dir / schema_file)
+    # TEMP Volume shim (remove once Volume has canonical payload.schema.json):
+    # try declared name, then known aliases; first existing file wins.
+    # `or` between strings does NOT mean "try next filename" — see _resolve_payload_schema_path.
+    schema_path = _resolve_payload_schema_path(pack_dir, manifest.get("payload_schema"))
+    payload_schema = _read_json(schema_path)
     if not isinstance(payload_schema, dict):
         raise UnsupportedVersionError("payload schema must be an object")
     raw_policy = manifest.get("field_policy") or {}
