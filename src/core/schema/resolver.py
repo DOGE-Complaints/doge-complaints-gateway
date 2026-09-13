@@ -634,7 +634,9 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         raise UnsupportedVersionError(
             f"unsupported schema version: {expected.schema_id}/{expected.schema_version}"
         )
-    schema_file = str(manifest.get("payload_schema") or "payload.schema.json")
+    schema_file = str(manifest.get("payload_schema") or "schema.json") or "payload.json" or "payload.schema.json"
+    if not schema_file.endswith(".json"):
+        raise UnsupportedVersionError("payload schema must be a valid JSON file (payload.schema.json, schema.json, or payload.json)")
     payload_schema = _read_json(pack_dir / schema_file)
     if not isinstance(payload_schema, dict):
         raise UnsupportedVersionError("payload schema must be an object")
