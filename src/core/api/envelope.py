@@ -37,7 +37,7 @@ class ErrorEnvelope:
 
 @dataclass(frozen=True)
 class SuccessEnvelope:
-    data: dict[str, Any]
+    data: dict[str, Any] | None
     trace_id: str
 
     def as_dict(self) -> dict[str, Any]:
@@ -51,7 +51,7 @@ def ensure_trace_id(trace_id: str | None = None) -> str:
 
 
 def build_success_envelope(
-    data: dict[str, Any], trace_id: str | None = None
+    data: dict[str, Any] | None, trace_id: str | None = None
 ) -> SuccessEnvelope:
     return SuccessEnvelope(data=data, trace_id=ensure_trace_id(trace_id))
 
