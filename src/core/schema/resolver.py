@@ -12,15 +12,23 @@ from core.geo.scope import parse_cluster_geo_filter, parse_cluster_geo_scope
 from core.schema.contracts import (
     FIELD_POLICY_STATES,
     GEO_INTAKE_MODES,
+    GEO_PRECISION_LEVELS,
+    GPT_INSTANCE_RULE_TYPES,
     CivicClusteringBlock,
     ExactLensBlock,
     GeoIntakeBlock,
+    GeoModelBlock,
+    GptInstanceTerritoryBlock,
+    GptInstanceTerritoryRule,
     NodeClusteringBlock,
     ReadinessPolicy,
     SchemaContext,
     SchemaRef,
+    TaxonomyCanonicalKey,
+    TaxonomyPack,
 )
 from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+from core.taxonomy.disposition import LABEL_DISPOSITION_VALUES
 
 _KNOWN_LENS_IDS = frozenset(member.value for member in ClusterLens)
 _ID_ALGORITHMS = frozenset({"legacy_hash", "sha256"})
@@ -243,6 +251,164 @@ def _parse_card_fields(manifest: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(paths)
 
 
+def _parse_taxonomy_pack(
+    pack_dir: Path,
+    manifest: Mapping[str, Any],
+    expected: SchemaRef,
+) -> TaxonomyPack | None:
+    """Optional Contour2 vocabulary. Absent ``taxonomy_schema`` → None (orphan file ignored)."""
+    if "taxonomy_schema" not in manifest:
+        return None
+    raw_name = manifest["taxonomy_schema"]
+    if not isinstance(raw_name, str) or not raw_name.strip():
+        raise UnsupportedVersionError(
+            "taxonomy_schema must be a non-empty string when present"
+        )
+    filename = raw_name.strip()
+    path = pack_dir / filename
+    if not path.is_file():
+        raise UnsupportedVersionError(f"taxonomy file missing: {filename}")
+    raw = _read_json(path)
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("taxonomy.json must be an object")
+
+    schema_id = str(raw.get("schema_id", ""))
+    schema_version = str(raw.get("schema_version", ""))
+    if schema_id != expected.schema_id or schema_version != expected.schema_version:
+        raise UnsupportedVersionError(
+            "taxonomy.json schema_id/schema_version must match pack.json"
+        )
+
+    axes_raw = raw.get("axes")
+    if not isinstance(axes_raw, list) or not axes_raw:
+        raise UnsupportedVersionError("taxonomy.json axes must be a non-empty array")
+    axes_list: list[str] = []
+    for item in axes_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "taxonomy.json axes entries must be non-empty strings"
+            )
+        axis = item.strip()
+        if axis in axes_list:
+            raise UnsupportedVersionError(f"duplicate axis in axes[]: {axis}")
+        axes_list.append(axis)
+    axes = tuple(axes_list)
+
+    internal_raw = raw.get("internal_axes") or []
+    if not isinstance(internal_raw, list):
+        raise UnsupportedVersionError("taxonomy.json internal_axes must be an array")
+    internal_axes_list: list[str] = []
+    for item in internal_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "taxonomy.json internal_axes entries must be non-empty strings"
+            )
+        axis = item.strip()
+        if axis not in axes:
+            raise UnsupportedVersionError(
+                f"taxonomy.json internal_axes entry not in axes: {axis}"
+            )
+        if axis not in internal_axes_list:
+            internal_axes_list.append(axis)
+    internal_axes = tuple(internal_axes_list)
+
+    keys_raw = raw.get("canonical_keys")
+    if keys_raw is None:
+        keys_raw = {}
+    if not isinstance(keys_raw, dict):
+        raise UnsupportedVersionError("taxonomy.json canonical_keys must be an object")
+    canonical_keys: dict[str, tuple[TaxonomyCanonicalKey, ...]] = {}
+    for axis, entries in keys_raw.items():
+        if not isinstance(axis, str) or axis not in axes:
+            raise UnsupportedVersionError(f"unknown axis in canonical_keys: {axis}")
+        if not isinstance(entries, list):
+            raise UnsupportedVersionError(
+                f"taxonomy.json canonical_keys[{axis}] must be an array"
+            )
+        seen: set[str] = set()
+        parsed: list[TaxonomyCanonicalKey] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}] entries must be objects"
+                )
+            key_raw = entry.get("key")
+            if not isinstance(key_raw, str) or not key_raw.strip():
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}] key must be a non-empty string"
+                )
+            key = key_raw.strip()
+            if key in seen:
+                raise UnsupportedVersionError(
+                    f"duplicate key in canonical_keys[{axis}]: {key}"
+                )
+            seen.add(key)
+            meaning_raw = entry.get("meaning")
+            meaning: str | None
+            if meaning_raw is None:
+                meaning = None
+            elif isinstance(meaning_raw, str):
+                meaning = meaning_raw
+            else:
+                raise UnsupportedVersionError(
+                    f"taxonomy.json canonical_keys[{axis}].meaning must be a string when present"
+                )
+            parsed.append(TaxonomyCanonicalKey(key=key, meaning=meaning))
+        canonical_keys[axis] = tuple(parsed)
+
+    map_raw = raw.get("axis_to_signal_map")
+    if map_raw is None:
+        map_raw = {}
+    if not isinstance(map_raw, dict):
+        raise UnsupportedVersionError(
+            "taxonomy.json axis_to_signal_map must be an object"
+        )
+    axis_to_signal_map: dict[str, str] = {}
+    for axis, path in map_raw.items():
+        if not isinstance(axis, str) or axis not in axes:
+            raise UnsupportedVersionError(
+                f"unknown axis in axis_to_signal_map: {axis}"
+            )
+        if not isinstance(path, str) or not path.strip():
+            raise UnsupportedVersionError(
+                f"axis_to_signal_map[{axis}] must be a non-empty dotted path"
+            )
+        axis_to_signal_map[axis] = path.strip()
+
+    disp_raw = raw.get("dispositions")
+    if disp_raw is None:
+        dispositions = tuple(sorted(LABEL_DISPOSITION_VALUES))
+    else:
+        if not isinstance(disp_raw, list) or not disp_raw:
+            raise UnsupportedVersionError(
+                "taxonomy.json dispositions must be a non-empty array when present"
+            )
+        dispositions_list: list[str] = []
+        for item in disp_raw:
+            if not isinstance(item, str) or not item.strip():
+                raise UnsupportedVersionError(
+                    "taxonomy.json dispositions entries must be non-empty strings"
+                )
+            value = item.strip()
+            if value not in LABEL_DISPOSITION_VALUES:
+                raise UnsupportedVersionError(
+                    f"unknown disposition in taxonomy.json: {value}"
+                )
+            if value not in dispositions_list:
+                dispositions_list.append(value)
+        dispositions = tuple(dispositions_list)
+
+    return TaxonomyPack(
+        schema_id=schema_id,
+        schema_version=schema_version,
+        axes=axes,
+        internal_axes=internal_axes,
+        canonical_keys=canonical_keys,
+        axis_to_signal_map=axis_to_signal_map,
+        dispositions=dispositions,
+    )
+
+
 def _parse_readiness(raw: Mapping[str, Any]) -> ReadinessPolicy:
     return ReadinessPolicy(
         min_readiness_score=int(raw["min_readiness_score"]),
@@ -281,6 +447,161 @@ def _parse_geo_intake(manifest: Mapping[str, Any]) -> GeoIntakeBlock:
     )
 
 
+def _parse_geo_model(manifest: Mapping[str, Any]) -> GeoModelBlock | None:
+    """Optional pack precision vocabulary. Absent → None."""
+    if "geo_model" not in manifest:
+        return None
+    raw = manifest["geo_model"]
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("geo_model must be an object")
+    levels_raw = raw.get("precision_levels")
+    if not isinstance(levels_raw, list) or not levels_raw:
+        raise UnsupportedVersionError("geo_model.precision_levels must be a non-empty array")
+    levels: list[str] = []
+    for item in levels_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UnsupportedVersionError(
+                "geo_model.precision_levels entries must be non-empty strings"
+            )
+        token = item.strip()
+        if token not in GEO_PRECISION_LEVELS:
+            raise UnsupportedVersionError(f"unknown geo_model precision level: {token}")
+        levels.append(token)
+    inference: str | None = None
+    if "default_precision_inference" in raw and raw.get("default_precision_inference") is not None:
+        inference_raw = raw.get("default_precision_inference")
+        if not isinstance(inference_raw, str) or not inference_raw.strip():
+            raise UnsupportedVersionError(
+                "geo_model.default_precision_inference must be a non-empty string when present"
+            )
+        inference = inference_raw.strip()
+    unknown = set(raw.keys()) - {"precision_levels", "default_precision_inference"}
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown geo_model keys: " + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GeoModelBlock(
+        precision_levels=tuple(levels),
+        default_precision_inference=inference,
+    )
+
+
+def _parse_gpt_instance_territory_rule(
+    raw: Mapping[str, Any], *, index: int
+) -> GptInstanceTerritoryRule:
+    type_raw = raw.get("type")
+    if not isinstance(type_raw, str) or not type_raw.strip():
+        raise UnsupportedVersionError(
+            f"gpt_instance_territory.rules[{index}].type must be a non-empty string"
+        )
+    rule_type = type_raw.strip()
+    if rule_type not in GPT_INSTANCE_RULE_TYPES:
+        raise UnsupportedVersionError(
+            f"unknown gpt_instance_territory rule type: {rule_type}"
+        )
+    if rule_type == "admin_token":
+        level = raw.get("level")
+        value = raw.get("value")
+        if not isinstance(level, str) or not level.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_token requires level"
+            )
+        if not isinstance(value, str) or not value.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_token requires value"
+            )
+        allowed = {"type", "level", "value"}
+        unknown = set(raw.keys()) - allowed
+        if unknown:
+            raise UnsupportedVersionError(
+                "Unknown gpt_instance_territory.rules keys: "
+                + ", ".join(sorted(str(key) for key in unknown))
+            )
+        return GptInstanceTerritoryRule(
+            type=rule_type, level=level.strip(), value=value.strip()
+        )
+    if rule_type == "admin_id":
+        level = raw.get("level")
+        scheme = raw.get("scheme")
+        value = raw.get("value")
+        if not isinstance(level, str) or not level.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires level"
+            )
+        if not isinstance(scheme, str) or not scheme.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires scheme"
+            )
+        if not isinstance(value, str) or not value.strip():
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] admin_id requires value"
+            )
+        allowed = {"type", "level", "scheme", "value"}
+        unknown = set(raw.keys()) - allowed
+        if unknown:
+            raise UnsupportedVersionError(
+                "Unknown gpt_instance_territory.rules keys: "
+                + ", ".join(sorted(str(key) for key in unknown))
+            )
+        return GptInstanceTerritoryRule(
+            type=rule_type,
+            level=level.strip(),
+            scheme=scheme.strip(),
+            value=value.strip(),
+        )
+    # bbox
+    for key in ("west", "south", "east", "north"):
+        if key not in raw or not isinstance(raw[key], (int, float)) or isinstance(raw[key], bool):
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] bbox requires numeric {key}"
+            )
+    allowed = {"type", "west", "south", "east", "north"}
+    unknown = set(raw.keys()) - allowed
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown gpt_instance_territory.rules keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GptInstanceTerritoryRule(
+        type=rule_type,
+        west=float(raw["west"]),
+        south=float(raw["south"]),
+        east=float(raw["east"]),
+        north=float(raw["north"]),
+    )
+
+
+def _parse_gpt_instance_territory(
+    manifest: Mapping[str, Any],
+) -> GptInstanceTerritoryBlock | None:
+    """Optional GPT instance territory. Absent → None. Parse-only (no intake enforce)."""
+    if "gpt_instance_territory" not in manifest:
+        return None
+    raw = manifest["gpt_instance_territory"]
+    if not isinstance(raw, dict):
+        raise UnsupportedVersionError("gpt_instance_territory must be an object")
+    enabled = raw.get("enabled")
+    if not isinstance(enabled, bool):
+        raise UnsupportedVersionError("gpt_instance_territory.enabled must be a boolean")
+    rules_raw = raw.get("rules")
+    if not isinstance(rules_raw, list):
+        raise UnsupportedVersionError("gpt_instance_territory.rules must be an array")
+    rules: list[GptInstanceTerritoryRule] = []
+    for index, item in enumerate(rules_raw):
+        if not isinstance(item, dict):
+            raise UnsupportedVersionError(
+                f"gpt_instance_territory.rules[{index}] must be an object"
+            )
+        rules.append(_parse_gpt_instance_territory_rule(item, index=index))
+    unknown = set(raw.keys()) - {"enabled", "rules"}
+    if unknown:
+        raise UnsupportedVersionError(
+            "Unknown gpt_instance_territory keys: "
+            + ", ".join(sorted(str(key) for key in unknown))
+        )
+    return GptInstanceTerritoryBlock(enabled=enabled, rules=tuple(rules))
+
+
 def _parse_lens(raw: Mapping[str, Any]) -> ExactLensBlock:
     fields = raw.get("source_fields") or ()
     return ExactLensBlock(
@@ -293,6 +614,41 @@ def _parse_lens(raw: Mapping[str, Any]) -> ExactLensBlock:
         min_size=int(raw["min_size"]),
         readiness_policy=_parse_readiness(raw["readiness_policy"]),
         version=str(raw["version"]),
+    )
+
+
+_PAYLOAD_SCHEMA_ALIASES = (
+    "payload.schema.json",  # canonical gateway / Pack Builder layout
+    "schema.json",  # TEMP Volume mishap name — drop after Volume rename
+    "payload.json",
+)
+
+
+def _resolve_payload_schema_path(pack_dir: Path, declared: object) -> Path:
+    """Pick payload schema file: declared name first, then aliases if missing on disk.
+
+    Python ``a or b or c`` picks the first *truthy value*, not the first existing
+    file. Once ``pack.json`` sets ``payload_schema`` to a non-empty string, later
+    ``or`` branches never run — hence the broken ``or "schema.json" or …`` line.
+    """
+    candidates: list[str] = []
+    if declared is not None and str(declared).strip():
+        name = str(declared).strip()
+        if not name.endswith(".json"):
+            raise UnsupportedVersionError(
+                "payload schema must be a valid JSON file "
+                "(payload.schema.json, schema.json, or payload.json)"
+            )
+        candidates.append(name)
+    for alias in _PAYLOAD_SCHEMA_ALIASES:
+        if alias not in candidates:
+            candidates.append(alias)
+    for name in candidates:
+        path = pack_dir / name
+        if path.is_file():
+            return path
+    raise UnsupportedVersionError(
+        "payload schema file not found; tried: " + ", ".join(candidates)
     )
 
 
@@ -313,8 +669,11 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         raise UnsupportedVersionError(
             f"unsupported schema version: {expected.schema_id}/{expected.schema_version}"
         )
-    schema_file = str(manifest.get("payload_schema") or "payload.schema.json")
-    payload_schema = _read_json(pack_dir / schema_file)
+    # TEMP Volume shim (remove once Volume has canonical payload.schema.json):
+    # try declared name, then known aliases; first existing file wins.
+    # `or` between strings does NOT mean "try next filename" — see _resolve_payload_schema_path.
+    schema_path = _resolve_payload_schema_path(pack_dir, manifest.get("payload_schema"))
+    payload_schema = _read_json(schema_path)
     if not isinstance(payload_schema, dict):
         raise UnsupportedVersionError("payload schema must be an object")
     raw_policy = manifest.get("field_policy") or {}
@@ -343,6 +702,9 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         geo_intake=_parse_geo_intake(manifest),
         dual_civic_lenses=_parse_dual_civic_lenses(manifest),
         card_fields=_parse_card_fields(manifest),
+        taxonomy=_parse_taxonomy_pack(pack_dir, manifest, expected),
+        geo_model=_parse_geo_model(manifest),
+        gpt_instance_territory=_parse_gpt_instance_territory(manifest),
     )
 
 

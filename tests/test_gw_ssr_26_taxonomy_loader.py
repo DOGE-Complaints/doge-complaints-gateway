@@ -1,0 +1,195 @@
+"""GW-SSR-26: taxonomy.json pack contract + loader (optional Contour2)."""
+
+from __future__ import annotations
+
+import json
+import shutil
+from pathlib import Path
+
+import pytest
+
+from core.cluster.types import ClusterLens
+from core.schema import SchemaRef, UnsupportedVersionError
+from core.schema.contracts import TaxonomyPack
+from core.schema.resolver import resolve_pack
+from core.taxonomy.axes import TAXONOMY_AXIS_VALUES
+
+GATEWAY_ROOT = Path(__file__).resolve().parents[1]
+PACKS_ROOT = GATEWAY_ROOT / "schema-packs"
+
+_AXES_ORDERED = tuple(sorted(TAXONOMY_AXIS_VALUES))
+
+
+def _minimal_taxonomy(
+    *,
+    schema_id: str,
+    schema_version: str = "v1",
+    axes: tuple[str, ...] | None = None,
+    extra_canonical: dict[str, list[dict[str, str]]] | None = None,
+    axis_to_signal_map: dict[str, str] | None = None,
+    internal_axes: list[str] | None = None,
+) -> dict:
+    axes_list = list(axes if axes is not None else _AXES_ORDERED)
+    axes_set = set(axes_list)
+    if internal_axes is None:
+        internal_axes = [
+            a for a in ("risk_privacy_safety", "confidence_state") if a in axes_set
+        ]
+    if axis_to_signal_map is None:
+        axis_to_signal_map = (
+            {"topic_domain": "signals.civic_domain"}
+            if "topic_domain" in axes_set
+            else {}
+        )
+    body: dict = {
+        "schema_id": schema_id,
+        "schema_version": schema_version,
+        "axes": axes_list,
+        "internal_axes": internal_axes,
+        "canonical_keys": {},
+        "axis_to_signal_map": axis_to_signal_map,
+        "dispositions": [
+            "canonical",
+            "metadata_only",
+            "needs_clarification",
+            "rejected",
+            "internal",
+        ],
+    }
+    if extra_canonical:
+        body["canonical_keys"] = extra_canonical
+    return body
+
+
+def _copy_legal_pack(dest: Path, *, taxonomy_schema: str | None = None) -> Path:
+    dest.mkdir(parents=True)
+    src = PACKS_ROOT / "legal_process" / "v1"
+    shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    manifest = json.loads((src / "pack.json").read_text(encoding="utf-8"))
+    if taxonomy_schema is not None:
+        manifest["taxonomy_schema"] = taxonomy_schema
+    (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
+    return dest
+
+
+def test_clusterlens_baseline_unchanged() -> None:
+    assert len(ClusterLens) == 10
+
+
+def test_legal_and_mobility_load_without_taxonomy() -> None:
+    legal = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=PACKS_ROOT)
+    mobility = resolve_pack(
+        SchemaRef("mobility_observation", "v1"), packs_root=PACKS_ROOT
+    )
+    assert legal.taxonomy is None
+    assert mobility.taxonomy is None
+
+
+def test_orphan_taxonomy_file_without_manifest_ignored(tmp_path: Path) -> None:
+    """SSR-26: on-disk taxonomy.json without taxonomy_schema must not auto-load."""
+    dest = _copy_legal_pack(tmp_path / "legal_process" / "v1")
+    assert "taxonomy_schema" not in json.loads((dest / "pack.json").read_text(encoding="utf-8"))
+    (dest / "taxonomy.json").write_text(
+        json.dumps(_minimal_taxonomy(schema_id="legal_process")),
+        encoding="utf-8",
+    )
+    ctx = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    assert ctx.taxonomy is None
+
+
+def test_missing_taxonomy_file_when_declared_fails(tmp_path: Path) -> None:
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    assert not (dest / "taxonomy.json").exists()
+    with pytest.raises(UnsupportedVersionError, match="taxonomy file missing"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_canonical_key_axis_not_in_axes_fails(tmp_path: Path) -> None:
+    """SSR-31: structural — map keys must belong to axes[] (not frozen 13 set)."""
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    body = _minimal_taxonomy(
+        schema_id="legal_process",
+        axes=("topic_domain", "signal_type"),
+        axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+        extra_canonical={
+            "not_in_axes": [{"key": "x", "meaning": "orphan axis key"}],
+        },
+    )
+    (dest / "taxonomy.json").write_text(json.dumps(body), encoding="utf-8")
+    with pytest.raises(UnsupportedVersionError, match="unknown axis in canonical_keys"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_duplicate_axis_in_axes_fails(tmp_path: Path) -> None:
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    body = _minimal_taxonomy(
+        schema_id="legal_process",
+        axes=("topic_domain", "topic_domain"),
+        axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+        internal_axes=[],
+    )
+    (dest / "taxonomy.json").write_text(json.dumps(body), encoding="utf-8")
+    with pytest.raises(UnsupportedVersionError, match="duplicate axis"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_node_defined_axes_not_equal_thirteen_loads(tmp_path: Path) -> None:
+    """SSR-31: Contour2 accepts pack-defined axes ≠ TAXONOMY_AXIS_VALUES."""
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    axes = ("topic_domain", "signal_type")
+    (dest / "taxonomy.json").write_text(
+        json.dumps(
+            _minimal_taxonomy(
+                schema_id="legal_process",
+                axes=axes,
+                axis_to_signal_map={"topic_domain": "signals.civic_domain"},
+                internal_axes=[],
+            )
+        ),
+        encoding="utf-8",
+    )
+    ctx = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    assert isinstance(ctx.taxonomy, TaxonomyPack)
+    assert ctx.taxonomy.axes == axes
+    assert set(ctx.taxonomy.axes) != TAXONOMY_AXIS_VALUES
+
+
+def test_duplicate_canonical_key_fails(tmp_path: Path) -> None:
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    body = _minimal_taxonomy(
+        schema_id="legal_process",
+        extra_canonical={
+            "governance_signal": [
+                {"key": "dup_signal", "meaning": "one"},
+                {"key": "dup_signal", "meaning": "two"},
+            ]
+        },
+    )
+    (dest / "taxonomy.json").write_text(json.dumps(body), encoding="utf-8")
+    with pytest.raises(UnsupportedVersionError, match="duplicate key"):
+        resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+
+
+def test_declared_taxonomy_loads_when_valid(tmp_path: Path) -> None:
+    dest = _copy_legal_pack(
+        tmp_path / "legal_process" / "v1", taxonomy_schema="taxonomy.json"
+    )
+    (dest / "taxonomy.json").write_text(
+        json.dumps(_minimal_taxonomy(schema_id="legal_process")),
+        encoding="utf-8",
+    )
+    ctx = resolve_pack(SchemaRef("legal_process", "v1"), packs_root=tmp_path)
+    assert isinstance(ctx.taxonomy, TaxonomyPack)
+    assert ctx.taxonomy.schema_id == "legal_process"
+    assert set(ctx.taxonomy.axes) == TAXONOMY_AXIS_VALUES
+    assert ctx.taxonomy.axis_to_signal_map["topic_domain"] == "signals.civic_domain"

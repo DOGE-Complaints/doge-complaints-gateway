@@ -34,6 +34,18 @@
         "houses": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
+        },
+        "detail_level": {
+          "type": "string",
+          "enum": [
+            "region",
+            "settlement",
+            "district",
+            "street",
+            "house",
+            "house_range",
+            "coordinates"
+          ]
         }
       }
     }

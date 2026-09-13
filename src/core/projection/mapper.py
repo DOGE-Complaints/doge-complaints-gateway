@@ -25,11 +25,19 @@ def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
     summary = apply_summary_fallback(data.title, data.summary)
 
     geo: dict[str, object] | None = None
-    if data.geo_lat is not None and data.geo_lon is not None:
-        geo = {
-            "lat": data.geo_lat,
-            "lon": data.geo_lon,
-        }
+    has_coords = data.geo_lat is not None and data.geo_lon is not None
+    has_admin = bool(
+        data.geo_admin_district
+        or data.geo_admin_settlement
+        or data.geo_admin_region
+        or data.geo_admin_country
+    )
+    # UC-G03: emit geo when detail_level and/or admin present even without lat/lon.
+    if has_coords or data.geo_detail_level or has_admin:
+        geo = {}
+        if has_coords:
+            geo["lat"] = data.geo_lat
+            geo["lon"] = data.geo_lon
         if data.geo_normalized_label:
             geo["label"] = data.geo_normalized_label
         if data.geo_admin_district:
@@ -40,6 +48,8 @@ def project_distinct_issue(data: ProjectionInput) -> DOGEIssue:
             geo["region"] = data.geo_admin_region
         if data.geo_admin_country:
             geo["country"] = data.geo_admin_country
+        if data.geo_detail_level:
+            geo["detail_level"] = data.geo_detail_level
 
     return DOGEIssue(
         id=data.issue_id,

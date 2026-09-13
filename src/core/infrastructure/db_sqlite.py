@@ -49,6 +49,7 @@ def _geo_bind(record: StoryRecord) -> tuple:
             None,
             "[]",
             None,
+            None,
         )
     geo = record.geo
     return (
@@ -67,6 +68,7 @@ def _geo_bind(record: StoryRecord) -> tuple:
         geo.house_range,
         json.dumps(list(geo.houses)),
         geo.address_line,
+        geo.detail_level,
     )
 
 
@@ -151,6 +153,7 @@ _STORY_SELECT_COLUMNS = """
     geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
     geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country,
     geo_street, geo_house, geo_house_range, geo_houses_json, geo_address_line,
+    geo_detail_level,
     schema_id, bound_schema_version, profile_id, profile_version, structured_payload, payload_hash
 """
 
@@ -191,6 +194,7 @@ def _story_record_from_sqlite_row(row: sqlite3.Row) -> StoryRecord:
             house_range=_opt_sqlite_text(row, keys, "geo_house_range"),
             houses=_houses_from_sqlite_row(row, keys),
             address_line=_opt_sqlite_text(row, keys, "geo_address_line"),
+            detail_level=_opt_sqlite_text(row, keys, "geo_detail_level"),
         )
     session_language = (
         str(row["narrative_session_language"]).strip()
@@ -405,6 +409,7 @@ class SqliteDatabase:
             ("geo_house_range", "ALTER TABLE stories ADD COLUMN geo_house_range TEXT"),
             ("geo_houses_json", "ALTER TABLE stories ADD COLUMN geo_houses_json TEXT"),
             ("geo_address_line", "ALTER TABLE stories ADD COLUMN geo_address_line TEXT"),
+            ("geo_detail_level", "ALTER TABLE stories ADD COLUMN geo_detail_level TEXT"),
             ("narrative_summary_json", "ALTER TABLE stories ADD COLUMN narrative_summary_json TEXT"),
             (
                 "narrative_consistency_notes",
@@ -647,8 +652,9 @@ class SqliteStoryRepository:
                 geo_normalized_label, geo_latitude, geo_longitude, geo_confidence, geo_provider, geo_cluster_tags_json,
                 geo_admin_district, geo_admin_settlement, geo_admin_region, geo_admin_country,
                 geo_street, geo_house, geo_house_range, geo_houses_json, geo_address_line,
+                geo_detail_level,
                 schema_id, bound_schema_version, profile_id, profile_version, structured_payload, payload_hash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(story_id) DO UPDATE SET
                 schema_version = excluded.schema_version,
                 narrative_original_text = excluded.narrative_original_text,
@@ -685,6 +691,7 @@ class SqliteStoryRepository:
                 geo_house_range = excluded.geo_house_range,
                 geo_houses_json = excluded.geo_houses_json,
                 geo_address_line = excluded.geo_address_line,
+                geo_detail_level = excluded.geo_detail_level,
                 schema_id = excluded.schema_id,
                 bound_schema_version = excluded.bound_schema_version,
                 profile_id = excluded.profile_id,

@@ -43,6 +43,7 @@ class StoryGeoSnapshot:
     house_range: str | None = None
     houses: tuple[str, ...] = ()
     address_line: str | None = None
+    detail_level: str | None = None
 
 
 @dataclass(frozen=True)

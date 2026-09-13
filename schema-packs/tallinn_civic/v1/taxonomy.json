@@ -1,0 +1,790 @@
+{
+  "schema_id": "tallinn_civic",
+  "schema_version": "v1",
+  "axes": [
+    "topic_domain",
+    "service_object",
+    "location_context",
+    "failure_mode",
+    "issue_archetype_support",
+    "affected_scope",
+    "civic_signal",
+    "deep_need",
+    "desired_outcome",
+    "ecosystem_signal",
+    "governance_signal",
+    "risk_privacy_safety",
+    "confidence_state"
+  ],
+  "internal_axes": [
+    "risk_privacy_safety",
+    "confidence_state"
+  ],
+  "canonical_keys": {
+    "topic_domain": [
+      {
+        "key": "transport",
+        "meaning": "Public transport, stops, routes, mobility services."
+      },
+      {
+        "key": "roads",
+        "meaning": "Roads, crossings, traffic flow, driving conditions."
+      },
+      {
+        "key": "parking",
+        "meaning": "Parking availability, rules, or local parking friction."
+      },
+      {
+        "key": "public_space",
+        "meaning": "Streets, squares, parks, playgrounds, shared outdoor space."
+      },
+      {
+        "key": "waste",
+        "meaning": "Waste collection, bins, litter, recycling friction."
+      },
+      {
+        "key": "environment",
+        "meaning": "Noise, air, greenery, water, or environmental quality."
+      },
+      {
+        "key": "housing",
+        "meaning": "Residential buildings, yards, housing-adjacent services."
+      },
+      {
+        "key": "education",
+        "meaning": "School, kindergarten, youth education context."
+      },
+      {
+        "key": "healthcare",
+        "meaning": "Healthcare access or healthcare service friction."
+      },
+      {
+        "key": "digital_service",
+        "meaning": "Online portal, login, form, or digital public-service flow."
+      },
+      {
+        "key": "safety",
+        "meaning": "Non-sensitive public safety concern; do not use for private sensitive disclosures without policy review."
+      },
+      {
+        "key": "accessibility",
+        "meaning": "Physical or digital accessibility barrier."
+      },
+      {
+        "key": "culture",
+        "meaning": "Cultural life, arts, heritage events, cultural access and continuity."
+      },
+      {
+        "key": "youth_development",
+        "meaning": "Youth programs, spaces, mentorship, after-school civic development."
+      },
+      {
+        "key": "science_and_research",
+        "meaning": "Science education, research culture, STEM, intellectual environment."
+      },
+      {
+        "key": "arts_and_creativity",
+        "meaning": "Creative arts, performing arts, maker and creative spaces."
+      },
+      {
+        "key": "sports_and_recreation",
+        "meaning": "Sports facilities, recreation, active lifestyle infrastructure."
+      },
+      {
+        "key": "community_life",
+        "meaning": "Community hubs, neighbourhood cohesion, shared civic life."
+      },
+      {
+        "key": "integration",
+        "meaning": "Integration services, newcomer inclusion, cross-community belonging."
+      },
+      {
+        "key": "language_access",
+        "meaning": "Language learning, multilingual access, interpretation barriers."
+      },
+      {
+        "key": "migration_adaptation",
+        "meaning": "Migration-related adaptation, refugee support, settlement friction."
+      },
+      {
+        "key": "social_services",
+        "meaning": "Social support, welfare access, community social programs."
+      },
+      {
+        "key": "employment_and_skills",
+        "meaning": "Jobs, skills training, employability, labour-market access."
+      },
+      {
+        "key": "local_economy",
+        "meaning": "Small business, local economic vitality, commercial civic friction."
+      },
+      {
+        "key": "urban_planning",
+        "meaning": "City planning, zoning, development decisions affecting residents."
+      },
+      {
+        "key": "public_participation",
+        "meaning": "Civic participation, consultation, co-design, resident voice."
+      },
+      {
+        "key": "heritage",
+        "meaning": "Built or cultural heritage preservation and access."
+      },
+      {
+        "key": "mental_wellbeing_civic",
+        "meaning": "Public mental wellbeing, safe and supportive civic environments."
+      },
+      {
+        "key": "family_support",
+        "meaning": "Family services, parenting support, family-oriented civic programs."
+      },
+      {
+        "key": "elderly_support",
+        "meaning": "Services and spaces for older residents."
+      },
+      {
+        "key": "childcare",
+        "meaning": "Childcare availability, quality, and access."
+      },
+      {
+        "key": "school_environment",
+        "meaning": "Physical and social school environment beyond curriculum."
+      },
+      {
+        "key": "after_school_ecosystem",
+        "meaning": "After-school programs, clubs, and enrichment ecosystem."
+      },
+      {
+        "key": "civil_society",
+        "meaning": "NGOs, volunteers, civic initiatives, third-sector role."
+      },
+      {
+        "key": "trust_and_governance",
+        "meaning": "Trust in public institutions, transparency, accountability themes at domain level."
+      }
+    ],
+    "service_object": [
+      {
+        "key": "kindergarten",
+        "meaning": "Kindergarten or early-childhood facility or program."
+      },
+      {
+        "key": "school",
+        "meaning": "General school as a concrete service object."
+      },
+      {
+        "key": "youth_center",
+        "meaning": "Youth centre, youth house, or dedicated youth space."
+      },
+      {
+        "key": "cultural_center",
+        "meaning": "Cultural centre, house of culture, or civic cultural hub."
+      },
+      {
+        "key": "library",
+        "meaning": "Public library or library service point."
+      },
+      {
+        "key": "sports_facility",
+        "meaning": "Sports hall, stadium, court, or recreation facility."
+      },
+      {
+        "key": "community_hub",
+        "meaning": "Multi-purpose community centre or neighbourhood hub."
+      },
+      {
+        "key": "after_school_program",
+        "meaning": "After-school club, circle, or enrichment program."
+      },
+      {
+        "key": "science_club",
+        "meaning": "Science club, lab activity, or youth science program."
+      },
+      {
+        "key": "research_lab",
+        "meaning": "Research or academic lab context in civic/education narrative."
+      },
+      {
+        "key": "mentoring_program",
+        "meaning": "Mentorship, tutoring, or guided development program."
+      },
+      {
+        "key": "performing_arts_venue",
+        "meaning": "Theatre, concert hall, or performing-arts venue."
+      },
+      {
+        "key": "creative_space",
+        "meaning": "Studio, maker space, or creative workshop facility."
+      },
+      {
+        "key": "museum",
+        "meaning": "Museum or exhibition venue."
+      },
+      {
+        "key": "public_event",
+        "meaning": "Festival, fair, or recurring public cultural event."
+      },
+      {
+        "key": "integration_program",
+        "meaning": "Integration course, adaptation program, or newcomer service."
+      },
+      {
+        "key": "language_course",
+        "meaning": "Language class or multilingual access program."
+      },
+      {
+        "key": "social_service_office",
+        "meaning": "Social welfare office or case-management touchpoint."
+      },
+      {
+        "key": "municipal_service",
+        "meaning": "Generic municipal service counter or city service process."
+      },
+      {
+        "key": "online_portal_service",
+        "meaning": "Specific digital portal or e-service as the object of the story."
+      }
+    ],
+    "location_context": [
+      {
+        "key": "school_area",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "residential_area",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "city_center",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "online_portal",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "public_transport_node",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "park",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "crossing",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "neighborhood",
+        "meaning": "metadata-only candidate (GPT §5)"
+      }
+    ],
+    "failure_mode": [
+      {
+        "key": "delay",
+        "meaning": "Waiting, slow response, missed timing, or service lag."
+      },
+      {
+        "key": "access_blocked",
+        "meaning": "Resident cannot access a place, service, route, or digital flow."
+      },
+      {
+        "key": "information_gap",
+        "meaning": "Rules, status, instructions, or responsibilities are unclear."
+      },
+      {
+        "key": "broken_infrastructure",
+        "meaning": "Physical infrastructure is damaged, absent, or not functioning."
+      },
+      {
+        "key": "unsafe_condition",
+        "meaning": "A stated condition creates practical risk in public space or service use."
+      },
+      {
+        "key": "bureaucratic_loop",
+        "meaning": "Resident is sent in circles or cannot complete a process."
+      },
+      {
+        "key": "unclear_rules",
+        "meaning": "Requirements or rules are contradictory or hard to understand."
+      },
+      {
+        "key": "service_unavailable",
+        "meaning": "Expected service is unavailable or repeatedly fails."
+      },
+      {
+        "key": "maintenance_gap",
+        "meaning": "Upkeep, cleaning, repair, or routine maintenance is missing."
+      }
+    ],
+    "issue_archetype_support": [
+      {
+        "key": "process_absurdity",
+        "meaning": "The case supports `type = absurdity` because the process is visibly irrational."
+      },
+      {
+        "key": "system_loop",
+        "meaning": "The case supports `type = system_bug` or `absurdity` because the resident is trapped in a loop."
+      },
+      {
+        "key": "harm_reported",
+        "meaning": "The resident reports concrete harm or burden; do not downgrade to observation."
+      },
+      {
+        "key": "improvement_wish",
+        "meaning": "The story is framed as a desired improvement."
+      },
+      {
+        "key": "positive_observation",
+        "meaning": "Improvement-without-harm baseline; usually maps to `type = observation`."
+      },
+      {
+        "key": "bug_like_flow",
+        "meaning": "Digital or procedural behavior resembles a system bug."
+      }
+    ],
+    "affected_scope": [
+      {
+        "key": "children",
+        "meaning": "Children as primary affected group."
+      },
+      {
+        "key": "youth",
+        "meaning": "Teenagers and young people."
+      },
+      {
+        "key": "students",
+        "meaning": "School or university students."
+      },
+      {
+        "key": "families",
+        "meaning": "Families with children or multi-generational households."
+      },
+      {
+        "key": "parents",
+        "meaning": "Parents or guardians as affected group."
+      },
+      {
+        "key": "elderly",
+        "meaning": "Older residents."
+      },
+      {
+        "key": "residents",
+        "meaning": "General local residents of the area."
+      },
+      {
+        "key": "people_with_disabilities",
+        "meaning": "People with mobility, sensory, or other accessibility needs."
+      },
+      {
+        "key": "pedestrians",
+        "meaning": "People walking in the area."
+      },
+      {
+        "key": "cyclists",
+        "meaning": "People cycling in the area."
+      },
+      {
+        "key": "drivers",
+        "meaning": "People driving in the area."
+      },
+      {
+        "key": "public_transport_users",
+        "meaning": "Regular public-transport passengers."
+      },
+      {
+        "key": "newcomers",
+        "meaning": "Recent arrivals adapting to the city."
+      },
+      {
+        "key": "refugees",
+        "meaning": "Refugees or asylum seekers as affected group."
+      },
+      {
+        "key": "ukrainian_refugees",
+        "meaning": "Ukrainian refugees specifically mentioned or implied."
+      },
+      {
+        "key": "russian_speaking",
+        "meaning": "Russian-speaking community members."
+      },
+      {
+        "key": "estonian_speaking",
+        "meaning": "Estonian-speaking community members."
+      },
+      {
+        "key": "multilingual_communities",
+        "meaning": "Mixed-language or multilingual resident groups."
+      },
+      {
+        "key": "low_income_residents",
+        "meaning": "Residents facing economic hardship or limited resources."
+      },
+      {
+        "key": "small_businesses",
+        "meaning": "Local small-business operators; use for one or more affected businesses when the story centres on commercial operators (singular or plural narrative)."
+      },
+      {
+        "key": "cultural_workers",
+        "meaning": "Artists, cultural workers, or creative professionals."
+      },
+      {
+        "key": "teachers",
+        "meaning": "Teachers or educators as affected group."
+      },
+      {
+        "key": "mentors",
+        "meaning": "Mentors, tutors, or volunteer guides."
+      },
+      {
+        "key": "volunteers",
+        "meaning": "Civic volunteers or community organisers."
+      },
+      {
+        "key": "visitors",
+        "meaning": "metadata-only candidate (GPT §5)"
+      },
+      {
+        "key": "public_users",
+        "meaning": "metadata-only candidate (GPT §5)"
+      }
+    ],
+    "civic_signal": [
+      {
+        "key": "recurring_issue",
+        "meaning": "The story indicates repetition over time."
+      },
+      {
+        "key": "systemic_pattern",
+        "meaning": "The issue appears to reflect a broader system pattern."
+      },
+      {
+        "key": "public_cost",
+        "meaning": "The problem creates cost beyond the individual episode."
+      },
+      {
+        "key": "not_only_me",
+        "meaning": "The resident indicates others are affected too."
+      },
+      {
+        "key": "equity_access",
+        "meaning": "Fair access or unequal burden is central to the story."
+      },
+      {
+        "key": "trust_in_services",
+        "meaning": "The story concerns loss of trust in public-service functioning."
+      },
+      {
+        "key": "city_for_people",
+        "meaning": "The desired state is a more human, usable, respectful city environment."
+      },
+      {
+        "key": "information_gap_civic",
+        "meaning": "Civic information, rules, or opportunities are hard to discover or understand."
+      },
+      {
+        "key": "participation_signal",
+        "meaning": "Resident wants or lacks meaningful participation in civic decisions."
+      },
+      {
+        "key": "social_cohesion",
+        "meaning": "Story concerns community bonds, inclusion, or social fabric."
+      },
+      {
+        "key": "brain_drain_signal",
+        "meaning": "**Civic significance:** resident frames loss of mentors, active neighbours, or community participants from public-facing civic life (clubs, volunteering, local mentorship)—not institutional staffing or program capacity."
+      }
+    ],
+    "deep_need": [
+      {
+        "key": "belonging",
+        "meaning": "Need to belong in community or city life."
+      },
+      {
+        "key": "dignity",
+        "meaning": "Need for respectful, dignified treatment."
+      },
+      {
+        "key": "agency",
+        "meaning": "Need to influence outcomes or participate meaningfully."
+      },
+      {
+        "key": "being_heard",
+        "meaning": "Need to be listened to by institutions or community."
+      },
+      {
+        "key": "predictability",
+        "meaning": "Need for reliable, predictable rules and services."
+      },
+      {
+        "key": "safety_need",
+        "meaning": "Need for physical or psychological safety in civic life."
+      },
+      {
+        "key": "fairness",
+        "meaning": "Need for fair treatment and equal burden sharing."
+      },
+      {
+        "key": "cultural_identity",
+        "meaning": "Need to express or preserve cultural identity."
+      },
+      {
+        "key": "intellectual_growth",
+        "meaning": "Need for learning, curiosity, and intellectual development."
+      },
+      {
+        "key": "creative_self_realization",
+        "meaning": "Need for creative expression and self-realisation."
+      },
+      {
+        "key": "meaningful_community",
+        "meaning": "Need for substantive community connection."
+      },
+      {
+        "key": "future_opportunity",
+        "meaning": "Need for prospects and opportunities for self or children."
+      },
+      {
+        "key": "trust",
+        "meaning": "Need to trust institutions and civic processes."
+      },
+      {
+        "key": "continuity",
+        "meaning": "Need for continuity of programs, places, or traditions."
+      },
+      {
+        "key": "respect",
+        "meaning": "Need for respectful interaction with services and spaces."
+      },
+      {
+        "key": "time_not_wasted",
+        "meaning": "Need to avoid wasted time in bureaucratic or broken flows."
+      }
+    ],
+    "desired_outcome": [
+      {
+        "key": "new_public_service",
+        "meaning": "Resident wants a new public service to exist."
+      },
+      {
+        "key": "new_community_hub",
+        "meaning": "Resident wants a new community hub or centre."
+      },
+      {
+        "key": "better_access",
+        "meaning": "Resident wants easier access to existing services or spaces."
+      },
+      {
+        "key": "transparent_process",
+        "meaning": "Resident wants clearer, more transparent processes."
+      },
+      {
+        "key": "stronger_standards",
+        "meaning": "Resident wants higher quality or safety standards."
+      },
+      {
+        "key": "more_mentors",
+        "meaning": "Resident wants more mentors, tutors, or guides."
+      },
+      {
+        "key": "more_programs",
+        "meaning": "Resident wants more programs, clubs, or activities."
+      },
+      {
+        "key": "better_coordination",
+        "meaning": "Resident wants better coordination between actors."
+      },
+      {
+        "key": "replicable_solution",
+        "meaning": "Resident proposes a model others could copy."
+      },
+      {
+        "key": "open_methodology",
+        "meaning": "Resident wants open, shareable methods or practices."
+      },
+      {
+        "key": "cooperative_institution",
+        "meaning": "Resident wants cooperative or community-led institution model."
+      },
+      {
+        "key": "multilingual_access",
+        "meaning": "Resident wants services accessible in multiple languages."
+      },
+      {
+        "key": "safe_environment",
+        "meaning": "Resident wants a safer physical or social environment."
+      },
+      {
+        "key": "human_centered_city",
+        "meaning": "Resident wants a more human-centred city experience."
+      },
+      {
+        "key": "clear_rules",
+        "meaning": "Resident wants rules and responsibilities to be clear."
+      },
+      {
+        "key": "faster_response",
+        "meaning": "Resident wants quicker institutional response."
+      },
+      {
+        "key": "safer_space",
+        "meaning": "Resident wants a specific space to be safer."
+      },
+      {
+        "key": "better_maintenance",
+        "meaning": "Resident wants better upkeep of infrastructure or services."
+      },
+      {
+        "key": "accessible_service",
+        "meaning": "Resident wants physically or digitally accessible service."
+      },
+      {
+        "key": "human_contact",
+        "meaning": "Resident wants human contact instead of only digital flows."
+      },
+      {
+        "key": "digital_fix",
+        "meaning": "Resident wants a digital service defect fixed."
+      }
+    ],
+    "ecosystem_signal": [
+      {
+        "key": "ecosystem_gap",
+        "meaning": "The civic environment or program ecosystem is missing or thin."
+      },
+      {
+        "key": "institutional_decline",
+        "meaning": "Institutions, venues, or programs are closing or weakening."
+      },
+      {
+        "key": "missing_infrastructure",
+        "meaning": "Needed civic infrastructure does not exist at scale."
+      },
+      {
+        "key": "weak_coordination",
+        "meaning": "Actors do not coordinate; residents bear the fragmentation cost."
+      },
+      {
+        "key": "capacity_shortage",
+        "meaning": "Insufficient capacity (staff, space, funding) across the ecosystem."
+      },
+      {
+        "key": "mentor_shortage",
+        "meaning": "Lack of mentors, tutors, or experienced guides."
+      },
+      {
+        "key": "community_fragmentation",
+        "meaning": "Community ties or participation are breaking down."
+      },
+      {
+        "key": "loss_of_continuity",
+        "meaning": "Long-running programs or traditions are at risk of ending."
+      },
+      {
+        "key": "brain_drain",
+        "meaning": "**Ecosystem capacity:** resident describes institutional or program ecosystem losing talent, leaders, or sustained operators so venues, programs, or civic infrastructure cannot retain people who keep the environment alive."
+      },
+      {
+        "key": "underused_resources",
+        "meaning": "Existing assets or spaces are underused relative to need."
+      },
+      {
+        "key": "replicable_model_needed",
+        "meaning": "Resident describes a gap that a replicable model could fill."
+      }
+    ],
+    "governance_signal": [
+      {
+        "key": "transparent_governance",
+        "meaning": "Resident wants transparent decision-making and information."
+      },
+      {
+        "key": "participatory_governance",
+        "meaning": "Resident wants participatory or co-governance models."
+      },
+      {
+        "key": "cooperative_model",
+        "meaning": "Resident proposes or wants a cooperative governance model."
+      },
+      {
+        "key": "power_concentration_risk",
+        "meaning": "Resident fears power concentration or capture."
+      },
+      {
+        "key": "accountability_gap",
+        "meaning": "Accountability for decisions or outcomes is missing."
+      },
+      {
+        "key": "open_source_model",
+        "meaning": "Resident wants open, documented, shareable governance or methods."
+      },
+      {
+        "key": "replicability",
+        "meaning": "Governance or institutional model should be replicable elsewhere."
+      },
+      {
+        "key": "community_ownership",
+        "meaning": "Resident wants community ownership or stewardship of the solution."
+      }
+    ],
+    "risk_privacy_safety": [
+      {
+        "key": "pii_present",
+        "meaning": "Internal privacy handling."
+      },
+      {
+        "key": "redaction_needed",
+        "meaning": "Internal privacy handling."
+      },
+      {
+        "key": "limited_depth",
+        "meaning": "Interview depth was limited by safety/trust."
+      },
+      {
+        "key": "minor_context",
+        "meaning": "Minors are contextually involved; not a structured Issue field."
+      },
+      {
+        "key": "health_context",
+        "meaning": "Health context requires careful handling."
+      },
+      {
+        "key": "violence_context",
+        "meaning": "Violence/safety context requires gate/safety handling."
+      }
+    ],
+    "confidence_state": [
+      {
+        "key": "confirmed_by_user",
+        "meaning": "Confidence state for metadata."
+      },
+      {
+        "key": "gpt_hypothesis",
+        "meaning": "Candidate is inferred, not confirmed."
+      },
+      {
+        "key": "needs_clarification",
+        "meaning": "Candidate requires clarification before canonical use."
+      },
+      {
+        "key": "low_confidence",
+        "meaning": "Candidate is too weak for canonical use."
+      },
+      {
+        "key": "conflict_unresolved",
+        "meaning": "User correction or evidence conflict is unresolved."
+      }
+    ]
+  },
+  "axis_to_signal_map": {
+    "topic_domain": "signals.civic_domain",
+    "failure_mode": "signals.failure_pattern"
+  },
+  "dispositions": [
+    "canonical",
+    "metadata_only",
+    "needs_clarification",
+    "rejected",
+    "internal"
+  ]
+}

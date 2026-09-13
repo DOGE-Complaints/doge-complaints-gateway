@@ -63,6 +63,7 @@ def merge_client_geo_detail(
             house_range=addr.house_range if addr is not None else None,
             houses=addr.houses if addr is not None else (),
             address_line=_address_line(detail, addr, None),
+            detail_level=detail.detail_level,
         )
     return StoryGeoSnapshot(
         normalized_label=detail.normalized_label or provider.normalized_label,
@@ -86,6 +87,7 @@ def merge_client_geo_detail(
         house_range=_overlay(addr.house_range if addr else None, provider.house_range),
         houses=addr.houses if addr is not None and addr.houses else provider.houses,
         address_line=_address_line(detail, addr, provider),
+        detail_level=_overlay(detail.detail_level, provider.detail_level),
     )
 
 
@@ -143,6 +145,8 @@ def mirror_geo_to_payload(
             geo_obj["house_range"] = geo.house_range
         if geo.houses:
             geo_obj["houses"] = list(geo.houses)
+        if geo.detail_level:
+            geo_obj["detail_level"] = geo.detail_level
     addr = detail.address if detail is not None else None
     if addr is not None:
         if addr.district:
@@ -161,5 +165,7 @@ def mirror_geo_to_payload(
             geo_obj["house_range"] = addr.house_range
         if addr.houses:
             geo_obj["houses"] = list(addr.houses)
+    if detail is not None and detail.detail_level:
+        geo_obj["detail_level"] = detail.detail_level
     if geo_obj:
         payload["geo"] = geo_obj

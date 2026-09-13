@@ -204,6 +204,7 @@ def build_projection_input_from_draft(
         geo_admin_settlement=geo_snapshot.admin_settlement if geo_snapshot else None,
         geo_admin_region=geo_snapshot.admin_region if geo_snapshot else None,
         geo_admin_country=geo_snapshot.admin_country if geo_snapshot else None,
+        geo_detail_level=geo_snapshot.detail_level if geo_snapshot else None,
         original_locale=original_locale,
     )
 

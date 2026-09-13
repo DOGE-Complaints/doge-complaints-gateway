@@ -1,7 +1,7 @@
 # Schema packs: как устроена модель данных ноды
 
-**Дата:** 2026-08-30T19:53:57Z (два контура — SSR-21; склад vs рабочая env — SSR-18)  
-Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke.
+**Дата:** 2026-09-07T08:49:49Z (D-SSR-12 federation consume SSR-35; local warehouse + Railway Volume — SSR-34; D-SSR-11 node-taxonomy — SSR-33; taxonomy dual contour + operator copy-paste — SSR-29; три уровня geo — SSR-27; два контура clustering — SSR-21)  
+Факты из кода gateway (`src/core`, `schema-packs/`, тесты). Ключи `pack.json` — в [`schema-packs/README.md`](../../../schema-packs/README.md). HTTP envelope: [`API_REFERENCE.md`](../api-reference/API_REFERENCE.md). Живой smoke: [test-matrix](../testing/test-matrix-by-type-layer-mocks.md) § Local real-HTTP smoke. Env playbooks: [`server-env-quickstart.md`](./server-env-quickstart.md) §Node active schema + warehouse ops.
 
 Этот текст для человека, который поднимает ноду: что лежит на диске (склад), какая пара **рабочая** (`NODE_SCHEMA_*`), куда ходит публичный API.
 
@@ -31,7 +31,32 @@
 
 Корень: переменная **`SCHEMA_PACKS_ROOT`**, иначе каталог `schema-packs/` рядом с корнем gateway ([`resolver.py`](../../../src/core/schema/resolver.py)). В `AppConfig` этого поля нет — только `os.environ`. Если процесс стартовал не из корня gateway, без env resolver не найдёт паки.
 
-Каждый pack — папка `<schema_id>/<schema_version>/` с `pack.json` и JSON Schema для `structured_payload`. Код рантайма: `src/core/schema/`.
+### Warehouse model (D-SSR-12 / SSR-34)
+
+| Среда | Корень склада | Active | Git |
+|-------|---------------|--------|-----|
+| Local | default `doge-complaints-gateway/schema-packs/` (`SCHEMA_PACKS_ROOT` unset) | `NODE_SCHEMA_*` | demo/seed tracked; **node packs (uus…) ignored / not committed** |
+| Railway | Volume mount = **`SCHEMA_PACKS_ROOT`** (напр. `/data/schema-packs`) | те же `NODE_SCHEMA_*` | N/A (Volume, не git) |
+| Federation remote | fetch → тот же cache root (`SCHEMA_PACKS_ROOT` или default) | без смены identity | **SSR-35** (`SCHEMA_ROOT_URL` + optional `SCHEMA_PACK_REFRESH`) |
+
+**Glossary:** `SCHEMA_PACKS_ROOT` = диск / Volume mount. **`SCHEMA_ROOT_URL` ≠ mount** — http(s) URL удалённого federation registry root (**shipped** SSR-35). Не подставлять путь Volume в `SCHEMA_ROOT_URL`. Fresh cache skips fetch unless `SCHEMA_PACK_REFRESH=true`. Stub manifest: `GET {SCHEMA_ROOT_URL}/{id}/{ver}/manifest.json` → `files` map — см. [`remote_fetch.py`](../../../src/core/schema/remote_fetch.py) / server-env federation playbook.
+
+**Git policy:** ignore node trees (напр. `schema-packs/uus_veerenni_civic/` в gateway `.gitignore`). **Не** ignore весь `schema-packs/` — иначе сломается CI (tallinn/legal/mobility fixtures).
+
+**Fail-fast:** missing/invalid active pack → boot `ConfigError`; **не** silent tallinn. Pack content repair / geo enum expand — **вне** SSR-34 (precondition operator).
+
+**GPT lockstep:** Instructions `schema_binding` == env `NODE_SCHEMA_*` (SSR-17). Смена active pair без обновления GPT → intake 4xx. Gateway docs only — GPT files правятся sibling wave.
+
+Каждый pack — папка `<schema_id>/<schema_version>/`:
+
+```text
+schema-packs/<schema_id>/<schema_version>/
+  pack.json
+  payload.schema.json
+  taxonomy.json     ← when pack.json sets taxonomy_schema (tallinn_civic/v1 post SSR-28)
+```
+
+`taxonomy.json` обязателен **только** если в `pack.json` есть `taxonomy_schema`. Без ключа файл на диске loader **не** подхватывает (SSR-26). legal/mobility — без taxonomy (tallinn first). Код рантайма: `src/core/schema/`. Форма блоков `taxonomy.json` — [`schema-packs/README.md`](../../../schema-packs/README.md) (не дублировать таблицы здесь).
 
 `build_index` и `project` в [`runtime.py`](../../../src/core/schema/runtime.py) бросают `NotImplementedError`. Это не «сломалось»: индекс и процессоры ещё не в этом контуре.
 
@@ -96,6 +121,76 @@ Envelope sidecar `geo_detail` (рядом с `narrative` / `schema_binding`) н�
 
 Civic unlabeled / без admin остаётся `geo:unknown` / `geo:agnostic`. Pack missing path при `missing_value_policy=skip` не даёт membership. Enum `ClusterLens` = 10 членов. Публичного HTTP geo-filter нет.
 
+### Три уровня geo (node / instance / precision)
+
+Не смешивать:
+
+| Уровень | Ключ | Кто enforce |
+|---------|------|-------------|
+| Node acceptance | `node_clustering.civic.geo_scope` | Gateway 422 (SSR-22) |
+| Instance acceptance | `gpt_instance_territory` | GPT STOP (GPT-SSR-08); gateway **parse only** |
+| Place precision | `geo_model` + `geo_detail.detail_level` | GPT emit; gateway persist → `Issue.geo.detail_level` |
+
+Instance может быть **уже** node scope (район ⊂ Tallinn). Node gate **не** заменяет instance gate. `detail_level` ∈ `region` \| `settlement` \| `district` \| `street` \| `house` \| `house_range` \| `coordinates`. UC-G03: Issue.`geo` может нести `detail_level` / admin **без** lat/lon (без ложного pin). Street/house **не** на Issue projection.
+
+Sibling GPT: [GPT-SSR-08](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-08-geo-precision-instance-territory.md) · [GPT-SSR-06](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-06-inbound-validation-post-ssr-delta.md) §6.
+
+### Taxonomy dual contour (wire vs pack) — D-SSR-11
+
+Два **разных** контура ярлыков. Документы **не** говорят, что wire envelope или GW-TAX-01 «переехали» в payload. Arch: [`architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md`](../../analysis/architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md).
+
+| Concern | SSOT | Consumer |
+|---------|------|----------|
+| Per-axis labels on wire (**Contour1**) | OpenAPI `narrative.taxonomy` | Gateway intake → `story_labels` (GW-TAX-01). **SSR-32:** любая непустая ось (strip/lower); civic **skip** unmapped → SignalDimension |
+| Pack vocabulary (**Contour2**) | **`taxonomy.json` in pack dir** | GPT normalizer + operator copy. **SSR-31:** `axes[]` = **node-defined** (не lockstep к 13); structural: unique / non-empty; `internal_axes` ⊆ axes; map keys ∈ axes |
+| Payload validate | `payload.schema.json` | `SchemaRuntime.validate` |
+| Content admission | GPT `inbound-validation.md` | GPT interview only |
+
+`TAXONOMY_AXIS_VALUES` (13) = **tallinn / civic reference** set (seed + docs), **не** reject SSOT для Contour1/Contour2. Tallinn 13 = exemplar data.
+
+Pack Contour2 (`taxonomy.json`) — словарь + `axis_to_signal_map` для copy-paste. Wire Contour1 остаётся на `narrative.taxonomy`.
+
+### Authoring node taxonomy (operator setup)
+
+1. Выбрать оси ноды (язык домена); tallinn 13 — только стартовая точка (trim/extend свободно).
+2. Заполнить `canonical_keys` + `axis_to_signal_map` согласованно с `axes[]`.
+3. В `pack.json` задать `"taxonomy_schema": "taxonomy.json"`, когда нужен Contour2.
+4. Wire GPT taxonomy может использовать **те же** axis ids (после SSR-32 Contour1 open).
+5. **Не** изобретать `ClusterLens` ids из имён осей.
+6. Копировать tallinn taxonomy только как шаблон — не как закон «ровно 13».
+
+Sibling conflict: [GPT-SSR-15](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-15-taxonomy-meta-axis-lockstep.md) (lock Pack Builder meta to 13) must be **superseded/inverted** in a GPT wave — gateway D-SSR-11 wins. Gateway SSR-33 **only records** this handoff; it does **not** edit GPT files.
+
+### Operator copy-paste (gateway → GPT, byte-identical)
+
+Gateway `schema-packs/` = **SSOT**. GPT Instructions получают **byte-identical** копию трёх JSON. Gateway P3 **не** коммитит GPT JSON без review оператора ([GPT-SSR-05](../../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-05-taxonomy-json-pack-copy-paste.md)).
+
+1. **Edit SSOT** в gateway `schema-packs/<schema_id>/<schema_version>/` (taxonomy keys, `canonical_keys`, `axis_to_signal_map`).
+2. **Copy three JSON byte-identical** в `GPT UI/instructions/schema-packs/<schema_id>/<schema_version>/`:
+   - `pack.json`
+   - `payload.schema.json`
+   - `taxonomy.json`
+3. **Verify checksum** (recommended):
+   ```bash
+   shasum -a 256 schema-packs/tallinn_civic/v1/{pack,payload.schema,taxonomy}.json \
+     "GPT UI/instructions/schema-packs/tallinn_civic/v1/"*.json
+   ```
+4. **Update GPT** [`schema-packs/README.md`](../../../../GPT%20UI/instructions/schema-packs/README.md) active pair, если id/version сменились.
+5. **Update GPT** `inbound-validation.md` §2 pointer на taxonomy JSON path (GPT-SSR-06 delta).
+6. **Upload Custom GPT Instructions** — **без** Actions re-import, если OpenAPI wire не менялся.
+
+**Handoff paths (tallinn example):**
+
+| Gateway SSOT | GPT mirror path |
+|--------------|-----------------|
+| `doge-complaints-gateway/schema-packs/tallinn_civic/v1/pack.json` | `GPT UI/instructions/schema-packs/tallinn_civic/v1/pack.json` |
+| same dir `payload.schema.json` | same |
+| same dir `taxonomy.json` | same |
+
+**Deprecation policy (document, don't delete GPT file):** GPT [`story-label-taxonomy.md`](../../../../GPT%20UI/instructions/story-label-taxonomy.md) — **redirect stub** (GPT-SSR-10). Enum SSOT = gateway pack + GPT mirror `taxonomy.json`. Process rules: GPT `ingest-validation.md` Label process rules. Archive: `GPT UI/instructions/archive/story-label-taxonomy.v0.2.3.md`.
+
+Residual: mobility/legal taxonomy copy-paste — **tallinn first** (пока без `taxonomy_schema` на legal/mobility).
+
 ### Как сменить пороги / линзы / geo без `.env`
 
 1. Править **активный** каталог: `schema-packs/<NODE_SCHEMA_ID>/<NODE_SCHEMA_VERSION>/pack.json` → блок `node_clustering.civic` (civic) или элемент `exact_lenses[]` (pack exact, включая его `readiness_policy` / `min_size`).
@@ -133,9 +228,10 @@ Liveness: `GET /health`. Готовность БД: `GET /ready` (`ready` или
 1. Каталог `schema-packs/<id>/<version>/`.
 2. `pack.json` по таблице loader keys (README паков): `field_policy`, хотя бы одна exact-lens, `readiness_policy` с тремя knobs, обязательный `node_clustering.civic`. Числа порогов civic и exact — **в файле пака**, не в `.env` и не копировать civic default из Python.
 3. `payload.schema.json` — схема `structured_payload`.
-4. Чтобы **эта** нода принимала intake на новый pack, выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на ту же пару и прислать `schema_binding` = env. Второй cron не нужен.
+4. Опционально `taxonomy.json` + `"taxonomy_schema": "taxonomy.json"` в manifest — когда нужен civic Contour2 / GPT byte-identical copy-paste (см. §Operator copy-paste выше). Без ключа taxonomy не грузится.
+5. Чтобы **эта** нода принимала intake на новый pack, выставить `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION` на ту же пару и прислать `schema_binding` = env. Второй cron не нужен.
 
-Не делать: новый член `ClusterLens`; колонки «под поле»; HTTP filter path.
+Не делать: новый член `ClusterLens`; колонки «под поле»; HTTP filter path; менять wire `narrative.taxonomy` / GW-TAX-01 «ради pack JSON».
 
 Пример civic-as-pack (fixture [`gw_ssr_08_tallinn_civic_envelope.json`](../../../tests/fixtures/gw_ssr_08_tallinn_civic_envelope.json)):
 
@@ -190,9 +286,10 @@ Pack не создаёт новые таблицы. На `stories` нужны ш
 
 ## Чего ещё нет
 
-- GPT UI / instruction pack — sibling REQ-45, не этот слой. Без `schema_binding` == `NODE_SCHEMA_*` прод-intake из GPT получит 4xx.
+- Полный GPT operator manual rewrite — GPT-SSR-09 (здесь только checklist + paths). Без `schema_binding` == `NODE_SCHEMA_*` прод-intake из GPT получит 4xx.
 - Overlay карточки в spa-app — sibling spa-16, не этот мануал. Пути SPA-клиентов уже `/node/…`.
 - IDX (`story_dimensions`) и generic processors — черновики SSR-06/07.
+- mobility/legal `taxonomy.json` seed — residual после tallinn.
 
 ---
 
