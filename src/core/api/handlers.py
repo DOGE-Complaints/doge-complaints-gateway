@@ -105,7 +105,11 @@ def handle_readiness(
 ) -> dict[str, Any]:
     resolved_trace_id = ensure_trace_id(trace_id)
     dependencies.metrics.record_readiness()
-    status = "ready" if dependencies.db_ready else "degraded"
+    status = (
+        "ready"
+        if dependencies.db_ready and dependencies.config.schema_pack_ready
+        else "degraded"
+    )
     log_api_event(
         logging.INFO,
         "readiness_check",
@@ -119,6 +123,11 @@ def handle_readiness(
                 "backend": dependencies.db_backend,
                 "ready": dependencies.db_ready,
                 "checks": dict(dependencies.db_checks),
+            },
+            "schema_pack": {
+                "ready": dependencies.config.schema_pack_ready,
+                "schema_id": dependencies.config.node_schema_id,
+                "schema_version": dependencies.config.node_schema_version,
             },
         },
         trace_id=resolved_trace_id,
@@ -252,6 +261,12 @@ def handle_story_intake(
             stage="api.intake",
             outcome="selected",
         )
+        if not dependencies.config.schema_pack_ready:
+            raise IntakeValidationError(
+                "schema pack not loaded; upload nested pack under SCHEMA_PACKS_ROOT "
+                f"({dependencies.config.node_schema_id}/{dependencies.config.node_schema_version}) "
+                "then restart"
+            )
         geo_scope = config_schema.civic_clustering_from_active_node(
             schema_id=dependencies.config.node_schema_id,
             schema_version=dependencies.config.node_schema_version,

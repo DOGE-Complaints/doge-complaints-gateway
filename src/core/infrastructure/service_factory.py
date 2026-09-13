@@ -93,6 +93,8 @@ class DefaultServiceFactory:
         return SignalProfileService(repository=self.signal_profile_repository)
 
     def _active_civic(self) -> CivicClusteringBlock:
+        if not self.config.schema_pack_ready:
+            return config_schema._boot_placeholder_civic()
         return config_schema.civic_clustering_from_active_node(
             schema_id=self.config.node_schema_id,
             schema_version=self.config.node_schema_version,

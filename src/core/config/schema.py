@@ -56,6 +56,7 @@ class AppConfig:
     node_schema_version: str
     schema_root_url: str | None
     schema_pack_refresh: bool
+    schema_pack_ready: bool
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -206,6 +207,16 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
             "even if pack.json already exists (SSR-35)."
         ),
     ),
+    EnvSpec(
+        name="SCHEMA_PACK_BOOT_SOFT",
+        required=False,
+        default=None,
+        description=(
+            "If true, missing active pack does not abort boot (degraded mode). "
+            "Default when unset: soft only when SCHEMA_PACKS_ROOT is set "
+            "(empty Railway Volume chicken-egg)."
+        ),
+    ),
 )
 
 
@@ -352,18 +363,70 @@ def _profile_defaults(profile: DeploymentProfile) -> FeatureFlags:
     )
 
 
+def _pack_boot_soft_enabled(environ: Mapping[str, str]) -> bool:
+    """Soft-boot empty Volume: allow process up for health + file upload."""
+    raw = _get_value(environ, "SCHEMA_PACK_BOOT_SOFT")
+    if raw is not None:
+        return _parse_bool(raw, env_name="SCHEMA_PACK_BOOT_SOFT")
+    # Default soft when an explicit packs root is configured (Railway Volume).
+    return _get_value(environ, "SCHEMA_PACKS_ROOT") is not None
+
+
+def _boot_placeholder_civic() -> "CivicClusteringBlock":
+    """Non-operational civic knobs so DI can construct while pack is missing."""
+    from core.schema.contracts import CivicClusteringBlock
+
+    return CivicClusteringBlock(
+        active_lenses=("composite_primary_micro",),
+        primary_lens="composite_primary_micro",
+        min_size=3,
+        min_size_by_lens={"composite_primary_micro": 3},
+        readiness_threshold=50,
+        signal_source="canonical",
+        id_algorithm="sha256",
+        geo_filter="settlement",
+        geo_scope=None,
+        tie_breaker="alpha",
+        type_resolution="compatible_signal_family",
+    )
+
+
 def _resolve_node_schema_pack(
     *,
     schema_id: str,
     schema_version: str,
     environ: Mapping[str, str] | None = None,
-) -> None:
-    """Fail-fast: active pair must resolve to an on-disk pack. No civic fallback."""
-    civic_clustering_from_active_node(
-        schema_id=schema_id,
-        schema_version=schema_version,
-        environ=environ,
-    )
+) -> bool:
+    """Resolve active pack. Soft-miss → False; hard-miss → ConfigError."""
+    import logging
+
+    env = environ if environ is not None else {}
+    try:
+        civic_clustering_from_active_node(
+            schema_id=schema_id,
+            schema_version=schema_version,
+            environ=environ,
+        )
+        return True
+    except ConfigError as exc:
+        if not _pack_boot_soft_enabled(env):
+            raise
+        logging.getLogger(__name__).error(
+            "startup.schema_pack_missing soft_boot=1 schema_id=%s schema_version=%s "
+            "detail=%s hint=upload nested pack under SCHEMA_PACKS_ROOT then restart "
+            "or wait for next resolve",
+            schema_id,
+            schema_version,
+            exc,
+            extra={
+                "stage": "config.schema_pack",
+                "outcome": "degraded",
+                "node_schema_id": schema_id,
+                "node_schema_version": schema_version,
+                "schema_packs_root": _get_value(env, "SCHEMA_PACKS_ROOT"),
+            },
+        )
+        return False
 
 
 def civic_clustering_from_active_node(
@@ -561,7 +624,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
             environ=dict(source),
         )
 
-    _resolve_node_schema_pack(
+    schema_pack_ready = _resolve_node_schema_pack(
         schema_id=node_schema_id,
         schema_version=node_schema_version,
         environ=dict(source),
@@ -589,5 +652,6 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         node_schema_version=node_schema_version,
         schema_root_url=schema_root_url,
         schema_pack_refresh=schema_pack_refresh,
+        schema_pack_ready=schema_pack_ready,
     )
 
