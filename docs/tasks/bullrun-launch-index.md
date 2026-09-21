@@ -598,6 +598,7 @@
 |---|-----|-------|--------|
 | 🔵 | GW-THR-01 | [pipeline active pack verification + shell knobs](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) | **Done** pkg-000093 T01–T05 · P3 2026-09-21T20:29:51Z · fail-closed sidecar; no invent pack.json keys / ThreadContext route · [`pkg`](./gateway-active-packages/pkg-000093-20260921-gw-thr-01-active-pack-verification-and-shell-knobs.yaml) |
 | 🔵 | GW-THR-02 | [pipeline service-auth pack shell settings pull](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) | **Done** pkg-000094 T01–T05 · P3 2026-09-21T20:48:13Z · `GET /node/shell-settings`; no public ThreadContext · [`pkg`](./gateway-active-packages/pkg-000094-20260921-gw-thr-02-service-auth-pack-shell-settings-pull.yaml) · [`run-summary`](./run-reports/run-summary-20260921-2048-gw-thr-02-p3.md) |
+| 🔵 | GW-THR-03 | [pipeline civic gate identity_verified](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/STORY-GW-THR-03-civic-gate-identity-verified.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-03-civic-gate-identity-verified.md) | **Done** pkg-000095 T01–T05 · P3 2026-09-21T21:05:11Z · identity_verified only; no phone dual-read · [`pkg`](./gateway-active-packages/pkg-000095-20260921-gw-thr-03-civic-gate-identity-verified.yaml) · [`run-summary`](./run-reports/run-summary-20260921-2105-gw-thr-03-p3.md) · [`gate`](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t05-story-gate/story-acceptance-gate-STORY-GW-THR-03.md) |
 
 ### STORY-GW-THR-01 — active pack verification + shell knobs
 
@@ -638,6 +639,26 @@
 | G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
 
 **activation:** `run_mode=gw_thr_02_audit_followup` — T06 Done; current.yaml stays pkg-000094. Draft: [`p5_gw_thr_02_gap_20260921T205228Z.plan.md`](../../../.cursor/plans/p5_gw_thr_02_gap_20260921T205228Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-THR-03 — civic gate identity_verified only
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-THR-03-T01 | [T01: me parse identity_verified](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t01-me-parse-identity-verified/README.md) | implement | Done | IntrospectionResult + me_client opaque bool |
+| 🔵 | TASK-GW-THR-03-T02 | [T02: gate opaque only](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t02-gate-opaque-only/README.md) | implement | Done | ALLOW only identity_verified; no phone fallback |
+| 🔵 | TASK-GW-THR-03-T03 | [T03: tests no phone fallback](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t03-tests-no-phone-fallback/README.md) | tests | Done | phone-only stub must not allow |
+| 🔵 | TASK-GW-THR-03-T04 | [T04: cutover evidence](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t04-cutover-evidence/README.md) | docs | Done | VB-01/02 + backfill before cutover |
+| 🔵 | TASK-GW-THR-03-T05 | [T05: story acceptance gate](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t05-story-gate/README.md) | gate | Done | AC-GW-THR03-01…04 PASS |
+| 🔵 | TASK-GW-THR-03-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-21T21:11:23Z · `run_mode=gw_thr_03_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260921-2111-gw-thr-03-audit-p6.md) |
+
+#### P5 disposition note (THR-03 audit 2026-09-21) · APPLY 2026-09-21T21:09:59Z · P6 2026-09-21T21:11:23Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-21T21:11:23Z) | none | T06 | As-of-Done vs Historical on T01/T02 Code Facts + pipeline residual |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_thr_03_audit_followup` — T06 Done; current.yaml stays pkg-000095. Draft: [`p5_gw_thr_03_gap_20260921T210918Z.plan.md`](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
 
 
 ## EPIC-M2-01 — Core Foundation and Governance
@@ -1834,6 +1855,10 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 | 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
 | 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P6 execute | STORY-GW-THR-03 audit follow-up T06 (`gw_thr_03_audit_followup`) | [run-summary-20260921-2111-gw-thr-03-audit-p6](./run-reports/run-summary-20260921-2111-gw-thr-03-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000095 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P5 APPLY | STORY-GW-THR-03 audit disposition (`gw_thr_03_audit_followup`) | [p5_gw_thr_03_gap_20260921T210918Z](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000095 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P3 execute | STORY-GW-THR-03 civic gate identity_verified (`pkg-000095` T01–T05) | [run-summary-20260921-2105-gw-thr-03-p3](./run-reports/run-summary-20260921-2105-gw-thr-03-p3.md) | Opaque-only gate; phone-only stub denied; cutover evidence; gate PASS; no §Актуальная точка rewrite. |
+| 2026-09-21 | P1 scaffold | STORY-GW-THR-03 civic gate identity_verified (`pkg-000095` T01–T05) | [p1_gw_thr_03_scaffold_20260921T205851Z](../../../.cursor/plans/p1_gw_thr_03_scaffold_20260921T205851Z.plan.md) | Pipeline + 5 tasks; epic REUSE; current.yaml → pkg-000095; identity_verified only; no phone dual-read; no §Актуальная точка rewrite. |
 | 2026-09-21 | P6 execute | STORY-GW-THR-01 audit follow-up T06 (`gw_thr_01_audit_followup`) | [run-summary-20260921-2035-gw-thr-01-audit-p6](./run-reports/run-summary-20260921-2035-gw-thr-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000093 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-21 | P5 APPLY | STORY-GW-THR-01 audit disposition (`gw_thr_01_audit_followup`) | [p5_gw_thr_01_gap_20260921T203326Z](../../../.cursor/plans/p5_gw_thr_01_gap_20260921T203326Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000093 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-21 | P3 execute | STORY-GW-THR-01 active pack verification + shell knobs (`pkg-000093` T01–T05) | [run-summary-20260921-2028-gw-thr-01-p3](./run-reports/run-summary-20260921-2028-gw-thr-01-p3.md) | Sidecar shell_capabilities; fail-closed; uus phone+uus_phone_sms; gate PASS; no invent pack.json keys/route; no §Актуальная точка rewrite. |
