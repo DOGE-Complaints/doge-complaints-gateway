@@ -97,7 +97,7 @@ def test_verified_submit_stash_without_submitter_uses_me_author(
     _patch_fetch_me(
         monkeypatch,
         result=IntrospectionResult(
-            active=True, sub=VERIFIED_SUB, phone_verified=True
+            active=True, sub=VERIFIED_SUB, phone_verified=True, identity_verified=True
         ),
     )
 
@@ -119,7 +119,7 @@ def test_verified_browser_submit_returns_202_and_authoritative_submitter(
     _patch_fetch_me(
         monkeypatch,
         result=IntrospectionResult(
-            active=True, sub=VERIFIED_SUB, phone_verified=True
+            active=True, sub=VERIFIED_SUB, phone_verified=True, identity_verified=True
         ),
     )
 
@@ -142,7 +142,7 @@ def test_unverified_returns_403_verification_required(
     _patch_fetch_me(
         monkeypatch,
         result=IntrospectionResult(
-            active=True, sub="unverified-sub", phone_verified=False
+            active=True, sub="unverified-sub", phone_verified=False, identity_verified=False
         ),
     )
 
@@ -215,7 +215,7 @@ def test_repeat_submit_is_idempotent(
     _patch_fetch_me(
         monkeypatch,
         result=IntrospectionResult(
-            active=True, sub=VERIFIED_SUB, phone_verified=True
+            active=True, sub=VERIFIED_SUB, phone_verified=True, identity_verified=True
         ),
     )
 
@@ -245,7 +245,7 @@ def test_unknown_draft_returns_404(
     _patch_fetch_me(
         monkeypatch,
         result=IntrospectionResult(
-            active=True, sub=VERIFIED_SUB, phone_verified=True
+            active=True, sub=VERIFIED_SUB, phone_verified=True, identity_verified=True
         ),
     )
 

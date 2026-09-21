@@ -1,4 +1,4 @@
-"""GW-GAUTH-03: phone_verified gate + verification_required (403, OAUTH-04)."""
+"""GW-GAUTH-03 / GW-THR-03: opaque identity_verified gate + verification_required."""
 
 from __future__ import annotations
 
@@ -30,17 +30,26 @@ def test_build_verify_url_from_spa_env(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_evaluate_verification_gate_branches() -> None:
     assert (
         evaluate_verification_gate(
-            IntrospectionResult(active=True, sub="u", phone_verified=True)
+            IntrospectionResult(active=True, sub="u", identity_verified=True)
         )
         is VerificationGateOutcome.ALLOW
     )
     assert (
         evaluate_verification_gate(
-            IntrospectionResult(active=True, sub="u", phone_verified=False)
+            IntrospectionResult(active=True, sub="u", identity_verified=False)
         )
         is VerificationGateOutcome.VERIFICATION_REQUIRED
     )
     assert (
         evaluate_verification_gate(IntrospectionResult(active=False))
         is VerificationGateOutcome.UNAUTHORIZED
+    )
+    # Phone-only legacy must NOT allow (GW-THR-03 AC-02; no dual-read).
+    assert (
+        evaluate_verification_gate(
+            IntrospectionResult(
+                active=True, sub="u", phone_verified=True, identity_verified=None
+            )
+        )
+        is VerificationGateOutcome.VERIFICATION_REQUIRED
     )

@@ -36,10 +36,16 @@ def patch_identity_me_verified(
     *,
     sub: str,
     phone_verified: bool = True,
+    identity_verified: bool = True,
 ) -> None:
     def _fetch_me(self: IdentityMeClient, bearer_token: str) -> IntrospectionResult:
         _ = bearer_token
-        return IntrospectionResult(active=True, sub=sub, phone_verified=phone_verified)
+        return IntrospectionResult(
+            active=True,
+            sub=sub,
+            phone_verified=phone_verified,
+            identity_verified=identity_verified,
+        )
 
     monkeypatch.setattr(IdentityMeClient, "fetch_me", _fetch_me)
 
@@ -117,7 +123,9 @@ def post_intake_via_story_drafts(
 
     def _fetch_me(self: IdentityMeClient, bearer_token: str) -> IntrospectionResult:
         _ = bearer_token
-        return IntrospectionResult(active=True, sub=sub, phone_verified=True)
+        return IntrospectionResult(
+            active=True, sub=sub, phone_verified=True, identity_verified=True
+        )
 
     stash_response = client.post(
         "/story-drafts",
