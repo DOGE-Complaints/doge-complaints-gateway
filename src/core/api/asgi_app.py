@@ -35,6 +35,7 @@ from core.api.handlers import (
     handle_issue_create,
     handle_issue_get,
     handle_issues_list,
+    handle_pack_shell_settings,
 )
 from core.api.security import (
     UnauthorizedError,
@@ -551,6 +552,22 @@ async def issue_get(
     payload, status_code = handle_issue_get(
         deps,
         issue_id=issue_id,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.get(
+    "/node/shell-settings",
+    dependencies=[Depends(require_public_content_service_auth)],
+)
+async def pack_shell_settings(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    """GW-THR-02: service-auth active pack shell settings (not a public ThreadContext route)."""
+    payload, status_code = handle_pack_shell_settings(
+        deps,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=status_code)
