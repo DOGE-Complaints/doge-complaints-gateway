@@ -155,6 +155,20 @@ class GptInstanceTerritoryBlock:
 
 
 @dataclass(frozen=True)
+class ShellCapabilitiesBlock:
+    """Active-pack shell capabilities (THR-01). Parsed from sidecar, not pack.json keys."""
+
+    validation_type: str
+    integration_name: str
+    max_depth: int
+    max_reactions_per_actor: int
+    reaction_enables: Mapping[str, bool]
+    reaction_min_overlap: Mapping[str, float]
+    media_allowed_types: tuple[str, ...]
+    catalog_ref: str = "reactions.v1"
+
+
+@dataclass(frozen=True)
 class SchemaContext:
     ref: SchemaRef
     payload_schema: Mapping[str, Any]
@@ -164,6 +178,7 @@ class SchemaContext:
     pack_dir: Path
     node_clustering: NodeClusteringBlock
     geo_intake: GeoIntakeBlock
+    shell_capabilities: ShellCapabilitiesBlock
     dual_civic_lenses: bool = False
     card_fields: tuple[str, ...] = ()
     taxonomy: TaxonomyPack | None = None

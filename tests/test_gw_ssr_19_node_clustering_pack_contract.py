@@ -41,6 +41,7 @@ def _copy_legal(tmp_path: Path) -> Path:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     return dest
 
 

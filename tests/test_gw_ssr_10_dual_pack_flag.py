@@ -54,6 +54,7 @@ def test_explicit_false_is_exact_only(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["dual_civic_lenses"] = False
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -66,6 +67,7 @@ def test_explicit_true_opts_in(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["dual_civic_lenses"] = True
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -78,6 +80,7 @@ def test_non_boolean_dual_key_rejected(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["dual_civic_lenses"] = "yes"
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")

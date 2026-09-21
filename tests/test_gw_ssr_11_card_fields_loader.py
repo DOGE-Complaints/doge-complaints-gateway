@@ -40,6 +40,7 @@ def test_empty_array_is_civic_form(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["card_fields"] = []
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -52,6 +53,7 @@ def test_explicit_paths_are_loaded(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["card_fields"] = ["institution.office_id", "process.stage"]
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -64,6 +66,7 @@ def test_non_array_card_fields_rejected(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["card_fields"] = "institution.office_id"
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")

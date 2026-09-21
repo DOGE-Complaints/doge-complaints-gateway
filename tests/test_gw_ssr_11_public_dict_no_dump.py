@@ -162,6 +162,7 @@ def test_pack_allowlist_named_leaves_on_created_issue(tmp_path: Path) -> None:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text())
     manifest["card_fields"] = [
         "institution.office_id",

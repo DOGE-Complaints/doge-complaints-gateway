@@ -96,6 +96,7 @@ def test_missing_node_clustering_on_active_pack_is_config_error(
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text(encoding="utf-8"))
     manifest["schema_id"] = "broken_civic"
     del manifest["node_clustering"]

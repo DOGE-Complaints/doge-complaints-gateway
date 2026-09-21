@@ -43,6 +43,7 @@ def _write_dual_legal_root(tmp_path: Path, *, dual: bool = True) -> Path:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text(encoding="utf-8"))
     if dual:
         manifest["dual_civic_lenses"] = True
@@ -77,6 +78,8 @@ def _dual_orchestrator(
         issue_create_service=_issue_service(stories),
         cluster_membership_store=store,
         schema_pack_engine=SchemaPackClusterEngine(LocalSchemaRuntime(packs_root=packs_root)),
+        node_schema_id="legal_process",
+        node_schema_version="v1",
     )
 
 

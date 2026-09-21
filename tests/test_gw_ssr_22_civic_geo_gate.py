@@ -73,8 +73,11 @@ def test_no_scope_plus_no_geo_service_still_accepts(
 
     real = config_schema.civic_clustering_from_active_node
 
-    def _no_scope(*, schema_id: str, schema_version: str):
-        return replace(real(schema_id=schema_id, schema_version=schema_version), geo_scope=None)
+    def _no_scope(*, schema_id: str, schema_version: str, environ=None):
+        return replace(
+            real(schema_id=schema_id, schema_version=schema_version, environ=environ),
+            geo_scope=None,
+        )
 
     monkeypatch.setattr(config_schema, "civic_clustering_from_active_node", _no_scope)
     deps = _deps_without_geo_service()

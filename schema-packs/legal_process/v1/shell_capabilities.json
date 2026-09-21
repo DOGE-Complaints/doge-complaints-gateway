@@ -1,0 +1,58 @@
+{
+  "schema": "shell_capabilities.v1",
+  "catalog_ref": "reactions.v1",
+  "entries": [
+    {
+      "id": "verification.validation_type",
+      "value": "phone"
+    },
+    {
+      "id": "verification.integration_name",
+      "value": "legal_phone_sms"
+    },
+    {
+      "id": "threads.tree.max_depth",
+      "value": 6
+    },
+    {
+      "id": "threads.reactions.max_reactions_per_actor",
+      "value": 3
+    },
+    {
+      "id": "threads.reactions.enable",
+      "value": {
+        "acknowledge": true,
+        "support": true,
+        "empathy": true,
+        "concern": true,
+        "hopeful": false,
+        "sad": true,
+        "outraged_situation": true,
+        "amused": false,
+        "agree": true,
+        "disagree": true,
+        "useful_fact": true,
+        "insightful": true,
+        "needs_evidence": true,
+        "off_topic": true,
+        "aggressive": true
+      }
+    },
+    {
+      "id": "threads.reactions.min_overlap_to_use",
+      "value": {
+        "amused": 0.7
+      }
+    },
+    {
+      "id": "threads.media.allowed_types",
+      "value": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "application/pdf"
+      ]
+    }
+  ]
+}

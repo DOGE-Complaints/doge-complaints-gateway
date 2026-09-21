@@ -17,10 +17,18 @@ from core.schema.remote_fetch import (
     pack_cache_fresh,
 )
 from core.schema.resolver import resolve_pack
+from core.schema.shell_capabilities import (
+    SHELL_CAPABILITIES_FILENAME,
+    topic_guarded_document,
+)
 
 _SCHEMA_ID = "remote_fixture"
 _SCHEMA_VER = "v1"
 _REGISTRY = "https://registry.test/schema-packs"
+_SHELL_CAPABILITIES = topic_guarded_document(
+    validation_type="phone",
+    integration_name="remote_fixture_phone_sms",
+)
 
 # Minimal resolvable pack (civic block required by resolver / NODE_SCHEMA boot).
 _PACK_JSON = {
@@ -109,8 +117,10 @@ def _mock_registry(
 ) -> httpx.MockTransport:
     pack_body = json.dumps(pack or _PACK_JSON).encode("utf-8")
     payload_body = json.dumps(_PAYLOAD_SCHEMA).encode("utf-8")
+    shell_body = json.dumps(_SHELL_CAPABILITIES).encode("utf-8")
     pack_url = f"{_REGISTRY}/files/pack.json"
     payload_url = f"{_REGISTRY}/files/payload.schema.json"
+    shell_url = f"{_REGISTRY}/files/{SHELL_CAPABILITIES_FILENAME}"
     counters = hit_counter if hit_counter is not None else []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -132,6 +142,7 @@ def _mock_registry(
                     "files": {
                         "pack.json": pack_url,
                         "payload.schema.json": payload_url,
+                        SHELL_CAPABILITIES_FILENAME: shell_url,
                     },
                 }
             return httpx.Response(200, json=body)
@@ -139,6 +150,8 @@ def _mock_registry(
             return httpx.Response(200, content=pack_body)
         if url == payload_url:
             return httpx.Response(200, content=payload_body)
+        if url == shell_url:
+            return httpx.Response(200, content=shell_body)
         return httpx.Response(404, text="not found")
 
     return httpx.MockTransport(handler)
@@ -181,7 +194,8 @@ def test_fetch_on_cache_miss_then_resolve_pack(tmp_path: Path) -> None:
         packs_root=tmp_path,
     )
     assert ctx.ref.schema_id == _SCHEMA_ID
-    assert len(hits) >= 3  # manifest + pack + payload
+    assert ctx.shell_capabilities.integration_name == "remote_fixture_phone_sms"
+    assert len(hits) >= 4  # manifest + pack + payload + shell_capabilities
 
 
 def test_fresh_cache_skips_refetch(tmp_path: Path) -> None:
@@ -270,15 +284,14 @@ def test_boot_load_config_fetches_via_mock(
     assert cfg.schema_pack_refresh is False
     assert cfg.node_schema_id == _SCHEMA_ID
     assert pack_cache_fresh(tmp_path, _SCHEMA_ID, _SCHEMA_VER)
-    assert len(hits) >= 3
+    assert len(hits) >= 4
 
 
 def test_url_unset_does_not_fetch(tmp_path: Path) -> None:
-    # SSR-34 path: no SCHEMA_ROOT_URL — boot uses on-disk tallinn via default helper
-    # when NODE_SCHEMA points at fixture that exists under real packs root.
-    # Here: URL unset + remote id missing → ConfigError (no fetch attempted).
+    # SSR-34 path: no SCHEMA_ROOT_URL — boot uses on-disk packs. Hard-fail when
+    # NODE_SCHEMA points at missing id (disable soft-boot for this assertion).
     with pytest.raises(ConfigError, match="does not resolve"):
-        load_config_from_env(_base_env(tmp_path))
+        load_config_from_env(_base_env(tmp_path, SCHEMA_PACK_BOOT_SOFT="0"))
 
 
 def test_manifest_url_shape() -> None:
