@@ -373,7 +373,7 @@ def require_story_draft_submit_user(
     request: Request,
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> None:
-    """GW-DRAFT-02: browser Supabase Bearer → identity /me + phone_verified gate."""
+    """GW-DRAFT-02 / GW-THR-03: browser Bearer → /me + opaque identity_verified gate."""
     bearer = extract_authorization_bearer(dict(request.headers.items()))
     if bearer is None:
         raise UserTokenMissingError("Missing user token.")

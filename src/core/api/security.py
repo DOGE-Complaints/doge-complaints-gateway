@@ -22,7 +22,7 @@ class UserTokenIntrospectionUnavailableError(Exception):
 
 
 class VerificationRequiredError(Exception):
-    """Raised when phone_verified is false (OAUTH-04, HTTP 403)."""
+    """Raised when opaque identity_verified is not true (OAUTH-04, HTTP 403)."""
 
     def __init__(
         self,

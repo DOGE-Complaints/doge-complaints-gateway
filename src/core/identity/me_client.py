@@ -56,10 +56,35 @@ def _parse_me_body(body: dict[str, Any]) -> IntrospectionResult:
     sub = data.get("supabase_user_id")
     if not isinstance(sub, str) or not sub.strip():
         raise IdentityMeError("Invalid /me response: missing supabase_user_id.")
-    phone_verified = data.get("phone_verified")
-    if not isinstance(phone_verified, bool):
-        raise IdentityMeError("Invalid /me response: phone_verified must be bool.")
-    return IntrospectionResult(active=True, sub=sub.strip(), phone_verified=phone_verified)
+    # Opaque verified boolean (GW-THR-03 / AC-GW-THR-07). Missing → None (gate
+    # VERIFICATION_REQUIRED). Invalid type → fail-closed parse error.
+    identity_verified: bool | None
+    if "identity_verified" not in data:
+        identity_verified = None
+    else:
+        raw_opaque = data.get("identity_verified")
+        if not isinstance(raw_opaque, bool):
+            raise IdentityMeError(
+                "Invalid /me response: identity_verified must be bool."
+            )
+        identity_verified = raw_opaque
+    # Legacy method flag may still be emitted; never used for civic allow.
+    phone_verified: bool | None
+    if "phone_verified" not in data:
+        phone_verified = None
+    else:
+        raw_phone = data.get("phone_verified")
+        if not isinstance(raw_phone, bool):
+            raise IdentityMeError(
+                "Invalid /me response: phone_verified must be bool."
+            )
+        phone_verified = raw_phone
+    return IntrospectionResult(
+        active=True,
+        sub=sub.strip(),
+        phone_verified=phone_verified,
+        identity_verified=identity_verified,
+    )
 
 
 def build_identity_me_from_config(config: AppConfig) -> IdentityMeClient | None:

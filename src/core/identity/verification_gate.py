@@ -6,7 +6,7 @@ from core.identity.introspection_result import IntrospectionResult
 
 VERIFICATION_REQUIRED_ERROR = "verification_required"
 DEFAULT_VERIFICATION_REQUIRED_REASON = (
-    "Phone verification is required before this action can proceed."
+    "Identity verification is required before this action can proceed."
 )
 
 
@@ -17,9 +17,9 @@ class VerificationGateOutcome(str, Enum):
 
 
 def evaluate_verification_gate(result: IntrospectionResult) -> VerificationGateOutcome:
-    """GW-GAUTH-03: decide access from introspection result (active already fetched)."""
+    """GW-THR-03: civic allow from opaque identity_verified only (no phone dual-read)."""
     if not result.active:
         return VerificationGateOutcome.UNAUTHORIZED
-    if result.phone_verified is not True:
+    if result.identity_verified is not True:
         return VerificationGateOutcome.VERIFICATION_REQUIRED
     return VerificationGateOutcome.ALLOW
