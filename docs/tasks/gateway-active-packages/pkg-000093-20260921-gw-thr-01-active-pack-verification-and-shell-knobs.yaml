@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 93
+created_at: '2026-09-21T20:17:40Z'
+label: GW-THR-01 active pack verification + shell knobs (EPIC-issue-thread-context-and-node-verification)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md
+story_groups:
+- story_key: STORY-GW-THR-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t01-shell-capability-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t02-fail-closed-active-pack/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t03-migrate-activatable-packs/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t04-tests-pack-shell-required/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t05-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-21T20:17:40Z. Backlog THR-01 materialize.
+  Epic NEW EPIC-issue-thread-context-and-node-verification (package folder; no EPIC-M2-*).
+  Branch semantic-schema-runtime only.
+  Do not invent pack JSON key strings; do not invent public ThreadContext route.
+  Fail-closed; mandatory pack migration; soft depends loadable NODE_SCHEMA_* pack.
+  Do not rewrite bullrun §Актуальная точка / MVP dashboard.
+  Do not mutate pkg-000061…092.
