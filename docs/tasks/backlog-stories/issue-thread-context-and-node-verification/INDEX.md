@@ -9,7 +9,7 @@
 **Interview:** [`zeya888.req-target-tech-arch-interview-52-…-2026-09-21.md`](../../../analysis/zeya888.req-target-tech-arch-interview-52-issue-thread-context-and-node-verification-2026-09-21.md)  
 **Scope dashboard (не MVP):** [`gateway-req7-threads-shell-dashboard.md`](../../gateway-req7-threads-shell-dashboard.md)  
 **Naming:** `STORY-GW-THR-*`  
-**Updated:** 2026-09-21T20:39:55Z · THR-01 Done (pkg-000093 T01–T06); THR-02/03 Todo
+**Updated:** 2026-09-21T20:54:56Z · THR-01 Done (pkg-000093); THR-02 Done (pkg-000094 T01–T06; P3+P6 G1 CLOSED); THR-03 Todo
 
 > **Не MVP:** этот пакет **не** входит в знаменатель [`gateway-mvp-dashboard.md`](../../gateway-mvp-dashboard.md) (как `semantic-schema-runtime`).
 
@@ -26,7 +26,7 @@ Gateway materialize verification policy + shell knobs в active pack; отдаё
 | Key | File | Status | Depends |
 |-----|------|--------|---------|
 | STORY-GW-THR-01 | [STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md](./STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) | Done | loadable active `NODE_SCHEMA_*` pack (ops) |
-| STORY-GW-THR-02 | [STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md](./STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) | Todo | THR-01 |
+| STORY-GW-THR-02 | [STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md](./STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) → [pipeline](../../epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) · [pkg-000094](../../gateway-active-packages/pkg-000094-20260921-gw-thr-02-service-auth-pack-shell-settings-pull.yaml) | Done | THR-01 |
 | STORY-GW-THR-03 | [STORY-GW-THR-03-civic-gate-identity-verified.md](./STORY-GW-THR-03-civic-gate-identity-verified.md) | Todo | Identity [VB-01](../../../../doge-identity-service/docs/tasks/backlog-stories/threads-verification-boolean/STORY-IDS-VB-01-persist-identity-verified.md)+[VB-02](../../../../doge-identity-service/docs/tasks/backlog-stories/threads-verification-boolean/STORY-IDS-VB-02-me-expose-identity-verified.md) (`identity_verified`) |
 
 ---

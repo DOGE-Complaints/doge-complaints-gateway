@@ -597,6 +597,7 @@
 | S | Key | Story | Status |
 |---|-----|-------|--------|
 | 🔵 | GW-THR-01 | [pipeline active pack verification + shell knobs](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) | **Done** pkg-000093 T01–T05 · P3 2026-09-21T20:29:51Z · fail-closed sidecar; no invent pack.json keys / ThreadContext route · [`pkg`](./gateway-active-packages/pkg-000093-20260921-gw-thr-01-active-pack-verification-and-shell-knobs.yaml) |
+| 🔵 | GW-THR-02 | [pipeline service-auth pack shell settings pull](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) | **Done** pkg-000094 T01–T05 · P3 2026-09-21T20:48:13Z · `GET /node/shell-settings`; no public ThreadContext · [`pkg`](./gateway-active-packages/pkg-000094-20260921-gw-thr-02-service-auth-pack-shell-settings-pull.yaml) · [`run-summary`](./run-reports/run-summary-20260921-2048-gw-thr-02-p3.md) |
 
 ### STORY-GW-THR-01 — active pack verification + shell knobs
 
@@ -617,6 +618,26 @@
 | G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
 
 **activation:** `run_mode=gw_thr_01_audit_followup` — T06 Done; current.yaml stays pkg-000093. Draft: [`p5_gw_thr_01_gap_20260921T203326Z.plan.md`](../../../.cursor/plans/p5_gw_thr_01_gap_20260921T203326Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-THR-02 — service-auth pack shell settings pull
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-THR-02-T01 | [T01: settings payload from active pack](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t01-settings-payload-from-active-pack/README.md) | implement | Done | `shell_settings.py` DTO |
+| 🔵 | TASK-GW-THR-02-T02 | [T02: service-auth read wire](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t02-service-auth-read-wire/README.md) | implement | Done | `GET /node/shell-settings` |
+| 🔵 | TASK-GW-THR-02-T03 | [T03: projection isolation](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t03-projection-isolation/README.md) | implement | Done | Issue get civic; no Story bodies |
+| 🔵 | TASK-GW-THR-02-T04 | [T04: tests settings pull](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t04-tests-settings-pull/README.md) | tests | Done | 9 passed in test_gw_thr_02_* |
+| 🔵 | TASK-GW-THR-02-T05 | [T05: story acceptance gate](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t05-story-gate/README.md) | gate | Done | AC-GW-THR02-01…05 PASS |
+| 🔵 | TASK-GW-THR-02-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-21T20:54:56Z · `run_mode=gw_thr_02_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260921-2054-gw-thr-02-audit-p6.md) |
+
+#### P5 disposition note (THR-02 audit 2026-09-21) · APPLY 2026-09-21T20:53:24Z · P6 2026-09-21T20:54:56Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-21T20:54:56Z) | none | T06 | As-of-Done vs Historical on backlog §Verified + T01/T02 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_thr_02_audit_followup` — T06 Done; current.yaml stays pkg-000094. Draft: [`p5_gw_thr_02_gap_20260921T205228Z.plan.md`](../../../.cursor/plans/p5_gw_thr_02_gap_20260921T205228Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
 
 
 ## EPIC-M2-01 — Core Foundation and Governance

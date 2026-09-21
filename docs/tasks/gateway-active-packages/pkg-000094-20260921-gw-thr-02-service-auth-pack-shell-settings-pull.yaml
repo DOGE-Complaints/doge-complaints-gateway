@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 94
+created_at: '2026-09-21T20:43:05Z'
+label: GW-THR-02 service-auth pack shell settings pull (EPIC-issue-thread-context-and-node-verification)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md
+story_groups:
+- story_key: STORY-GW-THR-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t01-settings-payload-from-active-pack/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t02-service-auth-read-wire/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t03-projection-isolation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t04-tests-settings-pull/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t05-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-21T20:43:05Z. Backlog THR-02 materialize.
+  Epic REUSE EPIC-issue-thread-context-and-node-verification (no EPIC-M2-*).
+  Branch semantic-schema-runtime only.
+  Depends THR-01 Done (pkg-000093).
+  Do not invent public ThreadContext route; path/JSON field names Open (choose at P3; do not write into REQ).
+  No Story narrative bodies in settings (D19).
+  Do not rewrite bullrun §Актуальная точка / MVP dashboard.
+  Do not mutate pkg-000093.
