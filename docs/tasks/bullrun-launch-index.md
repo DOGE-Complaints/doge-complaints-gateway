@@ -667,7 +667,7 @@
 | S | Key | Story | Status |
 |---|-----|-------|--------|
 | 🔵 | GW-REQ9-01 | [pipeline example.env + SPA_BASE_URL hard cut](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) → [backlog](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) | **Done** pkg-000096 T01–T05 · P3 2026-09-26T12:06:30Z · hard cut SPA_BASE_URL; no dual-read · [`pkg`](./gateway-active-packages/pkg-000096-20260926-gw-req9-01-example-env-and-spa-base-url.yaml) · [`run-summary`](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) · [`gate`](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t05-story-gate/story-acceptance-gate-STORY-GW-REQ9-01.md) |
-| ⚪ | GW-REQ9-02 | [backlog make test + test-live](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | ⚪ Todo (parallel; not this pkg) |
+| 🔵 | GW-REQ9-02 | [pipeline make test + test-live](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/STORY-GW-REQ9-02-make-test.md) → [backlog](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | **Done** pkg-000097 T01–T03 · P3 2026-09-26T12:22:28Z · lock C offline+live · [`pkg`](./gateway-active-packages/pkg-000097-20260926-gw-req9-02-make-test.yaml) · [`run-summary`](./run-reports/run-summary-20260926-1222-gw-req9-02-p3.md) · [`gate`](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t03-story-gate/story-acceptance-gate-STORY-GW-REQ9-02.md) |
 
 ### STORY-GW-REQ9-01 — example.env + SPA_BASE_URL hard cut
 
@@ -689,6 +689,24 @@
 
 **activation:** `run_mode=gw_req9_01_audit_followup` — T06 Done; current.yaml stays pkg-000096. Draft: [`p5_gw_req9_01_gap_20260926T121033Z.plan.md`](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
 
+### STORY-GW-REQ9-02 — make test + test-live
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ9-02-T01 | [T01: make test offline](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t01-make-test-offline/README.md) | implement | Done | `-m "not live_integration"` + PHONY `test` |
+| 🔵 | TASK-GW-REQ9-02-T02 | [T02: make test-live](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t02-make-test-live/README.md) | implement | Done | `-m live_integration` + PHONY `test-live` |
+| 🔵 | TASK-GW-REQ9-02-T03 | [T03: story acceptance gate](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t03-story-gate/README.md) | gate | Done | AC-GW-REQ902-01…03 PASS |
+| 🔵 | TASK-GW-REQ9-02-T04 | [T04: audit G1 As-of-Done SSOT](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t04-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-26T12:31:20Z · `run_mode=gw_req9_02_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260926-1231-gw-req9-02-audit-p6.md) |
+
+#### P5 disposition note (REQ9-02 audit 2026-09-26) · APPLY 2026-09-26T12:29:39Z · P6 2026-09-26T12:31:20Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-26T12:31:20Z) | none | T04 | backlog §Verified As-of-Done vs Historical (docs-only) |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| 4 offline fails | WAIVED out-of-DoD | none | — | SSR/bootstrap; outside AC-01…03 |
+
+**activation:** `run_mode=gw_req9_02_audit_followup` — T04 Done; current.yaml stays pkg-000097. Draft: [`p5_gw_req9_02_gap_20260926T122851Z.plan.md`](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 + 4-fails WAIVED).
 
 ## EPIC-M2-01 — Core Foundation and Governance
 
@@ -1884,6 +1902,10 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 | 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
 | 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P6 execute | STORY-GW-REQ9-02 audit follow-up T04 (`gw_req9_02_audit_followup`) | [run-summary-20260926-1231-gw-req9-02-audit-p6](./run-reports/run-summary-20260926-1231-gw-req9-02-audit-p6.md) | T04 G1 CLOSED; G2 WAIVED; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P5 APPLY | STORY-GW-REQ9-02 audit disposition (`gw_req9_02_audit_followup`) | [p5_gw_req9_02_gap_20260926T122851Z](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md) | G1 TASKED t04; G2 WAIVED operator; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P3 execute | STORY-GW-REQ9-02 make test + test-live (`pkg-000097` T01–T03) | [run-summary-20260926-1222-gw-req9-02-p3](./run-reports/run-summary-20260926-1222-gw-req9-02-p3.md) | Makefile test/test-live; lock C; existing marker; gate PASS; no invent CI; no §Актуальная точка rewrite. |
+| 2026-09-26 | P1 scaffold | STORY-GW-REQ9-02 make test + test-live (`pkg-000097` T01–T03) | [p1_gw_req9_02_scaffold_20260926T121642Z](../../../.cursor/plans/p1_gw_req9_02_scaffold_20260926T121642Z.plan.md) | Pipeline + 3 tasks; epic REUSE; current.yaml → pkg-000097; lock C; existing live_integration only; no invent CI; no §Актуальная точка rewrite. |
 | 2026-09-26 | P6 execute | STORY-GW-REQ9-01 audit follow-up T06 (`gw_req9_01_audit_followup`) | [run-summary-20260926-1212-gw-req9-01-audit-p6](./run-reports/run-summary-20260926-1212-gw-req9-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000096 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-26 | P5 APPLY | STORY-GW-REQ9-01 audit disposition (`gw_req9_01_audit_followup`) | [p5_gw_req9_01_gap_20260926T121033Z](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000096 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-26 | P3 execute | STORY-GW-REQ9-01 example.env + SPA_BASE_URL hard cut (`pkg-000096` T01–T05) | [run-summary-20260926-1206-gw-req9-01-p3](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) | Hard cut SPA_BASE_URL; example.env keys; 10 pytest; gate PASS; no dual-read; no §Актуальная точка rewrite. |

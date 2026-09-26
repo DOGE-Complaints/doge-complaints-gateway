@@ -3,7 +3,7 @@
 ## Meta
 - **Key:** `STORY-GW-REQ9-02-make-test`
 - **Пакет:** [`req9-ops-parity-env-naming/`](./INDEX.md)
-- **Status:** Todo
+- **Status:** Done
 - **Тип:** Makefile / ops ritual
 - **Parent REQ:** [`53-req9-ops-parity-env-naming.md`](../../../requirements/53-req9-ops-parity-env-naming.md) §2, §4, §5 G7
 - **Parent product:** REQ9 G7
@@ -14,6 +14,8 @@
 - **Зависит от:** — (parallel to REQ9-01)
 - **Etalon:** identity/threads `Makefile` `test:`; gateway marker `live_integration` in `pyproject.toml:34-35`
 - **Method:** [`.cursor/rules/analysis.mdc`](../../../../.cursor/rules/analysis.mdc)
+- **Pipeline:** [`../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/STORY-GW-REQ9-02-make-test.md`](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/STORY-GW-REQ9-02-make-test.md)
+- **Done:** 2026-09-26T12:22:28Z · pkg-000097 T01–T03 · gate PASS
 
 ---
 
@@ -33,20 +35,31 @@
 
 ## Verified current state
 
+### As-of-Done (post-P3 · pkg-000097 · gate 2026-09-26T12:22:28Z)
+
 | Fact | Path |
 |------|------|
-| `.PHONY: serve dev simulate check-env` — no `test` | `Makefile:1` |
-| Targets serve/dev/simulate/check-env | `Makefile:14-42` |
-| Marker `live_integration` declared | `pyproject.toml:34-35` |
+| `.PHONY` includes `test` + `test-live` | `Makefile:1` |
+| `test:` offline `-m "not live_integration"` | `Makefile:50–51` |
+| `test-live:` `-m live_integration` | `Makefile:53–54` |
+| Marker `live_integration` unchanged | `pyproject.toml:34–35` |
+| serve/dev/simulate/check-env bodies | unchanged beyond PHONY/usage |
 | Profile `test_command` | `profiles.yaml` gateway: `cd doge-complaints-gateway && python3 -m pytest -q` |
+
+### Historical (pre-P3)
+
+| Fact | Path (was) |
+|------|------------|
+| `.PHONY: serve dev simulate check-env` — no `test` | `Makefile:1` |
+| Targets serve/dev/simulate/check-env only | `Makefile:14-42` |
 
 ## Target / AC
 
-- [ ] **AC-GW-REQ902-01:** `make test` exists and runs offline pytest with `-m "not live_integration"` (G7 primary).
-- [ ] **AC-GW-REQ902-02:** `.PHONY` includes `test`.
-- [ ] **AC-GW-REQ902-03:** `make test-live` exists for live_integration suite (operator lock C; hygiene, not extra product scope).
+- [x] **AC-GW-REQ902-01:** `make test` exists and runs offline pytest with `-m "not live_integration"` (G7 primary).
+- [x] **AC-GW-REQ902-02:** `.PHONY` includes `test`.
+- [x] **AC-GW-REQ902-03:** `make test-live` exists for live_integration suite (operator lock C; hygiene, not extra product scope).
 
-## Техническое решение (projected)
+## Техническое решение (as-shipped)
 
 ```make
 test:
@@ -55,15 +68,16 @@ test-live:
 	.venv/bin/python -m pytest -q -m live_integration
 ```
 
-(Exact interpreter path align with existing Makefile `.venv/bin/python` style at P3.)
+(Interpreter path aligned with existing Makefile `.venv/bin/python` style.)
 
-## Nested tasks (planned — folders at P1.3 only; name ≠ create)
+## Nested tasks (pipeline Done pkg-000097 · P3 2026-09-26T12:22:28Z · T04 P6 2026-09-26T12:31:20Z)
 
 | Task | Folder | Status | Essence |
 |------|--------|--------|---------|
-| **T01** | `task-gw-req9-02-t01-make-test-offline` | Todo | `test` target + PHONY; `-m "not live_integration"` |
-| **T02** | `task-gw-req9-02-t02-make-test-live` | Todo | `test-live` target + PHONY |
-| **T03** | `task-gw-req9-02-t03-story-gate` | Todo | AC-GW-REQ902-01…03 gate |
+| **T01** | [`task-gw-req9-02-t01-make-test-offline`](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t01-make-test-offline/README.md) | Done | `test` target + PHONY; `-m "not live_integration"` |
+| **T02** | [`task-gw-req9-02-t02-make-test-live`](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t02-make-test-live/README.md) | Done | `test-live` target + PHONY |
+| **T03** | [`task-gw-req9-02-t03-story-gate`](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t03-story-gate/README.md) | Done | AC-GW-REQ902-01…03 gate PASS |
+| **T04** | [`task-gw-req9-02-t04-audit-g1-as-of-done-ssot`](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t04-audit-g1-as-of-done-ssot/README.md) | Done | G1 CLOSED As-of-Done SSOT · `gw_req9_02_audit_followup` |
 
 ## Code touchpoints
 

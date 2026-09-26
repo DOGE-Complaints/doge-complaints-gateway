@@ -8,9 +8,9 @@
 **Tech-arch:** [`docs/architecture/req9-ops-naming/`](../../../../../docs/architecture/req9-ops-naming/00-overview.md)  
 **Dashboard:** [`gateway-mvp-dashboard.md`](../../gateway-mvp-dashboard.md) (operator lock: sync MVP board — ops package, not product feature)  
 **Naming:** `STORY-GW-REQ9-*`  
-**Updated:** 2026-09-26T12:12:27Z · REQ9-01 Done pkg-000096 (+ T06 audit G1 CLOSED)  
+**Updated:** 2026-09-26T12:31:20Z · REQ9-01/02 Done pkg-000096/097 (+ T04 audit G1 CLOSED)  
 **Epic:** [`EPIC-req9-ops-parity-env-naming.md`](../../epics/EPIC-req9-ops-parity-env-naming.md)  
-**Active pkg:** [`pkg-000096`](../../gateway-active-packages/pkg-000096-20260926-gw-req9-01-example-env-and-spa-base-url.yaml)
+**Active pkg:** [`pkg-000097`](../../gateway-active-packages/pkg-000097-20260926-gw-req9-02-make-test.yaml)
 
 ---
 
@@ -35,7 +35,7 @@ Gateway: `example.env` peer/own URL keys; hard-cut `SPA_VERIFY_*` → `SPA_BASE_
 | Key | File | Status | Depends |
 |-----|------|--------|---------|
 | STORY-GW-REQ9-01 | [backlog](./STORY-GW-REQ9-01-example-env-and-spa-base-url.md) → [pipeline](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) · [pkg-000096](../../gateway-active-packages/pkg-000096-20260926-gw-req9-01-example-env-and-spa-base-url.yaml) | **Done** pkg-000096 T01–T06 · P3+P6 2026-09-26T12:12:27Z | — |
-| STORY-GW-REQ9-02 | [STORY-GW-REQ9-02-make-test.md](./STORY-GW-REQ9-02-make-test.md) | Todo | — (parallel; not pkg-000096) |
+| STORY-GW-REQ9-02 | [backlog](./STORY-GW-REQ9-02-make-test.md) → [pipeline](../../epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/STORY-GW-REQ9-02-make-test.md) · [pkg-000097](../../gateway-active-packages/pkg-000097-20260926-gw-req9-02-make-test.yaml) | **Done** pkg-000097 T01–T04 · P3+P6 2026-09-26T12:31:20Z | — |
 
 ---
 

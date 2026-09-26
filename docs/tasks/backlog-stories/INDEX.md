@@ -5,13 +5,13 @@
 > **Dashboard (Semantic Schema Runtime — not MVP):** [`gateway-semantic-schema-runtime-dashboard.md`](../gateway-semantic-schema-runtime-dashboard.md)  
 > **Dashboard (REQ7 threads shell — not MVP):** [`gateway-req7-threads-shell-dashboard.md`](../gateway-req7-threads-shell-dashboard.md)  
 > **Audit:** [`backlog-status-audit-2026-07-10.md`](../../analysis/backlog-status-audit-2026-07-10.md)  
-> **Updated:** 2026-09-26T12:06:30Z
+> **Updated:** 2026-09-26T12:31:20Z
 
 ## Summary
 
 | Packages | Product stories (excl. superseded) | Done | Todo / In Progress | Deferred |
 |----------|-----------------------------------|------|--------------------|----------|
-| 10 | see MVP dashboard + non-MVP scopes | MVP active **35/37 (~95%)** after REQ9-01 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ9-02 Todo | **3** (CAB-03, L10N-04, TAX-04) |
+| 10 | see MVP dashboard + non-MVP scopes | MVP active **36/37 (~97%)** after REQ9-02 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 Todo | **3** (CAB-03, L10N-04, TAX-04) |
 
 *Канон метрик MVP: [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md). `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в MVP %. Пакет `req9-ops-parity-env-naming` **включён** в MVP board (operator lock B — ops parity, не product feature).*
 
@@ -29,7 +29,7 @@
 | [early-signal-pre-cluster](early-signal-pre-cluster/INDEX.md) | 4 Story + 2 Task | TASK-ES-01 Done; **ES-02 Done** pkg-000059; **ES-03 In Progress** pkg-000060; TASK-ES-04 Todo; **ES-05** draft (G2); **ES-06** Deferred (G3) | [gap-analysis](early-signal-pre-cluster/gap-analysis-early-signal-data-readiness-2026-08-09.md); epic [EPIC-M2-24](../epics/EPIC-M2-24-early-signal-pre-cluster.md); REQ-49 |
 | [semantic-schema-runtime](semantic-schema-runtime/INDEX.md) | 5 T-wave Done + 2 Draft later | **не MVP**; git `semantic-schema-runtime`; [scope dashboard](../gateway-semantic-schema-runtime-dashboard.md) | REQ-51; parent REQ3 |
 | [issue-thread-context-and-node-verification](issue-thread-context-and-node-verification/INDEX.md) | 1 Done + 2 Todo (THR-01 Done; THR-02/03) | **не MVP**; [scope dashboard](../gateway-req7-threads-shell-dashboard.md) | REQ52; parent REQ7 shell |
-| [req9-ops-parity-env-naming](req9-ops-parity-env-naming/INDEX.md) | 1 Done + 1 Todo (REQ9-01 Done pkg-000096; REQ9-02) | **в MVP board** (ops); [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ53; parent REQ9; epic [EPIC-req9-ops-parity-env-naming](../epics/EPIC-req9-ops-parity-env-naming.md) |
+| [req9-ops-parity-env-naming](req9-ops-parity-env-naming/INDEX.md) | 2 Done (REQ9-01 pkg-000096; REQ9-02 pkg-000097) | **в MVP board** (ops); [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ53; parent REQ9; epic [EPIC-req9-ops-parity-env-naming](../epics/EPIC-req9-ops-parity-env-naming.md) |
 
 ## Retired
 
