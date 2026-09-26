@@ -660,6 +660,35 @@
 
 **activation:** `run_mode=gw_thr_03_audit_followup` — T06 Done; current.yaml stays pkg-000095. Draft: [`p5_gw_thr_03_gap_20260921T210918Z.plan.md`](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
 
+## EPIC-req9-ops-parity-env-naming — REQ9 ops parity & env naming (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req9-ops-parity-env-naming.md`](./epics/EPIC-req9-ops-parity-env-naming.md). Пакет [`req9-ops-parity-env-naming/`](./backlog-stories/req9-ops-parity-env-naming/INDEX.md). Ветка `semantic-schema-runtime`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md) (ops lock B).
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ9-01 | [pipeline example.env + SPA_BASE_URL hard cut](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) → [backlog](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) | **Done** pkg-000096 T01–T05 · P3 2026-09-26T12:06:30Z · hard cut SPA_BASE_URL; no dual-read · [`pkg`](./gateway-active-packages/pkg-000096-20260926-gw-req9-01-example-env-and-spa-base-url.yaml) · [`run-summary`](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) · [`gate`](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t05-story-gate/story-acceptance-gate-STORY-GW-REQ9-01.md) |
+| ⚪ | GW-REQ9-02 | [backlog make test + test-live](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | ⚪ Todo (parallel; not this pkg) |
+
+### STORY-GW-REQ9-01 — example.env + SPA_BASE_URL hard cut
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ9-01-T01 | [T01: example.env peer/own URL keys](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t01-example-env-keys/README.md) | implement | Done | API/IDENTITY/SPA_BASE_URL; keep SERVICE_API_TOKEN |
+| 🔵 | TASK-GW-REQ9-01-T02 | [T02: schema SPA_BASE_URL hard cut](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t02-schema-spa-base-hard-cut/README.md) | implement | Done | spa_base_url field/load; no SPA_VERIFY dual-read |
+| 🔵 | TASK-GW-REQ9-01-T03 | [T03: verify_url helpers rename](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t03-verify-url-helpers/README.md) | implement | Done | resolve_spa_base_url etc. |
+| 🔵 | TASK-GW-REQ9-01-T04 | [T04: tests/docs align](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t04-tests-docs-align/README.md) | tests | Done | no primary SPA_VERIFY_* |
+| 🔵 | TASK-GW-REQ9-01-T05 | [T05: story acceptance gate](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t05-story-gate/README.md) | gate | Done | AC-GW-REQ901-01…05 PASS |
+| 🔵 | TASK-GW-REQ9-01-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-26T12:12:27Z · `run_mode=gw_req9_01_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260926-1212-gw-req9-01-audit-p6.md) |
+
+#### P5 disposition note (REQ9-01 audit 2026-09-26) · APPLY 2026-09-26T12:11:17Z · P6 2026-09-26T12:12:27Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-26T12:12:27Z) | none | T06 | As-of-Done vs Historical on backlog/pipeline §Verified + T01–T03 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req9_01_audit_followup` — T06 Done; current.yaml stays pkg-000096. Draft: [`p5_gw_req9_01_gap_20260926T121033Z.plan.md`](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
 
 ## EPIC-M2-01 — Core Foundation and Governance
 
@@ -1855,6 +1884,10 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 | 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
 | 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P6 execute | STORY-GW-REQ9-01 audit follow-up T06 (`gw_req9_01_audit_followup`) | [run-summary-20260926-1212-gw-req9-01-audit-p6](./run-reports/run-summary-20260926-1212-gw-req9-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000096 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P5 APPLY | STORY-GW-REQ9-01 audit disposition (`gw_req9_01_audit_followup`) | [p5_gw_req9_01_gap_20260926T121033Z](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000096 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P3 execute | STORY-GW-REQ9-01 example.env + SPA_BASE_URL hard cut (`pkg-000096` T01–T05) | [run-summary-20260926-1206-gw-req9-01-p3](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) | Hard cut SPA_BASE_URL; example.env keys; 10 pytest; gate PASS; no dual-read; no §Актуальная точка rewrite. |
+| 2026-09-26 | P1 scaffold | STORY-GW-REQ9-01 example.env + SPA_BASE_URL hard cut (`pkg-000096` T01–T05) | [p1_gw_req9_01_scaffold_20260926T120100Z](../../../.cursor/plans/p1_gw_req9_01_scaffold_20260926T120100Z.plan.md) | Pipeline + 5 tasks; epic NEW; current.yaml → pkg-000096; hard cut SPA_BASE_URL; no SPA_VERIFY dual-read; no §Актуальная точка rewrite. |
 | 2026-09-21 | P6 execute | STORY-GW-THR-03 audit follow-up T06 (`gw_thr_03_audit_followup`) | [run-summary-20260921-2111-gw-thr-03-audit-p6](./run-reports/run-summary-20260921-2111-gw-thr-03-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000095 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-21 | P5 APPLY | STORY-GW-THR-03 audit disposition (`gw_thr_03_audit_followup`) | [p5_gw_thr_03_gap_20260921T210918Z](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000095 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-21 | P3 execute | STORY-GW-THR-03 civic gate identity_verified (`pkg-000095` T01–T05) | [run-summary-20260921-2105-gw-thr-03-p3](./run-reports/run-summary-20260921-2105-gw-thr-03-p3.md) | Opaque-only gate; phone-only stub denied; cutover evidence; gate PASS; no §Актуальная точка rewrite. |

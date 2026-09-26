@@ -82,7 +82,7 @@ Legacy drafts (pre GW-DRAFT-05) с placeholder submitter в `story_drafts.payloa
 | `FF_TOKENIZATION_PIPELINE` | `src/core/config/schema.py` | Override pipeline behavior |
 | `LOG_LEVEL` | `src/core/config/schema.py` | Уровень логирования |
 | `IDENTITY_BASE_URL` | `src/core/config/schema.py`, `src/core/identity/me_client.py` | Base URL for browser session check via identity `GET /me` (GW-DRAFT-02) |
-| `SPA_VERIFY_BASE_URL` | `src/core/identity/verify_url.py` | SPA verify redirect base for `verification_required` (403) responses |
+| `SPA_BASE_URL` | `src/core/identity/verify_url.py` | SPA public origin / verify redirect base for `verification_required` (403) responses |
 
 ### 4.1) Browser story-draft auth paths (GW-DRAFT-02)
 

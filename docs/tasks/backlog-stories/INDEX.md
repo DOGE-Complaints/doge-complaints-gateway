@@ -5,15 +5,15 @@
 > **Dashboard (Semantic Schema Runtime — not MVP):** [`gateway-semantic-schema-runtime-dashboard.md`](../gateway-semantic-schema-runtime-dashboard.md)  
 > **Dashboard (REQ7 threads shell — not MVP):** [`gateway-req7-threads-shell-dashboard.md`](../gateway-req7-threads-shell-dashboard.md)  
 > **Audit:** [`backlog-status-audit-2026-07-10.md`](../../analysis/backlog-status-audit-2026-07-10.md)  
-> **Updated:** 2026-09-21T20:39:55Z
+> **Updated:** 2026-09-26T12:06:30Z
 
 ## Summary
 
 | Packages | Product stories (excl. superseded) | Done | Todo / In Progress | Deferred |
 |----------|-----------------------------------|------|--------------------|----------|
-| 9 | see MVP dashboard + non-MVP scopes | active **33/35 (~94%)** MVP | **1** In Progress (ES-03) + **1** Todo (TASK-ES-04) MVP; **+1** Done / **+2** Todo REQ7 shell (THR-01 Done; THR-02/03) | **3** (CAB-03, L10N-04, TAX-04) |
+| 10 | see MVP dashboard + non-MVP scopes | MVP active **35/37 (~95%)** after REQ9-01 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ9-02 Todo | **3** (CAB-03, L10N-04, TAX-04) |
 
-*Канон метрик MVP (incl. doc-tasks): [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md) — active **33/35**. Пакеты `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в этом знаменателе.*
+*Канон метрик MVP: [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md). `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в MVP %. Пакет `req9-ops-parity-env-naming` **включён** в MVP board (operator lock B — ops parity, не product feature).*
 
 ## By package
 
@@ -29,6 +29,7 @@
 | [early-signal-pre-cluster](early-signal-pre-cluster/INDEX.md) | 4 Story + 2 Task | TASK-ES-01 Done; **ES-02 Done** pkg-000059; **ES-03 In Progress** pkg-000060; TASK-ES-04 Todo; **ES-05** draft (G2); **ES-06** Deferred (G3) | [gap-analysis](early-signal-pre-cluster/gap-analysis-early-signal-data-readiness-2026-08-09.md); epic [EPIC-M2-24](../epics/EPIC-M2-24-early-signal-pre-cluster.md); REQ-49 |
 | [semantic-schema-runtime](semantic-schema-runtime/INDEX.md) | 5 T-wave Done + 2 Draft later | **не MVP**; git `semantic-schema-runtime`; [scope dashboard](../gateway-semantic-schema-runtime-dashboard.md) | REQ-51; parent REQ3 |
 | [issue-thread-context-and-node-verification](issue-thread-context-and-node-verification/INDEX.md) | 1 Done + 2 Todo (THR-01 Done; THR-02/03) | **не MVP**; [scope dashboard](../gateway-req7-threads-shell-dashboard.md) | REQ52; parent REQ7 shell |
+| [req9-ops-parity-env-naming](req9-ops-parity-env-naming/INDEX.md) | 1 Done + 1 Todo (REQ9-01 Done pkg-000096; REQ9-02) | **в MVP board** (ops); [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ53; parent REQ9; epic [EPIC-req9-ops-parity-env-naming](../epics/EPIC-req9-ops-parity-env-naming.md) |
 
 ## Retired
 
@@ -49,6 +50,7 @@ Pipeline stories live under `docs/tasks/epics/`. Backlog files here are product/
 | EPIC-M2-24 | early-signal-pre-cluster | ES-02 Done pkg-000059; **ES-03 In Progress** pkg-000060; TASK-ES-04 Todo; ES-05 draft; ES-06 Deferred |
 | [EPIC-semantic-schema-runtime](../epics/EPIC-semantic-schema-runtime.md) | semantic-schema-runtime | REQ-51 T-wave; not `EPIC-M2-*`; исполнение на ветке `semantic-schema-runtime` |
 | [EPIC-issue-thread-context-and-node-verification](../epics/EPIC-issue-thread-context-and-node-verification.md) | issue-thread-context-and-node-verification | THR-01 Done pkg-000093; THR-02/03 Todo; not `EPIC-M2-*` |
+| [EPIC-req9-ops-parity-env-naming](../epics/EPIC-req9-ops-parity-env-naming.md) | req9-ops-parity-env-naming | REQ9-01 Done pkg-000096; REQ9-02 backlog Todo; not `EPIC-M2-*` |
 
 ## Traceability (gap docs)
 
@@ -58,3 +60,4 @@ Pipeline stories live under `docs/tasks/epics/`. Backlog files here are product/
 - REQ-48 / TASK-ES-01 + ES-02/03 + TASK-ES-04: [`gap-analysis-early-signal-data-readiness-2026-08-09.md`](early-signal-pre-cluster/gap-analysis-early-signal-data-readiness-2026-08-09.md) §4
 - REQ-51 Semantic Schema Runtime: [`semantic-schema-runtime/INDEX.md`](semantic-schema-runtime/INDEX.md) · [`51-semantic-schema-runtime.md`](../../requirements/51-semantic-schema-runtime.md)
 - REQ-52 Issue thread context + node verification (REQ7 shell): [`issue-thread-context-and-node-verification/INDEX.md`](issue-thread-context-and-node-verification/INDEX.md) · [`52-issue-thread-context-and-node-verification.md`](../../requirements/52-issue-thread-context-and-node-verification.md) · [`gateway-req7-threads-shell-dashboard.md`](../gateway-req7-threads-shell-dashboard.md)
+- REQ-53 REQ9 ops parity & env naming: [`req9-ops-parity-env-naming/INDEX.md`](req9-ops-parity-env-naming/INDEX.md) · [`53-req9-ops-parity-env-naming.md`](../../requirements/53-req9-ops-parity-env-naming.md) · MVP board [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md)

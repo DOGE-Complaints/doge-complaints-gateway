@@ -3,22 +3,23 @@
 > **Scope-Id:** mvp  
 > **Scope:** MVP  
 > **SSOT:** package `INDEX.md` files + [bullrun-launch-index.md](bullrun-launch-index.md)  
-> **Updated:** 2026-08-10  
-> **Last change:** **P3 ES-03 Done** pkg-000060 (REQ-50 `GET /tallinn/emerging-signals`); ES-02 Done pkg-000059; active **34/35 (~97%)**.
+> **Updated:** 2026-09-26T12:12:27Z  
+> **Last change:** STORY-GW-REQ9-01 **Done** pkg-000096 T01–T06 — hard cut `SPA_BASE_URL`; audit G1 CLOSED (ops lock B).
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Backlog packages | 8 |
-| Active work items | 35 |
-| Done | 34 |
-| Todo / In Progress | 1 |
+| Backlog packages | 9 |
+| Active work items | 37 |
+| Done | 35 |
+| Todo / In Progress | 2 |
 | Deferred | 3 |
-| **Overall progress (active)** | **~97%** `████████████░` |
+| **Overall progress (active)** | **~95%** `███████████░` |
 
-*Active = 30 product stories Done + 4 doc-tasks Done (3 legacy + TASK-ES-01) + 1 Task Todo (TASK-ES-04). Deferred вне %.*  
-*REQ-49 Pulse + REQ-50 Emerging. [ES-02](backlog-stories/early-signal-pre-cluster/STORY-GW-ES-02-public-network-pulse-l1-aggregates.md) Done; [ES-03](backlog-stories/early-signal-pre-cluster/STORY-GW-ES-03-public-emerging-l2-read.md) Done pkg-000060; TASK-ES-04 Todo.*
+*Active = prior 35 MVP items + 2 REQ9 ops stories. Deferred вне %.*  
+*SSR + REQ7 THR packages remain outside this denominator (separate scope dashboards).*  
+*REQ9 package is **ops parity** on this board (operator lock B) — not a product feature slice.*
 
 ## By package
 
@@ -32,23 +33,27 @@
 | [cabinet-api](backlog-stories/cabinet-api/INDEX.md) | 3 | 2 | 0 | 1 | 67% `████████░░░░` |
 | [taxonomy-fidelity](backlog-stories/taxonomy-fidelity/INDEX.md) | 4 | 3 | 0 | 1 | 100% active `████████████` |
 | [early-signal-pre-cluster](backlog-stories/early-signal-pre-cluster/INDEX.md) | 4 items | 3 | 1 | 0 | 75% `█████████░░░` |
+| [req9-ops-parity-env-naming](backlog-stories/req9-ops-parity-env-naming/INDEX.md) | 2 | 1 | 1 | 0 | 50% `██████░░░░░░` |
 
 *gpt-submit-authz: GAUTH-01/02 Superseded — excluded from story counts.*  
 *cabinet-api: GW-CAB-03 Deferred (post-MVP web3).*  
-*taxonomy-fidelity: TAX-01/02/03 Done; **TAX-04 Deferred** (ALTER residual UUID hosts).*  
-*early-signal-pre-cluster: **TASK-ES-01 Done**; **ES-02 Done** pkg-000059; **ES-03 Done** pkg-000060 (`GET /tallinn/emerging-signals`); TASK-ES-04 Todo.*
+*taxonomy-fidelity: TAX-01/02/03 Done; **TAX-04 Deferred**.*  
+*early-signal: TASK-ES-01/ES-02/ES-03 Done; TASK-ES-04 Todo.*  
+*req9-ops-parity-env-naming: REQ9-01 **Done** pkg-000096; REQ9-02 Todo — Make test rituals.*
 
 ## Remaining
 
 | Type | Key | Title | Package/Epic | Status | Priority | Essence |
 |------|-----|-------|--------------|--------|----------|---------|
 | Task | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | REQ-48 PA.2 + spa-15 seam | early-signal | ⚪ Todo | — | Docs/contract; no API |
+| story | [GW-REQ9-02](backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | make test + test-live | [req9-ops-parity-env-naming](backlog-stories/req9-ops-parity-env-naming/INDEX.md) | ⚪ Todo | P1 | G7 offline + live ritual |
 
 ## Requirements (intake)
 
 | REQ | Title | Status | Notes |
 |-----|-------|--------|-------|
-| [48](../requirements/48-early-signal-pre-cluster-data-readiness.md) | Early Signal / Pre-Cluster — Data Readiness (no invented API) | Draft — awaiting PA.2 | [TASK-ES-01](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-01-early-signal-data-readiness-inventory.md) Done; [ES-02](backlog-stories/early-signal-pre-cluster/STORY-GW-ES-02-public-network-pulse-l1-aggregates.md) **Done** (`GET /tallinn/network-pulse`, REQ-49); [ES-03](backlog-stories/early-signal-pre-cluster/STORY-GW-ES-03-public-emerging-l2-read.md) **Done** pkg-000060 (`GET /tallinn/emerging-signals`, REQ-50); [TASK-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) Todo; sibling [spa 15](../../../spa-app/docs/requirements/15-early-signal-pre-cluster-public-dashboard.md) |
+| [53](../requirements/53-req9-ops-parity-env-naming.md) | REQ9 — ops parity & env naming | Draft — awaiting PA.2 | REQ9-01 Done pkg-000096; REQ9-02 Todo; siblings aibridge REQ-08, threads 02, identity 22, spa 18 |
+| [48](../requirements/48-early-signal-pre-cluster-data-readiness.md) | Early Signal / Pre-Cluster — Data Readiness (no invented API) | Draft — awaiting PA.2 | ES-02/03 Done; TASK-ES-04 Todo; sibling spa 15 |
 
 ## Doc-tasks Done (в active %)
 
@@ -69,29 +74,32 @@
 | EPIC-M2-20 | Done | GAUTH historical; superseded user path |
 | EPIC-M2-22 | In Progress | CAB-01/02 Done; **GW-CAB-03 Deferred** post-MVP |
 | EPIC-M2-23 | Done active / Deferred hygiene | TAX-01/02/03 Done; **TAX-04 Deferred** |
-| [EPIC-M2-24](epics/EPIC-M2-24-early-signal-pre-cluster.md) | ES-02/ES-03 Done | ES-02 pkg-000059; ES-03 pkg-000060 Done; TASK-ES-04 Todo |
+| [EPIC-M2-24](epics/EPIC-M2-24-early-signal-pre-cluster.md) | ES-02/ES-03 Done | TASK-ES-04 Todo |
+| [EPIC-req9-ops-parity-env-naming](epics/EPIC-req9-ops-parity-env-naming.md) | In Progress (REQ9-01 Done) | pkg-000096 Done; REQ9-02 backlog Todo; not `EPIC-M2-*` |
 
 ## Roadmap → 100%
 
-**Текущая точка:** active **34/35 (~97%)**. ES-02/ES-03 Done. Remaining: **TASK-ES-04**. Deferred: GW-CAB-03, GW-L10N-04, **GW-TAX-04**.
+**Текущая точка:** active **35/37 (~95%)**. Remaining: **TASK-ES-04**, **GW-REQ9-02**. Deferred: GW-CAB-03, GW-L10N-04, **GW-TAX-04**.
 
 | Цель | Знаменатель | Как закрыть |
 |------|-------------|-------------|
-| **Активные 100%** | 35 work items | TASK-ES-04 seam |
+| **Активные 100%** | 37 work items | TASK-ES-04 + REQ9-02 |
 | **Полные 100%** | + 3 deferred | CAB-03, L10N-04, TAX-04 после web3 / product / ops residual |
 
 ### Упорядоченный остаток (active then deferred)
 
 | # | Item | Почему здесь |
 |---|------|--------------|
-| 1 | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | Docs/PA.2 seam — exposure list |
-| — | [GW-TAX-04](backlog-stories/taxonomy-fidelity/STORY-GW-TAX-04-alter-story-labels-uuid-residual-hosts.md) | ALTER residual UUID hosts; только при broken host |
+| 1 | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | Docs/PA.2 seam |
+| 2 | [GW-REQ9-02](backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | make test / test-live |
+| — | [GW-TAX-04](backlog-stories/taxonomy-fidelity/STORY-GW-TAX-04-alter-story-labels-uuid-residual-hosts.md) | ALTER residual UUID hosts |
 | — | [GW-CAB-03](backlog-stories/cabinet-api/STORY-GW-CAB-03-contribution-layer-api.md) / [GW-L10N-04](backlog-stories/localization-l10n/STORY-GW-L10N-04-label-taxonomy-registry-future.md) | Deferred post-MVP |
 
 ## §Now
 
-1. Lead: [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) docs/PA.2 seam.
-2. Ops: **P4** audit ES-03; **P8** commits pkg-000059/000060 + pending waves; SPA-BUG-01 retest. Deferred TAX-04 / CAB-03 / L10N-04 — только по явному решению.
+1. Lead product seam: [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md).
+2. Ops parity remaining: [GW-REQ9-02](backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) (REQ9-01 Done pkg-000096).
+3. Deferred TAX-04 / CAB-03 / L10N-04 — только по явному решению.
 
 ## §Deferred
 
@@ -105,14 +113,14 @@
 
 ## §Deploy (optional)
 
-Gateway на Railway: [`railpack.json`](../../railpack.json) + env (`SERVICE_API_TOKEN`, `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL`, `DB_BACKEND=supabase`, `CORS_ALLOWED_ORIGINS`). Hosted readiness: [`REQUIRED_READINESS_TABLES`](../../src/core/infrastructure/db_supabase.py) incl. `story_labels` (DRAFT-07 Done).
+Gateway на Railway: [`railpack.json`](../../railpack.json) + env (`SERVICE_API_TOKEN`, `IDENTITY_BASE_URL`, `SPA_BASE_URL`, `DB_BACKEND=supabase`, `CORS_ALLOWED_ORIGINS`). Hosted readiness: [`REQUIRED_READINESS_TABLES`](../../src/core/infrastructure/db_supabase.py) incl. `story_labels` (DRAFT-07 Done).
 
 ## Mermaid — completion
 
 ```mermaid
 pie title Active work items (MVP)
-    "Done" : 32
-    "Todo" : 0
+    "Done" : 34
+    "Todo" : 3
 ```
 
 ## How to refresh
