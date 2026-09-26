@@ -12,18 +12,18 @@ from core.identity.verification_gate import (
 )
 from core.identity.verify_url import build_verify_url
 
-GAUTH_TEST_SPA_VERIFY_BASE = "https://spa.test"
+GAUTH_TEST_SPA_BASE = "https://spa.test"
 
 
 def test_build_verify_url_from_spa_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
-    monkeypatch.setenv("SPA_VERIFY_BASE_URL", GAUTH_TEST_SPA_VERIFY_BASE)
+    monkeypatch.setenv("SPA_BASE_URL", GAUTH_TEST_SPA_BASE)
     config = load_config_from_env()
-    assert build_verify_url(config) == f"{GAUTH_TEST_SPA_VERIFY_BASE}/verify"
+    assert build_verify_url(config) == f"{GAUTH_TEST_SPA_BASE}/verify"
     assert (
         build_verify_url(config, return_context="intake")
-        == f"{GAUTH_TEST_SPA_VERIFY_BASE}/verify?context=intake"
+        == f"{GAUTH_TEST_SPA_BASE}/verify?context=intake"
     )
 
 

@@ -18,7 +18,7 @@ from tests.conftest import (
 )
 from tests.intake_v2_fixtures import valid_v2_stash_payload
 
-GAUTH_TEST_SPA_VERIFY_BASE = "https://spa.test"
+GAUTH_TEST_SPA_BASE = "https://spa.test"
 VERIFIED_SUB = "draft02-verified-sub"
 
 
@@ -29,7 +29,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("REQUEST_TIMEOUT_S", "15")
     monkeypatch.setenv("SERVICE_API_TOKEN", GAUTH_TEST_SERVICE_TOKEN)
     monkeypatch.setenv("IDENTITY_BASE_URL", GAUTH_TEST_IDENTITY_URL)
-    monkeypatch.setenv("SPA_VERIFY_BASE_URL", GAUTH_TEST_SPA_VERIFY_BASE)
+    monkeypatch.setenv("SPA_BASE_URL", GAUTH_TEST_SPA_BASE)
     monkeypatch.setenv("STORY_DRAFT_TTL_SECONDS", "86400")
     _clear_api_dependencies_cache()
     with TestClient(app) as test_client:
@@ -156,7 +156,7 @@ def test_unverified_returns_403_verification_required(
     assert body["error"]["code"] == "VERIFICATION_REQUIRED"
     details = body["error"]["details"]
     assert details["error"] == "verification_required"
-    assert details["verify_url"] == f"{GAUTH_TEST_SPA_VERIFY_BASE}/verify"
+    assert details["verify_url"] == f"{GAUTH_TEST_SPA_BASE}/verify"
     assert _story_count() == before
     assert get_api_dependencies().story_draft_repository.get_draft(draft_id) is not None
 
