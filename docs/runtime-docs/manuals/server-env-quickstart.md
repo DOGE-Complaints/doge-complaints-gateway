@@ -155,7 +155,7 @@ Sibling: keep GPT Instructions `schema_binding` aligned with the active pair aft
 | Переменная | Назначение | Если не задана |
 |---|---|---|
 | `IDENTITY_BASE_URL` | База identity для `GET {base}/me` (browser session) | `/me` не сконфигурирован → story-draft routes **503** (fail-closed) |
-| `SPA_VERIFY_BASE_URL` | База для `verify_url` в ответе **403** `verification_required` (default `http://localhost:3000`) | в 403-теле уйдёт дефолтный verify-URL |
+| `SPA_BASE_URL` | База для `verify_url` в ответе **403** `verification_required` (default `http://localhost:3000`) | в 403-теле уйдёт дефолтный verify-URL |
 
 > Коды browser submit: **401** — нет/битый Bearer; **403** `verification_required` (+`verify_url`) — `phone_verified=false`; **503** — identity недоступен. Подробнее — [`seed-demo-data-runbook-ru.md`](./seed-demo-data-runbook-ru.md).
 

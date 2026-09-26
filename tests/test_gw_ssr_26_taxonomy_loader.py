@@ -65,6 +65,7 @@ def _copy_legal_pack(dest: Path, *, taxonomy_schema: str | None = None) -> Path:
     dest.mkdir(parents=True)
     src = PACKS_ROOT / "legal_process" / "v1"
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text(encoding="utf-8"))
     if taxonomy_schema is not None:
         manifest["taxonomy_schema"] = taxonomy_schema

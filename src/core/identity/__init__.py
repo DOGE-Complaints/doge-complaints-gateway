@@ -17,7 +17,7 @@ from core.identity.me_client import (
     build_identity_me_from_config,
 )
 
-from core.identity.verify_url import build_verify_url, resolve_spa_verify_base_url
+from core.identity.verify_url import build_verify_url, resolve_spa_base_url
 
 __all__ = [
     "DEFAULT_VERIFICATION_REQUIRED_REASON",
@@ -31,5 +31,5 @@ __all__ = [
     "evaluate_verification_gate",
     "payload_submitter_mismatches_introspection",
     "resolve_identity_issuer_from_introspect_url",
-    "resolve_spa_verify_base_url",
+    "resolve_spa_base_url",
 ]

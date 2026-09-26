@@ -39,7 +39,9 @@ def _patch_me_sub(monkeypatch: pytest.MonkeyPatch, sub: str) -> None:
 
     def _fetch_me(self: IdentityMeClient, bearer_token: str) -> IntrospectionResult:
         _ = bearer_token
-        return IntrospectionResult(active=True, sub=sub, phone_verified=True)
+        return IntrospectionResult(
+            active=True, sub=sub, phone_verified=True, identity_verified=True
+        )
 
     monkeypatch.setattr(IdentityMeClient, "fetch_me", _fetch_me)
 

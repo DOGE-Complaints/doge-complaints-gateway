@@ -1,4 +1,4 @@
-"""GW-GAUTH-03: phone_verified gate + verification_required (403, OAUTH-04)."""
+"""GW-GAUTH-03 / GW-THR-03: opaque identity_verified gate + verification_required."""
 
 from __future__ import annotations
 
@@ -12,35 +12,44 @@ from core.identity.verification_gate import (
 )
 from core.identity.verify_url import build_verify_url
 
-GAUTH_TEST_SPA_VERIFY_BASE = "https://spa.test"
+GAUTH_TEST_SPA_BASE = "https://spa.test"
 
 
 def test_build_verify_url_from_spa_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_PROFILE", "demo")
     monkeypatch.setenv("API_BASE_URL", "https://demo.example/api")
-    monkeypatch.setenv("SPA_VERIFY_BASE_URL", GAUTH_TEST_SPA_VERIFY_BASE)
+    monkeypatch.setenv("SPA_BASE_URL", GAUTH_TEST_SPA_BASE)
     config = load_config_from_env()
-    assert build_verify_url(config) == f"{GAUTH_TEST_SPA_VERIFY_BASE}/verify"
+    assert build_verify_url(config) == f"{GAUTH_TEST_SPA_BASE}/verify"
     assert (
         build_verify_url(config, return_context="intake")
-        == f"{GAUTH_TEST_SPA_VERIFY_BASE}/verify?context=intake"
+        == f"{GAUTH_TEST_SPA_BASE}/verify?context=intake"
     )
 
 
 def test_evaluate_verification_gate_branches() -> None:
     assert (
         evaluate_verification_gate(
-            IntrospectionResult(active=True, sub="u", phone_verified=True)
+            IntrospectionResult(active=True, sub="u", identity_verified=True)
         )
         is VerificationGateOutcome.ALLOW
     )
     assert (
         evaluate_verification_gate(
-            IntrospectionResult(active=True, sub="u", phone_verified=False)
+            IntrospectionResult(active=True, sub="u", identity_verified=False)
         )
         is VerificationGateOutcome.VERIFICATION_REQUIRED
     )
     assert (
         evaluate_verification_gate(IntrospectionResult(active=False))
         is VerificationGateOutcome.UNAUTHORIZED
+    )
+    # Phone-only legacy must NOT allow (GW-THR-03 AC-02; no dual-read).
+    assert (
+        evaluate_verification_gate(
+            IntrospectionResult(
+                active=True, sub="u", phone_verified=True, identity_verified=None
+            )
+        )
+        is VerificationGateOutcome.VERIFICATION_REQUIRED
     )

@@ -10,3 +10,4 @@ class IntrospectionResult:
     active: bool
     sub: str | None = None
     phone_verified: bool | None = None
+    identity_verified: bool | None = None

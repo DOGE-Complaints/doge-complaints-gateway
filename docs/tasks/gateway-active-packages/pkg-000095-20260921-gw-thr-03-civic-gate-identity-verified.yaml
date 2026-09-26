@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 95
+created_at: '2026-09-21T21:00:02Z'
+label: GW-THR-03 civic gate identity_verified only (EPIC-issue-thread-context-and-node-verification)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-03-civic-gate-identity-verified.md
+story_groups:
+- story_key: STORY-GW-THR-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t01-me-parse-identity-verified/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t02-gate-opaque-only/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t03-tests-no-phone-fallback/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t04-cutover-evidence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t05-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-21T21:00:02Z. Backlog THR-03 materialize.
+  Epic REUSE EPIC-issue-thread-context-and-node-verification (no EPIC-M2-*).
+  Branch semantic-schema-runtime only.
+  Precondition FACT: Identity VB-01 Done pkg-000050; VB-02 Done pkg-000051.
+  identity_verified only — NO phone_verified dual-read / fallback.
+  Fail-closed if opaque missing/invalid when gate runs.
+  Do not invent public gateway auth route.
+  Do not rewrite bullrun §Актуальная точка / MVP dashboard.
+  Do not mutate pkg-000093/094.

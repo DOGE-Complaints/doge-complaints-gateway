@@ -252,6 +252,11 @@ def test_no_code_exec_from_pack_bytes(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
+    from core.schema.shell_capabilities import write_shell_capabilities
+
+    write_shell_capabilities(
+        pack_dir, validation_type="phone", integration_name="evil_phone_sms"
+    )
     runtime = LocalSchemaRuntime(packs_root=tmp_path)
     ctx = runtime.resolve(SchemaRef("evil", "v1"))
     runtime.validate(ctx, {"x": "ok"})

@@ -519,7 +519,7 @@ Browser handoff completion: verified user submits stashed draft; gateway calls i
 - **Success:** `202 Accepted` — `StoryIntakeResponse` envelope; `submitter` resolved via `authoritative_submitter_from_introspection` (`sub` from `/me`)
 - **Idempotency:** `draft_id` is the idempotency key; repeat submit returns same `story_id` without duplicate stories; draft deleted after first success
 - **Not found / expired:** `404` — `DOMAIN_ERROR`
-- **Config:** `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL` (for `verify_url`)
+- **Config:** `IDENTITY_BASE_URL`, `SPA_BASE_URL` (for `verify_url`)
 
 Test evidence: `tests/test_gw_draft_02_story_draft_submit_contract.py`
 

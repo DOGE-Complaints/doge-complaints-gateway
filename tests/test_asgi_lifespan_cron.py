@@ -19,6 +19,7 @@ class _ConfigStub:
     db_backend: str = "in_memory"
     node_schema_id: str = "tallinn_civic"
     node_schema_version: str = "v1"
+    schema_pack_ready: bool = True
 
 
 def _deps_stub(*, cron_enabled: bool, db_backend: str = "in_memory") -> Any:

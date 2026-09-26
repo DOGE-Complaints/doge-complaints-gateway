@@ -22,8 +22,17 @@ def monkeypatch_civic_knobs(
     """Return real active-pack civic with selected fields replaced for one test."""
     original = config_schema.civic_clustering_from_active_node
 
-    def _patched(*, schema_id: str, schema_version: str) -> CivicClusteringBlock:
-        civic = original(schema_id=schema_id, schema_version=schema_version)
+    def _patched(
+        *,
+        schema_id: str,
+        schema_version: str,
+        environ=None,
+    ) -> CivicClusteringBlock:
+        civic = original(
+            schema_id=schema_id,
+            schema_version=schema_version,
+            environ=environ,
+        )
         updates: dict[str, object] = {}
         if min_size is not None:
             updates["min_size"] = min_size

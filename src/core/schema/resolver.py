@@ -28,6 +28,7 @@ from core.schema.contracts import (
     TaxonomyPack,
 )
 from core.schema.errors import UnknownSchemaError, UnsupportedVersionError
+from core.schema.shell_capabilities import load_shell_capabilities
 from core.taxonomy.disposition import LABEL_DISPOSITION_VALUES
 
 _KNOWN_LENS_IDS = frozenset(member.value for member in ClusterLens)
@@ -691,6 +692,15 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
     lenses = tuple(_parse_lens(item) for item in raw_lenses if isinstance(item, dict))
     raw_profiles = manifest.get("compatible_profiles") or ()
     profiles = tuple(str(p) for p in raw_profiles)
+    node_clustering = NodeClusteringBlock(civic=_parse_civic_clustering(manifest))
+    geo_intake = _parse_geo_intake(manifest)
+    dual_civic_lenses = _parse_dual_civic_lenses(manifest)
+    card_fields = _parse_card_fields(manifest)
+    taxonomy = _parse_taxonomy_pack(pack_dir, manifest, expected)
+    geo_model = _parse_geo_model(manifest)
+    gpt_instance_territory = _parse_gpt_instance_territory(manifest)
+    # THR-01: after pack structure validates, shell sidecar is mandatory (fail-closed).
+    shell_capabilities = load_shell_capabilities(pack_dir)
     return SchemaContext(
         ref=expected,
         payload_schema=payload_schema,
@@ -698,13 +708,14 @@ def load_pack(pack_dir: Path, expected: SchemaRef) -> SchemaContext:
         exact_lenses=lenses,
         compatible_profiles=profiles,
         pack_dir=pack_dir,
-        node_clustering=NodeClusteringBlock(civic=_parse_civic_clustering(manifest)),
-        geo_intake=_parse_geo_intake(manifest),
-        dual_civic_lenses=_parse_dual_civic_lenses(manifest),
-        card_fields=_parse_card_fields(manifest),
-        taxonomy=_parse_taxonomy_pack(pack_dir, manifest, expected),
-        geo_model=_parse_geo_model(manifest),
-        gpt_instance_territory=_parse_gpt_instance_territory(manifest),
+        node_clustering=node_clustering,
+        geo_intake=geo_intake,
+        shell_capabilities=shell_capabilities,
+        dual_civic_lenses=dual_civic_lenses,
+        card_fields=card_fields,
+        taxonomy=taxonomy,
+        geo_model=geo_model,
+        gpt_instance_territory=gpt_instance_territory,
     )
 
 

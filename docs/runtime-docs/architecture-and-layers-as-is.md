@@ -83,7 +83,7 @@ flowchart TD
 - `DB_BACKEND`: `in_memory | sqlite | supabase`
 - `DATABASE_URL` (только `sqlite`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE` (в `supabase` HTTP режиме)
 - `SERVICE_API_TOKEN` (protected endpoints)
-- `IDENTITY_BASE_URL`, `SPA_VERIFY_BASE_URL` (browser `/me` + verification gate — GW-DRAFT-02)
+- `IDENTITY_BASE_URL`, `SPA_BASE_URL` (browser `/me` + verification gate — GW-DRAFT-02 / GW-REQ9-01)
 - `STORY_DRAFT_TTL_SECONDS` (draft stash TTL — GW-DRAFT-01)
 - `APP_PROFILE`, `API_BASE_URL`, `REQUEST_TIMEOUT_S`, feature flags adapter-профиля
 

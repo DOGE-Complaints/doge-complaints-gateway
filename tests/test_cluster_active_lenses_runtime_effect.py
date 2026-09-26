@@ -21,6 +21,7 @@ def _write_lens_pack(root: Path, pack_id: str, primary: str) -> None:
     dest = root / pack_id / "v1"
     dest.mkdir(parents=True)
     shutil.copy(src / "payload.schema.json", dest / "payload.schema.json")
+    shutil.copy(src / "shell_capabilities.json", dest / "shell_capabilities.json")
     manifest = json.loads((src / "pack.json").read_text(encoding="utf-8"))
     manifest["schema_id"] = pack_id
     civic = manifest["node_clustering"]["civic"]
@@ -31,6 +32,13 @@ def _write_lens_pack(root: Path, pack_id: str, primary: str) -> None:
     civic["readiness_threshold"] = 1
     civic["geo_scope"] = None
     (dest / "pack.json").write_text(json.dumps(manifest), encoding="utf-8")
+    if (src / "taxonomy.json").is_file():
+        taxonomy = json.loads((src / "taxonomy.json").read_text(encoding="utf-8"))
+        taxonomy["schema_id"] = pack_id
+        taxonomy["schema_version"] = "v1"
+        (dest / "taxonomy.json").write_text(
+            json.dumps(taxonomy), encoding="utf-8"
+        )
 
 
 def _run_for_lens(

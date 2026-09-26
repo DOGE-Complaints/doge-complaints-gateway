@@ -110,6 +110,604 @@
 - **Продуктовый SSOT story-first (после интервью):** [`docs/requirements/22-m2-demo-story-intake-interview-ssot-v1.md`](../requirements/22-m2-demo-story-intake-interview-ssot-v1.md), [`docs/requirements/23-m2-demo-story-clustering-interview-ssot-v1.md`](../requirements/23-m2-demo-story-clustering-interview-ssot-v1.md).
 - **HTTP runtime (факт):** локальный сервер — `python3 -m core.api.asgi_app` (см. [`../runtime-docs/server-env-quickstart.md`](../runtime-docs/server-env-quickstart.md)); legacy `dev_server` удалён — см. [run-summary-20260422-2038](./run-reports/run-summary-20260422-2038.md). Follow-up загрузки `.env` / операторские ловушки — [`STORY-M2-01-05`](./epics/EPIC-M2-01-core-foundation-and-governance/stories/STORY-M2-01-05-runtime-env-loading-and-operator-safety/STORY-M2-01-05-runtime-env-loading-and-operator-safety.md), override `run_mode=story01_05_env_loading_gaps` в [`Gateway_builder.plan.md`](../../../.cursor/plans/Gateway_builder.plan.md).
 
+## EPIC-semantic-schema-runtime — Schema Runtime (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-semantic-schema-runtime.md`](./epics/EPIC-semantic-schema-runtime.md). Пакет [`semantic-schema-runtime/`](./backlog-stories/semantic-schema-runtime/INDEX.md). Ветка `semantic-schema-runtime`. §«Актуальная точка» выше **не** переписана (G2 WAIVED operator). Dashboard волны: [`gateway-semantic-schema-runtime-dashboard.md`](./gateway-semantic-schema-runtime-dashboard.md) — не `gateway-mvp-dashboard.md`.
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-SSR-08 | [pipeline Tallinn civic schema pack](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/STORY-GW-SSR-08-tallinn-civic-schema-pack.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-08-tallinn-civic-schema-pack.md) | **Done (Awaiting Commits)** pkg-000066 T00–T06 gate PASS 2026-08-29T17:52:54Z · pack `tallinn_civic/v1` · [`run-summary`](./run-reports/run-summary-20260829-1752-gw-ssr-08-p3.md) · [`audit`](../analysis/audit-gw-ssr-08-tallinn-civic-schema-pack-2026-08-29.md) · P6 T07 G1 CLOSED (`run_mode=gw_ssr_08_audit_followup`) |
+| 🔵 | GW-SSR-09 | [pipeline hosted apply + pack image](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/STORY-GW-SSR-09-hosted-apply-and-pack-image.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-09-hosted-apply-and-pack-image.md) | **Done (Awaiting Commits)** pkg-000067 T01–T04 gate PASS 2026-08-29T18:14:04Z · G9 hosted apply = operator/deploy, not overnight proof · [`run-summary`](./run-reports/run-summary-20260829-1814-gw-ssr-09-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-09.md) · [`audit`](../analysis/audit-gw-ssr-09-hosted-apply-and-pack-image-2026-08-29.md) · P6 T05 G1 CLOSED (`run_mode=gw_ssr_09_audit_followup`) |
+| 🔵 | GW-SSR-10 | [pipeline taxonomy + exact dual](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses.md) | **Done (Awaiting Commits)** pkg-000068 T00–T04 gate PASS 2026-08-29T18:31:19Z · Path B dual opt-in; default exact-only; G10 ClusterLens=10 · [`run-summary`](./run-reports/run-summary-20260829-1831-gw-ssr-10-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-10.md) · [`audit`](../analysis/audit-gw-ssr-10-civic-taxonomy-and-exact-lenses-2026-08-29.md) · P6 T05 G1 CLOSED (`run_mode=gw_ssr_10_audit_followup`) |
+| 🔵 | GW-SSR-13 | [pipeline abstract `/node/*` API](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/STORY-GW-SSR-13-abstract-node-public-api.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-13-abstract-node-public-api.md) | **Done (Awaiting Commits)** pkg-000069 T01–T06 gate PASS 2026-08-29T18:55:15Z · hard cut `/node/*`; no alias · [`run-summary`](./run-reports/run-summary-20260829-1855-gw-ssr-13-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-13.md) · [`audit`](../analysis/audit-gw-ssr-13-abstract-node-public-api-2026-08-29.md) · P6 T07 G1 CLOSED (`run_mode=gw_ssr_13_audit_followup`) |
+| 🔵 | GW-SSR-11 | [pipeline pack-declared Issue projection](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/STORY-GW-SSR-11-pack-declared-issue-projection.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-11-pack-declared-issue-projection.md) | **Done (Awaiting Commits)** pkg-000070 T00–T04 gate PASS 2026-08-29T19:13:51Z · named `schema_card` on `GET /node/issues`; no dump · [`run-summary`](./run-reports/run-summary-20260829-1913-gw-ssr-11-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-11.md) · [`audit`](../analysis/audit-gw-ssr-11-pack-declared-issue-projection-2026-08-29.md) · P6 T05 G1 CLOSED (`run_mode=gw_ssr_11_audit_followup`) |
+| 🔵 | GW-SSR-14 | [pipeline docs abstract node](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-14-docs-abstract-node-paradigm/STORY-GW-SSR-14-docs-abstract-node-paradigm.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-14-docs-abstract-node-paradigm.md) | **Done (Awaiting Commits)** pkg-000071 T01–T02 gate PASS 2026-08-29T19:30:07Z · docs inventory `/tallinn/`→`/node/` · spa-mvp-dashboard N/A · [`run-summary`](./run-reports/run-summary-20260829-1930-gw-ssr-14-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-14-docs-abstract-node-paradigm/task-gw-ssr-14-t02-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-14.md) · [`audit`](../analysis/audit-gw-ssr-14-docs-abstract-node-paradigm-2026-08-29.md) |
+| 🔵 | GW-SSR-15 | [pipeline tests `/node` + scenarios](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/STORY-GW-SSR-15-tests-abstract-node-and-scenarios.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-15-tests-abstract-node-and-scenarios.md) | **Done (Awaiting Commits)** pkg-000072 T01–T07 + T-dual · G15 **exit 0** 745 passed · [`run-summary`](./run-reports/run-summary-20260829-1957-gw-ssr-15-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-15.md) · [`audit`](../analysis/audit-gw-ssr-15-tests-abstract-node-and-scenarios-2026-08-29.md) |
+| 🔵 | GW-SSR-16 | [pipeline node active schema config](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/STORY-GW-SSR-16-node-active-schema-config.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-16-node-active-schema-config.md) | **Done (Awaiting Commits)** pkg-000073 T01–T06 · G16 PASS 2026-08-30T14:24:58Z · [`run-summary`](./run-reports/run-summary-20260830-1424-gw-ssr-16-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-16.md) · [`audit`](../analysis/audit-gw-ssr-16-node-active-schema-config-2026-08-30.md) |
+| 🔵 | GW-SSR-17 | [pipeline intake active schema gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/STORY-GW-SSR-17-intake-active-schema-gate.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-17-intake-active-schema-gate.md) | **Done (Awaiting Commits)** pkg-000074 T01–T05 · G17 PASS 2026-08-30T14:45:34Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_17_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-1451-gw-ssr-17-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-17.md) · [`audit`](../analysis/audit-gw-ssr-17-intake-active-schema-gate-2026-08-30.md) |
+| 🔵 | GW-SSR-18 | [pipeline cluster active schema](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/STORY-GW-SSR-18-cluster-active-schema.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-18-cluster-active-schema.md) | **Done (Awaiting Commits)** pkg-000075 T01–T05 · G18 PASS 2026-08-30T15:06:33Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_18_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-1512-gw-ssr-18-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-18.md) · [`audit`](../analysis/audit-gw-ssr-18-cluster-active-schema-2026-08-30.md) |
+| 🔵 | GW-SSR-19 | [pipeline node clustering pack contract](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/STORY-GW-SSR-19-node-clustering-pack-contract.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-19-node-clustering-pack-contract.md) | **Done (Awaiting Commits)** pkg-000076 T00–T05 · G19 PASS 2026-08-30T19:21:58Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_19_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-1928-gw-ssr-19-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-19.md) · [`audit`](../analysis/audit-gw-ssr-19-node-clustering-pack-contract-2026-08-30.md) |
+| 🔵 | GW-SSR-20 | [pipeline node clustering runtime wire](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/STORY-GW-SSR-20-node-clustering-runtime-wire.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-20-node-clustering-runtime-wire.md) | **Done (Awaiting Commits)** pkg-000077 T01–T06 · G20 PASS 2026-08-30T19:40:38Z · P6 T07 G1 CLOSED (`run_mode=gw_ssr_20_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-1945-gw-ssr-20-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-20.md) · [`audit`](../analysis/audit-gw-ssr-20-node-clustering-runtime-wire-2026-08-30.md) |
+| 🔵 | GW-SSR-21 | [pipeline node clustering docs](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/STORY-GW-SSR-21-node-clustering-docs.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-21-node-clustering-docs.md) | **Done (Awaiting Commits)** pkg-000078 T01–T04 · G21 PASS 2026-08-30T19:53:57Z · P6 T05 G1 CLOSED (`run_mode=gw_ssr_21_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-1957-gw-ssr-21-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-21.md) · [`audit`](../analysis/audit-gw-ssr-21-node-clustering-docs-2026-08-30.md) |
+| 🔵 | GW-SSR-22 | [pipeline civic geo-gate hardening](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/STORY-GW-SSR-22-civic-geo-gate-hardening.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-22-civic-geo-gate-hardening.md) | **Done (Awaiting Commits)** pkg-000079 T00–T04 · G22 PASS 2026-08-30T20:07:21Z · T00=intake 4xx · P4 2026-08-30T20:13:31Z · P6 T05 G1 CLOSED (`gw_ssr_22_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-2007-gw-ssr-22-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-22.md) · [`audit`](../analysis/audit-gw-ssr-22-civic-geo-gate-hardening-2026-08-30.md) |
+| 🔵 | GW-SSR-23 | [pipeline geo_detail wire + geo_intake](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/STORY-GW-SSR-23-geo-detail-intake-contract.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-23-geo-detail-intake-contract.md) | **Done (Awaiting Commits)** pkg-000080 T00–T05 · G23 PASS 2026-08-30T20:40:50Z · P4 2026-08-30T20:44:21Z · P6 T06 G1 CLOSED (`gw_ssr_23_audit_followup`) · [`run-summary`](./run-reports/run-summary-20260830-2049-gw-ssr-23-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-23.md) · [`audit`](../analysis/audit-gw-ssr-23-geo-detail-intake-contract-2026-08-30.md) |
+| 🔵 | GW-SSR-24 | [pipeline geo detail persist](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/STORY-GW-SSR-24-geo-detail-persist.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-24-geo-detail-persist.md) | **Done (Awaiting Commits)** pkg-000081 T01–T07 · G24 PASS 2026-08-30T21:00:56Z · P4 2026-08-30T21:07:09Z · 801 passed · [`run-summary`](./run-reports/run-summary-20260830-2100-gw-ssr-24-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t07-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-24.md) · [`audit`](../analysis/audit-gw-ssr-24-geo-detail-persist-2026-08-30.md) |
+| 🔵 | GW-SSR-25 | [pipeline geo clustering + docs](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/STORY-GW-SSR-25-geo-detail-clustering-docs.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-25-geo-detail-clustering-docs.md) | **Done (Awaiting Commits)** pkg-000082 T01–T05 · G25 PASS 2026-08-30T21:27:05Z · P4 2026-08-30T21:31:59Z · P5 APPLY `activation: none` 2026-08-30T21:33:50Z · 811 passed · [`run-summary`](./run-reports/run-summary-20260830-2127-gw-ssr-25-p3.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-25.md) · [`audit`](../analysis/audit-gw-ssr-25-geo-detail-clustering-docs-2026-08-30.md) |
+| 🔵 | GW-SSR-26 | [pipeline taxonomy.json pack contract + loader](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/STORY-GW-SSR-26-taxonomy-json-pack-contract.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-26-taxonomy-json-pack-contract.md) | **Done (Awaiting Commits)** pkg-000083 T00–T05 · G26 PASS 2026-09-01T13:00:37Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_26_audit_followup`) 2026-09-01T13:07:15Z · G2 WAIVED · [`audit`](../analysis/audit-gw-ssr-26-taxonomy-json-pack-contract-2026-09-01.md) · [`run-summary`](./run-reports/run-summary-20260901-1300-gw-ssr-26-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260901-1307-gw-ssr-26-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-26.md) |
+| 🔵 | GW-SSR-27 | [pipeline geo precision + instance territory](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/STORY-GW-SSR-27-geo-precision-instance-territory.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-27-geo-precision-instance-territory.md) | **Done (Awaiting Commits)** pkg-000084 T00–T07 · G27 PASS 2026-09-01T13:21:04Z · P6 T08 G1 CLOSED (`run_mode=gw_ssr_27_audit_followup`) 2026-09-01T13:26:28Z · G2 WAIVED · [`audit`](../analysis/audit-gw-ssr-27-geo-precision-instance-territory-2026-09-01.md) · [`run-summary`](./run-reports/run-summary-20260901-1321-gw-ssr-27-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260901-1326-gw-ssr-27-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t07-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-27.md) |
+| 🔵 | GW-SSR-28 | [pipeline tallinn taxonomy.json seed](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed.md) | **Done (Awaiting Commits)** pkg-000085 T01–T06 · G28 PASS 2026-09-01T13:35:45Z · P6 T07 G1 CLOSED (`run_mode=gw_ssr_28_audit_followup`) 2026-09-01T13:41:25Z · G2 WAIVED · [`audit`](../analysis/audit-gw-ssr-28-tallinn-civic-taxonomy-json-seed-2026-09-01.md) · [`run-summary`](./run-reports/run-summary-20260901-1335-gw-ssr-28-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260901-1341-gw-ssr-28-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-28.md) |
+| 🔵 | GW-SSR-29 | [pipeline taxonomy docs + operator copy-paste seam](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam.md) | **Done (Awaiting Commits)** pkg-000086 T01–T06 · G29 PASS 2026-09-01T13:49:03Z · P6 T07 G1 CLOSED (`run_mode=gw_ssr_29_audit_followup`) 2026-09-01T13:53:08Z · G2 WAIVED · docs-only · [`audit`](../analysis/audit-gw-ssr-29-taxonomy-docs-operator-copy-paste-seam-2026-09-01.md) · [`run-summary`](./run-reports/run-summary-20260901-1349-gw-ssr-29-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260901-1353-gw-ssr-29-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-29.md) |
+| 🔵 | GW-SSR-30 | [pipeline tallinn card_fields / SPA overlay readiness](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness.md) | **Done (Awaiting Commits)** pkg-000087 T00–T05 · G30 PASS 2026-09-02T14:00:46Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_30_audit_followup`) 2026-09-02T14:05:46Z · G2 WAIVED · Declare MVP `card_fields` (3 M141 paths); SSR-11 unchanged · [`run-summary`](./run-reports/run-summary-20260902-1400-gw-ssr-30-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260902-1405-gw-ssr-30-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-30.md) |
+| 🔵 | GW-SSR-31 | [pipeline Contour2 node-specific taxonomy axes](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md) | **Done (Awaiting Commits)** pkg-000088 T01–T05 · G31 PASS 2026-09-04T12:55:28Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_31_audit_followup`) 2026-09-04T13:02:12Z · G2 WAIVED · D-SSR-11 Contour2 unlock · [`run-summary`](./run-reports/run-summary-20260904-1255-gw-ssr-31-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260904-1302-gw-ssr-31-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-31.md) |
+| 🔵 | GW-SSR-32 | [pipeline Contour1 wire taxonomy axes](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/STORY-GW-SSR-32-node-specific-contour1-wire-axes.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-32-node-specific-contour1-wire-axes.md) | **Done (Awaiting Commits)** pkg-000089 T01–T04 · G32 PASS 2026-09-04T13:13:31Z · P6 T05 G1 CLOSED (`run_mode=gw_ssr_32_audit_followup`) 2026-09-04T13:17:57Z · G2 WAIVED · D-SSR-11 Contour1 `normalize_axis` open · [`run-summary`](./run-reports/run-summary-20260904-1313-gw-ssr-32-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260904-1317-gw-ssr-32-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t04-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-32.md) |
+| 🔵 | GW-SSR-33 | [pipeline node-specific taxonomy docs setup tests hygiene](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md) | **Done (Awaiting Commits)** pkg-000090 T01–T05 · G33 PASS 2026-09-04T13:28:42Z · P6 T06 G1 CLOSED (`run_mode=gw_ssr_33_audit_followup`) 2026-09-04T13:34:49Z · G2 WAIVED · D-SSR-11 docs-only · [`run-summary`](./run-reports/run-summary-20260904-1328-gw-ssr-33-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260904-1334-gw-ssr-33-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t05-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-33.md) |
+| 🔵 | GW-SSR-34 | [pipeline uus active schema-packs volume ops](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops.md) | **Done (Awaiting Commits)** pkg-000091 T01–T06 · G34 PASS 2026-09-07T08:32:02Z · P6 T07 G1 CLOSED (`run_mode=gw_ssr_34_audit_followup`) 2026-09-07T08:38:47Z · G2 WAIVED · D-SSR-12 docs/env/gitignore · [`run-summary`](./run-reports/run-summary-20260907-0832-gw-ssr-34-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260907-0838-gw-ssr-34-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t06-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-34.md) |
+| 🔵 | GW-SSR-35 | [pipeline SCHEMA_ROOT_URL + SCHEMA_PACK_REFRESH](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/STORY-GW-SSR-35-schema-root-url-pack-refresh.md) → [backlog](./backlog-stories/semantic-schema-runtime/STORY-GW-SSR-35-schema-root-url-pack-refresh.md) | **Done (Awaiting Commits)** pkg-000092 T01–T07 · G35 PASS 2026-09-07T08:54:22Z · P6 T08 G1 CLOSED (`run_mode=gw_ssr_35_audit_followup`) 2026-09-07T08:58:54Z · G2 WAIVED · federation consume · [`run-summary`](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) · [`gate`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t07-story-acceptance-gate/story-acceptance-gate-STORY-GW-SSR-35.md) |
+
+### STORY-GW-SSR-08 — Tallinn civic schema pack
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-08-T00 | [T00: tallinn civic pack catalog](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t00-tallinn-civic-pack-catalog/README.md) | implement | Done (Awaiting Commits) | `schema-packs/tallinn_civic/v1/` |
+| 🔵 | TASK-GW-SSR-08-T01 | [T01: exact lenses civic equivalents](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t01-exact-lenses-civic-equivalents/README.md) | implement | Done (Awaiting Commits) | 10 `lens_id` strings; no new `ClusterLens` |
+| 🔵 | TASK-GW-SSR-08-T02 | [T02: pack readiness policy](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t02-pack-readiness-policy/README.md) | implement | Done (Awaiting Commits) | knobs 35/3/`false` in pack file |
+| 🔵 | TASK-GW-SSR-08-T03 | [T03: pack load membership](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t03-pack-load-membership/README.md) | tests | Done (Awaiting Commits) | same payload → one `cluster_id` |
+| 🔵 | TASK-GW-SSR-08-T04 | [T04: civic unbound regression](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t04-civic-unbound-regression/README.md) | tests | Done (Awaiting Commits) | civic path without binding stays |
+| 🔵 | TASK-GW-SSR-08-T05 | [T05: envelope example](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t05-envelope-example/README.md) | docs | Done (Awaiting Commits) | gateway fixture; GPT UI not edited |
+| 🔵 | TASK-GW-SSR-08-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | PASS 2026-08-29T17:52:54Z |
+| 🔵 | TASK-GW-SSR-08-T07 | [T07: audit G1 bullrun + epic SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t07-audit-g1-bullrun-epic-ssot/README.md) | docs | Done (Awaiting Commits) | P6 this section + epic Problem Statement As-of-Done |
+
+#### P5/P6 disposition note (SSR-08 audit 2026-08-29)
+
+| Gap | Disposition | follow_up | Task | P6 |
+|-----|-------------|-----------|------|-----|
+| G1 | TASKED→CLOSED | none | T07 | this wave — existing EPIC/SSR-08 rows below §Актуальная точка; Problem Statement As-of-Done |
+| G2 | WAIVED operator | none | — | kept — do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_08_audit_followup` — current.yaml stays pkg-000066. **Product Story Done** = yes. **Empty OPEN gap-list** = no until P7 (G2 WAIVED kept).
+
+### STORY-GW-SSR-09 — hosted apply + pack image
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-09-T01 | [T01: hosted SQL binding migration](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t01-hosted-sql-binding-migration/README.md) | data | Done (Awaiting Commits) | SQL artifact on disk; live apply = operator · P4 PASS |
+| 🔵 | TASK-GW-SSR-09-T02 | [T02: omit-probe + `/ready` invariants](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t02-omit-probe-ready-invariants/README.md) | tests | Done (Awaiting Commits) | no binding in `required_columns_ready` · P4 PASS |
+| 🔵 | TASK-GW-SSR-09-T03 | [T03: packs visible to resolver](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t03-packs-visible-to-resolver/README.md) | tests | Done (Awaiting Commits) | no invent Dockerfile · P4 PASS |
+| 🔵 | TASK-GW-SSR-09-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G9 PASS 2026-08-29T18:14:04Z · P4 2026-08-29T18:16:43Z |
+| 🔵 | TASK-GW-SSR-09-T05 | [T05: audit G1 epic + INDEX SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-09-hosted-apply-and-pack-image/task-gw-ssr-09-t05-audit-g1-epic-index-ssot/README.md) | docs | Done (Awaiting Commits) | P6 this section + epic Stories/PS/DoD + INDEX header As-of-Done |
+
+#### P5/P6 disposition note (SSR-09 audit 2026-08-29)
+
+| Gap | Disposition | follow_up | Task | P6 |
+|-----|-------------|-----------|------|-----|
+| G1 | TASKED→CLOSED | none | T05 | this wave — epic Stories/PS/DoD + INDEX header As-of-Done |
+| G2 | WAIVED operator | none | — | kept — do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_09_audit_followup` — current.yaml stays pkg-000067. **Product Story Done** (G9) = yes. **Empty OPEN gap-list** = no residual TASKED (G2 WAIVED kept).
+
+### STORY-GW-SSR-10 — civic taxonomy + exact dual
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-10-T00 | [T00/R1: dual pack-flag contract](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t00-dual-pack-flag-contract/README.md) | implement | Done (Awaiting Commits) | default exact-only; key `dual_civic_lenses` · P4 PASS |
+| 🔵 | TASK-GW-SSR-10-T01 | [T01: orchestrator dual membership](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t01-orchestrator-dual-membership/README.md) | implement | Done (Awaiting Commits) | civic + pack exact on one story_id · P4 PASS |
+| 🔵 | TASK-GW-SSR-10-T02 | [T02: promote separate candidates](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t02-promote-separate-candidates/README.md) | implement | Done (Awaiting Commits) | civic policy vs pack knobs · P4 PASS |
+| 🔵 | TASK-GW-SSR-10-T03 | [T03: tests dual + regression](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t03-tests-dual-and-regression/README.md) | tests | Done (Awaiting Commits) | G10 fixture; ClusterLens=10 · P4 PASS |
+| 🔵 | TASK-GW-SSR-10-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G10 PASS 2026-08-29T18:31:19Z · P4 2026-08-29T18:37:00Z |
+| 🔵 | TASK-GW-SSR-10-T05 | [T05: audit G1 epic + INDEX SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t05-audit-g1-epic-index-ssot/README.md) | docs | Done (Awaiting Commits) | P6 this section + epic Meta/PS/DoD + INDEX Progress + story Verified As-of-Done |
+
+#### P5/P6 disposition note (SSR-10 audit 2026-08-29)
+
+| Gap | Disposition | follow_up | Task | P6 |
+|-----|-------------|-----------|------|-----|
+| G1 | TASKED→CLOSED | none | T05 | this wave — epic Meta/PS/DoD + INDEX Progress + story Verified As-of-Done |
+| G2 | WAIVED operator | none | — | kept — do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_10_audit_followup` — current.yaml stays pkg-000068. **Product Story Done** (G10) = yes. **Empty OPEN gap-list** = no residual TASKED (G2 WAIVED kept).
+
+### STORY-GW-SSR-13 — abstract `/node/*` public API
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-13-T01 | [T01: `/node/*` public routes](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t01-node-public-routes/README.md) | implement | Done (Awaiting Commits) | PUBLIC_ROUTES + OPTIONS + GET/POST; no alias · P4 PASS |
+| 🔵 | TASK-GW-SSR-13-T02 | [T02: rename `handle_tallinn_*`](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t02-rename-tallinn-handlers/README.md) | refactor | Done (Awaiting Commits) | handlers + asgi imports; Pulse/Emerging names already clean · P4 PASS |
+| 🔵 | TASK-GW-SSR-13-T03 | [T03: OpenAPI `/node/…` paths](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t03-openapi-node-paths/README.md) | docs | Done (Awaiting Commits) | openapi.yaml only; API_REFERENCE → SSR-14 · P4 PASS |
+| 🔵 | TASK-GW-SSR-13-T04 | [T04: SPA Gateway URL clients](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t04-spa-gateway-url-clients/README.md) | implement | Done (Awaiting Commits) | three repositories + tests; no overlay · P4 PASS |
+| 🔵 | TASK-GW-SSR-13-T05 | [T05: sibling REQ path strings](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t05-sibling-req-node-paths/README.md) | docs | Done (Awaiting Commits) | spa-16 + REQ-51 `/node/issues` · P4 PASS |
+| 🔵 | TASK-GW-SSR-13-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G13 PASS 2026-08-29T18:55:15Z · P4 2026-08-29T18:57:53Z |
+| 🔵 | TASK-GW-SSR-13-T07 | [T07: audit G1 epic + story SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t07-audit-g1-epic-story-ssot/README.md) | docs | Done (Awaiting Commits) | P6 this section + epic PS + story §Verified + dashboard `:84` As-of-Done |
+
+#### P5/P6 disposition note (SSR-13 audit 2026-08-29)
+
+| Gap | Disposition | follow_up | Task | P6 |
+|-----|-------------|-----------|------|-----|
+| G1 | TASKED→CLOSED | none | T07 | this wave — epic PS + story §Verified + dashboard `:84` As-of-Done |
+| G2 | WAIVED operator | none | — | kept — do not rewrite §«Актуальная точка» |
+| G3 | WAIVED out-of-DoD | none | — | kept — SSR-15 already queued; do not invent duplicate |
+
+**activation:** `run_mode=gw_ssr_13_audit_followup` — current.yaml stays pkg-000069. **Product Story Done** (G13) = yes. **Empty OPEN gap-list** = no residual TASKED (G2/G3 WAIVED kept).
+
+### STORY-GW-SSR-11 — pack-declared Issue projection
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-11-T00 | [T00/R1: pack card-fields contract](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t00-pack-card-fields-contract/README.md) | implement | Done (Awaiting Commits) | key `card_fields` + sidecar `schema_card` · P4 PASS |
+| 🔵 | TASK-GW-SSR-11-T01 | [T01: loader card allowlist](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t01-loader-card-allowlist/README.md) | implement | Done (Awaiting Commits) | default = civic card · P4 PASS |
+| 🔵 | TASK-GW-SSR-11-T02 | [T02: pack Issue named projection](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t02-project-pack-issue-fields/README.md) | implement | Done (Awaiting Commits) | allowlist leafs; no private leak · P4 PASS |
+| 🔵 | TASK-GW-SSR-11-T03 | [T03: tests public dict no dump](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t03-tests-public-dict-no-dump/README.md) | tests | Done (Awaiting Commits) | `tests/test_gw_ssr_11_*.py` · P4 15 passed |
+| 🔵 | TASK-GW-SSR-11-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G11 PASS 2026-08-29T19:13:51Z · P4 2026-08-29T19:16:57Z |
+| 🔵 | TASK-GW-SSR-11-T05 | [T05: audit G1 epic DoD SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t05-audit-g1-epic-dod-ssot/README.md) | docs | Done (Awaiting Commits) | P6 G1 CLOSED 2026-08-29T19:21:00Z · epic DoD `:76` SSR-11 |
+
+### STORY-GW-SSR-14 — docs abstract node paradigm
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-14-T01 | [T01: file inventory](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-14-docs-abstract-node-paradigm/task-gw-ssr-14-t01-file-inventory/README.md) | docs | Done (Awaiting Commits) | patched 14 / N/A 3; leftover README-index 49/50 patched · P4 PASS |
+| 🔵 | TASK-GW-SSR-14-T02 | [T02: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-14-docs-abstract-node-paradigm/task-gw-ssr-14-t02-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G14 PASS 2026-08-29T19:30:07Z · P4 2026-08-29T19:32:30Z |
+| 🔵 | TASK-GW-SSR-14-T03 | [T03: audit G1 epic SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-14-docs-abstract-node-paradigm/task-gw-ssr-14-t03-audit-g1-epic-ssot/README.md) | docs | Done (Awaiting Commits) | P6 G1 CLOSED 2026-08-29T19:35:28Z · Meta/Scope/PS + dashboard Notes |
+
+### STORY-GW-SSR-15 — tests `/node` + scenarios
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-15-T01 | [T01: path rename](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t01-path-rename/README.md) | tests | Done (Awaiting Commits) | HTTP asserts `/node/…`; `test_req24_issues_read_api.py` · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T02 | [T02: civic scenario](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t02-civic-scenario/README.md) | tests | Done (Awaiting Commits) | unbound → GET `/node/issues` · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T03 | [T03: pack scenario](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t03-pack-scenario/README.md) | tests | Done (Awaiting Commits) | bound pack → same path · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T04 | [T04: Pulse/Emerging](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t04-pulse-emerging/README.md) | tests | Done (Awaiting Commits) | `/node/network-pulse` + `/node/emerging-signals` · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T05 | [T05: negative 404](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t05-negative-tallinn-404/README.md) | tests | Done (Awaiting Commits) | `GET /tallinn/issues` → 404; no alias · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T-DUAL | [T-dual: dual membership + public path](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t-dual-membership-public-path/README.md) | tests | Done (Awaiting Commits) | include (SSR-10 Done); do not skip · P4 PASS |
+| 🔵 | TASK-GW-SSR-15-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | claimed G15 PASS 19:47:15Z · **P4: OP G15 FAIL** exit 1 (2 failed / 743 passed) |
+| 🔵 | TASK-GW-SSR-15-T07 | [T07: audit G1 suite isolation](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t07-audit-g1-suite-isolation/README.md) | tests | Done (Awaiting Commits) | G15 exit 0 · 745 passed / 12 skipped / 10 deselected · 2026-08-29T19:57:04Z |
+
+### STORY-GW-SSR-16 — node active schema config
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-16-T01 | [T01: config fields](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t01-config-fields/README.md) | implement | Done (Awaiting Commits) | EnvSpec + AppConfig `NODE_SCHEMA_ID`/`VERSION`; required; fail-fast empty · P4 PASS |
+| 🔵 | TASK-GW-SSR-16-T02 | [T02: boot resolve](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t02-boot-resolve/README.md) | implement | Done (Awaiting Commits) | `resolve_pack` on load_config; unknown id → ConfigError · P4 PASS |
+| 🔵 | TASK-GW-SSR-16-T03 | [T03: lifespan log](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t03-lifespan-log/README.md) | implement | Done (Awaiting Commits) | log `node_schema_id` / version next to `startup.config` · P4 PASS |
+| 🔵 | TASK-GW-SSR-16-T04 | [T04: env docs](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t04-env-docs/README.md) | docs | Done (Awaiting Commits) | `.env.test.example` two lines + server-env one section · P4 PASS |
+| 🔵 | TASK-GW-SSR-16-T05 | [T05: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t05-tests/README.md) | tests | Done (Awaiting Commits) | `test_gw_ssr_16_*` + monkeypatch helper; no intake 4xx · P4 8 passed |
+| 🔵 | TASK-GW-SSR-16-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G16 PASS 2026-08-30T14:24:58Z · P4 2026-08-30T14:27:50Z |
+
+### STORY-GW-SSR-17 — intake active schema gate
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-17-T01 | [T01: parse require binding](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t01-parse-require-binding/README.md) | implement | Done (Awaiting Commits) | Absent / `{}` / null → IntakeValidationError · P4 PASS |
+| 🔵 | TASK-GW-SSR-17-T02 | [T02: match active pair](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t02-match-active-pair/README.md) | implement | Done (Awaiting Commits) | id+version == AppConfig; иначе 4xx · P4 PASS |
+| 🔵 | TASK-GW-SSR-17-T03 | [T03: validate active pack](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t03-validate-active-pack/README.md) | implement | Done (Awaiting Commits) | payload против активного pack · P4 PASS |
+| 🔵 | TASK-GW-SSR-17-T04 | [T04: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t04-tests/README.md) | tests | Done (Awaiting Commits) | reject/accept + civic HTTP fixtures · P4 22 passed |
+| 🔵 | TASK-GW-SSR-17-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G17 PASS 2026-08-30T14:45:34Z · P4 2026-08-30T14:48:14Z |
+| 🔵 | TASK-GW-SSR-17-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-17-intake-active-schema-gate/task-gw-ssr-17-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T14:51:13Z · G2 WAIVED |
+
+### STORY-GW-SSR-18 — cluster active schema
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-18-T01 | [T01: pack iff active pair](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t01-pack-iff-active-pair/README.md) | implement | Done (Awaiting Commits) | Pack/dual iff persist == NODE_SCHEMA_*; else skip+log · P4 PASS |
+| 🔵 | TASK-GW-SSR-18-T02 | [T02: civic unbound legacy](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t02-civic-unbound-legacy/README.md) | implement | Done (Awaiting Commits) | Unbound READY_FOR_PROFILE civic as-is; `_civic_ready` unbound-only · P4 PASS |
+| 🔵 | TASK-GW-SSR-18-T03 | [T03: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t03-tests/README.md) | tests | Done (Awaiting Commits) | `test_gw_ssr_18_*` mismatch skip + match pack; civic unlabeled green · P4 21 passed (18+engine) |
+| 🔵 | TASK-GW-SSR-18-T04 | [T04: docs warehouse vs env](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t04-docs-warehouse-vs-env/README.md) | docs | Done (Awaiting Commits) | Manual склад vs `NODE_SCHEMA_*`; smoke binding=env · P4 PASS |
+| 🔵 | TASK-GW-SSR-18-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G18 PASS 2026-08-30T15:06:33Z · claimed 767 · P4 2026-08-30T15:10:16Z |
+| 🔵 | TASK-GW-SSR-18-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T15:12:33Z · G2 WAIVED |
+
+### STORY-GW-SSR-19 — node clustering pack contract
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-19-T00 | [T00: contract README](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t00-contract-readme/README.md) | docs | Done (Awaiting Commits) | Shape `node_clustering.civic` in schema-packs/README.md · P4 PASS |
+| 🔵 | TASK-GW-SSR-19-T01 | [T01: types SchemaContext](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t01-types-schema-context/README.md) | implement | Done (Awaiting Commits) | Dataclass on SchemaContext · P4 PASS |
+| 🔵 | TASK-GW-SSR-19-T02 | [T02: loader parse+validate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t02-loader-parse-validate/README.md) | implement | Done (Awaiting Commits) | Missing/invalid → UnsupportedVersionError · P4 PASS |
+| 🔵 | TASK-GW-SSR-19-T03 | [T03: pack data defaults](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t03-pack-data-defaults/README.md) | data | Done (Awaiting Commits) | Three packs; EnvSpec defaults; tallinn geo_scope · P4 PASS |
+| 🔵 | TASK-GW-SSR-19-T04 | [T04: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t04-tests/README.md) | tests | Done (Awaiting Commits) | `test_gw_ssr_19_*` load / missing / invalid primary · P4 5 passed |
+| 🔵 | TASK-GW-SSR-19-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G19 PASS 2026-08-30T19:21:58Z · P4 2026-08-30T19:25:00Z |
+| 🔵 | TASK-GW-SSR-19-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T19:28:00Z · G2 WAIVED |
+
+### STORY-GW-SSR-20 — node clustering runtime wire
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-20-T01 | [T01: factory pack wire](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t01-factory-pack-wire/README.md) | implement | Done (Awaiting Commits) | Engine + civic gate + orchestrator min from active pack · P4 PASS |
+| 🔵 | TASK-GW-SSR-20-T02 | [T02: handlers geo_scope](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t02-handlers-geo-scope/README.md) | implement | Done (Awaiting Commits) | geo_scope from pack · P4 PASS |
+| 🔵 | TASK-GW-SSR-20-T03 | [T03: config remove semantic CLUSTER_*](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t03-config-remove-semantic-cluster/README.md) | implement | Done (Awaiting Commits) | Remove semantic CLUSTER_*; CLUSTER_CRON_* stay · P4 PASS |
+| 🔵 | TASK-GW-SSR-20-T04 | [T04: lifespan pack log](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t04-lifespan-pack-log/README.md) | implement | Done (Awaiting Commits) | Lifespan log pack knobs + cron env · P4 PASS |
+| 🔵 | TASK-GW-SSR-20-T05 | [T05: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t05-tests/README.md) | tests | Done (Awaiting Commits) | conftest / config / clustering / suite · P4 21 passed |
+| 🔵 | TASK-GW-SSR-20-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G20 PASS 2026-08-30T19:40:38Z · claimed 776 · P4 2026-08-30T19:43:12Z |
+| 🔵 | TASK-GW-SSR-20-T07 | [T07: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-20-node-clustering-runtime-wire/task-gw-ssr-20-t07-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T19:45:21Z · G2 WAIVED |
+
+### STORY-GW-SSR-21 — node clustering docs
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-21-T01 | [T01: manual two contours](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t01-manual-two-contours/README.md) | docs | Done (Awaiting Commits) | Глава exact_lenses vs node_clustering.civic + how-to knobs · P4 PASS |
+| 🔵 | TASK-GW-SSR-21-T02 | [T02: env docs inventory](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t02-env-docs-inventory/README.md) | docs | Done (Awaiting Commits) | 05-env + server-env: семантика → pack; CLUSTER_CRON stay · P4 PASS |
+| 🔵 | TASK-GW-SSR-21-T03 | [T03: README/matrix sync](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t03-readme-matrix-sync/README.md) | docs | Done (Awaiting Commits) | schema-packs README; test-matrix pack active_lenses · P4 PASS |
+| 🔵 | TASK-GW-SSR-21-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G21 PASS 2026-08-30T19:53:57Z · P4 2026-08-30T19:55:47Z |
+| 🔵 | TASK-GW-SSR-21-T05 | [T05: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-21-node-clustering-docs/task-gw-ssr-21-t05-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T19:57:31Z · G2 WAIVED |
+
+### STORY-GW-SSR-22 — Civic geo-gate hardening
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-22-T00 | [T00: fail-mode decision](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t00-fail-mode-decision/README.md) | analyze | Done (Awaiting Commits) | intake 4xx; T02 N/A · P4 PASS |
+| 🔵 | TASK-GW-SSR-22-T01 | [T01: handlers no silent skip](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t01-handlers-no-silent-skip/README.md) | implement | Done (Awaiting Commits) | scope+no service → geo unavailable · P4 PASS |
+| 🔵 | TASK-GW-SSR-22-T02 | [T02: boot fail if chosen](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t02-boot-fail-if-chosen/README.md) | implement | Done (Awaiting Commits) | N/A T00=intake · P4 PASS |
+| 🔵 | TASK-GW-SSR-22-T03 | [T03: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t03-tests/README.md) | tests | Done (Awaiting Commits) | req35 + `test_gw_ssr_22_*` 11 passed · P4 11 passed |
+| 🔵 | TASK-GW-SSR-22-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G22 PASS 2026-08-30T20:07:21Z · P4 2026-08-30T20:13:31Z |
+| 🔵 | TASK-GW-SSR-22-T05 | [T05: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t05-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T20:24:12Z · G2 WAIVED |
+
+### STORY-GW-SSR-23 — geo_detail wire + pack geo_intake
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-23-T00 | [T00: contract README](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t00-contract-readme/README.md) | docs | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · Shape `geo_detail` + `geo_intake` |
+| 🔵 | TASK-GW-SSR-23-T01 | [T01: parse sidecar](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t01-parse-sidecar/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · Root sidecar; stash+submit |
+| 🔵 | TASK-GW-SSR-23-T02 | [T02: pack geo_intake](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t02-pack-geo-intake/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · Loader + three packs |
+| 🔵 | TASK-GW-SSR-23-T03 | [T03: merge location](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t03-merge-location/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · Detail + `location_query` |
+| 🔵 | TASK-GW-SSR-23-T04 | [T04: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t04-tests/README.md) | tests | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · `test_gw_ssr_23_*` 12 passed |
+| 🔵 | TASK-GW-SSR-23-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | P4 PASS 2026-08-30T20:44:21Z · G23 PASS 2026-08-30T20:40:50Z |
+| 🔵 | TASK-GW-SSR-23-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-23-geo-detail-intake-contract/task-gw-ssr-23-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T20:49:54Z · G2 WAIVED |
+
+### STORY-GW-SSR-24 — geo detail persist
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-24-T01 | [T01: snapshot depth](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t01-snapshot-depth/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · Extend `StoryGeoSnapshot` |
+| 🔵 | TASK-GW-SSR-24-T02 | [T02: sqlite ALTER](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t02-sqlite-alter/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · ALTER + INSERT/SELECT |
+| 🔵 | TASK-GW-SSR-24-T03 | [T03: supabase migration](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t03-supabase-migration/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · omit-probe + SQL |
+| 🔵 | TASK-GW-SSR-24-T04 | [T04: lifecycle preserve](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t04-lifecycle-preserve/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · replace / advance |
+| 🔵 | TASK-GW-SSR-24-T05 | [T05: mirror payload](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t05-mirror-payload/README.md) | implement | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · `structured_payload.geo` |
+| 🔵 | TASK-GW-SSR-24-T06 | [T06: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t06-tests/README.md) | tests | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · `test_gw_ssr_24_*` |
+| 🔵 | TASK-GW-SSR-24-T07 | [T07: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t07-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:07:09Z · G24 PASS 2026-08-30T21:00:56Z · 801 passed |
+| 🔵 | TASK-GW-SSR-24-T08 | [T08: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t08-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-08-30T21:10:10Z · G2 WAIVED |
+
+### STORY-GW-SSR-25 — geo clustering + docs
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-25-T01 | [T01: civic cluster regression](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t01-civic-cluster-regression/README.md) | tests | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:31:59Z · snapshot depth |
+| 🔵 | TASK-GW-SSR-25-T02 | [T02: pack exact geo lenses](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t02-pack-exact-geo-lenses/README.md) | tests | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:31:59Z · `geo.*` |
+| 🔵 | TASK-GW-SSR-25-T03 | [T03: manual geo_intake](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t03-manual-geo-intake/README.md) | docs | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:31:59Z · modes/mirror |
+| 🔵 | TASK-GW-SSR-25-T04 | [T04: README/matrix](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t04-readme-matrix/README.md) | docs | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:31:59Z · no T-wave G3 |
+| 🔵 | TASK-GW-SSR-25-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | P4 PASS 2026-08-30T21:31:59Z · G25 PASS 2026-08-30T21:27:05Z · 811 passed |
+
+#### P5 disposition note (SSR-25 audit 2026-08-30) · APPLY 2026-08-30T21:33:50Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | CLOSED | n/a | — | no SSOT drift; T01–T05 Code Facts already As-of-Done |
+| G2 | WAIVED operator | none | — | kept — do not rewrite §«Актуальная точка» |
+
+**activation:** `none` — TASKED=0; no gap-task folders; no `$planFile` safe-override; current.yaml stays pkg-000082. Draft: [`p5_ssr-25_gap_20260830T213258Z.plan.md`](../../../.cursor/plans/p5_ssr-25_gap_20260830T213258Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED). Do not start P6.
+
+### STORY-GW-SSR-26 — taxonomy.json pack contract + loader
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-26-T00 | [T00: contract README](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t00-contract-readme/README.md) | docs | Done (Awaiting Commits) | G26 PASS 2026-09-01T13:00:37Z · `taxonomy_schema` |
+| 🔵 | TASK-GW-SSR-26-T01 | [T01: types TaxonomyPack](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t01-types-taxonomy-pack/README.md) | implement | Done (Awaiting Commits) | G26 PASS · `SchemaContext.taxonomy` |
+| 🔵 | TASK-GW-SSR-26-T02 | [T02: loader parse taxonomy](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t02-loader-parse-taxonomy/README.md) | implement | Done (Awaiting Commits) | G26 PASS · `_parse_taxonomy_pack` |
+| 🔵 | TASK-GW-SSR-26-T03 | [T03: requiredness tests matrix](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t03-requiredness-tests-matrix/README.md) | tests | Done (Awaiting Commits) | G26 PASS · tmp_path; no tallinn seed |
+| 🔵 | TASK-GW-SSR-26-T04 | [T04: tests file](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t04-tests-file/README.md) | tests | Done (Awaiting Commits) | G26 PASS · `test_gw_ssr_26_taxonomy_loader.py` |
+| 🔵 | TASK-GW-SSR-26-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G26 PASS 2026-09-01T13:00:37Z · 6+36 pytest |
+| 🔵 | TASK-GW-SSR-26-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-01T13:07:15Z · `run_mode=gw_ssr_26_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260901-1307-gw-ssr-26-audit-p6.md) |
+
+#### P5 disposition note (SSR-26 audit 2026-09-01) · APPLY 2026-09-01T13:05:30Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-01T13:07:15Z) | none | T06 | As-of-Done vs Historical on T00/T01/T02/T04 + pipeline/backlog Verified |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_26_audit_followup` — T06 Done; current.yaml stays pkg-000083. Draft: [`p5_ssr-26_gap_20260901T130438Z.plan.md`](../../../.cursor/plans/p5_ssr-26_gap_20260901T130438Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-27 — geo precision + instance territory
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-27-T00 | [T00: contract README](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t00-contract-readme/README.md) | docs | Done (Awaiting Commits) | G27 PASS · `geo_model` / `gpt_instance_territory` / `detail_level` |
+| 🔵 | TASK-GW-SSR-27-T01 | [T01: types geo precision](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t01-types-geo-precision/README.md) | implement | Done (Awaiting Commits) | G27 PASS · SchemaContext geo blocks |
+| 🔵 | TASK-GW-SSR-27-T02 | [T02: loader geo blocks](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t02-loader-geo-blocks/README.md) | implement | Done (Awaiting Commits) | G27 PASS · `_parse_geo_model` / `_parse_gpt_instance_territory` |
+| 🔵 | TASK-GW-SSR-27-T03 | [T03: wire persist detail_level](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t03-wire-persist-detail-level/README.md) | implement | Done (Awaiting Commits) | G27 PASS · intake + snapshot + DB + migration |
+| 🔵 | TASK-GW-SSR-27-T04 | [T04: projection detail_level](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t04-projection-detail-level/README.md) | implement | Done (Awaiting Commits) | G27 PASS · UC-G03 without inventing coords |
+| 🔵 | TASK-GW-SSR-27-T05 | [T05: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t05-tests/README.md) | tests | Done (Awaiting Commits) | G27 PASS · `test_gw_ssr_27_geo_precision.py` 10 |
+| 🔵 | TASK-GW-SSR-27-T06 | [T06: manual three-level geo](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t06-manual-three-level-geo/README.md) | docs | Done (Awaiting Commits) | G27 PASS · node-data-model §три уровня |
+| 🔵 | TASK-GW-SSR-27-T07 | [T07: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t07-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G27 PASS 2026-09-01T13:21:04Z · AC-01…06 |
+| 🔵 | TASK-GW-SSR-27-T08 | [T08: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t08-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-01T13:26:28Z · `run_mode=gw_ssr_27_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260901-1326-gw-ssr-27-audit-p6.md) |
+
+#### P5 disposition note (SSR-27 audit 2026-09-01) · APPLY 2026-09-01T13:25:12Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-01T13:26:28Z) | none | T08 | As-of-Done vs Historical on T00–T05 + pipeline/backlog Verified + AC boxes |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_27_audit_followup` — T08 Done; current.yaml stays pkg-000084. Draft: [`p5_ssr-27_gap_20260901T132422Z.plan.md`](../../../.cursor/plans/p5_ssr-27_gap_20260901T132422Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-28 — tallinn taxonomy.json seed
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-28-T01 | [T01: extract inventory](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t01-extract-inventory/README.md) | implement | Done (Awaiting Commits) | GPT §4/§5/§6 → helper |
+| 🔵 | TASK-GW-SSR-28-T02 | [T02: compose taxonomy.json](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t02-compose-taxonomy-json/README.md) | implement | Done (Awaiting Commits) | 13 axes / 182 keys |
+| 🔵 | TASK-GW-SSR-28-T03 | [T03: pack manifest](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t03-pack-manifest/README.md) | implement | Done (Awaiting Commits) | `taxonomy_schema` tallinn only |
+| 🔵 | TASK-GW-SSR-28-T04 | [T04: tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t04-tests/README.md) | tests | Done (Awaiting Commits) | `test_gw_ssr_28_*` 7 passed |
+| 🔵 | TASK-GW-SSR-28-T05 | [T05: handoff indicator](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t05-handoff-indicator/README.md) | docs | Done (Awaiting Commits) | SSR-29 / GPT-SSR-05 paths only |
+| 🔵 | TASK-GW-SSR-28-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G28 PASS 2026-09-01T13:35:45Z |
+| 🔵 | TASK-GW-SSR-28-T07 | [T07: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t07-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-01T13:41:25Z · `run_mode=gw_ssr_28_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260901-1341-gw-ssr-28-audit-p6.md) |
+
+#### P5 disposition note (SSR-28 audit 2026-09-01) · APPLY 2026-09-01T13:40:23Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-01T13:41:25Z) | none | T07 | As-of-Done vs Historical on T02/T03/T04 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_28_audit_followup` — T07 Done; current.yaml stays pkg-000085. Draft: [`p5_ssr-28_gap_20260901T133933Z.plan.md`](../../../.cursor/plans/p5_ssr-28_gap_20260901T133933Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-29 — taxonomy docs + operator copy-paste seam
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-29-T01 | [T01: manual taxonomy + copy-paste](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t01-manual-taxonomy-copy-paste/README.md) | docs | Done (Awaiting Commits) | dual contour + checklist 1–6 |
+| 🔵 | TASK-GW-SSR-29-T02 | [T02: schema-packs README cross-link](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t02-schema-packs-readme-crosslink/README.md) | docs | Done (Awaiting Commits) | link manual §taxonomy |
+| 🔵 | TASK-GW-SSR-29-T03 | [T03: gateway INDEX hygiene](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t03-gateway-index-hygiene/README.md) | docs | Done (Awaiting Commits) | wave 3/3 + GPT siblings |
+| 🔵 | TASK-GW-SSR-29-T04 | [T04: story checklist canonical](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t04-story-checklist-canonical/README.md) | docs | Done (Awaiting Commits) | story ↔ manual steps 1–6 |
+| 🔵 | TASK-GW-SSR-29-T05 | [T05: cross-repo handoff](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t05-cross-repo-handoff/README.md) | docs | Done (Awaiting Commits) | gateway ↔ GPT paths |
+| 🔵 | TASK-GW-SSR-29-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G29 PASS 2026-09-01T13:49:03Z |
+| 🔵 | TASK-GW-SSR-29-T07 | [T07: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t07-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-01T13:53:08Z · `run_mode=gw_ssr_29_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260901-1353-gw-ssr-29-audit-p6.md) |
+
+#### P5 disposition note (SSR-29 audit 2026-09-01) · APPLY 2026-09-01T13:51:52Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-01T13:53:08Z) | none | T07 | As-of-Done vs Historical on T01–T03 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_29_audit_followup` — T07 Done; current.yaml stays pkg-000086. Draft: [`p5_ssr-29_gap_20260901T135152Z.plan.md`](../../../.cursor/plans/p5_ssr-29_gap_20260901T135152Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-30 — tallinn card_fields / SPA overlay readiness
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-30-T00 | [T00: Declare decision lock](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t00-declare-decision-lock/README.md) | docs | Done (Awaiting Commits) | Declare locked; WAIVE N/A |
+| 🔵 | TASK-GW-SSR-30-T01 | [T01: tallinn MVP card_fields](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t01-tallinn-card-fields-mvp/README.md) | data | Done (Awaiting Commits) | 3 M141 paths in tallinn pack.json |
+| 🔵 | TASK-GW-SSR-30-T02 | [T02: tests card_fields present](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t02-tests-card-fields-present/README.md) | tests | Done (Awaiting Commits) | flip absent→present; test_gw_ssr_30_* |
+| 🔵 | TASK-GW-SSR-30-T03 | [T03: INDEX + spa Declare note](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t03-index-spa-docs-note/README.md) | docs | Done (Awaiting Commits) | INDEX row 30; spa-16 note |
+| 🔵 | TASK-GW-SSR-30-T04 | [T04: GPT + SPA L10N handoff](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t04-gpt-spa-handoff/README.md) | docs | Done (Awaiting Commits) | SSR-29 copy path + L10N ids |
+| 🔵 | TASK-GW-SSR-30-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G30 PASS 2026-09-02T14:00:46Z |
+| 🔵 | TASK-GW-SSR-30-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-30-tallinn-card-fields-spa-overlay-readiness/task-gw-ssr-30-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-02T14:05:46Z · `run_mode=gw_ssr_30_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260902-1405-gw-ssr-30-audit-p6.md) |
+
+#### P5 disposition note (SSR-30 audit 2026-09-02) · APPLY 2026-09-02T14:05:46Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-02T14:05:46Z) | none | T06 | As-of-Done vs Historical on T03 + backlog §Verified/Pitfalls |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_30_audit_followup` — T06 Done; current.yaml stays pkg-000087. Draft: [`p5_ssr-30_gap_20260902T140504Z.plan.md`](../../../.cursor/plans/p5_ssr-30_gap_20260902T140504Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-31 — Contour2 node-specific taxonomy axes
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-31-T01 | [T01: resolver Contour2 unlock](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t01-resolver-contour2-unlock/README.md) | implement | Done (Awaiting Commits) | drop membership + set-equality lockstep |
+| 🔵 | TASK-GW-SSR-31-T02 | [T02: adapt SSR-26 taxonomy tests](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t02-adapt-ssr26-taxonomy-tests/README.md) | tests | Done (Awaiting Commits) | structural + ≠13 load |
+| 🔵 | TASK-GW-SSR-31-T03 | [T03: adapt SSR-28 seed + helper](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t03-adapt-ssr28-seed-helper/README.md) | tests | Done (Awaiting Commits) | tallinn content 13 as seed invariant |
+| 🔵 | TASK-GW-SSR-31-T04 | [T04: uus-shaped Contour2 load](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t04-tests-uus-shaped-contour2-load/README.md) | tests | Done (Awaiting Commits) | test_gw_ssr_31_* 24-axis SUCCESS |
+| 🔵 | TASK-GW-SSR-31-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G31 PASS 2026-09-04T12:55:28Z |
+| 🔵 | TASK-GW-SSR-31-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-04T13:02:12Z · `run_mode=gw_ssr_31_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260904-1302-gw-ssr-31-audit-p6.md) |
+
+#### P5 disposition note (SSR-31 audit 2026-09-04) · APPLY 2026-09-04T13:02:12Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-04T13:02:12Z) | none | T06 | As-of-Done vs Historical on T01–T03 Code Facts + backlog §Verified/Claims |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_31_audit_followup` — T06 Done; current.yaml stays pkg-000088. Draft: [`p5_ssr-31_gap_20260904T125959Z.plan.md`](../../../.cursor/plans/p5_ssr-31_gap_20260904T125959Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-32 — Contour1 wire taxonomy axes
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-32-T01 | [T01: open normalize_axis](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t01-open-normalize-axis/README.md) | implement | Done (Awaiting Commits) | drop membership; reference-set comment |
+| 🔵 | TASK-GW-SSR-32-T02 | [T02: tests custom + empty wire](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t02-tests-custom-and-empty-wire/README.md) | tests | Done (Awaiting Commits) | custom OK; empty/non-str fail |
+| 🔵 | TASK-GW-SSR-32-T03 | [T03: civic skip + classic regression](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t03-civic-skip-classic-regression/README.md) | tests | Done (Awaiting Commits) | skip-unmapped; classic 13 still pass |
+| 🔵 | TASK-GW-SSR-32-T04 | [T04: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t04-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G32 PASS 2026-09-04T13:13:31Z |
+| 🔵 | TASK-GW-SSR-32-T05 | [T05: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-32-node-specific-contour1-wire-axes/task-gw-ssr-32-t05-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-04T13:17:57Z · `run_mode=gw_ssr_32_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260904-1317-gw-ssr-32-audit-p6.md) |
+
+#### P5 disposition note (SSR-32 audit 2026-09-04) · APPLY 2026-09-04T13:17:57Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-04T13:17:57Z) | none | T05 | As-of-Done vs Historical on backlog §Verified (+ T01–T03 labels) |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_32_audit_followup` — T05 Done; current.yaml stays pkg-000089. Draft: [`p5_ssr-32_gap_20260904T131757Z.plan.md`](../../../.cursor/plans/p5_ssr-32_gap_20260904T131757Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-33 — node-specific taxonomy docs / setup / test hygiene
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-33-T01 | [T01: schema-packs README axes contract](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t01-schema-packs-readme-axes-contract/README.md) | docs | Done (Awaiting Commits) | drop «must equal all 13»; D-SSR-11/arch |
+| 🔵 | TASK-GW-SSR-33-T02 | [T02: manual operator setup/usage](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t02-manual-operator-setup-usage/README.md) | docs | Done (Awaiting Commits) | dual contour + setup 1–6 |
+| 🔵 | TASK-GW-SSR-33-T03 | [T03: INDEX inventory GPT-SSR-15 handoff](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t03-index-inventory-gpt-ssr15-handoff/README.md) | docs | Done (Awaiting Commits) | 31–33 inventory; invert note only |
+| 🔵 | TASK-GW-SSR-33-T04 | [T04: uus gap handoff align](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t04-gap-handoff-uus-align/README.md) | docs | Done (Awaiting Commits) | arch + 31…33; lockstep obsolete |
+| 🔵 | TASK-GW-SSR-33-T05 | [T05: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t05-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G33 PASS 2026-09-04T13:28:42Z |
+| 🔵 | TASK-GW-SSR-33-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-04T13:34:49Z · `run_mode=gw_ssr_33_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260904-1334-gw-ssr-33-audit-p6.md) |
+
+#### P5 disposition note (SSR-33 audit 2026-09-04) · APPLY 2026-09-04T13:34:49Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-04T13:34:49Z) | none | T06 | As-of-Done vs Historical on T01–T04 Code Facts/Gaps + backlog §Verified |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_33_audit_followup` — T06 Done; current.yaml stays pkg-000090. Draft: [`p5_ssr-33_gap_20260904T133449Z.plan.md`](../../../.cursor/plans/p5_ssr-33_gap_20260904T133449Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-34 — uus active schema-packs volume ops
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-34-T01 | [T01: server-env Local + Railway playbook](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t01-server-env-local-railway-playbook/README.md) | docs | Done (Awaiting Commits) | Local + Volume/`SCHEMA_PACKS_ROOT`; URL ≠ mount |
+| 🔵 | TASK-GW-SSR-34-T02 | [T02: warehouse model manual D-SSR-12](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t02-warehouse-model-manual-d-ssr-12/README.md) | docs | Done (Awaiting Commits) | local path + git policy + Volume precedence |
+| 🔵 | TASK-GW-SSR-34-T03 | [T03: gitignore node packs](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t03-gitignore-node-packs/README.md) | docs | Done (Awaiting Commits) | ignore uus_*; keep demo tracked |
+| 🔵 | TASK-GW-SSR-34-T04 | [T04: env examples NODE_SCHEMA inventory](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t04-env-examples-node-schema-inventory/README.md) | docs | Done (Awaiting Commits) | NODE_SCHEMA_* + SCHEMA_PACKS_ROOT; no URL-shipped claim |
+| 🔵 | TASK-GW-SSR-34-T05 | [T05: sibling GPT schema_binding note](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t05-sibling-gpt-schema-binding-note/README.md) | docs | Done (Awaiting Commits) | binding == env pair; no GPT file edit |
+| 🔵 | TASK-GW-SSR-34-T06 | [T06: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t06-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G34 PASS 2026-09-07T08:32:02Z |
+| 🔵 | TASK-GW-SSR-34-T07 | [T07: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t07-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-07T08:38:47Z · `run_mode=gw_ssr_34_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260907-0838-gw-ssr-34-audit-p6.md) |
+
+#### P5 disposition note (SSR-34 audit 2026-09-07) · APPLY 2026-09-07T08:38:47Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-07T08:38:47Z) | none | T07 | As-of-Done vs Historical on backlog §Verified |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_34_audit_followup` — T07 Done; current.yaml stays pkg-000091. Draft: [`p5_ssr-34_gap_20260907T083847Z.plan.md`](../../../.cursor/plans/p5_ssr-34_gap_20260907T083847Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-SSR-35 — SCHEMA_ROOT_URL + SCHEMA_PACK_REFRESH
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-SSR-35-T01 | [T01: config SCHEMA_ROOT_URL + refresh](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t01-config-schema-root-url-refresh/README.md) | implement | Done (Awaiting Commits) | http(s) URL only; never Volume mount |
+| 🔵 | TASK-GW-SSR-35-T02 | [T02: fetch manifest into cache](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t02-fetch-manifest-into-cache/README.md) | implement | Done (Awaiting Commits) | nested `<id>/<ver>/`; fixture manifest |
+| 🔵 | TASK-GW-SSR-35-T03 | [T03: boot wire before resolve](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t03-boot-wire-before-resolve/README.md) | implement | Done (Awaiting Commits) | miss/refresh → fetch then resolve_pack |
+| 🔵 | TASK-GW-SSR-35-T04 | [T04: refresh overwrite fail-fast](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t04-refresh-overwrite-fail-fast/README.md) | implement | Done (Awaiting Commits) | ConfigError; no foreign default |
+| 🔵 | TASK-GW-SSR-35-T05 | [T05: tests tmp_path + HTTP mock](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t05-tests-tmp-path-http-mock/README.md) | tests | Done (Awaiting Commits) | 12 passed; no live registry in CI |
+| 🔵 | TASK-GW-SSR-35-T06 | [T06: docs federation vs Volume](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t06-docs-federation-vs-volume/README.md) | docs | Done (Awaiting Commits) | URL shipped; Volume path = SSR-34 |
+| 🔵 | TASK-GW-SSR-35-T07 | [T07: story acceptance gate](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t07-story-acceptance-gate/README.md) | gate | Done (Awaiting Commits) | G35 PASS 2026-09-07T08:54:22Z |
+| 🔵 | TASK-GW-SSR-35-T08 | [T08: audit G1 As-of-Done SSOT](./epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t08-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-07T08:58:54Z · `run_mode=gw_ssr_35_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) |
+
+#### P5 disposition note (SSR-35 audit 2026-09-07) · APPLY 2026-09-07T08:58:54Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-07T08:58:54Z) | none | T08 | As-of-Done vs Historical on backlog/INDEX/T01 |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_ssr_35_audit_followup` — T08 Done; current.yaml stays pkg-000092. Draft: [`p5_ssr-35_gap_20260907T085854Z.plan.md`](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+## EPIC-issue-thread-context-and-node-verification — Threads shell pack + civic gate (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-issue-thread-context-and-node-verification.md`](./epics/EPIC-issue-thread-context-and-node-verification.md). Пакет [`issue-thread-context-and-node-verification/`](./backlog-stories/issue-thread-context-and-node-verification/INDEX.md). Ветка `semantic-schema-runtime`. §«Актуальная точка» / MVP dashboard **не** переписаны. Dashboard: [`gateway-req7-threads-shell-dashboard.md`](./gateway-req7-threads-shell-dashboard.md).
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-THR-01 | [pipeline active pack verification + shell knobs](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-01-active-pack-verification-and-shell-knobs.md) | **Done** pkg-000093 T01–T05 · P3 2026-09-21T20:29:51Z · fail-closed sidecar; no invent pack.json keys / ThreadContext route · [`pkg`](./gateway-active-packages/pkg-000093-20260921-gw-thr-01-active-pack-verification-and-shell-knobs.yaml) |
+| 🔵 | GW-THR-02 | [pipeline service-auth pack shell settings pull](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-02-service-auth-pack-shell-settings-pull.md) | **Done** pkg-000094 T01–T05 · P3 2026-09-21T20:48:13Z · `GET /node/shell-settings`; no public ThreadContext · [`pkg`](./gateway-active-packages/pkg-000094-20260921-gw-thr-02-service-auth-pack-shell-settings-pull.yaml) · [`run-summary`](./run-reports/run-summary-20260921-2048-gw-thr-02-p3.md) |
+| 🔵 | GW-THR-03 | [pipeline civic gate identity_verified](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/STORY-GW-THR-03-civic-gate-identity-verified.md) → [backlog](./backlog-stories/issue-thread-context-and-node-verification/STORY-GW-THR-03-civic-gate-identity-verified.md) | **Done** pkg-000095 T01–T05 · P3 2026-09-21T21:05:11Z · identity_verified only; no phone dual-read · [`pkg`](./gateway-active-packages/pkg-000095-20260921-gw-thr-03-civic-gate-identity-verified.yaml) · [`run-summary`](./run-reports/run-summary-20260921-2105-gw-thr-03-p3.md) · [`gate`](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t05-story-gate/story-acceptance-gate-STORY-GW-THR-03.md) |
+
+### STORY-GW-THR-01 — active pack verification + shell knobs
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-THR-01-T01 | [T01: shell capability contract](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t01-shell-capability-contract/README.md) | implement | Done | sidecar + REQ capability ids |
+| 🔵 | TASK-GW-THR-01-T02 | [T02: fail-closed active pack](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t02-fail-closed-active-pack/README.md) | implement | Done | missing caps → ConfigError |
+| 🔵 | TASK-GW-THR-01-T03 | [T03: migrate activatable packs](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t03-migrate-activatable-packs/README.md) | implement | Done | uus phone + uus_phone_sms |
+| 🔵 | TASK-GW-THR-01-T04 | [T04: tests pack shell required](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t04-tests-pack-shell-required/README.md) | tests | Done | complete OK / incomplete fail-closed |
+| 🔵 | TASK-GW-THR-01-T05 | [T05: story acceptance gate](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t05-story-gate/README.md) | gate | Done | AC-GW-THR01-01…05 PASS |
+| 🔵 | TASK-GW-THR-01-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-01-active-pack-verification-and-shell-knobs/task-gw-thr-01-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-21T20:35:45Z · `run_mode=gw_thr_01_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260921-2035-gw-thr-01-audit-p6.md) |
+
+#### P5 disposition note (THR-01 audit 2026-09-21) · APPLY 2026-09-21T20:34:29Z · P6 2026-09-21T20:35:45Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-21T20:35:45Z) | none | T06 | As-of-Done vs Historical on backlog §Verified + T01 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_thr_01_audit_followup` — T06 Done; current.yaml stays pkg-000093. Draft: [`p5_gw_thr_01_gap_20260921T203326Z.plan.md`](../../../.cursor/plans/p5_gw_thr_01_gap_20260921T203326Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-THR-02 — service-auth pack shell settings pull
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-THR-02-T01 | [T01: settings payload from active pack](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t01-settings-payload-from-active-pack/README.md) | implement | Done | `shell_settings.py` DTO |
+| 🔵 | TASK-GW-THR-02-T02 | [T02: service-auth read wire](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t02-service-auth-read-wire/README.md) | implement | Done | `GET /node/shell-settings` |
+| 🔵 | TASK-GW-THR-02-T03 | [T03: projection isolation](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t03-projection-isolation/README.md) | implement | Done | Issue get civic; no Story bodies |
+| 🔵 | TASK-GW-THR-02-T04 | [T04: tests settings pull](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t04-tests-settings-pull/README.md) | tests | Done | 9 passed in test_gw_thr_02_* |
+| 🔵 | TASK-GW-THR-02-T05 | [T05: story acceptance gate](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t05-story-gate/README.md) | gate | Done | AC-GW-THR02-01…05 PASS |
+| 🔵 | TASK-GW-THR-02-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-02-service-auth-pack-shell-settings-pull/task-gw-thr-02-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-21T20:54:56Z · `run_mode=gw_thr_02_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260921-2054-gw-thr-02-audit-p6.md) |
+
+#### P5 disposition note (THR-02 audit 2026-09-21) · APPLY 2026-09-21T20:53:24Z · P6 2026-09-21T20:54:56Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-21T20:54:56Z) | none | T06 | As-of-Done vs Historical on backlog §Verified + T01/T02 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_thr_02_audit_followup` — T06 Done; current.yaml stays pkg-000094. Draft: [`p5_gw_thr_02_gap_20260921T205228Z.plan.md`](../../../.cursor/plans/p5_gw_thr_02_gap_20260921T205228Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-THR-03 — civic gate identity_verified only
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-THR-03-T01 | [T01: me parse identity_verified](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t01-me-parse-identity-verified/README.md) | implement | Done | IntrospectionResult + me_client opaque bool |
+| 🔵 | TASK-GW-THR-03-T02 | [T02: gate opaque only](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t02-gate-opaque-only/README.md) | implement | Done | ALLOW only identity_verified; no phone fallback |
+| 🔵 | TASK-GW-THR-03-T03 | [T03: tests no phone fallback](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t03-tests-no-phone-fallback/README.md) | tests | Done | phone-only stub must not allow |
+| 🔵 | TASK-GW-THR-03-T04 | [T04: cutover evidence](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t04-cutover-evidence/README.md) | docs | Done | VB-01/02 + backfill before cutover |
+| 🔵 | TASK-GW-THR-03-T05 | [T05: story acceptance gate](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t05-story-gate/README.md) | gate | Done | AC-GW-THR03-01…04 PASS |
+| 🔵 | TASK-GW-THR-03-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-issue-thread-context-and-node-verification/stories/STORY-GW-THR-03-civic-gate-identity-verified/task-gw-thr-03-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-21T21:11:23Z · `run_mode=gw_thr_03_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260921-2111-gw-thr-03-audit-p6.md) |
+
+#### P5 disposition note (THR-03 audit 2026-09-21) · APPLY 2026-09-21T21:09:59Z · P6 2026-09-21T21:11:23Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-21T21:11:23Z) | none | T06 | As-of-Done vs Historical on T01/T02 Code Facts + pipeline residual |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_thr_03_audit_followup` — T06 Done; current.yaml stays pkg-000095. Draft: [`p5_gw_thr_03_gap_20260921T210918Z.plan.md`](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+## EPIC-req9-ops-parity-env-naming — REQ9 ops parity & env naming (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req9-ops-parity-env-naming.md`](./epics/EPIC-req9-ops-parity-env-naming.md). Пакет [`req9-ops-parity-env-naming/`](./backlog-stories/req9-ops-parity-env-naming/INDEX.md). Ветка `semantic-schema-runtime`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md) (ops lock B).
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ9-01 | [pipeline example.env + SPA_BASE_URL hard cut](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) → [backlog](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-01-example-env-and-spa-base-url.md) | **Done** pkg-000096 T01–T05 · P3 2026-09-26T12:06:30Z · hard cut SPA_BASE_URL; no dual-read · [`pkg`](./gateway-active-packages/pkg-000096-20260926-gw-req9-01-example-env-and-spa-base-url.yaml) · [`run-summary`](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) · [`gate`](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t05-story-gate/story-acceptance-gate-STORY-GW-REQ9-01.md) |
+| 🔵 | GW-REQ9-02 | [pipeline make test + test-live](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/STORY-GW-REQ9-02-make-test.md) → [backlog](./backlog-stories/req9-ops-parity-env-naming/STORY-GW-REQ9-02-make-test.md) | **Done** pkg-000097 T01–T03 · P3 2026-09-26T12:22:28Z · lock C offline+live · [`pkg`](./gateway-active-packages/pkg-000097-20260926-gw-req9-02-make-test.yaml) · [`run-summary`](./run-reports/run-summary-20260926-1222-gw-req9-02-p3.md) · [`gate`](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t03-story-gate/story-acceptance-gate-STORY-GW-REQ9-02.md) |
+
+### STORY-GW-REQ9-01 — example.env + SPA_BASE_URL hard cut
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ9-01-T01 | [T01: example.env peer/own URL keys](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t01-example-env-keys/README.md) | implement | Done | API/IDENTITY/SPA_BASE_URL; keep SERVICE_API_TOKEN |
+| 🔵 | TASK-GW-REQ9-01-T02 | [T02: schema SPA_BASE_URL hard cut](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t02-schema-spa-base-hard-cut/README.md) | implement | Done | spa_base_url field/load; no SPA_VERIFY dual-read |
+| 🔵 | TASK-GW-REQ9-01-T03 | [T03: verify_url helpers rename](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t03-verify-url-helpers/README.md) | implement | Done | resolve_spa_base_url etc. |
+| 🔵 | TASK-GW-REQ9-01-T04 | [T04: tests/docs align](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t04-tests-docs-align/README.md) | tests | Done | no primary SPA_VERIFY_* |
+| 🔵 | TASK-GW-REQ9-01-T05 | [T05: story acceptance gate](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t05-story-gate/README.md) | gate | Done | AC-GW-REQ901-01…05 PASS |
+| 🔵 | TASK-GW-REQ9-01-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-01-example-env-and-spa-base-url/task-gw-req9-01-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-26T12:12:27Z · `run_mode=gw_req9_01_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260926-1212-gw-req9-01-audit-p6.md) |
+
+#### P5 disposition note (REQ9-01 audit 2026-09-26) · APPLY 2026-09-26T12:11:17Z · P6 2026-09-26T12:12:27Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-26T12:12:27Z) | none | T06 | As-of-Done vs Historical on backlog/pipeline §Verified + T01–T03 Code Facts |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req9_01_audit_followup` — T06 Done; current.yaml stays pkg-000096. Draft: [`p5_gw_req9_01_gap_20260926T121033Z.plan.md`](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED).
+
+### STORY-GW-REQ9-02 — make test + test-live
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ9-02-T01 | [T01: make test offline](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t01-make-test-offline/README.md) | implement | Done | `-m "not live_integration"` + PHONY `test` |
+| 🔵 | TASK-GW-REQ9-02-T02 | [T02: make test-live](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t02-make-test-live/README.md) | implement | Done | `-m live_integration` + PHONY `test-live` |
+| 🔵 | TASK-GW-REQ9-02-T03 | [T03: story acceptance gate](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t03-story-gate/README.md) | gate | Done | AC-GW-REQ902-01…03 PASS |
+| 🔵 | TASK-GW-REQ9-02-T04 | [T04: audit G1 As-of-Done SSOT](./epics/EPIC-req9-ops-parity-env-naming/stories/STORY-GW-REQ9-02-make-test/task-gw-req9-02-t04-audit-g1-as-of-done-ssot/README.md) | docs | Done (Awaiting Commits) | G1 CLOSED 2026-09-26T12:31:20Z · `run_mode=gw_req9_02_audit_followup` · [`run-summary-audit`](./run-reports/run-summary-20260926-1231-gw-req9-02-audit-p6.md) |
+
+#### P5 disposition note (REQ9-02 audit 2026-09-26) · APPLY 2026-09-26T12:29:39Z · P6 2026-09-26T12:31:20Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-26T12:31:20Z) | none | T04 | backlog §Verified As-of-Done vs Historical (docs-only) |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| 4 offline fails | WAIVED out-of-DoD | none | — | SSR/bootstrap; outside AC-01…03 |
+
+**activation:** `run_mode=gw_req9_02_audit_followup` — T04 Done; current.yaml stays pkg-000097. Draft: [`p5_gw_req9_02_gap_20260926T122851Z.plan.md`](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 + 4-fails WAIVED).
+
 ## EPIC-M2-01 — Core Foundation and Governance
 
 | S | Key | Story | Type | Status | Scope / Notes |
@@ -1292,6 +1890,83 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 
 | Timestamp | Mode | Scope | Report | Outcome |
 |---|---|---|---|---|
+| 2026-09-04 | P1 scaffold | STORY-GW-SSR-33 node-specific taxonomy docs setup tests hygiene (`pkg-000090` T01–T05) | [p1_ssr-33_scaffold_20260904T132158Z](../../../.cursor/plans/p1_ssr-33_scaffold_20260904T132158Z.plan.md) | Pipeline + 5 tasks; current.yaml → pkg-000090; D-SSR-11 docs-only; no §Актуальная точка rewrite. |
+| 2026-09-04 | P3 execute | STORY-GW-SSR-33 docs hygiene (`pkg-000090` T01–T05) | [run-summary-20260904-1328-gw-ssr-33-p3](./run-reports/run-summary-20260904-1328-gw-ssr-33-p3.md) | G33 PASS; README/manual/INDEX/uus handoff; no product code; no push. |
+| 2026-09-04 | P5 APPLY | STORY-GW-SSR-33 audit disposition (`gw_ssr_33_audit_followup`) | [p5_ssr-33_gap_20260904T133449Z](../../../.cursor/plans/p5_ssr-33_gap_20260904T133449Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000090 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-04 | P6 execute | STORY-GW-SSR-33 audit follow-up T06 (`gw_ssr_33_audit_followup`) | [run-summary-20260904-1334-gw-ssr-33-audit-p6](./run-reports/run-summary-20260904-1334-gw-ssr-33-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000090 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-07 | P1 scaffold | STORY-GW-SSR-34 uus active schema-packs volume ops (`pkg-000091` T01–T06) | [p1_ssr-34_scaffold_20260907T082717Z](../../../.cursor/plans/p1_ssr-34_scaffold_20260907T082717Z.plan.md) | Pipeline + 6 tasks; current.yaml → pkg-000091; D-SSR-12 docs/env/gitignore; no §Актуальная точка rewrite. |
+| 2026-09-07 | P3 execute | STORY-GW-SSR-34 volume ops (`pkg-000091` T01–T06) | [run-summary-20260907-0832-gw-ssr-34-p3](./run-reports/run-summary-20260907-0832-gw-ssr-34-p3.md) | G34 PASS; manuals/gitignore/env; no remote-fetch; no push. |
+| 2026-09-07 | P5 APPLY | STORY-GW-SSR-34 audit disposition (`gw_ssr_34_audit_followup`) | [p5_ssr-34_gap_20260907T083847Z](../../../.cursor/plans/p5_ssr-34_gap_20260907T083847Z.plan.md) | G1 TASKED t07; G2 WAIVED operator; pkg-000091 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-07 | P6 execute | STORY-GW-SSR-34 audit follow-up T07 (`gw_ssr_34_audit_followup`) | [run-summary-20260907-0838-gw-ssr-34-audit-p6](./run-reports/run-summary-20260907-0838-gw-ssr-34-audit-p6.md) | T07 G1 CLOSED; G2 WAIVED; pkg-000091 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-07 | P1 scaffold | STORY-GW-SSR-35 SCHEMA_ROOT_URL + SCHEMA_PACK_REFRESH (`pkg-000092` T01–T07) | [p1_ssr-35_scaffold_20260907T084325Z](../../../.cursor/plans/p1_ssr-35_scaffold_20260907T084325Z.plan.md) | Pipeline + 7 tasks; current.yaml → pkg-000092; federation consume; no §Актуальная точка rewrite. |
+| 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
+| 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P6 execute | STORY-GW-REQ9-02 audit follow-up T04 (`gw_req9_02_audit_followup`) | [run-summary-20260926-1231-gw-req9-02-audit-p6](./run-reports/run-summary-20260926-1231-gw-req9-02-audit-p6.md) | T04 G1 CLOSED; G2 WAIVED; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P5 APPLY | STORY-GW-REQ9-02 audit disposition (`gw_req9_02_audit_followup`) | [p5_gw_req9_02_gap_20260926T122851Z](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md) | G1 TASKED t04; G2 WAIVED operator; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P3 execute | STORY-GW-REQ9-02 make test + test-live (`pkg-000097` T01–T03) | [run-summary-20260926-1222-gw-req9-02-p3](./run-reports/run-summary-20260926-1222-gw-req9-02-p3.md) | Makefile test/test-live; lock C; existing marker; gate PASS; no invent CI; no §Актуальная точка rewrite. |
+| 2026-09-26 | P1 scaffold | STORY-GW-REQ9-02 make test + test-live (`pkg-000097` T01–T03) | [p1_gw_req9_02_scaffold_20260926T121642Z](../../../.cursor/plans/p1_gw_req9_02_scaffold_20260926T121642Z.plan.md) | Pipeline + 3 tasks; epic REUSE; current.yaml → pkg-000097; lock C; existing live_integration only; no invent CI; no §Актуальная точка rewrite. |
+| 2026-09-26 | P6 execute | STORY-GW-REQ9-01 audit follow-up T06 (`gw_req9_01_audit_followup`) | [run-summary-20260926-1212-gw-req9-01-audit-p6](./run-reports/run-summary-20260926-1212-gw-req9-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000096 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P5 APPLY | STORY-GW-REQ9-01 audit disposition (`gw_req9_01_audit_followup`) | [p5_gw_req9_01_gap_20260926T121033Z](../../../.cursor/plans/p5_gw_req9_01_gap_20260926T121033Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000096 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-26 | P3 execute | STORY-GW-REQ9-01 example.env + SPA_BASE_URL hard cut (`pkg-000096` T01–T05) | [run-summary-20260926-1206-gw-req9-01-p3](./run-reports/run-summary-20260926-1206-gw-req9-01-p3.md) | Hard cut SPA_BASE_URL; example.env keys; 10 pytest; gate PASS; no dual-read; no §Актуальная точка rewrite. |
+| 2026-09-26 | P1 scaffold | STORY-GW-REQ9-01 example.env + SPA_BASE_URL hard cut (`pkg-000096` T01–T05) | [p1_gw_req9_01_scaffold_20260926T120100Z](../../../.cursor/plans/p1_gw_req9_01_scaffold_20260926T120100Z.plan.md) | Pipeline + 5 tasks; epic NEW; current.yaml → pkg-000096; hard cut SPA_BASE_URL; no SPA_VERIFY dual-read; no §Актуальная точка rewrite. |
+| 2026-09-21 | P6 execute | STORY-GW-THR-03 audit follow-up T06 (`gw_thr_03_audit_followup`) | [run-summary-20260921-2111-gw-thr-03-audit-p6](./run-reports/run-summary-20260921-2111-gw-thr-03-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000095 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P5 APPLY | STORY-GW-THR-03 audit disposition (`gw_thr_03_audit_followup`) | [p5_gw_thr_03_gap_20260921T210918Z](../../../.cursor/plans/p5_gw_thr_03_gap_20260921T210918Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000095 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P3 execute | STORY-GW-THR-03 civic gate identity_verified (`pkg-000095` T01–T05) | [run-summary-20260921-2105-gw-thr-03-p3](./run-reports/run-summary-20260921-2105-gw-thr-03-p3.md) | Opaque-only gate; phone-only stub denied; cutover evidence; gate PASS; no §Актуальная точка rewrite. |
+| 2026-09-21 | P1 scaffold | STORY-GW-THR-03 civic gate identity_verified (`pkg-000095` T01–T05) | [p1_gw_thr_03_scaffold_20260921T205851Z](../../../.cursor/plans/p1_gw_thr_03_scaffold_20260921T205851Z.plan.md) | Pipeline + 5 tasks; epic REUSE; current.yaml → pkg-000095; identity_verified only; no phone dual-read; no §Актуальная точка rewrite. |
+| 2026-09-21 | P6 execute | STORY-GW-THR-01 audit follow-up T06 (`gw_thr_01_audit_followup`) | [run-summary-20260921-2035-gw-thr-01-audit-p6](./run-reports/run-summary-20260921-2035-gw-thr-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000093 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P5 APPLY | STORY-GW-THR-01 audit disposition (`gw_thr_01_audit_followup`) | [p5_gw_thr_01_gap_20260921T203326Z](../../../.cursor/plans/p5_gw_thr_01_gap_20260921T203326Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000093 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-21 | P3 execute | STORY-GW-THR-01 active pack verification + shell knobs (`pkg-000093` T01–T05) | [run-summary-20260921-2028-gw-thr-01-p3](./run-reports/run-summary-20260921-2028-gw-thr-01-p3.md) | Sidecar shell_capabilities; fail-closed; uus phone+uus_phone_sms; gate PASS; no invent pack.json keys/route; no §Актуальная точка rewrite. |
+| 2026-09-21 | P1 scaffold | STORY-GW-THR-01 active pack verification + shell knobs (`pkg-000093` T01–T05) | [p1_gw_thr_01_scaffold_20260921T201610Z](../../../.cursor/plans/p1_gw_thr_01_scaffold_20260921T201610Z.plan.md) | Pipeline + 5 tasks; epic NEW; current.yaml → pkg-000093; no invent keys/route; no §Актуальная точка rewrite. |
+| 2026-09-04 | P6 execute | STORY-GW-SSR-32 audit follow-up T05 (`gw_ssr_32_audit_followup`) | [run-summary-20260904-1317-gw-ssr-32-audit-p6](./run-reports/run-summary-20260904-1317-gw-ssr-32-audit-p6.md) | T05 G1 CLOSED; G2 WAIVED; pkg-000089 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-04 | P5 APPLY | STORY-GW-SSR-32 audit disposition (`gw_ssr_32_audit_followup`) | [p5_ssr-32_gap_20260904T131757Z](../../../.cursor/plans/p5_ssr-32_gap_20260904T131757Z.plan.md) | G1 TASKED t05; G2 WAIVED operator; pkg-000089 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-04 | P3 execute | STORY-GW-SSR-32 Contour1 wire taxonomy axes (`pkg-000089` T01–T04) | [run-summary-20260904-1313-gw-ssr-32-p3](./run-reports/run-summary-20260904-1313-gw-ssr-32-p3.md) | T01–T04 Done; G32 PASS; Contour1 unlock; 9 passed; no §Актуальная точка rewrite. |
+| 2026-09-04 | P1 scaffold | STORY-GW-SSR-32 Contour1 wire taxonomy axes (`pkg-000089` T01–T04) | [p1_ssr-32_scaffold_20260904T130622Z](../../../.cursor/plans/p1_ssr-32_scaffold_20260904T130622Z.plan.md) | Pipeline + 4 tasks; current.yaml → pkg-000089; D-SSR-11 Contour1; no §Актуальная точка rewrite. |
+| 2026-09-04 | P6 execute | STORY-GW-SSR-31 audit follow-up T06 (`gw_ssr_31_audit_followup`) | [run-summary-20260904-1302-gw-ssr-31-audit-p6](./run-reports/run-summary-20260904-1302-gw-ssr-31-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000088 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-04 | P5 APPLY | STORY-GW-SSR-31 audit disposition (`gw_ssr_31_audit_followup`) | [p5_ssr-31_gap_20260904T125959Z](../../../.cursor/plans/p5_ssr-31_gap_20260904T125959Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000088 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-04 | P3 execute | STORY-GW-SSR-31 Contour2 node-specific taxonomy axes (`pkg-000088` T01–T05) | [run-summary-20260904-1255-gw-ssr-31-p3](./run-reports/run-summary-20260904-1255-gw-ssr-31-p3.md) | T01–T05 Done; G31 PASS; Contour2 unlock; 20 passed; no §Актуальная точка rewrite. |
+| 2026-09-04 | P1 scaffold | STORY-GW-SSR-31 Contour2 node-specific taxonomy axes (`pkg-000088` T01–T05) | [p1_ssr-31_scaffold_20260904T124859Z](../../../.cursor/plans/p1_ssr-31_scaffold_20260904T124859Z.plan.md) | Pipeline + 5 tasks; current.yaml → pkg-000088; D-SSR-11 Contour2; no §Актуальная точка rewrite. |
+| 2026-09-02 | P6 execute | STORY-GW-SSR-30 audit follow-up T06 (`gw_ssr_30_audit_followup`) | [run-summary-20260902-1405-gw-ssr-30-audit-p6](./run-reports/run-summary-20260902-1405-gw-ssr-30-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000087 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-02 | P5 APPLY | STORY-GW-SSR-30 audit disposition (`gw_ssr_30_audit_followup`) | [p5_ssr-30_gap_20260902T140504Z](../../../.cursor/plans/p5_ssr-30_gap_20260902T140504Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000087 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-02 | P3 execute | STORY-GW-SSR-30 tallinn card_fields SPA overlay readiness (`pkg-000087` T00–T05) | [run-summary-20260902-1400-gw-ssr-30-p3](./run-reports/run-summary-20260902-1400-gw-ssr-30-p3.md) | T00–T05 Done; G30 PASS; Declare MVP 3 paths; 9 passed; no §Актуальная точка rewrite. |
+| 2026-09-02 | P1 scaffold | STORY-GW-SSR-30 tallinn card_fields SPA overlay readiness (`pkg-000087` T00–T05) | [p1_ssr-30_scaffold_20260902T135453Z](../../../.cursor/plans/p1_ssr-30_scaffold_20260902T135453Z.plan.md) | Pipeline + 6 tasks; current.yaml → pkg-000087; Declare MVP 3 paths; no §Актуальная точка rewrite. |
+| 2026-09-01 | P6 execute | STORY-GW-SSR-29 audit follow-up T07 (`gw_ssr_29_audit_followup`) | [run-summary-20260901-1353-gw-ssr-29-audit-p6](./run-reports/run-summary-20260901-1353-gw-ssr-29-audit-p6.md) | T07 G1 CLOSED; G2 WAIVED; pkg-000086 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-01 | P5 APPLY | STORY-GW-SSR-29 audit disposition (`gw_ssr_29_audit_followup`) | [p5_ssr-29_gap_20260901T135152Z](../../../.cursor/plans/p5_ssr-29_gap_20260901T135152Z.plan.md) | G1 TASKED t07; G2 WAIVED operator; pkg-000086 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-01 | P3 execute | STORY-GW-SSR-29 taxonomy docs + operator seam (`pkg-000086` T01–T06) | [run-summary-20260901-1349-gw-ssr-29-p3](./run-reports/run-summary-20260901-1349-gw-ssr-29-p3.md) | T01–T06 Done; G29 PASS; docs-only; no §Актуальная точка rewrite. |
+| 2026-09-01 | P1 scaffold | STORY-GW-SSR-29 taxonomy docs + operator seam (`pkg-000086` T01–T06) | [p1_ssr-29_scaffold_20260901T134329Z](../../../.cursor/plans/p1_ssr-29_scaffold_20260901T134329Z.plan.md) | Pipeline + 6 tasks; current.yaml → pkg-000086; no §Актуальная точка rewrite. |
+| 2026-09-01 | P6 execute | STORY-GW-SSR-28 audit follow-up T07 (`gw_ssr_28_audit_followup`) | [run-summary-20260901-1341-gw-ssr-28-audit-p6](./run-reports/run-summary-20260901-1341-gw-ssr-28-audit-p6.md) | T07 G1 CLOSED; G2 WAIVED; pkg-000085 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-01 | P5 APPLY | STORY-GW-SSR-28 audit disposition (`gw_ssr_28_audit_followup`) | [p5_ssr-28_gap_20260901T133933Z](../../../.cursor/plans/p5_ssr-28_gap_20260901T133933Z.plan.md) | G1 TASKED t07; G2 WAIVED operator; pkg-000085 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-01 | P3 execute | STORY-GW-SSR-28 tallinn taxonomy.json seed (`pkg-000085` T01–T06) | [run-summary-20260901-1335-gw-ssr-28-p3](./run-reports/run-summary-20260901-1335-gw-ssr-28-p3.md) | T01–T06 Done; G28 PASS; 7+7 pytest; ClusterLens=10; no §Актуальная точка rewrite. |
+| 2026-08-30 | P5 APPLY | STORY-GW-SSR-25 audit disposition (`activation: none`) | [p5_ssr-25_gap_20260830T213258Z](../../../.cursor/plans/p5_ssr-25_gap_20260830T213258Z.plan.md) | G1 CLOSED; G2 WAIVED operator; TASKED=0; no gap tasks; pkg-000082 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-25 geo clustering + docs (`pkg-000082` T01–T05) | [audit-gw-ssr-25-geo-detail-clustering-docs-2026-08-30](../analysis/audit-gw-ssr-25-geo-detail-clustering-docs-2026-08-30.md) | Product AC yes; G25 811 passed; G1 n/a SSOT already As-of-Done; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-25 geo clustering + docs (`pkg-000082` T01–T05) | [run-summary-20260830-2127-gw-ssr-25-p3](./run-reports/run-summary-20260830-2127-gw-ssr-25-p3.md) | T01–T05 Done; G25 PASS; 811 passed; ClusterLens=10; no §Актуальная точка rewrite. |
+| 2026-08-30 | P1 scaffold | STORY-GW-SSR-25 geo clustering + docs (`pkg-000082` T01–T05) | [p1_ssr-25_scaffold_20260830T211937Z](../../../.cursor/plans/p1_ssr-25_scaffold_20260830T211937Z.plan.md) | Pipeline + 5 tasks; current.yaml → pkg-000082; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-24 audit follow-up T08 (`gw_ssr_24_audit_followup`) | [run-summary-20260830-2110-gw-ssr-24-audit-p6](./run-reports/run-summary-20260830-2110-gw-ssr-24-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000081 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P5 scaffold | STORY-GW-SSR-24 audit follow-up T08 (`gw_ssr_24_audit_followup`) | [p5_ssr-24_gap_20260830T210820Z](../../../.cursor/plans/p5_ssr-24_gap_20260830T210820Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000081 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-24 geo detail persist (`pkg-000081` T01–T07) | [audit-gw-ssr-24-geo-detail-persist-2026-08-30](../analysis/audit-gw-ssr-24-geo-detail-persist-2026-08-30.md) | Product AC yes; G24 801 passed; G1 MEDIUM SSOT TASKED-likely (T01–T06 Code Facts); G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-24 geo detail persist (`pkg-000081` T01–T07) | [run-summary-20260830-2100-gw-ssr-24-p3](./run-reports/run-summary-20260830-2100-gw-ssr-24-p3.md) | T01–T07 Done; G24 PASS; 801 passed; ClusterLens=10; no §Актуальная точка rewrite. |
+| 2026-08-30 | P1 scaffold | STORY-GW-SSR-24 geo detail persist (`pkg-000081` T01–T07) | [p1_ssr-24_scaffold_20260830T205434Z](../../../.cursor/plans/p1_ssr-24_scaffold_20260830T205434Z.plan.md) | Pipeline + 7 tasks; current.yaml → pkg-000081; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-23 audit follow-up T06 (`gw_ssr_23_audit_followup`) | [run-summary-20260830-2049-gw-ssr-23-audit-p6](./run-reports/run-summary-20260830-2049-gw-ssr-23-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000080 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P5 scaffold | STORY-GW-SSR-23 audit follow-up T06 (`gw_ssr_23_audit_followup`) | [p5_ssr-23_gap_20260830T204550Z](../../../.cursor/plans/p5_ssr-23_gap_20260830T204550Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000080 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-23 geo_detail + geo_intake (`pkg-000080` T00–T05) | [audit-gw-ssr-23-geo-detail-intake-contract-2026-08-30](../analysis/audit-gw-ssr-23-geo-detail-intake-contract-2026-08-30.md) | Product AC yes; G23 12 passed; G1 MEDIUM SSOT TASKED-likely; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-23 geo_detail + geo_intake (`pkg-000080` T00–T05) | [run-summary-20260830-2040-gw-ssr-23-p3](./run-reports/run-summary-20260830-2040-gw-ssr-23-p3.md) | T00–T05 Done; G23 PASS; 12 passed; packs `geo_intake`; ClusterLens=10; no §Актуальная точка rewrite. |
+| 2026-08-30 | P1 scaffold | STORY-GW-SSR-23 geo_detail + geo_intake (`pkg-000080` T00–T05) | [p1_ssr-23_scaffold_20260830T202745Z](../../../.cursor/plans/p1_ssr-23_scaffold_20260830T202745Z.plan.md) | Pipeline + 6 tasks; current.yaml → pkg-000080; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-22 audit follow-up T05 (`gw_ssr_22_audit_followup`) | [run-summary-20260830-2024-gw-ssr-22-audit-p6](./run-reports/run-summary-20260830-2024-gw-ssr-22-audit-p6.md) | T05 G1 CLOSED; G2 WAIVED; pkg-000079 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P5 scaffold | STORY-GW-SSR-22 audit follow-up T05 (`gw_ssr_22_audit_followup`) | [p5_ssr-22_gap_20260830T201957Z](../../../.cursor/plans/p5_ssr-22_gap_20260830T201957Z.plan.md) | G1 TASKED t05; G2 WAIVED operator; pkg-000079 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-22 civic geo-gate hardening (`pkg-000079` T00–T04) | [audit-gw-ssr-22-civic-geo-gate-hardening-2026-08-30](../analysis/audit-gw-ssr-22-civic-geo-gate-hardening-2026-08-30.md) | Product AC yes; G22 11 passed; T00=intake 4xx; G1 MEDIUM SSOT TASKED-likely; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-22 civic geo-gate hardening (`pkg-000079` T00–T04) | [run-summary-20260830-2007-gw-ssr-22-p3](./run-reports/run-summary-20260830-2007-gw-ssr-22-p3.md) | T00–T04 Done; G22 PASS; T00=intake 4xx; ClusterLens=10; 11 passed; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-21 node clustering docs (`pkg-000078` T01–T04) | [audit-gw-ssr-21-node-clustering-docs-2026-08-30](../analysis/audit-gw-ssr-21-node-clustering-docs-2026-08-30.md) | Product AC yes; G21 docs PASS; G1 MEDIUM SSOT TASKED-likely; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-21 audit follow-up T05 (`gw_ssr_21_audit_followup`) | [run-summary-20260830-1957-gw-ssr-21-audit-p6](./run-reports/run-summary-20260830-1957-gw-ssr-21-audit-p6.md) | T05 G1 CLOSED; G2 WAIVED; pkg-000078 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-21 node clustering docs (`pkg-000078` T01–T04) | [run-summary-20260830-1953-gw-ssr-21-p3](./run-reports/run-summary-20260830-1953-gw-ssr-21-p3.md) | T01–T04 Done; G21 PASS; two contours; 05-env moved/pack; cron stay; G3 `:271` kept; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-20 node clustering runtime wire (`pkg-000077` T01–T06) | [audit-gw-ssr-20-node-clustering-runtime-wire-2026-08-30](../analysis/audit-gw-ssr-20-node-clustering-runtime-wire-2026-08-30.md) | Product AC yes; G20 21 passed (claimed 776); G1 MEDIUM SSOT TASKED-likely; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-20 audit follow-up T07 (`gw_ssr_20_audit_followup`) | [run-summary-20260830-1945-gw-ssr-20-audit-p6](./run-reports/run-summary-20260830-1945-gw-ssr-20-audit-p6.md) | T07 G1 CLOSED; G2 WAIVED; pkg-000077 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-20 node clustering runtime wire (`pkg-000077` T01–T06) | [run-summary-20260830-1940-gw-ssr-20-p3](./run-reports/run-summary-20260830-1940-gw-ssr-20-p3.md) | T01–T06 Done; G20 PASS 776 passed; ClusterLens=10; semantic CLUSTER_* gone; cron stay; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-19 audit follow-up T06 (`gw_ssr_19_audit_followup`) | [run-summary-20260830-1928-gw-ssr-19-audit-p6](./run-reports/run-summary-20260830-1928-gw-ssr-19-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000076 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P4 audit | STORY-GW-SSR-19 node clustering pack contract (`pkg-000076` T00–T05) | [audit-gw-ssr-19-node-clustering-pack-contract-2026-08-30](../analysis/audit-gw-ssr-19-node-clustering-pack-contract-2026-08-30.md) | Product AC yes; G19 5 passed; G1 MEDIUM SSOT TASKED-likely; G2 LOW WAIVED operator; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-19 node clustering pack contract (`pkg-000076` T00–T05) | [run-summary-20260830-1921-gw-ssr-19-p3](./run-reports/run-summary-20260830-1921-gw-ssr-19-p3.md) | T00–T05 Done; G19 PASS 5 passed; ClusterLens=10; no factory wire; no §Актуальная точка rewrite. |
+| 2026-08-30 | P6 execute | STORY-GW-SSR-18 audit follow-up T06 (`gw_ssr_18_audit_followup`) | [run-summary-20260830-1512-gw-ssr-18-audit-p6](./run-reports/run-summary-20260830-1512-gw-ssr-18-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000075 unchanged; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-18 cluster active schema (`pkg-000075` T01–T05) | [run-summary-20260830-1506-gw-ssr-18-p3](./run-reports/run-summary-20260830-1506-gw-ssr-18-p3.md) | T01–T05 Done; G18 PASS 767 passed; ClusterLens=10; no §Актуальная точка rewrite. |
+| 2026-08-30 | P3 execute | STORY-GW-SSR-16 node active schema (`pkg-000073` T01–T06) | [run-summary-20260830-1424-gw-ssr-16-p3](./run-reports/run-summary-20260830-1424-gw-ssr-16-p3.md) | T01–T06 Done; G16 PASS 8 passed; ClusterLens=10; no §Актуальная точка rewrite. |
 | 2026-07-13 | P1 scaffold | STORY-GW-CAB-01 story activity API (`pkg-000052` T01–T06) | — | P1: EPIC-M2-22 materialized; pipeline story + 6 tasks + gate stub; bullrun synced; pointer → pkg-000052. |
 | 2026-07-11 | P6 execute | GW-SEED-04 audit follow-up T07–T08 (`gw_seed_04_audit_followup`) | [run-summary-20260711-2004-gw-seed-04-audit-p6](./run-reports/run-summary-20260711-2004-gw-seed-04-audit-p6.md) | T07 R1 closed (backlog+bullrun meta); T08 R2 closed (GAUTH history); pkg-000051 unchanged. |
 | 2026-07-11 | P5 scaffold | GW-SEED-04 audit follow-up T07–T08 (`gw_seed_04_audit_followup`) | — | P5: gap tasks verified; safe-override in Gateway_builder.plan; bullrun T07/T08 rows; pkg-000051 unchanged; no pytest. |

@@ -17,6 +17,7 @@ from core.api.logging import log_api_event, log_error
 from core.logging_setup import clear_log_context, log_runtime_exception, set_log_context
 from core.api.security import UnauthorizedError
 from core.domain import StoryDraftRecord
+from core.config import ConfigError
 from core.config import schema as config_schema
 from core.geo.intake_merge import enforce_geo_intake_mode
 from core.geo.scope import GeoScopeMismatchError, assert_geo_in_scope
@@ -36,7 +37,34 @@ from core.intake import (
     parse_story_intake_request,
     parse_stored_draft_stash_request,
 )
+from core.schema.shell_settings import build_active_pack_shell_settings
 from core.telemetry.label_miss import LabelMissValidationError, parse_label_miss_payload
+
+
+def handle_pack_shell_settings(
+    dependencies: ApiDependencies,
+    *,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """GW-THR-02: service-auth active pack shell settings pull (no Story bodies)."""
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        data = build_active_pack_shell_settings(
+            schema_id=dependencies.config.node_schema_id,
+            schema_version=dependencies.config.node_schema_version,
+        )
+        return (
+            build_success_envelope(data=data, trace_id=resolved_trace_id).as_dict(),
+            200,
+        )
+    except ConfigError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
 
 
 def handle_network_pulse(

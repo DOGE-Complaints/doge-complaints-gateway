@@ -50,7 +50,7 @@ class AppConfig:
     cluster_cron_interval_s: int
     cluster_cron_enabled: bool
     identity_base_url: str | None
-    spa_verify_base_url: str | None
+    spa_base_url: str | None
     story_draft_ttl_seconds: int
     node_schema_id: str
     node_schema_version: str
@@ -580,13 +580,13 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
                 stripped_me_base, env_name="IDENTITY_BASE_URL"
             ).rstrip("/")
 
-    spa_verify_base_url_raw = _get_value(source, "SPA_VERIFY_BASE_URL")
-    spa_verify_base_url: str | None = None
-    if spa_verify_base_url_raw is not None:
-        stripped_verify = spa_verify_base_url_raw.strip()
-        if stripped_verify:
-            spa_verify_base_url = _validate_http_url(
-                stripped_verify, env_name="SPA_VERIFY_BASE_URL"
+    spa_base_url_raw = _get_value(source, "SPA_BASE_URL")
+    spa_base_url: str | None = None
+    if spa_base_url_raw is not None:
+        stripped_spa = spa_base_url_raw.strip()
+        if stripped_spa:
+            spa_base_url = _validate_http_url(
+                stripped_spa, env_name="SPA_BASE_URL"
             ).rstrip("/")
 
     story_draft_ttl_raw = _require_value(source, name="STORY_DRAFT_TTL_SECONDS")
@@ -646,7 +646,7 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         cluster_cron_interval_s=cluster_cron_interval_s,
         cluster_cron_enabled=cluster_cron_enabled,
         identity_base_url=identity_base_url,
-        spa_verify_base_url=spa_verify_base_url,
+        spa_base_url=spa_base_url,
         story_draft_ttl_seconds=story_draft_ttl_seconds,
         node_schema_id=node_schema_id,
         node_schema_version=node_schema_version,
