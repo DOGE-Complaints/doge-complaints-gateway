@@ -4,6 +4,8 @@ Mirror of working plan: [`.cursor/plans/OP-gateway-req9-01-02-20260926.plan.md`]
 
 **Role:** Operator root orchestrate only. No product code. No invent AC. No push unless operator ordered.
 
+**Git (permanent default after 2026-09-26 SSR→dev merge):** work **only** on `dev`. Do **not** `git switch` / stay on `semantic-schema-runtime` (or invent package branches) unless the operator **explicitly** orders another branch in chat. Historical OP-*.plan.md / SSR INDEX «Git branch» text is **not** live stay policy — live SSOT = `OP-gateway.session.yaml` `stay_on_branch`.
+
 ## Model
 
 - Titles: `OP-gateway` / `BLD-gateway` / `VAL-gateway`
@@ -36,7 +38,7 @@ Mirror of working plan: [`.cursor/plans/OP-gateway-req9-01-02-20260926.plan.md`]
 | `$backlogIndex` | `doge-complaints-gateway/docs/tasks/backlog-stories/req9-ops-parity-env-naming/INDEX.md` |
 | skill | `python-pro` |
 | P1.3 variant | clean `p13` (`hasUxPipeline: false`) |
-| git stay | `dev` (SSR merged into local `dev` 2026-09-26; no return to semantic-schema-runtime) |
+| git stay | `dev` only — leave SSR forever unless operator explicit branch order |
 | P8 push | forbidden |
 
 ## Queue
