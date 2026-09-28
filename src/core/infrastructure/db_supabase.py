@@ -176,6 +176,15 @@ def _story_geo_supabase_fields(record: StoryRecord) -> dict[str, Any]:
     }
 
 
+def _parse_lifecycle_status(raw: Any, *, story_id: str = "") -> StoryLifecycleStatus:
+    """Parse DB lifecycle_status into enum; unknown values fail closed (ValueError).
+
+    ``story_id`` is retained for call-site compatibility; not used after legacy-map/debug removal.
+    """
+    _ = story_id
+    return StoryLifecycleStatus(str(raw))
+
+
 def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
     geo: StoryGeoSnapshot | None = None
     if row.get("geo_normalized_label"):
@@ -214,7 +223,7 @@ def _story_record_from_supabase_row(row: dict[str, Any]) -> StoryRecord:
             json.loads(str(row["narrative_canonical_labels_json"]))
         ),
         submitter_identity_issuer=str(row["submitter_identity_issuer"] or ""),
-        lifecycle_status=StoryLifecycleStatus(str(row["lifecycle_status"])),
+        lifecycle_status=_parse_lifecycle_status(row.get("lifecycle_status"), story_id=str(row.get("story_id") or "")),
         created_at=_parse_dt(str(row["created_at"])),
         updated_at=_parse_dt(str(row["updated_at"])),
         origin_source=row["origin_source"],
