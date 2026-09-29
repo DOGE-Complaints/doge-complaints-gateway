@@ -1,0 +1,24 @@
+{
+  "profile_id": "uus-veerenni",
+  "display_name": "Uus Veerenni deploy",
+  "description": "Civic pilot deploy target. URLs and tokens via env refs; documented example host from .env.test.example (not a secret).",
+  "source_lock": "doge-complaints-gateway/.env.test.example:11-14",
+  "services": {
+    "gateway": {
+      "url_env": "GATEWAY_URL",
+      "documented_example_url": "https://uus-veerenni-civic-gateway.dogestonia.me",
+      "api_token_env": "GATEWAY_API_TOKEN"
+    }
+  },
+  "user_auth": {
+    "email_env": "GATEWAY_USER_EMAIL",
+    "password_env": "GATEWAY_USER_PASSWORD",
+    "supabase_url_env": "SUPABASE_URL",
+    "supabase_anon_key_env": "SUPABASE_ANON_KEY"
+  },
+  "notes": [
+    "Set GATEWAY_URL / GATEWAY_API_TOKEN in ops env or local .env.test (gitignored).",
+    "documented_example_url is a public hostname pattern only; live value must come from GATEWAY_URL.",
+    "Do not invent additional public product APIs here; runner contract remains GATEWAY_URL + GATEWAY_API_TOKEN + user Bearer."
+  ]
+}

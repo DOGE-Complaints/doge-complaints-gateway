@@ -1,0 +1,40 @@
+{
+  "profile_id": "local",
+  "display_name": "Local (local-five)",
+  "description": "Mirrors scripts/shell/local-five-serve-and-health.sh default ports. Runtime PORT overrides from each service .env remain allowed (local-five port_from_env).",
+  "source_lock": "scripts/shell/local-five-serve-and-health.sh:17-23",
+  "services": {
+    "identity": {
+      "base_url": "http://127.0.0.1:8100",
+      "port_default": 8100
+    },
+    "gateway": {
+      "base_url": "http://127.0.0.1:8000",
+      "port_default": 8000,
+      "url_env": "GATEWAY_URL",
+      "api_token_env": "GATEWAY_API_TOKEN"
+    },
+    "threads": {
+      "base_url": "http://127.0.0.1:8001",
+      "port_default": 8001
+    },
+    "aibridge": {
+      "base_url": "http://127.0.0.1:8080",
+      "port_default": 8080
+    },
+    "spa": {
+      "base_url": "http://127.0.0.1:5173",
+      "port_default": 5173
+    }
+  },
+  "user_auth": {
+    "email_env": "GATEWAY_USER_EMAIL",
+    "password_env": "GATEWAY_USER_PASSWORD",
+    "supabase_url_env": "SUPABASE_URL",
+    "supabase_anon_key_env": "SUPABASE_ANON_KEY"
+  },
+  "notes": [
+    "Token/password/key values must come from environment (or .env.test local-only); never commit secrets.",
+    "GATEWAY_URL may override gateway base_url at runtime; default matches local-five."
+  ]
+}

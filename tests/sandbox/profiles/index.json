@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "selection_env": "DEMO_LIFE_SIM_PROFILE",
+  "default_profile_id": "local",
+  "profiles": [
+    {
+      "id": "local",
+      "path": "local.json",
+      "label": "Local (local-five)"
+    },
+    {
+      "id": "uus-veerenni",
+      "path": "uus-veerenni.json",
+      "label": "Uus Veerenni deploy"
+    }
+  ]
+}
