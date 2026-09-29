@@ -1,0 +1,49 @@
+{
+  "schema_note": "on-disk life-sim fixtures; not a public API contract",
+  "seed": 20260929,
+  "operator_lock": {
+    "n_users": 200,
+    "gaussian_mean": 8.5,
+    "gaussian_sigma": 2.0,
+    "clamp": [
+      1,
+      20
+    ],
+    "langs": {
+      "et": 0.6,
+      "ru": 0.3,
+      "en": 0.1
+    },
+    "breakpoint": "2026-09-30",
+    "mass_pre_post": [
+      0.25,
+      0.75
+    ]
+  },
+  "counts": {
+    "users": 200,
+    "stories": 1661,
+    "stories_per_user_min": 3,
+    "stories_per_user_max": 13,
+    "stories_per_user_mean": 8.305,
+    "lang_counts": {
+      "et": 1000,
+      "ru": 486,
+      "en": 175
+    },
+    "lang_fractions": {
+      "et": 0.602,
+      "ru": 0.2926,
+      "en": 0.1054
+    },
+    "pre_breakpoint": 415,
+    "post_breakpoint": 1246,
+    "pre_fraction": 0.2498,
+    "post_fraction": 0.7502
+  },
+  "paths": {
+    "users": "dogestonia_life_sim_users_v0_1.json",
+    "stories": "dogestonia_life_sim_stories_v0_1.json"
+  },
+  "relation_to_canvas": "supersedes canvas v0_1/v0_2 for life-sim multi-user scale; canvas remains runner stash→submit scenario array"
+}
