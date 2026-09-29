@@ -103,6 +103,14 @@ class InMemoryStoryRepository:
             replace(current, lifecycle_status=status, updated_at=datetime.now(UTC))
         )
 
+    def update_created_at(self, story_id: str, created_at: datetime) -> None:
+        current = self.get_story(story_id)
+        if current is None:
+            raise ValueError(f"Unknown story_id={story_id!r}")
+        self.save_story(
+            replace(current, created_at=created_at, updated_at=datetime.now(UTC))
+        )
+
 
 @dataclass
 class InMemoryIdempotencyRepository:

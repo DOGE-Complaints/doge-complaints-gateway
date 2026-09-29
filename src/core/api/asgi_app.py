@@ -27,6 +27,7 @@ from core.api.handlers import (
     handle_emerging_signals,
     handle_protected_status,
     handle_readiness,
+    handle_story_created_at_backdate,
     handle_story_draft_create,
     handle_story_draft_current,
     handle_story_draft_get,
@@ -447,6 +448,29 @@ async def metrics(
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
+
+
+@app.patch(
+    "/ops/stories/{story_id}/created-at",
+    dependencies=[Depends(require_public_content_service_auth)],
+)
+async def story_created_at_backdate(
+    story_id: str,
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    """GW-REQ11-04 lock B: service-auth backdate after stash→submit (not public intake)."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_story_created_at_backdate(
+        deps,
+        story_id=story_id,
+        payload=body,
+        headers=dict(request.headers.items()),
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
 
 
 @app.get("/demo/auth-page")

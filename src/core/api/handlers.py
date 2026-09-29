@@ -208,6 +208,96 @@ def handle_metrics(
     ).as_dict()
 
 
+def _parse_ops_created_at(raw: object) -> datetime:
+    if not isinstance(raw, str) or not raw.strip():
+        raise IntakeValidationError("created_at must be a non-empty ISO 8601 string.")
+    text = raw.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise IntakeValidationError(
+            "created_at must be a valid ISO 8601 datetime."
+        ) from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
+
+
+def handle_story_created_at_backdate(
+    dependencies: ApiDependencies,
+    *,
+    story_id: str,
+    payload: Mapping[str, Any],
+    headers: Mapping[str, str] | None = None,
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """Lock B: service-auth ops backdate of stories.created_at after stash→submit.
+
+    Not a public intake field — does not accept created_at on stash/submit bodies.
+    """
+    resolved_trace_id = ensure_trace_id(trace_id)
+    unauthorized = _require_service_auth(
+        dependencies, headers=headers, trace_id=resolved_trace_id
+    )
+    if unauthorized is not None:
+        return unauthorized, 401
+    sid = story_id.strip()
+    if not sid:
+        envelope = build_error_envelope(
+            IntakeValidationError("story_id must be non-empty."),
+            trace_id=resolved_trace_id,
+        )
+        log_error(envelope)
+        return envelope.as_dict(), 400
+    try:
+        created_at = _parse_ops_created_at(payload.get("created_at"))
+        repo = dependencies.story_intake_service.repository
+        if repo.get_story(sid) is None:
+            return (
+                build_error_envelope(
+                    ValueError(f"Story not found: {sid}"),
+                    trace_id=resolved_trace_id,
+                ).as_dict(),
+                404,
+            )
+        repo.update_created_at(sid, created_at)
+        stored = repo.get_story(sid)
+        assert stored is not None
+        log_api_event(
+            logging.INFO,
+            "story_created_at_backdate_ok",
+            trace_id=resolved_trace_id,
+            outcome="success",
+            story_id=sid,
+        )
+        return (
+            build_success_envelope(
+                data={
+                    "story_id": stored.story_id,
+                    "created_at": stored.created_at.astimezone(UTC)
+                    .isoformat()
+                    .replace("+00:00", "Z"),
+                },
+                trace_id=resolved_trace_id,
+            ).as_dict(),
+            200,
+        )
+    except IntakeValidationError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 400
+    except ValueError as exc:
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 404
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
 def handle_story_intake(
     dependencies: ApiDependencies,
     *,

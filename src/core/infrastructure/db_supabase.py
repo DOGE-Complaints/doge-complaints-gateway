@@ -738,6 +738,20 @@ class SupabaseStoryRepository:
             prefer="return=minimal",
         )
 
+    def update_created_at(self, story_id: str, created_at: datetime) -> None:
+        if self.get_story(story_id) is None:
+            raise ValueError(f"Unknown story_id={story_id!r}")
+        self.db._request(
+            method="PATCH",
+            path="/rest/v1/stories",
+            params={"story_id": self.db._eq_filter(story_id)},
+            json_body={
+                "created_at": created_at.isoformat(),
+                "updated_at": _utcnow().isoformat(),
+            },
+            prefer="return=minimal",
+        )
+
 
 @dataclass
 class SupabaseIdempotencyRepository:

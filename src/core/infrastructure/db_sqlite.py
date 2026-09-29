@@ -798,6 +798,15 @@ class SqliteStoryRepository:
         )
         self.db.connection.commit()
 
+    def update_created_at(self, story_id: str, created_at: datetime) -> None:
+        cursor = self.db.connection.execute(
+            "UPDATE stories SET created_at = ?, updated_at = ? WHERE story_id = ?",
+            (created_at.isoformat(), _utcnow().isoformat(), story_id),
+        )
+        self.db.connection.commit()
+        if cursor.rowcount == 0:
+            raise ValueError(f"Unknown story_id={story_id!r}")
+
 
 @dataclass
 class SqliteIdempotencyRepository:

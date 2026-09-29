@@ -105,6 +105,10 @@ class StoryRepository(Protocol):
         """Advance lifecycle for clustering pipeline."""
         ...
 
+    def update_created_at(self, story_id: str, created_at: datetime) -> None:
+        """Ops/service-auth backdate of story.created_at (lock B; not public intake)."""
+        ...
+
 
 @dataclass(frozen=True)
 class IdempotencyRecord:

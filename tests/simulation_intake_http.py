@@ -262,3 +262,20 @@ def post_stash_and_submit_http(
     elif submit_status in (401, 403):
         submit_text = format_submit_failure(submit_status, submit_text)
     return submit_status, submit_text, draft_id, story_id
+
+
+def patch_story_created_at_http(
+    *,
+    gateway_url: str,
+    service_token: str,
+    story_id: str,
+    created_at: str,
+) -> tuple[int, str]:
+    """Lock B: PATCH /ops/stories/{id}/created-at with service Bearer (not intake field)."""
+    url = f"{gateway_url.rstrip('/')}/ops/stories/{story_id}/created-at"
+    return _post_bytes(
+        url,
+        bearer_token=service_token,
+        body=json.dumps({"created_at": created_at}).encode("utf-8"),
+        method="PATCH",
+    )

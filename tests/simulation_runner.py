@@ -32,6 +32,7 @@ from core.intake import INTAKE_SCHEMA_VERSION
 
 from simulation_intake_http import (
     format_submit_failure,
+    patch_story_created_at_http,
     post_stash_and_submit_http,
     resolve_pool_slot_bearer_token,
     resolve_user_bearer_token,
@@ -240,6 +241,7 @@ def main_life_sim(args: argparse.Namespace) -> int:
     print(f"Pool: M={life_sim.POOL_SIZE} (ready_env_slots={ready_slots})")
     print(f"Target: {gateway_url}")
     print("Flow: POST /story-drafts (stash) -> POST /story-drafts/{{id}}/submit")
+    print("      then PATCH /ops/stories/{{id}}/created-at (lock B service-auth)")
     print("Auth: multi-Bearer via pool map (no SPA resident login)")
     if args.dry_run:
         print("Mode: DRY-RUN (no HTTP)")
@@ -248,10 +250,12 @@ def main_life_sim(args: argparse.Namespace) -> int:
     successes = 0
     failures: list[str] = []
     slot_token_cache_hits: dict[int, int] = {}
+    backdate_failures = 0
 
     for index, story in enumerate(selected, start=1):
         fixture_story_id = str(story.get("fixture_story_id", f"idx-{index}"))
         fixture_user_id = str(story["fixture_user_id"])
+        fixture_created_at = str(story.get("created_at") or "").strip()
         pool_slot = life_sim.map_fixture_user_to_pool_slot(fixture_user_id)
         try:
             payload = life_sim.life_sim_story_to_intake_payload(
@@ -263,7 +267,8 @@ def main_life_sim(args: argparse.Namespace) -> int:
             if args.dry_run:
                 print(
                     f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                    f"user={fixture_user_id} slot={pool_slot:02d} -> DRY-RUN ok"
+                    f"user={fixture_user_id} slot={pool_slot:02d} "
+                    f"created_at={fixture_created_at or 'n/a'} -> DRY-RUN ok"
                 )
                 successes += 1
                 continue
@@ -275,19 +280,39 @@ def main_life_sim(args: argparse.Namespace) -> int:
                 user_token=user_token,
                 payload=payload,
             )
-            if ok:
-                print(
-                    f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                    f"slot={pool_slot:02d} -> 201 stash draft_id={draft_id} "
-                    f"-> 202 submit story_id={story_id}"
-                )
-                successes += 1
-            else:
+            if not ok:
                 print(
                     f"[{index:>4}/{len(selected)}] {fixture_story_id} "
                     f"slot={pool_slot:02d} -> {status_code} ERROR detail={detail}"
                 )
                 failures.append(fixture_story_id)
+                continue
+            backdate_note = "skip-no-fixture-created_at"
+            if fixture_created_at and story_id and story_id != "n/a":
+                bd_status, bd_text = patch_story_created_at_http(
+                    gateway_url=gateway_url,
+                    service_token=service_token,
+                    story_id=story_id,
+                    created_at=fixture_created_at,
+                )
+                if bd_status == 200:
+                    backdate_note = f"backdate=200 created_at={fixture_created_at}"
+                else:
+                    backdate_failures += 1
+                    failures.append(fixture_story_id)
+                    print(
+                        f"[{index:>4}/{len(selected)}] {fixture_story_id} "
+                        f"slot={pool_slot:02d} -> 201 stash draft_id={draft_id} "
+                        f"-> 202 submit story_id={story_id} "
+                        f"-> PATCH created-at {bd_status} ERROR {bd_text.strip()[:120]}"
+                    )
+                    continue
+            print(
+                f"[{index:>4}/{len(selected)}] {fixture_story_id} "
+                f"slot={pool_slot:02d} -> 201 stash draft_id={draft_id} "
+                f"-> 202 submit story_id={story_id} -> {backdate_note}"
+            )
+            successes += 1
         except Exception as exc:  # noqa: BLE001
             print(f"[{index:>4}/{len(selected)}] {fixture_story_id} -> EXCEPTION {exc}")
             failures.append(fixture_story_id)
@@ -297,6 +322,7 @@ def main_life_sim(args: argparse.Namespace) -> int:
     print(f"  Total:   {len(selected)}")
     print(f"  Success: {successes}")
     print(f"  Failed:  {len(failures)}")
+    print(f"  Backdate failures: {backdate_failures}")
     slots_note: Any = len(slot_token_cache_hits) if slot_token_cache_hits else (
         "dry-run" if args.dry_run else 0
     )
