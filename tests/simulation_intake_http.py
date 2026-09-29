@@ -15,6 +15,7 @@ _SUPABASE_AUTH_ENV = (
 )
 
 _cached_user_bearer_token: str | None = None
+_cached_pool_bearer_tokens: dict[int, str] = {}
 
 
 def intake_payload_to_stash(payload: dict[str, Any]) -> dict[str, Any]:
@@ -99,6 +100,52 @@ def resolve_user_bearer_token() -> str:
         anon_key=_required_env("SUPABASE_ANON_KEY"),
     )
     return _cached_user_bearer_token
+
+
+def resolve_pool_slot_bearer_token(pool_slot: int) -> str:
+    """Resolve Bearer for life-sim pool slot via env refs (M=20).
+
+    Uses the same Supabase password-grant path as resolve_user_bearer_token —
+    does not invent public resident login APIs. Credentials:
+    LIFE_SIM_POOL_{NN}_EMAIL / LIFE_SIM_POOL_{NN}_PASSWORD (NN zero-padded).
+    Tokens cached in-memory per slot for one runner process; never logged.
+    """
+    if pool_slot < 0 or pool_slot > 19:
+        raise RuntimeError(f"pool_slot out of range 0..19: {pool_slot}")
+    if pool_slot in _cached_pool_bearer_tokens:
+        return _cached_pool_bearer_tokens[pool_slot]
+
+    import os
+
+    email_env = f"LIFE_SIM_POOL_{pool_slot:02d}_EMAIL"
+    password_env = f"LIFE_SIM_POOL_{pool_slot:02d}_PASSWORD"
+    missing = [
+        name
+        for name in (email_env, password_env, "SUPABASE_URL", "SUPABASE_ANON_KEY")
+        if not os.getenv(name, "").strip()
+    ]
+    if missing:
+        raise RuntimeError(
+            "Missing required env for life-sim pool slot auth: "
+            + ", ".join(missing)
+            + " (admin-bootstrap M=20; see tests/sandbox/life_sim_pool_m20.json)"
+        )
+
+    token = fetch_supabase_access_token(
+        email=_required_env(email_env),
+        password=_required_env(password_env),
+        supabase_url=_required_env("SUPABASE_URL"),
+        anon_key=_required_env("SUPABASE_ANON_KEY"),
+    )
+    _cached_pool_bearer_tokens[pool_slot] = token
+    return token
+
+
+def clear_bearer_token_caches() -> None:
+    """Clear in-memory Bearer caches (tests / multi-run tooling)."""
+    global _cached_user_bearer_token
+    _cached_user_bearer_token = None
+    _cached_pool_bearer_tokens.clear()
 
 
 def format_submit_failure(status: int, response_text: str) -> str:

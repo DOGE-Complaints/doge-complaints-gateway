@@ -1,0 +1,154 @@
+{
+  "schema_note": "life-sim submitter pool M=20; env refs only; not a public API",
+  "pool_size": 20,
+  "auth_path": "supabase_password_grant",
+  "supabase_url_env": "SUPABASE_URL",
+  "supabase_anon_key_env": "SUPABASE_ANON_KEY",
+  "slots": [
+    {
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    },
+    {
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD",
+      "phone_verified_required": true,
+      "notes": "Admin-bootstrap verified user; fill env; never commit secrets."
+    }
+  ],
+  "operator_steps": [
+    "Admin-create M=20 phone_verified demo users (Identity/Supabase ops; not SPA per-run).",
+    "Set LIFE_SIM_POOL_00_EMAIL/PASSWORD … LIFE_SIM_POOL_19_* in .env.test (gitignored).",
+    "Replay resolves access_token per slot via existing password-grant helper — no new public APIs."
+  ]
+}

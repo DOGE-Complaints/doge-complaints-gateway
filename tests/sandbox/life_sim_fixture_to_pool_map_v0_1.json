@@ -1,0 +1,1208 @@
+{
+  "schema_note": "on-disk life-sim → pool map; not a public API contract",
+  "pool_size": 20,
+  "fixture_user_count": 200,
+  "mapping_rule": "fixture_user_index % 20",
+  "entries": [
+    {
+      "fixture_user_id": "life-sim-user-0001",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0002",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0003",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0004",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0005",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0006",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0007",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0008",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0009",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0010",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0011",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0012",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0013",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0014",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0015",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0016",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0017",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0018",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0019",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0020",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0021",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0022",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0023",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0024",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0025",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0026",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0027",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0028",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0029",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0030",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0031",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0032",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0033",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0034",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0035",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0036",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0037",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0038",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0039",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0040",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0041",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0042",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0043",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0044",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0045",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0046",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0047",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0048",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0049",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0050",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0051",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0052",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0053",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0054",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0055",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0056",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0057",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0058",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0059",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0060",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0061",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0062",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0063",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0064",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0065",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0066",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0067",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0068",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0069",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0070",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0071",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0072",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0073",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0074",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0075",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0076",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0077",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0078",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0079",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0080",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0081",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0082",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0083",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0084",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0085",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0086",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0087",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0088",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0089",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0090",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0091",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0092",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0093",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0094",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0095",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0096",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0097",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0098",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0099",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0100",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0101",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0102",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0103",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0104",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0105",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0106",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0107",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0108",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0109",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0110",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0111",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0112",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0113",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0114",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0115",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0116",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0117",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0118",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0119",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0120",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0121",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0122",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0123",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0124",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0125",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0126",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0127",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0128",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0129",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0130",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0131",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0132",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0133",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0134",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0135",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0136",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0137",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0138",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0139",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0140",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0141",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0142",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0143",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0144",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0145",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0146",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0147",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0148",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0149",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0150",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0151",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0152",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0153",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0154",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0155",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0156",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0157",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0158",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0159",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0160",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0161",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0162",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0163",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0164",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0165",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0166",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0167",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0168",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0169",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0170",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0171",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0172",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0173",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0174",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0175",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0176",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0177",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0178",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0179",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0180",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0181",
+      "pool_slot": 0,
+      "email_env": "LIFE_SIM_POOL_00_EMAIL",
+      "password_env": "LIFE_SIM_POOL_00_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0182",
+      "pool_slot": 1,
+      "email_env": "LIFE_SIM_POOL_01_EMAIL",
+      "password_env": "LIFE_SIM_POOL_01_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0183",
+      "pool_slot": 2,
+      "email_env": "LIFE_SIM_POOL_02_EMAIL",
+      "password_env": "LIFE_SIM_POOL_02_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0184",
+      "pool_slot": 3,
+      "email_env": "LIFE_SIM_POOL_03_EMAIL",
+      "password_env": "LIFE_SIM_POOL_03_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0185",
+      "pool_slot": 4,
+      "email_env": "LIFE_SIM_POOL_04_EMAIL",
+      "password_env": "LIFE_SIM_POOL_04_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0186",
+      "pool_slot": 5,
+      "email_env": "LIFE_SIM_POOL_05_EMAIL",
+      "password_env": "LIFE_SIM_POOL_05_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0187",
+      "pool_slot": 6,
+      "email_env": "LIFE_SIM_POOL_06_EMAIL",
+      "password_env": "LIFE_SIM_POOL_06_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0188",
+      "pool_slot": 7,
+      "email_env": "LIFE_SIM_POOL_07_EMAIL",
+      "password_env": "LIFE_SIM_POOL_07_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0189",
+      "pool_slot": 8,
+      "email_env": "LIFE_SIM_POOL_08_EMAIL",
+      "password_env": "LIFE_SIM_POOL_08_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0190",
+      "pool_slot": 9,
+      "email_env": "LIFE_SIM_POOL_09_EMAIL",
+      "password_env": "LIFE_SIM_POOL_09_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0191",
+      "pool_slot": 10,
+      "email_env": "LIFE_SIM_POOL_10_EMAIL",
+      "password_env": "LIFE_SIM_POOL_10_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0192",
+      "pool_slot": 11,
+      "email_env": "LIFE_SIM_POOL_11_EMAIL",
+      "password_env": "LIFE_SIM_POOL_11_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0193",
+      "pool_slot": 12,
+      "email_env": "LIFE_SIM_POOL_12_EMAIL",
+      "password_env": "LIFE_SIM_POOL_12_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0194",
+      "pool_slot": 13,
+      "email_env": "LIFE_SIM_POOL_13_EMAIL",
+      "password_env": "LIFE_SIM_POOL_13_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0195",
+      "pool_slot": 14,
+      "email_env": "LIFE_SIM_POOL_14_EMAIL",
+      "password_env": "LIFE_SIM_POOL_14_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0196",
+      "pool_slot": 15,
+      "email_env": "LIFE_SIM_POOL_15_EMAIL",
+      "password_env": "LIFE_SIM_POOL_15_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0197",
+      "pool_slot": 16,
+      "email_env": "LIFE_SIM_POOL_16_EMAIL",
+      "password_env": "LIFE_SIM_POOL_16_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0198",
+      "pool_slot": 17,
+      "email_env": "LIFE_SIM_POOL_17_EMAIL",
+      "password_env": "LIFE_SIM_POOL_17_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0199",
+      "pool_slot": 18,
+      "email_env": "LIFE_SIM_POOL_18_EMAIL",
+      "password_env": "LIFE_SIM_POOL_18_PASSWORD"
+    },
+    {
+      "fixture_user_id": "life-sim-user-0200",
+      "pool_slot": 19,
+      "email_env": "LIFE_SIM_POOL_19_EMAIL",
+      "password_env": "LIFE_SIM_POOL_19_PASSWORD"
+    }
+  ]
+}

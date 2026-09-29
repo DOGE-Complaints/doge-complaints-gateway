@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -9,6 +9,7 @@
 #   make serve          — production-like local run (no reload)
 #   make dev            — hot-reload mode for active development
 #   make simulate       — run simulation_runner.py against GATEWAY_URL
+#   make simulate-life-sim — REQ11-03 profiled life-sim replay (pool M=20; see note)
 #   make check-env      — print which DB backend and Supabase URL the server will use
 #   make test           — offline pytest (excludes live_integration marker)
 #   make test-live      — live_integration-marked pytest suite only
@@ -30,6 +31,20 @@ dev:
 
 simulate:
 	.venv/bin/python tests/simulation_runner.py
+
+# REQ11-03: wipe DB first, set LIFE_SIM_POOL_00..19_* + DEMO_LIFE_SIM_PROFILE,
+# then confirm wipe. Primary path = API+JSON (no SPA resident login).
+# Offline contract: LIFE_SIM_DRY_RUN=1 make simulate-life-sim
+simulate-life-sim:
+	@if [ "$${LIFE_SIM_DRY_RUN}" = "1" ]; then \
+	  .venv/bin/python tests/simulation_runner.py --life-sim --wipe-confirmed --dry-run \
+	    $${DEMO_LIFE_SIM_PROFILE:+--profile $${DEMO_LIFE_SIM_PROFILE}} \
+	    $${SIMULATION_MAX_STORIES:+--max $${SIMULATION_MAX_STORIES}}; \
+	else \
+	  .venv/bin/python tests/simulation_runner.py --life-sim --wipe-confirmed \
+	    $${DEMO_LIFE_SIM_PROFILE:+--profile $${DEMO_LIFE_SIM_PROFILE}} \
+	    $${SIMULATION_MAX_STORIES:+--max $${SIMULATION_MAX_STORIES}}; \
+	fi
 
 # ─── Diagnostics ────────────────────────────────────────────────────────────
 # Shows the effective DB_BACKEND and Supabase URL that the server will see
