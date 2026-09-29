@@ -1,11 +1,14 @@
-"""GW-REQ11-03 — life-sim fixtures + profile + pool M=20 map helpers (tooling).
+"""GW-REQ11-03/05 — life-sim fixtures + profile + auth helpers (tooling).
 
-Env refs only for credentials. Does not invent public resident login APIs.
+REQ11-05: prefer 1:1 secrets file Bearer (gitignored). Pool M=20 deprecated for
+new Pass (kept for LIFE_SIM_USE_POOL_M20=1 emergency). Does not invent public
+resident login APIs.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +18,7 @@ STORIES_PATH = SANDBOX / "dogestonia_life_sim_stories_v0_1.json"
 META_PATH = SANDBOX / "dogestonia_life_sim_fixtures_v0_1_meta.json"
 POOL_MANIFEST_PATH = SANDBOX / "life_sim_pool_m20.json"
 MAP_PATH = SANDBOX / "life_sim_fixture_to_pool_map_v0_1.json"
+SECRETS_DIR = SANDBOX / ".secrets"
 
 POOL_SIZE = 20
 EXPECTED_USERS = 200
@@ -204,6 +208,51 @@ def count_pool_slots_with_credentials(environ: dict[str, str] | None = None) -> 
         email = env.get(POOL_EMAIL_ENV_TMPL.format(slot=slot), "").strip()
         password = env.get(POOL_PASSWORD_ENV_TMPL.format(slot=slot), "").strip()
         if email and password:
+            ready += 1
+    return ready
+
+
+def use_pool_m20_legacy() -> bool:
+    """Emergency legacy: LIFE_SIM_USE_POOL_M20=1 forces deprecated pool path."""
+    return os.getenv("LIFE_SIM_USE_POOL_M20", "").strip() == "1"
+
+
+def resolve_users_creds_path() -> Path | None:
+    """Resolve secrets JSON: LIFE_SIM_USERS_CREDS env, else newest under .secrets/."""
+    import life_sim_provision_lib as provision
+
+    explicit = os.getenv("LIFE_SIM_USERS_CREDS", "").strip()
+    if explicit:
+        path = Path(explicit)
+        provision.assert_secrets_path_hygiene(path)
+        return path
+    return provision.discover_latest_creds_path()
+
+
+def load_users_creds_index(path: Path | None = None) -> dict[str, dict[str, Any]]:
+    """Load fixture_user_id → {email,password,…} from gitignored secrets."""
+    import life_sim_provision_lib as provision
+
+    creds_path = path or resolve_users_creds_path()
+    if creds_path is None:
+        raise RuntimeError(
+            "No life-sim users secrets file. Run "
+            "`make life-sim-provision-users` (or set LIFE_SIM_USERS_CREDS). "
+            "Pool M=20 is deprecated for new Pass (override LIFE_SIM_USE_POOL_M20=1 only)."
+        )
+    doc = provision.load_users_creds(creds_path)
+    return provision.index_creds_by_fixture_user_id(doc)
+
+
+def count_secrets_users_ready(path: Path | None = None) -> int:
+    """How many secrets entries have email+password (no values returned)."""
+    try:
+        index = load_users_creds_index(path)
+    except (RuntimeError, ValueError, OSError):
+        return 0
+    ready = 0
+    for entry in index.values():
+        if str(entry.get("email") or "").strip() and str(entry.get("password") or ""):
             ready += 1
     return ready
 

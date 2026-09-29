@@ -34,6 +34,7 @@ from simulation_intake_http import (
     format_submit_failure,
     patch_story_created_at_http,
     post_stash_and_submit_http,
+    resolve_fixture_user_bearer_token,
     resolve_pool_slot_bearer_token,
     resolve_user_bearer_token,
 )
@@ -204,8 +205,42 @@ def main_life_sim(args: argparse.Namespace) -> int:
     life_sim.assert_fixture_scale()
     users = life_sim.load_life_sim_users()
     stories = life_sim.load_life_sim_stories()
-    life_sim.load_pool_manifest()
-    life_sim.load_fixture_to_pool_map()
+
+    use_pool = life_sim.use_pool_m20_legacy()
+    creds_index: dict[str, dict[str, Any]] = {}
+    ready_slots = 0
+    ready_secrets = 0
+
+    if use_pool:
+        life_sim.load_pool_manifest()
+        life_sim.load_fixture_to_pool_map()
+        ready_slots = life_sim.count_pool_slots_with_credentials()
+        if ready_slots < life_sim.POOL_SIZE and not args.dry_run:
+            raise RuntimeError(
+                f"Pool M={life_sim.POOL_SIZE} incomplete: {ready_slots}/{life_sim.POOL_SIZE} "
+                "slots have LIFE_SIM_POOL_NN_EMAIL+PASSWORD. Admin-bootstrap remaining slots "
+                "(env refs in tests/sandbox/life_sim_pool_m20.json). "
+                "Preferred path: REQ11-05 secrets 1:1 (unset LIFE_SIM_USE_POOL_M20). "
+                "Use --dry-run for offline."
+            )
+        auth_label = f"legacy pool M={life_sim.POOL_SIZE} (deprecated; ready_env_slots={ready_slots})"
+    else:
+        # REQ11-05 primary: 1 fixture user → 1 account → Bearer from secrets
+        if not args.dry_run:
+            creds_index = life_sim.load_users_creds_index()
+            ready_secrets = len(creds_index)
+            if ready_secrets < 1:
+                raise RuntimeError(
+                    "No fixture-user secrets ready. Run make life-sim-provision-users "
+                    "(SMS_PROVIDER=file). Pool M=20 deprecated — set LIFE_SIM_USE_POOL_M20=1 "
+                    "only as emergency override."
+                )
+        else:
+            ready_secrets = life_sim.count_secrets_users_ready()
+        auth_label = (
+            f"1:1 secrets Bearer (REQ11-05; ready={ready_secrets}; "
+            "pool M=20 deprecated for new Pass)"
+        )
 
     wipe_ok = args.wipe_confirmed or os.getenv("LIFE_SIM_WIPE_CONFIRMED", "").strip() == "1"
     if not wipe_ok:
@@ -213,14 +248,6 @@ def main_life_sim(args: argparse.Namespace) -> int:
             "Wipe/zero precondition not confirmed. Operator must wipe the connected "
             "demo DB first, then re-run with --wipe-confirmed or LIFE_SIM_WIPE_CONFIRMED=1. "
             "No wipe HTTP API is invented here — see docs/analysis/note-gw-req11-03-*"
-        )
-
-    ready_slots = life_sim.count_pool_slots_with_credentials()
-    if ready_slots < life_sim.POOL_SIZE and not args.dry_run:
-        raise RuntimeError(
-            f"Pool M={life_sim.POOL_SIZE} incomplete: {ready_slots}/{life_sim.POOL_SIZE} "
-            "slots have LIFE_SIM_POOL_NN_EMAIL+PASSWORD. Admin-bootstrap remaining slots "
-            "(env refs in tests/sandbox/life_sim_pool_m20.json). Use --dry-run for offline."
         )
 
     gateway_url = _gateway_url_from_profile(profile)
@@ -235,14 +262,14 @@ def main_life_sim(args: argparse.Namespace) -> int:
     max_stories = args.max_stories
     selected = stories if max_stories is None else stories[:max_stories]
 
-    print("DOGEstonia Life-Sim Replay Runner (REQ11-03)")
+    print("DOGEstonia Life-Sim Replay Runner (REQ11-03/05)")
     print(f"Profile: {profile['profile_id']}")
     print(f"Fixtures: {len(users)} users / {len(stories)} stories (selected {len(selected)})")
-    print(f"Pool: M={life_sim.POOL_SIZE} (ready_env_slots={ready_slots})")
+    print(f"Auth: {auth_label}")
     print(f"Target: {gateway_url}")
     print("Flow: POST /story-drafts (stash) -> POST /story-drafts/{{id}}/submit")
     print("      then PATCH /ops/stories/{{id}}/created-at (lock B service-auth)")
-    print("Auth: multi-Bearer via pool map (no SPA resident login)")
+    print("Auth: no SPA resident login (K1)")
     if args.dry_run:
         print("Mode: DRY-RUN (no HTTP)")
     print()
@@ -250,6 +277,7 @@ def main_life_sim(args: argparse.Namespace) -> int:
     successes = 0
     failures: list[str] = []
     slot_token_cache_hits: dict[int, int] = {}
+    fixture_token_hits: dict[str, int] = {}
     backdate_failures = 0
 
     for index, story in enumerate(selected, start=1):
@@ -265,15 +293,34 @@ def main_life_sim(args: argparse.Namespace) -> int:
                 location_query=location_query,
             )
             if args.dry_run:
+                auth_tag = f"slot={pool_slot:02d}" if use_pool else "secrets-1:1"
                 print(
                     f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                    f"user={fixture_user_id} slot={pool_slot:02d} "
+                    f"user={fixture_user_id} {auth_tag} "
                     f"created_at={fixture_created_at or 'n/a'} -> DRY-RUN ok"
                 )
                 successes += 1
                 continue
-            user_token = resolve_pool_slot_bearer_token(pool_slot)
-            slot_token_cache_hits[pool_slot] = slot_token_cache_hits.get(pool_slot, 0) + 1
+            if use_pool:
+                user_token = resolve_pool_slot_bearer_token(pool_slot)
+                slot_token_cache_hits[pool_slot] = slot_token_cache_hits.get(pool_slot, 0) + 1
+                auth_tag = f"slot={pool_slot:02d}"
+            else:
+                entry = creds_index.get(fixture_user_id)
+                if entry is None:
+                    raise RuntimeError(
+                        f"No secrets entry for {fixture_user_id}; provision missing users "
+                        f"(have {len(creds_index)} creds)"
+                    )
+                user_token = resolve_fixture_user_bearer_token(
+                    fixture_user_id,
+                    email=str(entry["email"]),
+                    password=str(entry["password"]),
+                )
+                fixture_token_hits[fixture_user_id] = (
+                    fixture_token_hits.get(fixture_user_id, 0) + 1
+                )
+                auth_tag = "secrets-1:1"
             ok, status_code, detail, draft_id, story_id = run_life_sim_payload_stash_submit(
                 gateway_url=gateway_url,
                 service_token=service_token,
@@ -283,7 +330,7 @@ def main_life_sim(args: argparse.Namespace) -> int:
             if not ok:
                 print(
                     f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                    f"slot={pool_slot:02d} -> {status_code} ERROR detail={detail}"
+                    f"{auth_tag} -> {status_code} ERROR detail={detail}"
                 )
                 failures.append(fixture_story_id)
                 continue
@@ -302,14 +349,14 @@ def main_life_sim(args: argparse.Namespace) -> int:
                     failures.append(fixture_story_id)
                     print(
                         f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                        f"slot={pool_slot:02d} -> 201 stash draft_id={draft_id} "
+                        f"{auth_tag} -> 201 stash draft_id={draft_id} "
                         f"-> 202 submit story_id={story_id} "
                         f"-> PATCH created-at {bd_status} ERROR {bd_text.strip()[:120]}"
                     )
                     continue
             print(
                 f"[{index:>4}/{len(selected)}] {fixture_story_id} "
-                f"slot={pool_slot:02d} -> 201 stash draft_id={draft_id} "
+                f"{auth_tag} -> 201 stash draft_id={draft_id} "
                 f"-> 202 submit story_id={story_id} -> {backdate_note}"
             )
             successes += 1
@@ -323,10 +370,16 @@ def main_life_sim(args: argparse.Namespace) -> int:
     print(f"  Success: {successes}")
     print(f"  Failed:  {len(failures)}")
     print(f"  Backdate failures: {backdate_failures}")
-    slots_note: Any = len(slot_token_cache_hits) if slot_token_cache_hits else (
-        "dry-run" if args.dry_run else 0
-    )
-    print(f"  Slots used: {slots_note}")
+    if use_pool:
+        slots_note: Any = len(slot_token_cache_hits) if slot_token_cache_hits else (
+            "dry-run" if args.dry_run else 0
+        )
+        print(f"  Slots used: {slots_note}")
+    else:
+        users_note: Any = len(fixture_token_hits) if fixture_token_hits else (
+            "dry-run" if args.dry_run else 0
+        )
+        print(f"  Fixture users used: {users_note}")
     if failures:
         preview = ", ".join(failures[:20])
         suffix = "..." if len(failures) > 20 else ""
@@ -342,7 +395,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--life-sim",
         action="store_true",
-        help="REQ11-03: profiled life-sim fixtures + pool M=20 multi-Bearer replay",
+        help="REQ11-03/05: profiled life-sim fixtures + 1:1 secrets Bearer (pool M=20 deprecated)",
     )
     parser.add_argument(
         "--profile",

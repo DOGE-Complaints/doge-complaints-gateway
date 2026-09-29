@@ -16,6 +16,7 @@ _SUPABASE_AUTH_ENV = (
 
 _cached_user_bearer_token: str | None = None
 _cached_pool_bearer_tokens: dict[int, str] = {}
+_cached_fixture_bearer_tokens: dict[str, str] = {}
 
 
 def intake_payload_to_stash(payload: dict[str, Any]) -> dict[str, Any]:
@@ -141,11 +142,52 @@ def resolve_pool_slot_bearer_token(pool_slot: int) -> str:
     return token
 
 
+def resolve_fixture_user_bearer_token(
+    fixture_user_id: str,
+    *,
+    email: str,
+    password: str,
+) -> str:
+    """Resolve Bearer for one life-sim fixture user (REQ11-05 1:1 secrets).
+
+    Same Supabase password-grant path as pool/user helpers — no invent public
+    resident login APIs. Tokens cached in-memory per fixture_user_id; never logged.
+    """
+    fid = fixture_user_id.strip()
+    if not fid:
+        raise RuntimeError("fixture_user_id required")
+    if fid in _cached_fixture_bearer_tokens:
+        return _cached_fixture_bearer_tokens[fid]
+    if not email.strip() or not password:
+        raise RuntimeError(
+            f"Missing email/password for fixture_user_id={fid!r} "
+            "(provision via tests/sandbox/life_sim_provision_users.py; gitignored secrets)"
+        )
+    missing = [
+        name
+        for name in ("SUPABASE_URL", "SUPABASE_ANON_KEY")
+        if not __import__("os").getenv(name, "").strip()
+    ]
+    if missing:
+        raise RuntimeError(
+            "Missing required env for life-sim fixture auth: " + ", ".join(missing)
+        )
+    token = fetch_supabase_access_token(
+        email=email.strip(),
+        password=password,
+        supabase_url=_required_env("SUPABASE_URL"),
+        anon_key=_required_env("SUPABASE_ANON_KEY"),
+    )
+    _cached_fixture_bearer_tokens[fid] = token
+    return token
+
+
 def clear_bearer_token_caches() -> None:
     """Clear in-memory Bearer caches (tests / multi-run tooling)."""
     global _cached_user_bearer_token
     _cached_user_bearer_token = None
     _cached_pool_bearer_tokens.clear()
+    _cached_fixture_bearer_tokens.clear()
 
 
 def format_submit_failure(status: int, response_text: str) -> str:

@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate simulate-life-sim check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -9,7 +9,8 @@
 #   make serve          — production-like local run (no reload)
 #   make dev            — hot-reload mode for active development
 #   make simulate       — run simulation_runner.py against GATEWAY_URL
-#   make simulate-life-sim — REQ11-03 profiled life-sim replay (pool M=20; see note)
+#   make simulate-life-sim — REQ11-05 profiled life-sim replay (1:1 secrets; see note)
+#   make life-sim-provision-users — REQ11-05 provision verified accounts + gitignored secrets
 #   make check-env      — print which DB backend and Supabase URL the server will use
 #   make test           — offline pytest (excludes live_integration marker)
 #   make test-live      — live_integration-marked pytest suite only
@@ -32,8 +33,9 @@ dev:
 simulate:
 	.venv/bin/python tests/simulation_runner.py
 
-# REQ11-03: wipe DB first, set LIFE_SIM_POOL_00..19_* + DEMO_LIFE_SIM_PROFILE,
-# then confirm wipe. Primary path = API+JSON (no SPA resident login).
+# REQ11-05: wipe DB first, provision secrets (make life-sim-provision-users),
+# set DEMO_LIFE_SIM_PROFILE, then confirm wipe. Primary = API+JSON 1:1 Bearer
+# (no SPA resident login). Pool M=20 deprecated (LIFE_SIM_USE_POOL_M20=1 emergency).
 # Offline contract: LIFE_SIM_DRY_RUN=1 make simulate-life-sim
 simulate-life-sim:
 	@if [ "$${LIFE_SIM_DRY_RUN}" = "1" ]; then \
@@ -45,6 +47,15 @@ simulate-life-sim:
 	    $${DEMO_LIFE_SIM_PROFILE:+--profile $${DEMO_LIFE_SIM_PROFILE}} \
 	    $${SIMULATION_MAX_STORIES:+--max $${SIMULATION_MAX_STORIES}}; \
 	fi
+
+# REQ11-05 provision: Supabase signup + Identity file-OTP → gitignored .secrets/
+# Smoke: make life-sim-provision-users LIMIT=2
+# Full:  make life-sim-provision-users   (paces ~65s/user for phone rate limits)
+life-sim-provision-users:
+	.venv/bin/python tests/sandbox/life_sim_provision_users.py \
+	  $${LIMIT:+--limit $${LIMIT}} \
+	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
+	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run}
 
 # ─── Diagnostics ────────────────────────────────────────────────────────────
 # Shows the effective DB_BACKEND and Supabase URL that the server will see

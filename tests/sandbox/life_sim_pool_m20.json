@@ -1,5 +1,5 @@
 {
-  "schema_note": "life-sim submitter pool M=20; env refs only; not a public API",
+  "schema_note": "DEPRECATED for new Pass (REQ11-05): use 1:1 secrets via life_sim_provision_users.py. Kept for LIFE_SIM_USE_POOL_M20=1 emergency. Env refs only; not a public API",
   "pool_size": 20,
   "auth_path": "supabase_password_grant",
   "supabase_url_env": "SUPABASE_URL",
