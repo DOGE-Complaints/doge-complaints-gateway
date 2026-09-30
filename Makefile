@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-wipe-node-content check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -11,6 +11,7 @@
 #   make simulate       — run simulation_runner.py against GATEWAY_URL
 #   make simulate-life-sim — REQ11-05 profiled life-sim replay (1:1 secrets; see note)
 #   make life-sim-provision-users — REQ11-05 provision verified accounts + gitignored secrets
+#   make life-sim-wipe-node-content — REQ11-06 wipe stories+derivatives+threads (confirm required)
 #   make check-env      — print which DB backend and Supabase URL the server will use
 #   make test           — offline pytest (excludes live_integration marker)
 #   make test-live      — live_integration-marked pytest suite only
@@ -56,6 +57,20 @@ life-sim-provision-users:
 	  $${LIMIT:+--limit $${LIMIT}} \
 	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
 	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run}
+
+# REQ11-06 wipe: stories + REQUIRED_READINESS_TABLES derivatives + threads tables.
+# Dry-run: LIFE_SIM_WIPE_DRY_RUN=1 make life-sim-wipe-node-content
+# Live:    LIFE_SIM_WIPE_CONFIRMED=1 make life-sim-wipe-node-content
+# Or:      make life-sim-wipe-node-content CONFIRM_WIPE=1
+# Does NOT delete Identity auth.users. No invent wipe HTTP.
+life-sim-wipe-node-content:
+	@if [ "$${LIFE_SIM_WIPE_DRY_RUN}" = "1" ]; then \
+	  .venv/bin/python tests/sandbox/life_sim_wipe_node_content.py --dry-run; \
+	elif [ "$${LIFE_SIM_WIPE_CONFIRMED}" = "1" ] || [ "$${CONFIRM_WIPE}" = "1" ]; then \
+	  LIFE_SIM_WIPE_CONFIRMED=1 .venv/bin/python tests/sandbox/life_sim_wipe_node_content.py --confirm-wipe; \
+	else \
+	  .venv/bin/python tests/sandbox/life_sim_wipe_node_content.py; \
+	fi
 
 # ─── Diagnostics ────────────────────────────────────────────────────────────
 # Shows the effective DB_BACKEND and Supabase URL that the server will see
