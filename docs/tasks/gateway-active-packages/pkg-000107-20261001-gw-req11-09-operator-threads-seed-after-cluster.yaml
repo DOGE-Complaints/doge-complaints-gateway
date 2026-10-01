@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 107
+created_at: '2026-10-01T10:45:33Z'
+label: GW-REQ11-09 operator threads seed after cluster CLI + RU manual (EPIC-req11-demo-life-sim-fixtures-and-replay)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md
+story_groups:
+- story_key: STORY-GW-REQ11-09
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t01-fail-closed-empty-issues-gate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t02-cli-make-thin-wrapper/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t03-secrets-actors-handoff-seed/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t04-offline-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t05-ru-manual-threads-seed/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/task-gw-req11-09-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-01T10:45:33Z. Backlog REQ11-09 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. No product/seed execute this turn.
+  Locks: fail-closed empty issues; reuse closed_http_seed.seed_representative_issues;
+  actors Bearer by fixture_user_id (not SERVICE_API_TOKEN); never mutate pack JSON;
+  no invent force-cluster / Closed APIs; do not reuse REQ11-07 number.
+  Do not mutate pkg-000100…106.

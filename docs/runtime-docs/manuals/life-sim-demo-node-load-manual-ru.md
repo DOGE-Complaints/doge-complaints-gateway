@@ -182,7 +182,7 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 3. **Provision:** предпочитайте pack-wave CLI — см. [`life-sim-provision-pack-wave-manual-ru.md`](./life-sim-provision-pack-wave-manual-ru.md) (`make life-sim-provision-pack-wave`, `LIFE_SIM_PACK_DIR`, wave-state, `skip`|`wipe-fixture-users`). Legacy entry: `make life-sim-provision-users`. Smoke `LIMIT=2` сначала. Gate: verified + gitignored `.secrets/`. Identity `SMS_PROVIDER=file` + `@dogestonia.me`.
 4. **Replay:** из `life_sim_packs/<pack_id>/` + `DEMO_LIFE_SIM_PROFILE=local make simulate-life-sim` (STOP если runner path ещё на Absent flat `*_v0_1`).
 5. **Force cluster** = тот же путь, что cron: `StoryClusterOrchestrator.process_all_pending()` ([`cluster_cron.py`](../../../src/core/scheduler/cluster_cron.py)); **poll** `GET /node/issues` до non-empty (не только sleep-helper).
-6. **Threads:** `seed_representative_issues` в [`doge-threads/src/core/seed/closed_http_seed.py`](../../../../doge-threads/src/core/seed/closed_http_seed.py) + Bearer из secrets; handoff issue_id + density.
+6. **Threads:** [`life-sim-threads-seed-manual-ru.md`](./life-sim-threads-seed-manual-ru.md) — `make life-sim-seed-threads` (thin wrapper → `seed_representative_issues` + Bearer из secrets; handoff issue_id + density). **Fail-closed**, если issues empty.
 7. **SPA:** anonymous `#/board`, `#/issue/:id`.
 
 ---
@@ -200,7 +200,7 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 | B-WIPE | STORY-GW-REQ11-06 Done · wipe Present |
 | B-FORCE | Нет HTTP force-cluster — использовать cron path `process_all_pending` |
 | B-429 | Signup rate limit (provision) |
-| B-THR-CLI | Threads seed library-only (нет Make one-liner) |
+| B-THR-CLI | **Closed** — `make life-sim-seed-threads` Present ([threads-seed RU](./life-sim-threads-seed-manual-ru.md)) |
 
 ---
 
@@ -217,9 +217,9 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 | Provision | `make life-sim-provision-pack-wave` (**Present** REQ11-08) · legacy `make life-sim-provision-users` (REQ11-05) · [pack-wave RU](./life-sim-provision-pack-wave-manual-ru.md) |
 | Replay | `make simulate-life-sim` (**Present**) |
 | Cluster | `process_all_pending` via cron (**Present**) |
-| Threads seed | `seed_representative_issues` Closed lib (**Present**) |
+| Threads seed | `make life-sim-seed-threads` (**Present** REQ11-09) · [RU](./life-sim-threads-seed-manual-ru.md) · lib `seed_representative_issues` |
 | Stack | `scripts/shell/local-five-serve-and-health.sh` (**Present**) |
-| Stories backlog | STORY-GW-REQ11-01…06 (07 **removed**) |
+| Stories backlog | STORY-GW-REQ11-01…06,08,09 (07 **removed**) |
 
 ---
 
