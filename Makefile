@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-provision-pack-wave life-sim-seed-threads life-sim-wipe-node-content check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-provision-pack-wave life-sim-replay-pack-wave life-sim-seed-threads life-sim-wipe-node-content check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -12,6 +12,7 @@
 #   make simulate-life-sim — REQ11-05 profiled life-sim replay (1:1 secrets; see note)
 #   make life-sim-provision-users — REQ11-05 provision verified accounts + gitignored secrets
 #   make life-sim-provision-pack-wave — REQ11-08 pack-wave provision + wave-state (LIFE_SIM_PACK_DIR)
+#   make life-sim-replay-pack-wave — REQ11-10 pack-wave replay жалоб + wave-state (LIFE_SIM_PACK_DIR fail-closed)
 #   make life-sim-seed-threads — REQ11-09 threads seed after cluster (fail-closed empty issues)
 #   make life-sim-wipe-node-content — REQ11-06 wipe stories+derivatives+threads (confirm required)
 #   make check-env      — print which DB backend and Supabase URL the server will use
@@ -76,6 +77,31 @@ life-sim-provision-pack-wave:
 	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
 	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run} \
 	  $$( [ "$${LIFE_SIM_WIPE_FIXTURE_USERS}" = "1" ] && echo --confirm-wipe-fixture-users )
+
+# REQ11-10 pack-wave replay жалоб: LIFE_SIM_PACK_DIR required; wave-state
+# under pack/waves/<wave_id>/replay_state.json; resume skips submitted.
+# Smoke: LIFE_SIM_PACK_DIR=… make life-sim-replay-pack-wave LIMIT=2
+# Dry-run: LIFE_SIM_REPLAY_PACK_WAVE_DRY_RUN=1 make life-sim-replay-pack-wave
+# Reuses life_sim_replay_lib + simulation_runner stash→submit; Bearer by fixture_user_id.
+# Never writes status into pack stories.json. No invent intake / force-cluster.
+# Legacy make simulate-life-sim remains (deprecation: prefer this target).
+life-sim-replay-pack-wave:
+	@if [ -z "$${LIFE_SIM_PACK_DIR}" ] && [ -z "$${PACK_DIR}" ]; then \
+	  echo "Set LIFE_SIM_PACK_DIR=… or PACK_DIR=… (pack with stories.json)"; exit 2; \
+	fi
+	@if [ "$${LIFE_SIM_REPLAY_PACK_WAVE_DRY_RUN}" = "1" ]; then \
+	  LIFE_SIM_PACK_DIR=$${LIFE_SIM_PACK_DIR:-$${PACK_DIR}} \
+	  .venv/bin/python tests/sandbox/life_sim_replay_pack_wave.py --dry-run \
+	    $${LIMIT:+--limit $${LIMIT}} \
+	    $${WAVE_ID:+--wave-id $${WAVE_ID}} \
+	    $${DEMO_LIFE_SIM_PROFILE:+--profile $${DEMO_LIFE_SIM_PROFILE}}; \
+	else \
+	  LIFE_SIM_PACK_DIR=$${LIFE_SIM_PACK_DIR:-$${PACK_DIR}} \
+	  .venv/bin/python tests/sandbox/life_sim_replay_pack_wave.py \
+	    $${LIMIT:+--limit $${LIMIT}} \
+	    $${WAVE_ID:+--wave-id $${WAVE_ID}} \
+	    $${DEMO_LIFE_SIM_PROFILE:+--profile $${DEMO_LIFE_SIM_PROFILE}}; \
+	fi
 
 # REQ11-09 threads seed: fail-closed if GET /node/issues empty.
 # Order: wipe → provision → replay → cluster → this target → SPA.

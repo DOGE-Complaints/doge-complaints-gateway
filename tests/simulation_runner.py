@@ -62,6 +62,33 @@ def _load_env() -> None:
     _load_env_file(Path(".env"))
 
 
+def _force_identity_supabase_auth_env() -> None:
+    """Life-sim Bearer must come from Identity's Supabase project (JWT iss/JWKS)."""
+    identity_env = _REPO_ROOT.parent / "doge-identity-service" / ".env"
+    if not identity_env.is_file():
+        return
+    wanted = (
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE",
+        "SUPABASE_JWT_SECRET",
+        "SUPABASE_JWKS_URL",
+    )
+    for raw_line in identity_env.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        if " #" in line:
+            line = line.split(" #", 1)[0].rstrip()
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key not in wanted:
+            continue
+        value = value.strip().strip('"').strip("'")
+        if value:
+            os.environ[key] = value
+
+
 def _required_env(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
@@ -427,6 +454,12 @@ def main() -> int:
     args = _parse_args()
 
     if args.life_sim:
+        _force_identity_supabase_auth_env()
+        # Runner profile expects GATEWAY_API_TOKEN; local .env often uses SERVICE_API_TOKEN.
+        if not os.getenv("GATEWAY_API_TOKEN", "").strip():
+            service = os.getenv("SERVICE_API_TOKEN", "").strip()
+            if service:
+                os.environ["GATEWAY_API_TOKEN"] = service
         return main_life_sim(args)
 
     gateway_url = _required_env("GATEWAY_URL").rstrip("/")

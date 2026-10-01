@@ -31,8 +31,12 @@ POOL_PASSWORD_ENV_TMPL = "LIFE_SIM_POOL_{slot:02d}_PASSWORD"
 
 
 def resolve_life_sim_pack_dir() -> Path | None:
-    """Optional pack root: LIFE_SIM_PACK_DIR → users.json / stories.json / meta.json."""
-    raw = os.getenv("LIFE_SIM_PACK_DIR", "").strip()
+    """Optional pack root: LIFE_SIM_PACK_DIR or PACK_DIR → users/stories/meta.json.
+
+    Legacy simulate-life-sim may omit env (falls back to Absent flat *_v0_1).
+    Pack-wave CLIs must call require_life_sim_pack_dir() instead.
+    """
+    raw = os.getenv("LIFE_SIM_PACK_DIR", "").strip() or os.getenv("PACK_DIR", "").strip()
     if not raw:
         return None
     path = Path(raw).expanduser()
@@ -40,6 +44,23 @@ def resolve_life_sim_pack_dir() -> Path | None:
         path = (Path.cwd() / path).resolve()
     else:
         path = path.resolve()
+    return path
+
+
+def require_life_sim_pack_dir(*, require_stories: bool = True) -> Path:
+    """Fail-closed pack root for pack-wave CLIs (REQ11-08/10 standard)."""
+    path = resolve_life_sim_pack_dir()
+    if path is None:
+        raise RuntimeError(
+            "LIFE_SIM_PACK_DIR not set (or PACK_DIR). "
+            "Pack stories.json is the SSOT input for pack-wave replay."
+        )
+    if not path.is_dir():
+        raise RuntimeError(f"LIFE_SIM_PACK_DIR is not a directory: {path}")
+    if require_stories:
+        stories = path / "stories.json"
+        if not stories.is_file():
+            raise RuntimeError(f"pack stories.json missing: {stories}")
     return path
 
 
