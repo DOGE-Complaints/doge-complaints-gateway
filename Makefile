@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-provision-pack-wave life-sim-wipe-node-content check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-provision-pack-wave life-sim-seed-threads life-sim-wipe-node-content check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -12,6 +12,7 @@
 #   make simulate-life-sim — REQ11-05 profiled life-sim replay (1:1 secrets; see note)
 #   make life-sim-provision-users — REQ11-05 provision verified accounts + gitignored secrets
 #   make life-sim-provision-pack-wave — REQ11-08 pack-wave provision + wave-state (LIFE_SIM_PACK_DIR)
+#   make life-sim-seed-threads — REQ11-09 threads seed after cluster (fail-closed empty issues)
 #   make life-sim-wipe-node-content — REQ11-06 wipe stories+derivatives+threads (confirm required)
 #   make check-env      — print which DB backend and Supabase URL the server will use
 #   make test           — offline pytest (excludes live_integration marker)
@@ -75,6 +76,31 @@ life-sim-provision-pack-wave:
 	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
 	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run} \
 	  $$( [ "$${LIFE_SIM_WIPE_FIXTURE_USERS}" = "1" ] && echo --confirm-wipe-fixture-users )
+
+# REQ11-09 threads seed: fail-closed if GET /node/issues empty.
+# Order: wipe → provision → replay → cluster → this target → SPA.
+# Smoke: make life-sim-seed-threads LIMIT=2
+# Dry-run: LIFE_SIM_SEED_THREADS_DRY_RUN=1 make life-sim-seed-threads
+# Prefer local profile URLs when probing local-five (override hosted GATEWAY_URL):
+#   DEMO_LIFE_SIM_PROFILE=local GATEWAY_URL=http://127.0.0.1:8000 \
+#   THREADS_URL=http://127.0.0.1:8001 make life-sim-seed-threads
+# Reuses doge-threads closed_http_seed.seed_representative_issues.
+# Actors = secrets Bearer by fixture_user_id; never SERVICE_API_TOKEN.
+# Never mutates pack JSON. No invent HTTP force-cluster.
+life-sim-seed-threads:
+	@if [ "$${LIFE_SIM_SEED_THREADS_DRY_RUN}" = "1" ]; then \
+	  .venv/bin/python tests/sandbox/life_sim_seed_threads.py --dry-run \
+	    $${LIMIT:+--limit $${LIMIT}} \
+	    $${LIMIT_ACTORS:+--limit-actors $${LIMIT_ACTORS}} \
+	    $${GATEWAY_URL:+--gateway-url $${GATEWAY_URL}} \
+	    $${THREADS_URL:+--threads-url $${THREADS_URL}}; \
+	else \
+	  .venv/bin/python tests/sandbox/life_sim_seed_threads.py \
+	    $${LIMIT:+--limit $${LIMIT}} \
+	    $${LIMIT_ACTORS:+--limit-actors $${LIMIT_ACTORS}} \
+	    $${GATEWAY_URL:+--gateway-url $${GATEWAY_URL}} \
+	    $${THREADS_URL:+--threads-url $${THREADS_URL}}; \
+	fi
 
 # REQ11-06 wipe: stories + REQUIRED_READINESS_TABLES derivatives + threads tables.
 # Dry-run: LIFE_SIM_WIPE_DRY_RUN=1 make life-sim-wipe-node-content
