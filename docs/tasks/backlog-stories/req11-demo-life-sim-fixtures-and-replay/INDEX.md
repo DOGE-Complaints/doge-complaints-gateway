@@ -8,8 +8,8 @@
 **Justification:** [`brief-req-uus-veerenni-demo-life-simulation-2026-09-29.md`](../../../../../docs/analysis/brief-req-uus-veerenni-demo-life-simulation-2026-09-29.md); [`status-simulation-story-data-assembly-2026-09-29.md`](../../../analysis/status-simulation-story-data-assembly-2026-09-29.md)  
 **Dashboard:** [`gateway-mvp-dashboard.md`](../../gateway-mvp-dashboard.md) (operator lock: MVP board)  
 **Naming:** `STORY-GW-REQ11-*`  
-**Updated:** 2026-10-01T11:00:11Z · REQ11-09 Done pkg-000107 · P6 G2 CLOSED (As-of-Done SSOT); live full seed leftover if issues empty; REQ11-07 removed  
-**Active pkg:** [`pkg-000107-20261001-gw-req11-09-operator-threads-seed-after-cluster.yaml`](../../gateway-active-packages/pkg-000107-20261001-gw-req11-09-operator-threads-seed-after-cluster.yaml) (09 Done product)  
+**Updated:** 2026-10-01T11:41:52Z · REQ11-10 product Done + P6 T07 G2 CLOSED · pkg-000108 unchanged; G1/G3 WAIVED; REQ11-07 removed  
+**Active pkg:** [`pkg-000108-20261001-gw-req11-10-operator-pack-replay-complaints-wave.yaml`](../../gateway-active-packages/pkg-000108-20261001-gw-req11-10-operator-pack-replay-complaints-wave.yaml) (10 Done product + audit T07)  
 
 **Epic:** [`EPIC-req11-demo-life-sim-fixtures-and-replay.md`](../../epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md)  
 
@@ -47,6 +47,7 @@ Gateway: JSON users+stories (scale/langs/2026 curve) + profiles (`local` from lo
 | STORY-GW-REQ11-06 | [STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md](./STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md) → [pipeline](../../epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md) · [pkg-000105](../../gateway-active-packages/pkg-000105-20260930-gw-req11-06-wipe-node-content-stories-derivatives.yaml) | 🔵 Done P3 2026-09-30T07:56:35Z · gate PASS · wipe Present | soft REQ11-02/03 |
 | STORY-GW-REQ11-08 | [STORY-GW-REQ11-08-operator-provision-pack-wave.md](./STORY-GW-REQ11-08-operator-provision-pack-wave.md) → [pipeline](../../epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/STORY-GW-REQ11-08-operator-provision-pack-wave.md) · [pkg-000106](../../gateway-active-packages/pkg-000106-20261001-gw-req11-08-operator-provision-pack-wave.yaml) | 🔵 Done P3 2026-10-01T10:31:41Z · gate PASS · T08 G2 CLOSED P6 2026-10-01T10:37:50Z · **07 removed — do not reuse** | soft REQ11-05; soft pack/`users.json` |
 | STORY-GW-REQ11-09 | [STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md](./STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md) → [pipeline](../../epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md) · [pkg-000107](../../gateway-active-packages/pkg-000107-20261001-gw-req11-09-operator-threads-seed-after-cluster.yaml) | 🔵 Done P3 2026-10-01T10:52:44Z · P6 G2 CLOSED 2026-10-01T11:00:11Z · gate PASS · B-THR-CLI Closed · live full seed leftover if issues empty | soft 03/04/05/08; hard non-empty issues |
+| STORY-GW-REQ11-10 | [STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md](./STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md) → [pipeline](../../epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md) · [pkg-000108](../../gateway-active-packages/pkg-000108-20261001-gw-req11-10-operator-pack-replay-complaints-wave.yaml) | 🔵 Done P3+P6 T07 2026-10-01T11:41:52Z · gate PASS · pack-wave Present · G2 CLOSED · G1 Tunnel 403 WAIVED | soft REQ11-03; soft 05/08; soft pack/`stories.json` |
 
 ---
 
@@ -60,4 +61,4 @@ Gateway: JSON users+stories (scale/langs/2026 curve) + profiles (`local` from lo
 - Inventing undocumented public field names before PA.2 proof  
 - Content wipe stories/issues/threads — остаётся **STORY-GW-REQ11-06** (не Auth wipe в 08; не threads seed в 09)  
 - Pack-gen (бывший REQ11-07) — removed; не в этом пакете  
-- Submit fixture **жалоб** — Present `make simulate-life-sim` (REQ11-03); не дублировать в 09  
+- Legacy submit fixture **жалоб** — Present `make simulate-life-sim` (REQ11-03); pack-wave primary = **STORY-GW-REQ11-10** Done; не дублировать в 09  

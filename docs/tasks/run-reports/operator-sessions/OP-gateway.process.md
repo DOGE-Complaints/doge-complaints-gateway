@@ -1,58 +1,54 @@
-# OP-gateway.process.md — REQ9-01…02 wave
+# OP-gateway.process — mirror working plan (REQ11-10)
 
-Mirror of working plan: [`.cursor/plans/OP-gateway-req9-01-02-20260926.plan.md`](../../../../../.cursor/plans/OP-gateway-req9-01-02-20260926.plan.md)
-
-**Role:** Operator root orchestrate only. No product code. No invent AC. No push unless operator ordered.
-
-**Git (permanent default after 2026-09-26 SSR→dev merge):** work **only** on `dev`. Do **not** `git switch` / stay on `semantic-schema-runtime` (or invent package branches) unless the operator **explicitly** orders another branch in chat. Historical OP-*.plan.md / SSR INDEX «Git branch» text is **not** live stay policy — live SSOT = `OP-gateway.session.yaml` `stay_on_branch`.
+> **Working plan:** [`.cursor/plans/OP-gateway-req11-10-20261001.plan.md`](../../../../../.cursor/plans/OP-gateway-req11-10-20261001.plan.md)  
+> **Session:** [OP-gateway.session.yaml](./OP-gateway.session.yaml)  
+> **Wave:** [wave-20261001-req11-10.md](../operator-waves/wave-20261001-req11-10.md)  
+> **No agent ids in this file.**
 
 ## Model
 
 - Titles: `OP-gateway` / `BLD-gateway` / `VAL-gateway`
-- Delivery: subagent (exactly two agents: Builder + Validator)
-- Overnight: on — auto-approve P1.3b/P5b GATE; no pause after story
-- Wave halt ONLY on explicit `стоп|stop|pause|halt`
-- Agent ids: **never** in this file — live only in `OP-gateway.session.yaml`
+- Delivery: exactly two Task subagents; verbatim fences; no operator paste
+- OP: orchestrate only — no product code, no invent AC, no push unless ordered
+- Claims: Read/Glob only ([analysis.mdc](../../../../../.cursor/rules/analysis.mdc))
 
-## Overnight non-stop
+## Overnight
 
-| Rule | Behavior |
-|------|----------|
-| Stop | operator `стоп`/`stop`/`pause`/`halt` only |
-| P1.3a→b / P5a→b | OP auto-approve immediately |
-| After P8/DONE/BLOCKED | next QUEUED story immediately |
-| Verify FAIL | BLOCKED + next |
-| P8 | local commit, **no push** |
+| Правило | Поведение |
+|---------|-----------|
+| Стоп | только `стоп` / `stop` / `pause` / `halt` |
+| P1.3a→b / P5a→b | OP auto-approve |
+| После P8 / DONE | next QUEUED (none after 10) |
+| BLOCKED | fact in wave → next |
+| P8 | local, **no push**; secrets never committed |
 
-## Constants (profile gateway)
+## Constants (gateway profile)
 
 | Variable | Value |
 |----------|--------|
 | `$builderProject` | `gateway` |
-| `workspace_root` | `/Users/eslinko/Development/DOGEstonia` |
 | `$tasksRoot` | `doge-complaints-gateway/docs/tasks` |
 | `$planFile` | `.cursor/plans/Gateway_builder.plan.md` |
+| `focus_folder` | `doge-complaints-gateway` |
+| `pipeline_doc` | `doge-complaints-gateway/docs/tasks/m2-epic-story-execution-pipeline.md` |
 | `$verifyCmd` | `python3 docs/methodology/Zeya888-builder-queue/cli/builder_resolve_queue.py --project gateway --verify` |
 | contract | `docs/methodology/Zeya888-builder-queue/contracts/gateway-operator-contract.md` |
-| dashboard (contract) | `doge-complaints-gateway/docs/tasks/gateway-mvp-dashboard.md` |
-| `$backlogIndex` | `doge-complaints-gateway/docs/tasks/backlog-stories/req9-ops-parity-env-naming/INDEX.md` |
+| dashboard | `doge-complaints-gateway/docs/tasks/gateway-mvp-dashboard.md` |
 | skill | `python-pro` |
-| P1.3 variant | clean `p13` (`hasUxPipeline: false`) |
-| git stay | `dev` only — leave SSR forever unless operator explicit branch order |
-| P8 push | forbidden |
+| P1.3 | clean (`hasUxPipeline: false`) |
+| stay | `dev` only |
 
 ## Queue
 
-| # | Id | Path | Status at wave start |
-|---|----|------|----------------------|
-| 1 | REQ9-01 | `…/STORY-GW-REQ9-01-example-env-and-spa-base-url.md` | QUEUED |
-| 2 | REQ9-02 | `…/STORY-GW-REQ9-02-make-test.md` | QUEUED |
+| # | Id | Path | Notes |
+|---|----|------|-------|
+| 1 | REQ11-10 | `…/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md` | pack-wave replay жалоб |
 
-Constraints: hard cut SPA_BASE_URL; no dual-read SPA_VERIFY_*; make test offline + test-live; no invent CI/Railway service ids.
+Queue count: **1**. mode: sequential. input_mode: backlog_story.
 
 ## Plan-sim + ROLE_LOCK
 
-Variant 1: P1.3a/b and P5a/b = two calls; OP auto-approve overnight.
+Variant 1: P1.3a/b and P5a/b = two Builder calls; overnight auto-approve.
 
 ```text
 ROLE_LOCK: Execute ONLY the fence below. RETURN_TO_ROOT: paths + ≤5 lines facts. Do not advance phases yourself.
@@ -60,21 +56,4 @@ ROLE_LOCK: Execute ONLY the fence below. RETURN_TO_ROOT: paths + ≤5 lines fact
 
 ## Phase script
 
-| Step | Who | Action |
-|------|-----|--------|
-| 0 G0 | OP shell | stay branch; wave MD |
-| 0b/0c | OP→agents | resume/spawn BLD+VAL |
-| P1.3a | OP→BLD | console P1.3 + PLAN_DRAFT |
-| GATE | OP auto | overnight |
-| P1.3b | OP→BLD | PLAN_APPLY + verify |
-| P2 | OP shell | `$verifyCmd` + `--write-build-window` |
-| P3 | OP→BLD | console P3 `@attach` `$planFile` |
-| P4 | OP→VAL | console P4 RO |
-| P5a/b | OP→BLD | if gaps; auto-approve |
-| P6 | OP→BLD | console P6 |
-| P7 | OP→VAL | console P7 RO |
-| P8 | OP→BLD | console P8 no push |
-
-## Wave
-
-[wave-20260926-req9-01-02.md](../operator-waves/wave-20260926-req9-01-02.md)
+0 G0 stay `dev` → 0b/0c resume → P1.3a/b → P2 → P3 → P4 → P5a/b → P6 → P7 → P8 (no push) → STOP (queue exhausted).
