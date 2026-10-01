@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 106
+created_at: '2026-10-01T10:23:41Z'
+label: GW-REQ11-08 operator provision pack wave CLI + wave-state + RU manual (EPIC-req11-demo-life-sim-fixtures-and-replay)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-08-operator-provision-pack-wave.md
+story_groups:
+- story_key: STORY-GW-REQ11-08
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t01-cli-pack-users-entry/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t02-shared-config-fail-closed/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t03-wave-state-checkpoint-resume/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t04-skip-or-wipe-fixture-auth-provision/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t05-ru-manual-pack-wave/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t06-offline-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t07-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-01T10:23:41Z. Backlog REQ11-08 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. No product/provision execute this turn.
+  Locks: SMS_PROVIDER=file; @dogestonia.me; Identity Auth Supabase;
+  pack users.json read-only for status; wave-state separate; skip|wipe-fixture-users;
+  never invent GET /dev/last-otp; never commit secrets; do not reuse REQ11-07 number.
+  Do not mutate pkg-000100…105.

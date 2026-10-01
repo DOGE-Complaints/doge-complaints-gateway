@@ -708,6 +708,225 @@
 
 **activation:** `run_mode=gw_req9_02_audit_followup` — T04 Done; current.yaml stays pkg-000097. Draft: [`p5_gw_req9_02_gap_20260926T122851Z.plan.md`](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 + 4-fails WAIVED).
 
+## EPIC-req10-lifecycle-status-normalize — REQ10 lifecycle_status normalize (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req10-lifecycle-status-normalize.md`](./epics/EPIC-req10-lifecycle-status-normalize.md). Пакет [`req10-lifecycle-status-normalize/`](./backlog-stories/req10-lifecycle-status-normalize/INDEX.md). Ветка `dev`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md).
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ10-01 | [pipeline lifecycle_status inventory](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/STORY-GW-REQ10-01-lifecycle-status-inventory.md) → [backlog](./backlog-stories/req10-lifecycle-status-normalize/STORY-GW-REQ10-01-lifecycle-status-inventory.md) | **Done** pkg-000098 T01–T04 · P3 2026-09-28T17:16:40Z · P5 APPLY `activation: none` 2026-09-28T17:22:46Z · inventory only · [`pkg`](./gateway-active-packages/pkg-000098-20260928-gw-req10-01-lifecycle-status-inventory.yaml) · [`run-summary`](./run-reports/run-summary-20260928-1716-gw-req10-01-p3.md) · [`p5-disposition`](./run-reports/run-summary-20260928-1722-gw-req10-01-p5-disposition.md) · [`gate`](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t04-story-gate/story-acceptance-gate-STORY-GW-REQ10-01.md) · [`inventory`](../analysis/inventory-gw-req10-01-lifecycle-status-2026-09-28.md) · [`audit`](../analysis/audit-gw-req10-01-lifecycle-status-inventory-2026-09-28.md) |
+| 🔵 | GW-REQ10-02 | [pipeline lifecycle backfill + mapper cleanup](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup.md) → [backlog](./backlog-stories/req10-lifecycle-status-normalize/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup.md) | **Done** pkg-000099 T01–T07 · P3 2026-09-28T17:44:10Z · P5 APPLY · P6 T07 G3 CLOSED 2026-09-28T17:52:28Z · mapper+debug cleaned · hosted AC-01 operator blocker · [`pkg`](./gateway-active-packages/pkg-000099-20260928-gw-req10-02-lifecycle-backfill-and-mapper-cleanup.yaml) · [`run-summary`](./run-reports/run-summary-20260928-1744-gw-req10-02-p3.md) · [`p6-audit`](./run-reports/run-summary-20260928-1752-gw-req10-02-audit-p6.md) · [`gate`](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t06-story-gate/story-acceptance-gate-STORY-GW-REQ10-02.md) · [`evidence`](../analysis/evidence-gw-req10-02-lifecycle-backfill-2026-09-28.md) |
+
+### STORY-GW-REQ10-01 — lifecycle_status inventory
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ10-01-T01 | [T01: DB DISTINCT inventory](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t01-db-distinct-inventory/README.md) | docs | Done | hosted DISTINCT 162/4; RECEIVED×1 |
+| 🔵 | TASK-GW-REQ10-01-T02 | [T02: fixture/sqlite scan](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t02-fixture-sqlite-scan/README.md) | docs | Done | RECEIVED/received absent as fixture data |
+| 🔵 | TASK-GW-REQ10-01-T03 | [T03: closed-list normalize note](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t03-closed-list-normalize-note/README.md) | docs | Done | enum-legal vs normalize vs fail-closed |
+| 🔵 | TASK-GW-REQ10-01-T04 | [T04: story acceptance gate](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t04-story-gate/README.md) | gate | Done | AC-GW-REQ1001-01…03 PASS |
+
+#### P5 disposition note (REQ10-01 audit 2026-09-28) · APPLY 2026-09-28T17:22:46Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED out-of-DoD | new_story | — | mapper/debug remain → existing [`STORY-GW-REQ10-02`](./backlog-stories/req10-lifecycle-status-normalize/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup.md) (no duplicate draft) |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `none` — TASKED=0; no gap-task folders; no `$planFile` safe-override; current.yaml stays pkg-000098. Draft: [`p5_gw_req10_01_gap_20260928T172152Z`](../../../.cursor/plans/p5_gw_req10_01_gap_20260928T172152Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1/G2 WAIVED). Do not start P6. Next: operator **P7** (or P8). Skip P6.
+
+### STORY-GW-REQ10-02 — lifecycle backfill + mapper cleanup
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ10-02-T01 | [T01: hosted lifecycle backfill](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t01-hosted-lifecycle-backfill/README.md) | implement/ops | Done | operator blocker — stories empty vs inventory |
+| 🔵 | TASK-GW-REQ10-02-T02 | [T02: fixture cleanup confirm](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t02-fixture-cleanup-confirm/README.md) | docs/verify | Done | fixtures N/A |
+| 🔵 | TASK-GW-REQ10-02-T03 | [T03: slim lifecycle mapper](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t03-slim-lifecycle-mapper/README.md) | implement | Done | RECEIVED dict removed; fail-closed |
+| 🔵 | TASK-GW-REQ10-02-T04 | [T04: remove debug I/O](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t04-remove-debug-io/README.md) | implement | Done | debug-ba94c7 removed; rg clean |
+| 🔵 | TASK-GW-REQ10-02-T05 | [T05: lifecycle parse tests](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t05-lifecycle-parse-tests/README.md) | tests | Done | 11 passed (+24 w/ repo tests) |
+| 🔵 | TASK-GW-REQ10-02-T06 | [T06: story acceptance gate](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t06-story-gate/README.md) | gate | Done | AC-GW-REQ1002-01…04 PASS |
+| 🔵 | TASK-GW-REQ10-02-T07 | [T07: audit G3 As-of-Done SSOT](./epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-02-lifecycle-backfill-and-mapper-cleanup/task-gw-req10-02-t07-audit-g3-as-of-done-ssot/README.md) | docs | Done | P6 G3 CLOSED · `gw_req10_02_audit_followup` 2026-09-28T17:52:28Z |
+
+#### P5 disposition note (REQ10-02 audit 2026-09-28) · APPLY 2026-09-28T17:50:25Z · P6 close 2026-09-28T17:52:28Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED operator | none | — | hosted inventory RECEIVED cleanup unproven; env-dependent; evidence blocker kept |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | TASKED → **CLOSED** (P6 2026-09-28T17:52:28Z) | none | T07 | As-of-Done vs Historical T01/T03/T04 + pipeline touchpoints |
+
+**activation:** `run_mode=gw_req10_02_audit_followup` — T07 Done; current.yaml stays pkg-000099. Draft: [`p5_gw_req10_02_gap_20260928T174919Z`](../../../.cursor/plans/p5_gw_req10_02_gap_20260928T174919Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G3 CLOSED; G1/G2 WAIVED). Next: operator **P7**.
+
+## EPIC-req11-demo-life-sim-fixtures-and-replay — REQ11 demo life sim fixtures & replay (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req11-demo-life-sim-fixtures-and-replay.md`](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md). Пакет [`req11-demo-life-sim-fixtures-and-replay/`](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/INDEX.md). Ветка `dev`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md). Operator lock: 200 users; Gaussian 8.5/σ2.0/[1,20]; langs 60/30/10; breakpoint 2026-09-30; ~25%/75%; auth **REQ11-05** provision 200 + secrets (supersedes pool M=20).
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ11-01 | [pipeline fixtures users+stories scale](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/STORY-GW-REQ11-01-fixtures-users-stories-scale.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-01-fixtures-users-stories-scale.md) | **Done** pkg-000100 T01–T05 · P3 2026-09-29T13:43:36Z · users 200 / stories 1661 · langs≈60/30/10 · mass≈25/75 · [`pkg`](./gateway-active-packages/pkg-000100-20260929-gw-req11-01-fixtures-users-stories-scale.yaml) · [`run-summary`](./run-reports/run-summary-20260929-1343-gw-req11-01-p3.md) · [`gate`](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t05-story-gate/story-acceptance-gate-STORY-GW-REQ11-01.md) · [`note`](../analysis/note-gw-req11-01-life-sim-vs-canvas-2026-09-29.md) |
+| 🔵 | GW-REQ11-02 | [pipeline named profiles local + Uus Veerenni](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni.md) | **Done** pkg-000101 T01–T04 · P3 2026-09-29T14:00:57Z · `local`+`uus-veerenni` env refs · [`pkg`](./gateway-active-packages/pkg-000101-20260929-gw-req11-02-named-profiles-local-uus-veerenni.yaml) · [`run-summary`](./run-reports/run-summary-20260929-1400-gw-req11-02-p3.md) · [`gate`](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t04-story-gate/story-acceptance-gate-STORY-GW-REQ11-02.md) · [`note`](../analysis/note-gw-req11-02-profile-selection-2026-09-29.md) |
+| 🔵 | GW-REQ11-03 | [pipeline profiled API replay multi-submitter](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter.md) | **Done** P3 2026-09-29T14:21:44Z · gate PASS · pool M=20 tooling · live 0/20 env blocker · [`pkg`](./gateway-active-packages/pkg-000102-20260929-gw-req11-03-profiled-api-replay-multi-submitter.yaml) · [`run-summary`](./run-reports/run-summary-20260929-1421-gw-req11-03-p3.md) |
+| ✅ | GW-REQ11-04 | [pipeline backdate + clustering handoff](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/STORY-GW-REQ11-04-backdate-and-clustering-handoff.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-04-backdate-and-clustering-handoff.md) | **Done** P3 2026-09-29T14:39:37Z · gate PASS · lock B `PATCH /ops/stories/{id}/created-at` · pool 0/20 blocker · [`pkg`](./gateway-active-packages/pkg-000103-20260929-gw-req11-04-backdate-and-clustering-handoff.yaml) |
+| 🔵 | GW-REQ11-05 | [pipeline provision 200 fixture users Identity + secrets](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/STORY-GW-REQ11-05-provision-fixture-users-identity.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-05-provision-fixture-users-identity.md) | **Done** P3 2026-09-29T18:15:05Z · gate PASS* · file OTP + 1:1 secrets · live signup 429 blocker · [`pkg`](./gateway-active-packages/pkg-000104-20260929-gw-req11-05-provision-fixture-users-identity.yaml) · [`run-summary`](./run-reports/run-summary-20260929-1815-gw-req11-05-p3.md) |
+| 🔵 | GW-REQ11-06 | [pipeline wipe node content stories+derivatives+threads](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md) | **Done** P3 2026-09-30T07:56:35Z · gate PASS · wipe Present · [`pkg`](./gateway-active-packages/pkg-000105-20260930-gw-req11-06-wipe-node-content-stories-derivatives.yaml) · [`run-summary`](./run-reports/run-summary-20260930-0756-gw-req11-06-p3.md) |
+| 🔵 | GW-REQ11-08 | [pipeline operator provision pack wave](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/STORY-GW-REQ11-08-operator-provision-pack-wave.md) → [backlog](./backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-08-operator-provision-pack-wave.md) | **Done** P3 2026-10-01T10:31:41Z · gate PASS · pack-wave Present · [`pkg`](./gateway-active-packages/pkg-000106-20261001-gw-req11-08-operator-provision-pack-wave.yaml) · [`run-summary`](./run-reports/run-summary-20261001-1031-gw-req11-08-p3.md) · file SMS + `@dogestonia.me` · **07 removed** |
+
+### STORY-GW-REQ11-01 — fixtures users+stories scale
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ11-01-T01 | [T01: users+stories scale fixtures](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t01-users-stories-scale-fixtures/README.md) | implement | Done | 200 users; 1661 stories; Gaussian mean 8.305 |
+| 🔵 | TASK-GW-REQ11-01-T02 | [T02: language mix 60/30/10](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t02-language-mix-60-30-10/README.md) | implement/verify | Done | et 0.602 / ru 0.2926 / en 0.1054 |
+| 🔵 | TASK-GW-REQ11-01-T03 | [T03: timestamps 2026 exp curve](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t03-timestamps-2026-exp-curve/README.md) | implement/verify | Done | breakpoint 2026-09-30; pre 0.2498 / post 0.7502 |
+| 🔵 | TASK-GW-REQ11-01-T04 | [T04: canvas relation doc](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t04-canvas-relation-doc/README.md) | docs | Done | life-sim supersedes canvas for multi-user scale |
+| 🔵 | TASK-GW-REQ11-01-T05 | [T05: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t05-story-gate/README.md) | gate | Done | AC-GW-REQ1101-01…04 PASS |
+| 🔵 | TASK-GW-REQ11-01-T06 | [T06: audit G1 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-01-fixtures-users-stories-scale/task-gw-req11-01-t06-audit-g1-as-of-done-ssot/README.md) | docs | Done | P6 G1 CLOSED · `gw_req11_01_audit_followup` 2026-09-29T13:50:53Z |
+
+#### P5 disposition note (REQ11-01 audit 2026-09-29) · APPLY 2026-09-29T13:48:54Z · P6 close 2026-09-29T13:50:53Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-29T13:50:53Z) | none | T06 | backlog §Verified + T01–T04 As-of-Done vs Historical |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_01_audit_followup` — T06 Done; current.yaml stays pkg-000100. Draft: [`p5_gw_req11_01_gap_20260929T134755Z`](../../../.cursor/plans/p5_gw_req11_01_gap_20260929T134755Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-02 — named profiles local + Uus Veerenni
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ11-02-T01 | [T01: profile local-five](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t01-profile-local-five/README.md) | implement | Done | `local.json` 8100/8000/8001/8080/5173 |
+| 🔵 | TASK-GW-REQ11-02-T02 | [T02: profile Uus Veerenni deploy](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t02-profile-uus-veerenni-deploy/README.md) | implement | Done | `uus-veerenni.json` env refs |
+| 🔵 | TASK-GW-REQ11-02-T03 | [T03: env refs + selection doc](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t03-env-refs-and-selection-doc/README.md) | docs/config | Done | `DEMO_LIFE_SIM_PROFILE` + selection note |
+| 🔵 | TASK-GW-REQ11-02-T04 | [T04: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t04-story-gate/README.md) | gate | Done | AC-GW-REQ1102-01…03 PASS |
+| 🔵 | TASK-GW-REQ11-02-T05 | [T05: audit G1 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-02-named-profiles-local-uus-veerenni/task-gw-req11-02-t05-audit-g1-as-of-done-ssot/README.md) | docs | Done | P6 G1 CLOSED · `gw_req11_02_audit_followup` 2026-09-29T14:08:13Z |
+
+#### P5 disposition note (REQ11-02 audit 2026-09-29) · APPLY 2026-09-29T14:06:00Z · P6 close 2026-09-29T14:08:13Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-29T14:08:13Z) | none | T05 | T01–T03 Code Facts/Gap As-of-Done vs Historical |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_02_audit_followup` — T05 Done; current.yaml stays pkg-000101. Draft: [`p5_gw_req11_02_gap_20260929T140514Z`](../../../.cursor/plans/p5_gw_req11_02_gap_20260929T140514Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1 CLOSED; G2 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-03 — profiled API replay + multi-submitter
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ11-03-T01 | [T01: wire fixtures + profile](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t01-wire-fixtures-and-profile/README.md) | implement | Done | life-sim JSON + DEMO_LIFE_SIM_PROFILE |
+| 🔵 | TASK-GW-REQ11-03-T02 | [T02: pool bootstrap M=20](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t02-pool-bootstrap-m20/README.md) | implement | Done | life_sim_pool_m20.json env refs |
+| 🔵 | TASK-GW-REQ11-03-T03 | [T03: map 200→pool multi-Bearer](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t03-map-200-to-pool-multi-bearer/README.md) | implement | Done | map JSON + resolve_pool_slot_bearer_token |
+| 🔵 | TASK-GW-REQ11-03-T04 | [T04: wipe→profiled replay runner](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t04-wipe-profiled-replay-runner/README.md) | implement | Done | --life-sim stash→submit |
+| 🔵 | TASK-GW-REQ11-03-T05 | [T05: operator docs no SPA](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t05-operator-docs-no-spa/README.md) | docs | Done | note-gw-req11-03 Pass=API+JSON |
+| 🔵 | TASK-GW-REQ11-03-T06 | [T06: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t06-story-gate/README.md) | gate | Done | AC-GW-REQ1103-01…04 PASS |
+| 🔵 | TASK-GW-REQ11-03-T07 | [T07: audit G2 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-03-profiled-api-replay-multi-submitter/task-gw-req11-03-t07-audit-g2-as-of-done-ssot/README.md) | docs | Done | P6 G2 CLOSED · `gw_req11_03_audit_followup` 2026-09-29T14:28:21Z |
+
+#### P5 disposition note (REQ11-03 audit 2026-09-29) · APPLY 2026-09-29T14:26:45Z · P6 close 2026-09-29T14:28:21Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED operator | none | — | pool `LIFE_SIM_POOL_*` 0/20 ops/env; do not invent secrets |
+| G2 | TASKED → **CLOSED** (P6 2026-09-29T14:28:21Z) | none | T07 | T01–T04 Code Facts/Gap As-of-Done vs Historical |
+| G3 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_03_audit_followup` — T07 Done; current.yaml stays pkg-000102. Draft: [`p5_gw_req11_03_gap_20260929T142541Z`](../../../.cursor/plans/p5_gw_req11_03_gap_20260929T142541Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2 CLOSED; G1/G3 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-04 — backdate + clustering handoff
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| ✅ | TASK-GW-REQ11-04-T01 | [T01: created_at stamp evidence](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t01-created-at-stamp-evidence/README.md) | docs/evidence | Done | note stamp sites + service-auth candidates |
+| ✅ | TASK-GW-REQ11-04-T02 | [T02: lock-B service-auth backdate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t02-lock-b-service-auth-backdate/README.md) | implement | Done | `PATCH /ops/stories/{id}/created-at` |
+| ✅ | TASK-GW-REQ11-04-T03 | [T03: replay apply fixture timestamps](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t03-replay-apply-fixture-timestamps/README.md) | implement | Done | `--life-sim` lock-B after submit |
+| ✅ | TASK-GW-REQ11-04-T04 | [T04: clustering wait runbook](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t04-clustering-wait-runbook/README.md) | docs/tooling | Done | CLUSTER_MIN_SIZE / cron + wait script |
+| ✅ | TASK-GW-REQ11-04-T05 | [T05: K3 card count follows clustering](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t05-k3-card-count-follows-clustering/README.md) | docs | Done | K3; no invent cluster APIs |
+| ✅ | TASK-GW-REQ11-04-T06 | [T06: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t06-story-gate/README.md) | gate | Done | AC-GW-REQ1104-01…03 PASS |
+| 🔵 | TASK-GW-REQ11-04-T07 | [T07: audit G2 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t07-audit-g2-as-of-done-ssot/README.md) | docs | Done | P6 G2 CLOSED · `gw_req11_04_audit_followup` 2026-09-29T14:46:20Z |
+| 🔵 | TASK-GW-REQ11-04-T08 | [T08: audit G4 note wait-script pointer](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t08-audit-g4-note-wait-script-pointer/README.md) | docs | Done | P6 G4 CLOSED · note→`.sh` 2026-09-29T14:46:20Z |
+
+#### P5 disposition note (REQ11-04 audit 2026-09-29) · APPLY 2026-09-29T14:44:38Z · P6 close 2026-09-29T14:46:20Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED operator | none | — | pool `LIFE_SIM_POOL_*` 0/20 ops/env; do not invent secrets |
+| G2 | TASKED → **CLOSED** (P6 2026-09-29T14:46:20Z) | none | T07 | T01–T05 Code Facts/Gap As-of-Done vs Historical |
+| G3 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G4 | TASKED → **CLOSED** (P6 2026-09-29T14:46:20Z) | none | T08 | note pointer to `life_sim_wait_clustering.sh` |
+
+**activation:** `run_mode=gw_req11_04_audit_followup` — T07–T08 Done; current.yaml stays pkg-000103. Draft/APPLY: [`p5_gw_req11_04_gap_20260929T144351Z`](../../../.cursor/plans/p5_gw_req11_04_gap_20260929T144351Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2/G4 CLOSED; G1/G3 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-05 — provision 200 fixture users Identity + secrets
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| ✅ | TASK-GW-REQ11-05-T01 | [T01: provision script signup](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t01-provision-script-signup/README.md) | implement/tooling | Done | users JSON → Supabase signup; `--limit` |
+| ✅ | TASK-GW-REQ11-05-T02 | [T02: CSPRNG secrets + gitignore](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t02-csprng-secrets-gitignore/README.md) | implement/tooling | Done | ≥24; `.secrets/` + generation_id; never commit |
+| ✅ | TASK-GW-REQ11-05-T03 | [T03: file OTP verify + pacing](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t03-file-otp-verify-pacing/README.md) | implement/tooling | Done | `SMS_PROVIDER=file` outbox; no invent last-otp |
+| ✅ | TASK-GW-REQ11-05-T04 | [T04: wire replay 1:1 Bearer](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t04-wire-replay-1to1-bearer/README.md) | implement/tooling | Done | supersede pool M=20 for new Pass |
+| ✅ | TASK-GW-REQ11-05-T05 | [T05: operator docs preconditions](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t05-operator-docs-preconditions/README.md) | docs | Done | file OTP + Supabase + pacing + secrets hygiene |
+| ✅ | TASK-GW-REQ11-05-T06 | [T06: offline unit tests](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t06-offline-unit-tests/README.md) | test | Done | email/phone/password/secrets-path hygiene |
+| ✅ | TASK-GW-REQ11-05-T07 | [T07: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t07-story-gate/README.md) | gate | Done | AC-GW-REQ1105-01…06 PASS* |
+| 🔵 | TASK-GW-REQ11-05-T08 | [T08: audit G2 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t08-audit-g2-as-of-done-ssot/README.md) | docs | Done | P6 G2 CLOSED · `gw_req11_05_audit_followup` 2026-09-29T18:19:28Z |
+
+#### P5 disposition note (REQ11-05 audit 2026-09-29) · APPLY 2026-09-29T18:18:26Z · P6 close 2026-09-29T18:19:28Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED operator | none | — | Supabase email rate limit 429; no invent OTP HTTP / secrets |
+| G2 | TASKED → **CLOSED** (P6 2026-09-29T18:19:28Z) | none | T08 | backlog §Verified As-of-Done vs Historical |
+| G3 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_05_audit_followup` — T08 Done; current.yaml stays pkg-000104. Draft/APPLY: [`p5_gw_req11_05_gap_20260929T181746Z`](../../../.cursor/plans/p5_gw_req11_05_gap_20260929T181746Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2 CLOSED; G1/G3 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-06 — wipe node content stories + derivatives + threads
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| ✅ | TASK-GW-REQ11-06-T01 | [T01: wipe script + confirm gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t01-wipe-script-confirm-gate/README.md) | implement/tooling | Done | script+Make; `--confirm-wipe` / `LIFE_SIM_WIPE_CONFIRMED=1` |
+| ✅ | TASK-GW-REQ11-06-T02 | [T02: FK-safe gateway deletes](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t02-fk-safe-gateway-deletes/README.md) | implement/tooling | Done | `REQUIRED_READINESS_TABLES` only; no Identity |
+| ✅ | TASK-GW-REQ11-06-T03 | [T03: threads tables wipe](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t03-threads-tables-wipe/README.md) | implement/tooling | Done | marks → comments → threads |
+| ✅ | TASK-GW-REQ11-06-T04 | [T04: dry-run + operator docs](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t04-dry-run-operator-docs/README.md) | docs/tooling | Done | `--dry-run` + manual wipe § |
+| ✅ | TASK-GW-REQ11-06-T05 | [T05: offline unit tests](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t05-offline-unit-tests/README.md) | test | Done | confirm-gate + ordered plan |
+| ✅ | TASK-GW-REQ11-06-T06 | [T06: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t06-story-gate/README.md) | gate | Done | AC-GW-REQ1106-01…04 PASS |
+| 🔵 | TASK-GW-REQ11-06-T07 | [T07: audit G1 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t07-audit-g1-as-of-done-ssot/README.md) | docs | Done | P6 G1 CLOSED · `gw_req11_06_audit_followup` 2026-09-30T08:02:52Z |
+| 🔵 | TASK-GW-REQ11-06-T08 | [T08: audit G2 manual §8 inventory](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t08-audit-g2-manual-s8-inventory/README.md) | docs | Done | P6 G2 CLOSED · `gw_req11_06_audit_followup` 2026-09-30T08:02:52Z |
+
+#### P5 disposition note (REQ11-06 audit 2026-09-30) · APPLY 2026-09-30T08:01:10Z · P6 close 2026-09-30T08:02:52Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6 2026-09-30T08:02:52Z) | none | T07 | backlog/T01 As-of-Done vs Historical |
+| G2 | TASKED → **CLOSED** (P6 2026-09-30T08:02:52Z) | none | T08 | manual §8 inventory Present/Done |
+| G3 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_06_audit_followup` — T07–T08 Done; current.yaml stays pkg-000105. Draft/APPLY: [`p5_gw_req11_06_gap_20260930T080005Z`](../../../.cursor/plans/p5_gw_req11_06_gap_20260930T080005Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1/G2 CLOSED; G3 WAIVED). Next: operator **P7**.
+
+### STORY-GW-REQ11-08 — operator provision pack wave (CLI + wave-state + RU manual)
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| ✅ | TASK-GW-REQ11-08-T01 | [T01: CLI + pack users entry](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t01-cli-pack-users-entry/README.md) | implement/tooling | Done | pack `users.json`; never write status into fixture |
+| ✅ | TASK-GW-REQ11-08-T02 | [T02: shared config fail-closed](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t02-shared-config-fail-closed/README.md) | implement/tooling | Done | file SMS + `@dogestonia.me` + Identity Auth |
+| ✅ | TASK-GW-REQ11-08-T03 | [T03: wave-state checkpoint + resume](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t03-wave-state-checkpoint-resume/README.md) | implement/tooling | Done | separate wave JSON; skip `verified` |
+| ✅ | TASK-GW-REQ11-08-T04 | [T04: skip or wipe-fixture-users + provision](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t04-skip-or-wipe-fixture-auth-provision/README.md) | implement/tooling | Done | skip default; wipe fixture Auth only + confirm |
+| ✅ | TASK-GW-REQ11-08-T05 | [T05: RU manual pack-wave](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t05-ru-manual-pack-wave/README.md) | docs | Done | RU manual + load-manual cross-link |
+| ✅ | TASK-GW-REQ11-08-T06 | [T06: offline unit tests](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t06-offline-unit-tests/README.md) | test | Done | config fail-closed + wave resume + domain |
+| ✅ | TASK-GW-REQ11-08-T07 | [T07: story acceptance gate](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t07-story-gate/README.md) | gate | Done | AC-GW-REQ1108-01…06 PASS |
+| 🔵 | TASK-GW-REQ11-08-T08 | [T08: audit G2 As-of-Done SSOT](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t08-audit-g2-as-of-done-ssot/README.md) | docs | Done | P6 G2 CLOSED · `gw_req11_08_audit_followup` 2026-10-01T10:37:50Z |
+
+#### P5 disposition note (REQ11-08 audit 2026-10-01) · APPLY 2026-10-01T10:36:26Z · P6 close 2026-10-01T10:37:50Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED operator | none | — | live Auth wipe/full provision leftover; Identity file SMS ops |
+| G2 | TASKED → **CLOSED** (P6 2026-10-01T10:37:50Z) | none | T08 | backlog/T01–T04 As-of-Done vs Historical |
+| G3 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+
+**activation:** `run_mode=gw_req11_08_audit_followup` — T08 Done; current.yaml stays pkg-000106. Draft/APPLY: [`p5_gw_req11_08_gap_20261001T103543Z`](../../../.cursor/plans/p5_gw_req11_08_gap_20261001T103543Z.plan.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2 CLOSED; G1/G3 WAIVED). Next: operator **P7**.
+
+**P3 Done:** 2026-10-01T10:31:41Z · [`pkg-000106`](./gateway-active-packages/pkg-000106-20261001-gw-req11-08-operator-provision-pack-wave.yaml) · [`run-summary`](./run-reports/run-summary-20261001-1031-gw-req11-08-p3.md) · [`gate`](./epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-08-operator-provision-pack-wave/task-gw-req11-08-t07-story-gate/story-acceptance-gate-STORY-GW-REQ11-08.md) PASS. Branch `dev`. No §«Актуальная точка» rewrite.
+
 ## EPIC-M2-01 — Core Foundation and Governance
 
 | S | Key | Story | Type | Status | Scope / Notes |
@@ -1902,6 +2121,41 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 | 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
 | 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-10-01 | P6 execute | STORY-GW-REQ11-08 audit follow-up T08 (`gw_req11_08_audit_followup`) | [run-summary-20261001-1037-gw-req11-08-audit-p6](./run-reports/run-summary-20261001-1037-gw-req11-08-audit-p6.md) | T08 G2 CLOSED; G1/G3 WAIVED; pkg-000106 unchanged; no §Актуальная точка rewrite. |
+| 2026-10-01 | P5 disposition | STORY-GW-REQ11-08 audit gaps (`gw_req11_08_audit_followup`) | [p5_gw_req11_08_gap_20261001T103543Z](../../../.cursor/plans/p5_gw_req11_08_gap_20261001T103543Z.plan.md) | G2 TASKED T08; G1/G3 WAIVED operator; pkg-000106 unchanged; no §Актуальная точка rewrite. |
+| 2026-10-01 | P3 execute | STORY-GW-REQ11-08 operator provision pack wave (`pkg-000106` T01–T07) | [run-summary-20261001-1031-gw-req11-08-p3](./run-reports/run-summary-20261001-1031-gw-req11-08-p3.md) | Pack-wave CLI+config+wave+RU manual; gate PASS; offline 6; wipe refuse exit 2; no live Auth wipe; no §Актуальная точка rewrite. |
+| 2026-10-01 | P1 scaffold | STORY-GW-REQ11-08 operator provision pack wave (`pkg-000106` T01–T07) | [p1_gw_req11_08_scaffold_20261001T102227Z](../../../.cursor/plans/p1_gw_req11_08_scaffold_20261001T102227Z.plan.md) | Epic REUSE + pipeline + 7 tasks; current.yaml → pkg-000106; no product provision; no §Актуальная точка rewrite. |
+| 2026-09-30 | P6 execute | STORY-GW-REQ11-06 audit follow-up T07–T08 (`gw_req11_06_audit_followup`) | [run-summary-20260930-0802-gw-req11-06-audit-p6](./run-reports/run-summary-20260930-0802-gw-req11-06-audit-p6.md) | T07 G1 CLOSED; T08 G2 CLOSED; G3 WAIVED; pkg-000105 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-30 | P5 disposition | STORY-GW-REQ11-06 audit gaps (`gw_req11_06_audit_followup`) | [run-summary-20260930-0801-gw-req11-06-p5-disposition](./run-reports/run-summary-20260930-0801-gw-req11-06-p5-disposition.md) | G1/G2 TASKED T07–T08; G3 WAIVED operator; pkg-000105 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-30 | P3 execute | STORY-GW-REQ11-06 wipe node content stories+derivatives+threads (`pkg-000105` T01–T06) | [run-summary-20260930-0756-gw-req11-06-p3](./run-reports/run-summary-20260930-0756-gw-req11-06-p3.md) | Script+Make+confirm; live wipe 204; gate PASS; no Identity DELETE; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-30 | P1 scaffold | STORY-GW-REQ11-06 wipe node content stories+derivatives+threads (`pkg-000105` T01–T06) | [p1_gw_req11_06_scaffold_20260930T075008Z](../../../.cursor/plans/p1_gw_req11_06_scaffold_20260930T075008Z.plan.md) | Epic REUSE + pipeline + 6 tasks; current.yaml → pkg-000105; no product wipe; no §Актуальная точка rewrite. |
+| 2026-09-29 | P6 execute | STORY-GW-REQ11-05 audit follow-up T08 (`gw_req11_05_audit_followup`) | [run-summary-20260929-1819-gw-req11-05-audit-p6](./run-reports/run-summary-20260929-1819-gw-req11-05-audit-p6.md) | T08 G2 CLOSED; G1/G3 WAIVED; pkg-000104 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P5 disposition | STORY-GW-REQ11-05 audit gaps (`gw_req11_05_audit_followup`) | [run-summary-20260929-1818-gw-req11-05-p5-disposition](./run-reports/run-summary-20260929-1818-gw-req11-05-p5-disposition.md) | G2 TASKED T08; G1/G3 WAIVED operator; pkg-000104 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P3 execute | STORY-GW-REQ11-05 provision fixture users Identity + secrets (`pkg-000104` T01–T07) | [run-summary-20260929-1815-gw-req11-05-p3](./run-reports/run-summary-20260929-1815-gw-req11-05-p3.md) | Code+units+docs; gate PASS*; live signup 429 blocker; no invent OTP HTTP; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P1 scaffold | STORY-GW-REQ11-05 provision fixture users Identity + secrets (`pkg-000104` T01–T07) | [p1_gw_req11_05_scaffold_20260929T180852Z](../../../.cursor/plans/p1_gw_req11_05_scaffold_20260929T180852Z.plan.md) | Epic REUSE + pipeline + 7 tasks; current.yaml → pkg-000104; file OTP; no product; no §Актуальная точка rewrite. |
+| 2026-09-29 | P6 execute | STORY-GW-REQ11-04 audit follow-up T07–T08 (`gw_req11_04_audit_followup`) | [run-summary-20260929-1446-gw-req11-04-audit-p6](./run-reports/run-summary-20260929-1446-gw-req11-04-audit-p6.md) | T07 G2 CLOSED; T08 G4 CLOSED; G1/G3 WAIVED; pkg-000103 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P5 disposition | STORY-GW-REQ11-04 audit gaps (`gw_req11_04_audit_followup`) | [run-summary-20260929-1444-gw-req11-04-p5-disposition](./run-reports/run-summary-20260929-1444-gw-req11-04-p5-disposition.md) | G2/G4 TASKED T07–T08; G1/G3 WAIVED operator; pkg-000103 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P3 execute | STORY-GW-REQ11-04 backdate + clustering handoff (`pkg-000103` T01–T06) | [run-summary-20260929-1439-gw-req11-04-p3](./run-reports/run-summary-20260929-1439-gw-req11-04-p3.md) | Lock B ops PATCH; clustering wait+K3; gate PASS; pool 0/20 blocker; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P6 execute | STORY-GW-REQ11-03 audit follow-up T07 (`gw_req11_03_audit_followup`) | [run-summary-20260929-1428-gw-req11-03-audit-p6](./run-reports/run-summary-20260929-1428-gw-req11-03-audit-p6.md) | T07 G2 CLOSED; G1/G3 WAIVED; pkg-000102 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P5 disposition | STORY-GW-REQ11-03 audit gaps (`gw_req11_03_audit_followup`) | [run-summary-20260929-1426-gw-req11-03-p5-disposition](./run-reports/run-summary-20260929-1426-gw-req11-03-p5-disposition.md) | G2 TASKED T07; G1/G3 WAIVED operator; pkg-000102 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P3 execute | STORY-GW-REQ11-03 profiled API replay + multi-submitter (`pkg-000102` T01–T06) | [run-summary-20260929-1421-gw-req11-03-p3](./run-reports/run-summary-20260929-1421-gw-req11-03-p3.md) | Pool M=20+map; --life-sim; gate PASS; live 0/20 env blocker; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P1 scaffold | STORY-GW-REQ11-04 backdate + clustering handoff (`pkg-000103` T01–T06) | [p1_gw_req11_04_scaffold_20260929T143212Z](../../../.cursor/plans/p1_gw_req11_04_scaffold_20260929T143212Z.plan.md) | Epic REUSE + pipeline + 6 tasks; current.yaml → pkg-000103; lock B; no §Актуальная точка rewrite. |
+| 2026-09-29 | P1 scaffold | STORY-GW-REQ11-03 profiled API replay + multi-submitter (`pkg-000102` T01–T06) | [p1_gw_req11_03_scaffold_20260929T141253Z](../../../.cursor/plans/p1_gw_req11_03_scaffold_20260929T141253Z.plan.md) | Epic REUSE + pipeline + 6 tasks; current.yaml → pkg-000102; pool M=20; no §Актуальная точка rewrite. |
+| 2026-09-29 | P6 execute | STORY-GW-REQ11-02 audit follow-up T05 (`gw_req11_02_audit_followup`) | [run-summary-20260929-1408-gw-req11-02-audit-p6](./run-reports/run-summary-20260929-1408-gw-req11-02-audit-p6.md) | T05 G1 CLOSED; G2 WAIVED; pkg-000101 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P5 disposition | STORY-GW-REQ11-02 audit gaps (`gw_req11_02_audit_followup`) | [run-summary-20260929-1406-gw-req11-02-p5-disposition](./run-reports/run-summary-20260929-1406-gw-req11-02-p5-disposition.md) | G1 TASKED T05; G2 WAIVED operator; pkg-000101 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P3 execute | STORY-GW-REQ11-02 named profiles local + Uus Veerenni (`pkg-000101` T01–T04) | [run-summary-20260929-1400-gw-req11-02-p3](./run-reports/run-summary-20260929-1400-gw-req11-02-p3.md) | Profiles `local`+`uus-veerenni`; env refs only; gate PASS; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P1 scaffold | STORY-GW-REQ11-02 named profiles local + Uus Veerenni (`pkg-000101` T01–T04) | [p1_gw_req11_02_scaffold_20260929T135523Z](../../../.cursor/plans/p1_gw_req11_02_scaffold_20260929T135523Z.plan.md) | Epic REUSE + pipeline + 4 tasks; current.yaml → pkg-000101; env refs only; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P6 execute | STORY-GW-REQ11-01 audit follow-up T06 (`gw_req11_01_audit_followup`) | [run-summary-20260929-1350-gw-req11-01-audit-p6](./run-reports/run-summary-20260929-1350-gw-req11-01-audit-p6.md) | T06 G1 CLOSED; G2 WAIVED; pkg-000100 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P5 APPLY | STORY-GW-REQ11-01 audit disposition (`gw_req11_01_audit_followup`) | [p5_gw_req11_01_gap_20260929T134755Z](../../../.cursor/plans/p5_gw_req11_01_gap_20260929T134755Z.plan.md) | G1 TASKED t06; G2 WAIVED operator; pkg-000100 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-29 | P3 execute | STORY-GW-REQ11-01 fixtures users+stories scale (`pkg-000100` T01–T05) | [run-summary-20260929-1343-gw-req11-01-p3](./run-reports/run-summary-20260929-1343-gw-req11-01-p3.md) | users 200 / stories 1661; langs≈60/30/10; mass≈25/75; gate PASS; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-29 | P1 scaffold | STORY-GW-REQ11-01 fixtures users+stories scale (`pkg-000100` T01–T05) | [p1_gw_req11_01_scaffold_20260929T132057Z](../../../.cursor/plans/p1_gw_req11_01_scaffold_20260929T132057Z.plan.md) | Epic NEW + pipeline + 5 tasks; current.yaml → pkg-000100; fixtures only; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-28 | P6 execute | STORY-GW-REQ10-02 audit follow-up T07 (`gw_req10_02_audit_followup`) | [run-summary-20260928-1752-gw-req10-02-audit-p6](./run-reports/run-summary-20260928-1752-gw-req10-02-audit-p6.md) | T07 G3 CLOSED; G1/G2 WAIVED; pkg-000099 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-28 | P5 APPLY | STORY-GW-REQ10-02 audit disposition (`gw_req10_02_audit_followup`) | [p5_gw_req10_02_gap_20260928T174919Z](../../../.cursor/plans/p5_gw_req10_02_gap_20260928T174919Z.plan.md) | G3 TASKED t07; G1/G2 WAIVED operator; pkg-000099 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-28 | P3 execute | STORY-GW-REQ10-02 lifecycle backfill + mapper cleanup (`pkg-000099` T01–T06) | [run-summary-20260928-1744-gw-req10-02-p3](./run-reports/run-summary-20260928-1744-gw-req10-02-p3.md) | Mapper slim + debug removed; fixtures N/A; hosted AC-01 operator blocker; gate PASS; H8 skip; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-28 | P1 scaffold | STORY-GW-REQ10-02 lifecycle backfill + mapper cleanup (`pkg-000099` T01–T06) | [p1_gw_req10_02_scaffold_20260928T172605Z](../../../.cursor/plans/p1_gw_req10_02_scaffold_20260928T172605Z.plan.md) | Pipeline + 6 tasks; epic REUSE; current.yaml → pkg-000099; H8 skip; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-28 | P5 APPLY | STORY-GW-REQ10-01 audit disposition (`activation: none`) | [p5_gw_req10_01_gap_20260928T172152Z](../../../.cursor/plans/p5_gw_req10_01_gap_20260928T172152Z.plan.md) | G1 WAIVED out-of-DoD→REQ10-02; G2 WAIVED operator; TASKED=0; pkg-000098 unchanged; no §Актуальная точка rewrite. |
+| 2026-09-28 | P3 execute | STORY-GW-REQ10-01 lifecycle_status inventory (`pkg-000098` T01–T04) | [run-summary-20260928-1716-gw-req10-01-p3](./run-reports/run-summary-20260928-1716-gw-req10-01-p3.md) | Inventory note; hosted DISTINCT; gate PASS; inventory only; H8 skip; branch `dev`; no §Актуальная точка rewrite. |
+| 2026-09-28 | P1 scaffold | STORY-GW-REQ10-01 lifecycle_status inventory (`pkg-000098` T01–T04) | [p1_gw_req10_01_scaffold_20260928T170959Z](../../../.cursor/plans/p1_gw_req10_01_scaffold_20260928T170959Z.plan.md) | Pipeline + 4 tasks; epic NEW; current.yaml → pkg-000098; inventory only; branch dev; no §Актуальная точка rewrite. |
 | 2026-09-26 | P6 execute | STORY-GW-REQ9-02 audit follow-up T04 (`gw_req9_02_audit_followup`) | [run-summary-20260926-1231-gw-req9-02-audit-p6](./run-reports/run-summary-20260926-1231-gw-req9-02-audit-p6.md) | T04 G1 CLOSED; G2 WAIVED; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-26 | P5 APPLY | STORY-GW-REQ9-02 audit disposition (`gw_req9_02_audit_followup`) | [p5_gw_req9_02_gap_20260926T122851Z](../../../.cursor/plans/p5_gw_req9_02_gap_20260926T122851Z.plan.md) | G1 TASKED t04; G2 WAIVED operator; 4 fails WAIVED out-of-DoD; pkg-000097 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-26 | P3 execute | STORY-GW-REQ9-02 make test + test-live (`pkg-000097` T01–T03) | [run-summary-20260926-1222-gw-req9-02-p3](./run-reports/run-summary-20260926-1222-gw-req9-02-p3.md) | Makefile test/test-live; lock C; existing marker; gate PASS; no invent CI; no §Актуальная точка rewrite. |

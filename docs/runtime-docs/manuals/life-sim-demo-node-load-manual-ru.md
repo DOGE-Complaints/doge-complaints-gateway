@@ -118,22 +118,27 @@ story_foci:
 
 **Конфликт со стройкой:** `story_foci.themes` с весами на шум/пыль + personas у крана и у школы → другие тексты при load (направляющие интервью; Present fixtures = sample / generator REQ11-01).
 
-### 4.5 История params прогона (ops convention)
+### 4.5 Pack на диске (каждый прогон — отдельная подпапка)
 
-**Нет** отдельной STORY на «pack generator». После интервью агент фиксирует согласованные params в истории прогона.
+**Root:** `tests/sandbox/life_sim_packs/<pack_id>/`
 
-Рекомендуемый путь (создавать только по явной команде оператора / execute wave — **name ≠ create** в docs-only):
-
-`doge-complaints-gateway/tests/sandbox/life_sim_run_history/<request_id>/`
+**`pack_id`:** `ls-<YYYYMMDD>T<HHMM>Z-<sense-slug>` — UTC snapshot + синтетика из `node_social_direction` (латиница/дефис, 2–5 слов).  
+Примеры: `ls-20260930T1122Z-veerenni-yard-defaults`, `ls-20260930T1530Z-construction-noise-school`.
 
 ```
-request_<request_id>.md     # utc + intent + согласованные params (человекочитаемо)
-params_<request_id>.json    # машинный снимок YAML-каркаса §4.3
+request.md      # utc + intent + согласованные params
+params.json     # снимок §4.3
+users.json
+stories.json
+meta.json
 ```
 
-`request_id` slug: `ls-YYYYMMDD-<short>` (предложит промпт2).
+- Новый прогон → новый `pack_id`; **не** писать life-sim JSON в корень `tests/sandbox/`.
+- Плоские `dogestonia_life_sim_*_v0_1.json` **сняты** (2026-09-30); не восстанавливать как SSOT.
+- Secrets: `tests/sandbox/.secrets/life_sim_users_creds_<generation_id>.json` (вне pack).
+- Canvas JSON — другой продукт; не смешивать.
 
-**Load fixtures:** Present sample `tests/sandbox/dogestonia_life_sim_{users,stories}_v0_1.json` (REQ11-01) и/или существующий generator tooling REQ11-01 + `DEMO_LIFE_SIM_PROFILE=local make simulate-life-sim`. Interview params — **направляющие** замысла; если тексты sample не совпадают с foci — пометить **Partial** и сказать явно.
+**Load:** replay читает JSON **из pack**. As-of: `life_sim_replay_lib.py` ещё хардкодит Absent flat `*_v0_1` → до pack-path wiring execute = **STOP** или явная подстановка path (см. `Life_sim_load.plan`). Interview params — направляющие; mismatch foci→тексты = Partial.
 
 ---
 
@@ -174,8 +179,8 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 
 1. **Wipe** — §5 после Present REQ11-06 (`make life-sim-wipe-node-content` + confirm); иначе STOP / operator wipe.
 2. **Стек:** `./scripts/shell/local-five-serve-and-health.sh` — все ready.
-3. **Provision:** `make life-sim-provision-users` (smoke `LIMIT=2` сначала). Gate: verified + gitignored `.secrets/`. Identity `SMS_PROVIDER=file`.
-4. **Replay:** `DEMO_LIFE_SIM_PROFILE=local make simulate-life-sim` (Present `*_v0_1` / profile paths; Partial если foci ≠ sample).
+3. **Provision:** предпочитайте pack-wave CLI — см. [`life-sim-provision-pack-wave-manual-ru.md`](./life-sim-provision-pack-wave-manual-ru.md) (`make life-sim-provision-pack-wave`, `LIFE_SIM_PACK_DIR`, wave-state, `skip`|`wipe-fixture-users`). Legacy entry: `make life-sim-provision-users`. Smoke `LIMIT=2` сначала. Gate: verified + gitignored `.secrets/`. Identity `SMS_PROVIDER=file` + `@dogestonia.me`.
+4. **Replay:** из `life_sim_packs/<pack_id>/` + `DEMO_LIFE_SIM_PROFILE=local make simulate-life-sim` (STOP если runner path ещё на Absent flat `*_v0_1`).
 5. **Force cluster** = тот же путь, что cron: `StoryClusterOrchestrator.process_all_pending()` ([`cluster_cron.py`](../../../src/core/scheduler/cluster_cron.py)); **poll** `GET /node/issues` до non-empty (не только sleep-helper).
 6. **Threads:** `seed_representative_issues` в [`doge-threads/src/core/seed/closed_http_seed.py`](../../../../doge-threads/src/core/seed/closed_http_seed.py) + Bearer из secrets; handoff issue_id + density.
 7. **SPA:** anonymous `#/board`, `#/issue/:id`.
@@ -207,8 +212,9 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 | Промпт2 (интервью) | `docs/methodology/…/life-sim-node-load-run.md` |
 | Reusable plan (execute) | `.cursor/plans/Life_sim_load.plan.md` |
 | Wipe | STORY-GW-REQ11-06 · Present `life_sim_wipe_node_content.py` + `make life-sim-wipe-node-content` (Done) |
-| Sample v0_1 | `dogestonia_life_sim_*_v0_1.json` (**Present** REQ11-01) |
-| Provision | `make life-sim-provision-users` (**Present** REQ11-05) |
+| Packs | `tests/sandbox/life_sim_packs/<pack_id>/` (UTC+sense; create on execute) |
+| Flat life-sim `*_v0_1` | **Absent** (cleaned 2026-09-30) |
+| Provision | `make life-sim-provision-pack-wave` (**Present** REQ11-08) · legacy `make life-sim-provision-users` (REQ11-05) · [pack-wave RU](./life-sim-provision-pack-wave-manual-ru.md) |
 | Replay | `make simulate-life-sim` (**Present**) |
 | Cluster | `process_all_pending` via cron (**Present**) |
 | Threads seed | `seed_representative_issues` Closed lib (**Present**) |
