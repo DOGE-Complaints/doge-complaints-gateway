@@ -1,4 +1,4 @@
-.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-wipe-node-content check-env test test-live
+.PHONY: serve dev simulate simulate-life-sim life-sim-provision-users life-sim-provision-pack-wave life-sim-wipe-node-content check-env test test-live
 
 # ─── Local server launch ────────────────────────────────────────────────────
 #
@@ -11,6 +11,7 @@
 #   make simulate       — run simulation_runner.py against GATEWAY_URL
 #   make simulate-life-sim — REQ11-05 profiled life-sim replay (1:1 secrets; see note)
 #   make life-sim-provision-users — REQ11-05 provision verified accounts + gitignored secrets
+#   make life-sim-provision-pack-wave — REQ11-08 pack-wave provision + wave-state (LIFE_SIM_PACK_DIR)
 #   make life-sim-wipe-node-content — REQ11-06 wipe stories+derivatives+threads (confirm required)
 #   make check-env      — print which DB backend and Supabase URL the server will use
 #   make test           — offline pytest (excludes live_integration marker)
@@ -57,6 +58,23 @@ life-sim-provision-users:
 	  $${LIMIT:+--limit $${LIMIT}} \
 	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
 	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run}
+
+# REQ11-08 pack-wave: LIFE_SIM_PACK_DIR required; wave-state under pack/waves/;
+# mode skip (default) or wipe-fixture-users + LIFE_SIM_WIPE_FIXTURE_USERS=1.
+# Smoke: LIFE_SIM_PACK_DIR=tests/sandbox/life_sim_packs/<id> make life-sim-provision-pack-wave LIMIT=2
+# Never writes status into pack users.json. Never invent GET /dev/last-otp.
+life-sim-provision-pack-wave:
+	@if [ -z "$${LIFE_SIM_PACK_DIR}" ] && [ -z "$${PACK_DIR}" ]; then \
+	  echo "Set LIFE_SIM_PACK_DIR=… or PACK_DIR=… (pack with users.json)"; exit 2; \
+	fi
+	LIFE_SIM_PACK_DIR=$${LIFE_SIM_PACK_DIR:-$${PACK_DIR}} \
+	.venv/bin/python tests/sandbox/life_sim_provision_pack_wave.py \
+	  $${LIMIT:+--limit $${LIMIT}} \
+	  $${WAVE_ID:+--wave-id $${WAVE_ID}} \
+	  $${LIFE_SIM_PACK_WAVE_MODE:+--mode $${LIFE_SIM_PACK_WAVE_MODE}} \
+	  $${LIFE_SIM_PROVISION_PACE_S:+--pace-s $${LIFE_SIM_PROVISION_PACE_S}} \
+	  $${LIFE_SIM_PROVISION_DRY_RUN:+--dry-run} \
+	  $$( [ "$${LIFE_SIM_WIPE_FIXTURE_USERS}" = "1" ] && echo --confirm-wipe-fixture-users )
 
 # REQ11-06 wipe: stories + REQUIRED_READINESS_TABLES derivatives + threads tables.
 # Dry-run: LIFE_SIM_WIPE_DRY_RUN=1 make life-sim-wipe-node-content

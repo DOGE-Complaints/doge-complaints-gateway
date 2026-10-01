@@ -60,6 +60,37 @@ def _load_env() -> None:
     _load_env_file(_REPO_MONOREPO / "doge-identity-service" / ".env")
 
 
+def _force_identity_supabase_auth_env() -> None:
+    """Auth users must live in Identity's Supabase (JWT iss/JWKS), not gateway content DB.
+
+    Gateway `.env` often points at a different project; load-order keeps gateway first.
+    Re-apply Identity SUPABASE_* so signup/login tokens validate on GET /me.
+    """
+    path = _REPO_MONOREPO / "doge-identity-service" / ".env"
+    if not path.is_file():
+        return
+    wanted = (
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE",
+        "SUPABASE_JWT_SECRET",
+        "SUPABASE_JWKS_URL",
+    )
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        if " #" in line:
+            line = line.split(" #", 1)[0].rstrip()
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key not in wanted:
+            continue
+        value = value.strip().strip('"').strip("'")
+        if value:
+            os.environ[key] = value
+
+
 def _required_env(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
@@ -172,6 +203,83 @@ def supabase_password_grant(
     )
 
 
+def supabase_admin_ensure_confirmed(
+    *,
+    email: str,
+    password: str,
+    supabase_url: str,
+    service_role: str,
+) -> str:
+    """Create or update Auth user with email_confirm=true (demo automation).
+
+    Prefer confirm-email off in Supabase; this path unblocks email_not_confirmed
+    without inventing OTP HTTP. Uses SUPABASE_SERVICE_ROLE only.
+    """
+    from urllib.parse import urlencode
+
+    base = supabase_url.rstrip("/")
+    headers = {
+        "apikey": service_role,
+        "Authorization": f"Bearer {service_role}",
+    }
+    status, payload = _http_json(
+        "POST",
+        f"{base}/auth/v1/admin/users",
+        headers=headers,
+        body={
+            "email": email,
+            "password": password,
+            "email_confirm": True,
+        },
+    )
+    if status in (200, 201):
+        return "created"
+
+    detail = payload if isinstance(payload, str) else json.dumps(payload)[:400]
+    already = status in (422, 400) or "already" in detail.lower()
+    if not already:
+        raise RuntimeError(f"Supabase admin create user HTTP {status}: {detail}")
+
+    # Locate existing user by email, then force confirm + password for this run.
+    list_url = f"{base}/auth/v1/admin/users?{urlencode({'page': '1', 'per_page': '200'})}"
+    status_l, listed = _http_json("GET", list_url, headers=headers)
+    if status_l != 200:
+        raise RuntimeError(
+            f"Supabase admin list users HTTP {status_l}: {listed!r}"[:400]
+        )
+    users: list[Any] = []
+    if isinstance(listed, dict):
+        raw_users = listed.get("users")
+        if isinstance(raw_users, list):
+            users = raw_users
+    uid: str | None = None
+    email_l = email.lower()
+    for item in users:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("email") or "").lower() == email_l:
+            cand = item.get("id")
+            if isinstance(cand, str) and cand.strip():
+                uid = cand.strip()
+                break
+    if uid is None:
+        raise RuntimeError(
+            f"Supabase admin: user exists but id not found for {email!r} "
+            f"(listed={len(users)}; may need higher per_page)"
+        )
+    status_u, updated = _http_json(
+        "PUT",
+        f"{base}/auth/v1/admin/users/{uid}",
+        headers=headers,
+        body={"email_confirm": True, "password": password},
+    )
+    if status_u not in (200, 201):
+        raise RuntimeError(
+            f"Supabase admin confirm/update HTTP {status_u}: {updated!r}"[:400]
+        )
+    return "updated"
+
+
 def identity_get_me(*, identity_url: str, bearer: str) -> dict[str, Any]:
     status, payload = _http_json(
         "GET",
@@ -215,6 +323,7 @@ def provision_one(
     *,
     supabase_url: str,
     anon_key: str,
+    service_role: str,
     identity_url: str,
     outbox_dir: Path,
     existing: dict[str, Any] | None,
@@ -241,30 +350,18 @@ def provision_one(
         entry["status"] = "dry-run"
         return entry
 
-    # Prefer login (idempotent skip-if-exists); else signup then login.
-    bearer: str | None = None
-    try:
-        bearer = supabase_password_grant(
-            email=email, password=password, supabase_url=supabase_url, anon_key=anon_key
-        )
-        entry["signup"] = "login_existing_or_prior"
-    except RuntimeError:
-        token = supabase_signup(
-            email=email, password=password, supabase_url=supabase_url, anon_key=anon_key
-        )
-        entry["signup"] = "created"
-        if token:
-            bearer = token
-        else:
-            # Confirm-email may block immediate token — try password grant anyway.
-            bearer = supabase_password_grant(
-                email=email,
-                password=password,
-                supabase_url=supabase_url,
-                anon_key=anon_key,
-            )
+    # Admin create/confirm avoids email_not_confirmed when Confirm email is on.
+    entry["admin_auth"] = supabase_admin_ensure_confirmed(
+        email=email,
+        password=password,
+        supabase_url=supabase_url,
+        service_role=service_role,
+    )
+    bearer = supabase_password_grant(
+        email=email, password=password, supabase_url=supabase_url, anon_key=anon_key
+    )
+    entry["signup"] = "admin_confirmed_login"
 
-    assert bearer is not None
     me = identity_get_me(identity_url=identity_url, bearer=bearer)
     if me.get("phone_verified") is True:
         entry["phone_verified"] = True
@@ -286,6 +383,7 @@ def provision_one(
 
 def main(argv: list[str] | None = None) -> int:
     _load_env()
+    _force_identity_supabase_auth_env()
     parser = argparse.ArgumentParser(description="Provision life-sim fixture users (REQ11-05)")
     parser.add_argument("--limit", type=int, default=None, help="Provision only first N users")
     parser.add_argument(
@@ -344,14 +442,18 @@ def main(argv: list[str] | None = None) -> int:
     identity_url = _identity_base_url()
     supabase_url = ""
     anon_key = ""
+    service_role = ""
     if not args.dry_run:
         supabase_url = _required_env("SUPABASE_URL")
         anon_key = _required_env("SUPABASE_ANON_KEY")
+        service_role = _required_env("SUPABASE_SERVICE_ROLE")
         # Fail-fast reachability facts
         try:
-            st, _ = _http_json("GET", f"{identity_url}/health", timeout=5.0)
+            st, _ = _http_json("GET", f"{identity_url}/ready", timeout=5.0)
             if st != 200:
-                raise RuntimeError(f"Identity health HTTP {st}")
+                st, _ = _http_json("GET", f"{identity_url}/health", timeout=5.0)
+            if st != 200:
+                raise RuntimeError(f"Identity ready/health HTTP {st}")
         except Exception as exc:  # noqa: BLE001
             print(
                 "OPERATOR BLOCKER: Identity unreachable at "
@@ -373,6 +475,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Generation: {generation_id}")
     print(f"Secrets out: {out_path} (gitignored)")
     print(f"Identity: {identity_url}")
+    if supabase_url:
+        host = supabase_url.split("//", 1)[-1].split("/", 1)[0]
+        print(f"Auth Supabase host (Identity project): {host}")
     print(f"Outbox: {outbox}")
     print(f"Pace: {args.pace_s}s between phone/request")
     if args.dry_run:
@@ -383,11 +488,13 @@ def main(argv: list[str] | None = None) -> int:
     failures: list[str] = []
     for i, user in enumerate(users):
         fid = str(user["fixture_user_id"])
+        did_phone_otp = False
         try:
             entry = provision_one(
                 user,
                 supabase_url=supabase_url,
                 anon_key=anon_key,
+                service_role=service_role,
                 identity_url=identity_url,
                 outbox_dir=outbox,
                 existing=existing_by_id.get(fid),
@@ -396,6 +503,11 @@ def main(argv: list[str] | None = None) -> int:
             )
             entry["generation_id"] = generation_id
             entries.append(entry)
+            # Checkpoint: survive Cursor/shell death mid-run (secrets gitignored).
+            if not args.dry_run:
+                doc = lib.build_creds_document(generation_id=generation_id, entries=entries)
+                lib.write_creds_document(out_path, doc)
+            did_phone_otp = entry.get("verify") == "file_otp_confirmed"
             print(
                 f"[{i+1:>4}/{len(users)}] {fid} "
                 f"email={entry['email']} phone={entry['phone_e164']} "
@@ -406,7 +518,13 @@ def main(argv: list[str] | None = None) -> int:
             failures.append(fid)
             print(f"[{i+1:>4}/{len(users)}] {fid} -> ERROR {exc}", file=sys.stderr)
             # Still record partial? fail-closed: skip incomplete entry
-        if i + 1 < len(users) and not args.dry_run and args.pace_s > 0:
+        # Pace only after a live phone/request (rate-limit); skip for already_verified.
+        if (
+            i + 1 < len(users)
+            and not args.dry_run
+            and args.pace_s > 0
+            and did_phone_otp
+        ):
             time.sleep(args.pace_s)
 
     doc = lib.build_creds_document(generation_id=generation_id, entries=entries)

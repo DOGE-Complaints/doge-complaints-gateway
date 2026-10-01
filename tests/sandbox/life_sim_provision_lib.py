@@ -19,7 +19,9 @@ SECRETS_DIR = SANDBOX / ".secrets"
 USERS_PATH = SANDBOX / "dogestonia_life_sim_users_v0_1.json"
 
 PASSWORD_MIN_LEN = 24
-_EMAIL_DOMAIN = "dogestonia.com"
+# AC-GW-REQ1108-02 / REQ11-05: hard domain (shared with life_sim_provision_config).
+EMAIL_DOMAIN = "dogestonia.me"
+_EMAIL_DOMAIN = EMAIL_DOMAIN
 _OTP_RE = re.compile(r"verification code is\s+(\d{6})", re.IGNORECASE)
 _CREDS_NAME_RE = re.compile(r"^life_sim_users_creds_(.+)\.json$")
 

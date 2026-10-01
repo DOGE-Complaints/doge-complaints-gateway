@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 SANDBOX = Path(__file__).resolve().parent
+# Legacy flat sample paths (Absent after 2026-09-30 cleanup). Prefer LIFE_SIM_PACK_DIR.
 USERS_PATH = SANDBOX / "dogestonia_life_sim_users_v0_1.json"
 STORIES_PATH = SANDBOX / "dogestonia_life_sim_stories_v0_1.json"
 META_PATH = SANDBOX / "dogestonia_life_sim_fixtures_v0_1_meta.json"
@@ -29,9 +30,43 @@ POOL_EMAIL_ENV_TMPL = "LIFE_SIM_POOL_{slot:02d}_EMAIL"
 POOL_PASSWORD_ENV_TMPL = "LIFE_SIM_POOL_{slot:02d}_PASSWORD"
 
 
+def resolve_life_sim_pack_dir() -> Path | None:
+    """Optional pack root: LIFE_SIM_PACK_DIR → users.json / stories.json / meta.json."""
+    raw = os.getenv("LIFE_SIM_PACK_DIR", "").strip()
+    if not raw:
+        return None
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = (Path.cwd() / path).resolve()
+    else:
+        path = path.resolve()
+    return path
+
+
+def life_sim_users_path() -> Path:
+    pack = resolve_life_sim_pack_dir()
+    if pack is not None:
+        return pack / "users.json"
+    return USERS_PATH
+
+
+def life_sim_stories_path() -> Path:
+    pack = resolve_life_sim_pack_dir()
+    if pack is not None:
+        return pack / "stories.json"
+    return STORIES_PATH
+
+
+def life_sim_meta_path() -> Path:
+    pack = resolve_life_sim_pack_dir()
+    if pack is not None:
+        return pack / "meta.json"
+    return META_PATH
+
+
 def load_life_sim_users(path: Path | None = None) -> list[dict[str, Any]]:
     """Load REQ11-01 fixture users (no regeneration)."""
-    data = json.loads((path or USERS_PATH).read_text(encoding="utf-8"))
+    data = json.loads((path or life_sim_users_path()).read_text(encoding="utf-8"))
     if not isinstance(data, list):
         raise RuntimeError("life-sim users root must be a JSON array")
     return data
@@ -39,7 +74,7 @@ def load_life_sim_users(path: Path | None = None) -> list[dict[str, Any]]:
 
 def load_life_sim_stories(path: Path | None = None) -> list[dict[str, Any]]:
     """Load REQ11-01 fixture stories (no regeneration)."""
-    data = json.loads((path or STORIES_PATH).read_text(encoding="utf-8"))
+    data = json.loads((path or life_sim_stories_path()).read_text(encoding="utf-8"))
     if not isinstance(data, list):
         raise RuntimeError("life-sim stories root must be a JSON array")
     return data
@@ -47,7 +82,7 @@ def load_life_sim_stories(path: Path | None = None) -> list[dict[str, Any]]:
 
 def load_life_sim_meta(path: Path | None = None) -> dict[str, Any]:
     """Load REQ11-01 fixture meta (scale lock)."""
-    data = json.loads((path or META_PATH).read_text(encoding="utf-8"))
+    data = json.loads((path or life_sim_meta_path()).read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise RuntimeError("life-sim meta root must be a JSON object")
     return data
