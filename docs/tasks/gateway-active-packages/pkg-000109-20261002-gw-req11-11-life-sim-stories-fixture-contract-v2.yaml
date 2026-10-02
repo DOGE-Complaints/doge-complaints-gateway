@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 109
+created_at: '2026-10-02T08:51:14Z'
+label: GW-REQ11-11 life-sim stories.json fixture contract v2 Narrative-aligned (docs)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2.md
+story_groups:
+- story_key: STORY-GW-REQ11-11
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/task-gw-req11-11-t01-fixture-v2-flat-keys-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/task-gw-req11-11-t02-out-of-fixture-and-scale-locks/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/task-gw-req11-11-t03-mapping-note-fixture-to-narrative/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/task-gw-req11-11-t04-compat-partial-vs-v2-pass/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/task-gw-req11-11-t05-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-02T08:51:14Z. Backlog REQ11-11 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. Docs-only contract — no generator/adapter/pack regen.
+  Locks: flat v2 keys; scale unchanged; pack ≠ StoryRecord; no invent axis IDs/gpt_signals;
+  do not reuse REQ11-07; successor REQ11-12.
+  Do not mutate pkg-000100…108.
+  Draft: .cursor/plans/p1_gw_req11_11_scaffold_20261002T085033Z.plan.md

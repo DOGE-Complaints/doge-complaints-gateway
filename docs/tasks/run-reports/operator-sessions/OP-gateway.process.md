@@ -1,8 +1,8 @@
-# OP-gateway.process — mirror working plan (REQ11-10)
+# OP-gateway.process — mirror working plan (REQ11-11…12)
 
-> **Working plan:** [`.cursor/plans/OP-gateway-req11-10-20261001.plan.md`](../../../../../.cursor/plans/OP-gateway-req11-10-20261001.plan.md)  
+> **Working plan:** [`.cursor/plans/OP-gateway-req11-11-12-20261002.plan.md`](../../../../../.cursor/plans/OP-gateway-req11-11-12-20261002.plan.md)  
 > **Session:** [OP-gateway.session.yaml](./OP-gateway.session.yaml)  
-> **Wave:** [wave-20261001-req11-10.md](../operator-waves/wave-20261001-req11-10.md)  
+> **Wave:** [wave-20261002-req11-11-12.md](../operator-waves/wave-20261002-req11-11-12.md)  
 > **No agent ids in this file.**
 
 ## Model
@@ -18,7 +18,7 @@
 |---------|-----------|
 | Стоп | только `стоп` / `stop` / `pause` / `halt` |
 | P1.3a→b / P5a→b | OP auto-approve |
-| После P8 / DONE | next QUEUED (none after 10) |
+| После P8 / DONE | next QUEUED |
 | BLOCKED | fact in wave → next |
 | P8 | local, **no push**; secrets never committed |
 
@@ -42,9 +42,10 @@
 
 | # | Id | Path | Notes |
 |---|----|------|-------|
-| 1 | REQ11-10 | `…/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md` | pack-wave replay жалоб |
+| 1 | REQ11-11 | `…/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2.md` | contract v2 + mapping note |
+| 2 | REQ11-12 | `…/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md` | rich generator + adapter |
 
-Queue count: **1**. mode: sequential. input_mode: backlog_story.
+Queue count: **2**. mode: sequential. input_mode: backlog_story.
 
 ## Plan-sim + ROLE_LOCK
 
@@ -56,4 +57,4 @@ ROLE_LOCK: Execute ONLY the fence below. RETURN_TO_ROOT: paths + ≤5 lines fact
 
 ## Phase script
 
-0 G0 stay `dev` → 0b/0c resume → P1.3a/b → P2 → P3 → P4 → P5a/b → P6 → P7 → P8 (no push) → STOP (queue exhausted).
+0 G0 stay `dev` → 0b/0c resume → P1.3a/b → P2 → P3 → P4 → P5a/b → P6 → P7 → P8 (no push) → next story → STOP.
