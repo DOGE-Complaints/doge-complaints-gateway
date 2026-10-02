@@ -313,6 +313,26 @@ def count_secrets_users_ready(path: Path | None = None) -> int:
     return ready
 
 
+def _coerce_i18n_map(
+    raw: Any,
+    *,
+    fallback: str,
+    lang: str,
+) -> dict[str, str]:
+    """Prefer on-disk i18n map when Present; else synthesize thin 3-lang map."""
+    langs = ("et", "ru", "en")
+    if isinstance(raw, dict) and raw:
+        out: dict[str, str] = {}
+        for k in langs:
+            val = raw.get(k)
+            if val is None or str(val).strip() == "":
+                val = raw.get(lang) if k != lang else None
+            text = str(val if val is not None else fallback).strip() or fallback
+            out[k] = text
+        return out
+    return {k: fallback for k in langs}
+
+
 def life_sim_story_to_intake_payload(
     story: dict[str, Any],
     *,
@@ -322,28 +342,57 @@ def life_sim_story_to_intake_payload(
 ) -> dict[str, Any]:
     """Convert one life-sim story fixture into gateway intake stash payload shape.
 
-    Uses the same narrative/origin fields as simulation_runner canvas path —
-    does not invent product APIs.
+    Prefer REQ11-11 v2 flat fields when Present; keep thin 6-key synthesis path.
+    Does not invent product HTTP APIs / gpt_signals / taxonomy axis IDs.
     """
     lang = str(story.get("language") or "en").strip() or "en"
     title = str(story.get("title") or "").strip()
     body = str(story.get("body") or "").strip()
     if not body:
         raise ValueError(f"story {story.get('fixture_story_id')!r} missing body")
-    title_i18n = {k: (title if k == lang else title) for k in ("et", "ru", "en")}
-    description_i18n = {k: (body if k == lang else body) for k in ("et", "ru", "en")}
+
+    title_i18n = _coerce_i18n_map(story.get("title_i18n"), fallback=title, lang=lang)
+    description_i18n = _coerce_i18n_map(
+        story.get("description_i18n"), fallback=body, lang=lang
+    )
+    summary_fallback = description_i18n.get(lang) or body
+    summary_i18n = _coerce_i18n_map(
+        story.get("summary_i18n"), fallback=summary_fallback, lang=lang
+    )
+
+    session_language = str(story.get("session_language") or lang).strip() or lang
+    original_text = description_i18n.get(lang) or body
+
+    canonical_type = str(story.get("canonical_type") or "complaint").strip() or "complaint"
+    labels_raw = story.get("canonical_labels")
+    if isinstance(labels_raw, (list, tuple)):
+        canonical_labels = [str(x).strip() for x in labels_raw if str(x).strip()]
+    else:
+        canonical_labels = []
+
     narrative: dict[str, Any] = {
-        "original_text": body,
+        "original_text": original_text,
         "language": lang,
-        "session_language": lang,
+        "session_language": session_language,
         "title": title_i18n,
         "description": description_i18n,
-        "summary": {lang: body},
-        "canonical_type": "complaint",
-        "canonical_labels": [],
+        "summary": summary_i18n,
+        "canonical_type": canonical_type,
+        "canonical_labels": canonical_labels,
     }
-    if location_query and location_query.strip():
+
+    loc = story.get("location_query")
+    if isinstance(loc, str) and loc.strip():
+        narrative["location_query"] = loc.strip()
+    elif location_query and location_query.strip():
         narrative["location_query"] = location_query.strip()
+
+    institution_raw = story.get("institution_i18n")
+    if isinstance(institution_raw, dict) and institution_raw:
+        narrative["institution"] = _coerce_i18n_map(
+            institution_raw, fallback="", lang=lang
+        )
+
     fixture_story_id = str(story.get("fixture_story_id") or "unknown")
     return {
         "schema_version": intake_schema_version,

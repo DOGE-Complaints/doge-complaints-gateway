@@ -1,0 +1,77 @@
+{
+  "schema_note": "on-disk life-sim fixtures v2; flat Narrative-aligned keys; not a public API / StoryRecord dump",
+  "fixture_contract": "REQ11-11-v2",
+  "generator": "life_sim_stories_v2_lib",
+  "seed": 20260929,
+  "operator_lock": {
+    "n_users": 200,
+    "gaussian_mean": 8.5,
+    "gaussian_sigma": 2.0,
+    "clamp": [
+      1,
+      20
+    ],
+    "langs": {
+      "et": 0.6,
+      "ru": 0.3,
+      "en": 0.1
+    },
+    "breakpoint": "2026-09-30",
+    "mass_pre_post": [
+      0.25,
+      0.75
+    ]
+  },
+  "diversity": {
+    "unique_bodies": 1661,
+    "total_stories": 1661,
+    "pass_full_uniqueness": true,
+    "method": "composed_templates_plus_story_seq",
+    "llm": false
+  },
+  "counts": {
+    "users": 200,
+    "stories": 1661,
+    "stories_per_user_min": 3,
+    "stories_per_user_max": 13,
+    "stories_per_user_mean": 8.305,
+    "lang_counts": {
+      "et": 1000,
+      "ru": 486,
+      "en": 175
+    },
+    "lang_fractions": {
+      "et": 0.602,
+      "ru": 0.2926,
+      "en": 0.1054
+    },
+    "pre_breakpoint": 415,
+    "post_breakpoint": 1246,
+    "pre_fraction": 0.2498,
+    "post_fraction": 0.7502
+  },
+  "paths": {
+    "users": "users.json",
+    "stories": "stories.json",
+    "params": "params.json",
+    "pack_id": "ls-20261002T0906Z-veerenni-v2-rich"
+  },
+  "params_consumed": {
+    "story_foci_themes": [
+      "construction",
+      "waste",
+      "lighting",
+      "noise",
+      "pothole",
+      "parking",
+      "crossing"
+    ],
+    "neighbourhood_tags": [
+      "Uus Veerenni",
+      "Tallinn"
+    ],
+    "node_social_direction_present": true,
+    "location_query": "Uus Veerenni, Tallinn"
+  },
+  "relation_to_canvas": "pack SSOT under life_sim_packs/<pack_id>/; flat *_v0_1 sandbox JSON is not SSOT for new packs; canvas remains runner stash→submit array"
+}

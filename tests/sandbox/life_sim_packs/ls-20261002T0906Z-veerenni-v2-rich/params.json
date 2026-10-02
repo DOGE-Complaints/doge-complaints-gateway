@@ -1,0 +1,65 @@
+{
+  "profile_id": "local",
+  "n_users": 200,
+  "stories_per_user": {
+    "mean": 8.5,
+    "sigma": 2.0,
+    "clamp": [
+      1,
+      20
+    ]
+  },
+  "lang_mix": {
+    "et": 0.6,
+    "ru": 0.3,
+    "en": 0.1
+  },
+  "calendar": {
+    "year": 2026,
+    "breakpoint": "2026-09-30T00:00:00Z",
+    "mass_pre": 0.25,
+    "mass_post": 0.75
+  },
+  "seed": 20260929,
+  "node_social_direction": "Uus Veerenni yard civic complaints: waste, lighting, construction noise",
+  "user_context": {
+    "personas": [],
+    "neighbourhood_tags": [
+      "Uus Veerenni",
+      "Tallinn"
+    ],
+    "notes": "REQ11-12 v2 rich reference pack"
+  },
+  "story_foci": {
+    "themes": [
+      {
+        "id": "construction",
+        "weight": 0.25
+      },
+      {
+        "id": "waste",
+        "weight": 0.2
+      },
+      {
+        "id": "lighting",
+        "weight": 0.15
+      },
+      {
+        "id": "noise",
+        "weight": 0.15
+      },
+      {
+        "id": "pothole",
+        "weight": 0.1
+      },
+      {
+        "id": "parking",
+        "weight": 0.08
+      },
+      {
+        "id": "crossing",
+        "weight": 0.07
+      }
+    ]
+  }
+}
