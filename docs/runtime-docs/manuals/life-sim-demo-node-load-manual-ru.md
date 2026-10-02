@@ -138,7 +138,14 @@ meta.json
 - Secrets: `tests/sandbox/.secrets/life_sim_users_creds_<generation_id>.json` (вне pack).
 - Canvas JSON — другой продукт; не смешивать.
 
-**Load:** replay читает JSON **из pack**. As-of: `life_sim_replay_lib.py` ещё хардкодит Absent flat `*_v0_1` → до pack-path wiring execute = **STOP** или явная подстановка path (см. `Life_sim_load.plan`). Interview params — направляющие; mismatch foci→тексты = Partial.
+**Load:** replay читает JSON **из pack** через `LIFE_SIM_PACK_DIR` (REQ11-10 fail-closed Present).  
+
+| Pack `stories.json` | Richness vs interview |
+|---------------------|------------------------|
+| **6-key** blurbs (напр. `ls-20260930T0938Z-veerenni-yard-construction`) | **Partial** — thin adapter synthesizes Narrative |
+| **v2** flat Narrative-aligned (напр. `ls-20261002T0906Z-veerenni-v2-rich`, generator `generate_life_sim_pack_stories_v2.py`) | **Pass** — adapter prefers `*_i18n` / `location_query` / `canonical_*` / `session_language` / `institution_i18n`; foci/tags из `params.json` |
+
+Interview params — направляющие; 6-key mismatch foci→тексты остаётся Partial; v2 pack + foci Present = Pass richness (REQ11-12).
 
 ---
 
@@ -191,8 +198,8 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 
 | Итог | Когда |
 |------|--------|
-| **Pass** | wipe + provision + stories + issues + threads + SPA (+ params history) |
-| **Partial** | LIMIT / MAX_STORIES / sample fixtures при несовпадении foci |
+| **Pass** | wipe + provision + stories + issues + threads + SPA (+ params history); **v2 pack** stories richness (REQ11-12) |
+| **Partial** | LIMIT / MAX_STORIES / **6-key** sample blurbs / foci mismatch на 6-key pack |
 | **STOP** | Нет confirm wipe; wipe script Absent без operator wipe; cron skipped; 0 issues; 429 без плана |
 
 | ID | Блокер |
@@ -212,14 +219,15 @@ Story: [`STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md`](../../task
 | Промпт2 (интервью) | `docs/methodology/…/life-sim-node-load-run.md` |
 | Reusable plan (execute) | `.cursor/plans/Life_sim_load.plan.md` |
 | Wipe | STORY-GW-REQ11-06 · Present `life_sim_wipe_node_content.py` + `make life-sim-wipe-node-content` (Done) |
-| Packs | `tests/sandbox/life_sim_packs/<pack_id>/` (UTC+sense; create on execute) |
-| Flat life-sim `*_v0_1` | **Absent** (cleaned 2026-09-30) |
+| Packs | `tests/sandbox/life_sim_packs/<pack_id>/` · v2 ref `ls-20261002T0906Z-veerenni-v2-rich` (REQ11-12) |
+| Flat life-sim `*_v0_1` | **Absent** as SSOT (cleaned 2026-09-30); new packs via `generate_life_sim_pack_stories_v2.py` |
+| Generator v2 | `tests/sandbox/generate_life_sim_pack_stories_v2.py` + `life_sim_stories_v2_lib.py` (REQ11-12) |
 | Provision | `make life-sim-provision-pack-wave` (**Present** REQ11-08) · legacy `make life-sim-provision-users` (REQ11-05) · [pack-wave RU](./life-sim-provision-pack-wave-manual-ru.md) |
 | Replay | `make life-sim-replay-pack-wave` (**Present** REQ11-10 primary) · [RU](./life-sim-replay-pack-wave-manual-ru.md) · legacy `make simulate-life-sim` |
 | Cluster | `process_all_pending` via cron (**Present**) |
 | Threads seed | `make life-sim-seed-threads` (**Present** REQ11-09) · [RU](./life-sim-threads-seed-manual-ru.md) · lib `seed_representative_issues` |
 | Stack | `scripts/shell/local-five-serve-and-health.sh` (**Present**) |
-| Stories backlog | STORY-GW-REQ11-01…06,08,09,10 (07 **removed**) |
+| Stories backlog | STORY-GW-REQ11-01…06,08…12 (07 **removed**) |
 
 ---
 

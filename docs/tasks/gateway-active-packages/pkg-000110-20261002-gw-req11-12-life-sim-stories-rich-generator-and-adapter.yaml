@@ -1,0 +1,27 @@
+schema_version: 1
+package_sequence: 110
+created_at: '2026-10-02T09:02:38Z'
+label: GW-REQ11-12 life-sim rich stories.json generator + adapter v2
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md
+story_groups:
+- story_key: STORY-GW-REQ11-12
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t01-generator-v2-emit-scale-locks/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t02-diversity-composed-templates/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t03-params-json-foci-defaults/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t04-adapter-prefer-v2-keep-thin/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t05-offline-tests-schema-diversity-roundtrip/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t06-pack-dir-ssot-ops-docs-partial-to-pass/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/task-gw-req11-12-t07-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-02T09:02:38Z. Backlog REQ11-12 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. Scaffold only — no product generator/adapter this APPLY.
+  Locks: deterministic no LLM; scale unchanged; life_sim_packs/<pack_id>/ SSOT;
+  prefer v2 adapter keep 6-key thin; no invent HTTP/gpt_signals/taxonomy axis IDs/StoryRecord dump;
+  do not reuse REQ11-07; predecessor REQ11-11 Done (contract note Present).
+  Do not mutate pkg-000100…109 product bodies beyond current.yaml pointer.
+  Draft: .cursor/plans/p1_gw_req11_12_scaffold_20261002T090148Z.plan.md

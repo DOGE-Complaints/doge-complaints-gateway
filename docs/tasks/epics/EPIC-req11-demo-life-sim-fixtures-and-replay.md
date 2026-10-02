@@ -1,7 +1,7 @@
 # EPIC-req11-demo-life-sim-fixtures-and-replay: REQ11 demo life sim fixtures & replay (gateway)
 
 ## Epic Meta
-- Status: 🟡 In Progress (REQ11-01…06,08–11 Done; REQ11-12 backlog Todo; REQ11-07 removed)
+- Status: 🟡 In Progress (REQ11-01…06,08–11 Done; REQ11-12 In Progress pkg-000110; REQ11-07 removed)
 - Priority: High (REQ11 / REQ55)
 - Type: backlog package epic (not EPIC-M2-*)
 - **Пакет:** [`req11-demo-life-sim-fixtures-and-replay/`](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/INDEX.md)
@@ -11,7 +11,7 @@
 - **Dashboard:** [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md) — operator lock MVP board
 - **Git:** `dev` (no separate package branch)
 - **Scaffolded:** 2026-09-29T13:22:23Z
-- **Updated:** 2026-10-02T08:53:45Z (REQ11-11 Done pkg-000109 docs contract)
+- **Updated:** 2026-10-02T09:02:38Z (REQ11-12 P1 scaffold pkg-000110)
 
 ## Problem Statement
 
@@ -29,7 +29,7 @@ Gateway: JSON users+stories at locked scale/langs/2026 curve; named profiles; pr
 - Soft (backlog): REQ11-09 operator threads seed after cluster — **Done** pkg-000107
 - Soft (backlog): REQ11-10 operator pack-wave replay жалоб — **Done** pkg-000108
 - Soft (backlog): REQ11-11 life-sim stories fixture contract v2 — **Done** pkg-000109 (docs + mapping note)
-- Soft (backlog): REQ11-12 rich stories generator + adapter — **Todo** (after 11; name≠create)
+- Soft (backlog): REQ11-12 rich stories generator + adapter — **In Progress** pkg-000110 (P1 scaffold; P3 implement)
 
 ## Stories
 
@@ -45,9 +45,9 @@ Gateway: JSON users+stories at locked scale/langs/2026 curve; named profiles; pr
 | STORY-GW-REQ11-09 | [pipeline](./EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-09-operator-threads-seed-after-cluster/STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md) → [backlog](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-09-operator-threads-seed-after-cluster.md) · [pkg-000107](../gateway-active-packages/pkg-000107-20261001-gw-req11-09-operator-threads-seed-after-cluster.yaml) | 🔵 Done pkg-000107 |
 | STORY-GW-REQ11-10 | [pipeline](./EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md) → [backlog](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-10-operator-pack-replay-complaints-wave.md) · [pkg-000108](../gateway-active-packages/pkg-000108-20261001-gw-req11-10-operator-pack-replay-complaints-wave.yaml) | 🔵 Done pkg-000108 |
 | STORY-GW-REQ11-11 | [pipeline](./EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2.md) → [backlog](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-11-life-sim-stories-fixture-contract-v2.md) · [pkg-000109](../gateway-active-packages/pkg-000109-20261002-gw-req11-11-life-sim-stories-fixture-contract-v2.yaml) | 🔵 Done pkg-000109 |
-| STORY-GW-REQ11-12 | [pipeline](./EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md) → [backlog](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md) | ⚪ Todo (backlog; after 11) |
+| STORY-GW-REQ11-12 | [pipeline](./EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md) → [backlog](../backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-12-life-sim-stories-rich-generator-and-adapter.md) · [pkg-000110](../gateway-active-packages/pkg-000110-20261002-gw-req11-12-life-sim-stories-rich-generator-and-adapter.yaml) | 🟡 In Progress pkg-000110 |
 
 ## Decision Ref
-- Backlog INDEX + `$storyFile` REQ11-11 · pkg-000109
+- Backlog INDEX + `$storyFile` REQ11-12 · pkg-000110
 - REQ 55 · REQ11 · brief + status-simulation justifications
 - Operator locks: 200 users; Gaussian 8.5/σ2.0/[1,20]; langs 60/30/10; breakpoint 2026-09-30; ~25%/75%; backdate **B**; auth **200 provisioned + secrets** (supersedes pool M=20); wipe confirm `--confirm-wipe` / `LIFE_SIM_WIPE_CONFIRMED=1`; pack-wave `SMS_PROVIDER=file` + `@dogestonia.me`; threads seed fail-closed after cluster + reuse `closed_http_seed`; pack-wave replay fail-closed `LIFE_SIM_PACK_DIR` + wave per `fixture_story_id`; dashboard sync
