@@ -97,6 +97,10 @@ class IssueStoryLinkStore(Protocol):
         """Resolve issue_id linked to story_id, if any (GW-CAB-01)."""
         ...
 
+    def list_story_issue_ids(self) -> dict[str, str]:
+        """Batch map story_id → issue_id (latest link wins)."""
+        ...
+
 
 class IssueProjectionReadStore(Protocol):
     """Read issue projections for Tallinn list/get APIs."""
@@ -119,6 +123,7 @@ class IssueProjectionReadStore(Protocol):
         geo_region: list[str] | None = None,
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
+        search: str | None = None,
     ) -> list[dict[str, object]]: ...
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None: ...

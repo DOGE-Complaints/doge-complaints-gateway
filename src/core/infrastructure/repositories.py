@@ -291,6 +291,7 @@ class InMemoryIssueProjectionStore:
         geo_region: list[str] | None = None,
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
+        search: str | None = None,
     ) -> list[dict[str, object]]:
         assert self._rows is not None
         rows: list[tuple[str, str, dict[str, object], str]] = []
@@ -336,6 +337,7 @@ class InMemoryIssueProjectionStore:
             geo_region=geo_region,
             geo_country=geo_country,
             geo_postal_code=geo_postal_code,
+            search=search,
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
@@ -434,6 +436,14 @@ class InMemoryIssueStoryLinkStore:
                 return issue_id
         return None
 
+    def list_story_issue_ids(self) -> dict[str, str]:
+        assert self._rows is not None
+        out: dict[str, str] = {}
+        for issue_id, (_, linked_story_ids) in self._rows.items():
+            for story_id in linked_story_ids:
+                out[story_id] = issue_id
+        return out
+
 
 @dataclass
 class InMemoryStorySignalStore:
@@ -522,5 +532,12 @@ class InMemoryStoryLabelRepository:
         matched: list[StoryLabel] = []
         for rows in self._rows.values():
             matched.extend(row for row in rows if row.axis == normalized)
+        return tuple(matched)
+
+    def list_all(self) -> tuple[StoryLabel, ...]:
+        assert self._rows is not None
+        matched: list[StoryLabel] = []
+        for rows in self._rows.values():
+            matched.extend(rows)
         return tuple(matched)
 

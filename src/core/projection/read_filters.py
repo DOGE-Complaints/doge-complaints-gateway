@@ -336,7 +336,10 @@ def filter_projection_rows(
     geo_region: list[str] | None = None,
     geo_country: list[str] | None = None,
     geo_postal_code: list[str] | None = None,
+    search: str | None = None,
 ) -> list[dict[str, object]]:
+    from core.projection.issue_search_match import issue_matches_search_query
+
     status_values = _clean_str_list(status)
     filter_issue_type: str | None = None
     if issue_type is not None:
@@ -369,16 +372,17 @@ def filter_projection_rows(
             geo_postal_code=geo_postal_code,
         ):
             continue
-        result.append(
-            sanitize_payload_labels_for_public_read(
-                merge_projection_columns(
-                    issue_id=issue_id,
-                    row_status=row_status,
-                    payload=payload,
-                    created_at=created_at,
-                )
+        merged = sanitize_payload_labels_for_public_read(
+            merge_projection_columns(
+                issue_id=issue_id,
+                row_status=row_status,
+                payload=payload,
+                created_at=created_at,
             )
         )
+        if not issue_matches_search_query(merged, search):
+            continue
+        result.append(merged)
     return result
 
 

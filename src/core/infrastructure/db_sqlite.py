@@ -1077,6 +1077,7 @@ class SqliteIssueProjectionStore:
         geo_region: list[str] | None = None,
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
+        search: str | None = None,
     ) -> list[dict[str, object]]:
         from core.projection.columnar_storage import (
             assemble_public_issue_from_storage_row,
@@ -1143,6 +1144,7 @@ class SqliteIssueProjectionStore:
             geo_region=geo_region,
             geo_country=geo_country,
             geo_postal_code=geo_postal_code,
+            search=search,
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
@@ -1418,6 +1420,19 @@ class SqliteIssueStoryLinkStore:
             return None
         return str(row["issue_id"])
 
+    def list_story_issue_ids(self) -> dict[str, str]:
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id, issue_id
+            FROM issue_story_links
+            ORDER BY created_at ASC
+            """
+        ).fetchall()
+        out: dict[str, str] = {}
+        for row in rows:
+            out[str(row["story_id"])] = str(row["issue_id"])
+        return out
+
 
 @dataclass
 class SqliteStorySignalStore:
@@ -1501,6 +1516,24 @@ class SqliteStoryLabelRepository:
             ORDER BY story_id, label
             """,
             (normalized,),
+        ).fetchall()
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
+
+    def list_all(self) -> tuple[StoryLabel, ...]:
+        rows = self.db.connection.execute(
+            """
+            SELECT story_id, axis, label, disposition
+            FROM story_labels
+            ORDER BY story_id, axis, label
+            """
         ).fetchall()
         return tuple(
             StoryLabel(

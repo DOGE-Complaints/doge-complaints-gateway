@@ -550,6 +550,7 @@ def handle_issues_list(
     geo_region: list[str] | None = None,
     geo_country: list[str] | None = None,
     geo_postal_code: list[str] | None = None,
+    search: str | None = None,
     trace_id: str | None = None,
 ) -> dict[str, Any]:
     resolved_trace_id = ensure_trace_id(trace_id)
@@ -570,6 +571,7 @@ def handle_issues_list(
             geo_region=geo_region,
             geo_country=geo_country,
             geo_postal_code=geo_postal_code,
+            search=search,
         )
         return build_success_envelope(
             data={"issues": issues}, trace_id=resolved_trace_id

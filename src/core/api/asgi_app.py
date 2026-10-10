@@ -543,6 +543,7 @@ async def issues_list(
     geo_region: list[str] | None = Query(default=None),
     geo_country: list[str] | None = Query(default=None),
     geo_postal_code: list[str] | None = Query(default=None),
+    search: str | None = Query(default=None),
     deps: ApiDependencies = Depends(get_api_dependencies),
 ) -> JSONResponse:
     payload = handle_issues_list(
@@ -562,10 +563,10 @@ async def issues_list(
         geo_region=geo_region,
         geo_country=geo_country,
         geo_postal_code=geo_postal_code,
+        search=search,
         trace_id=_read_trace_id(request),
     )
     return JSONResponse(content=payload, status_code=_json_http_status(payload))
-
 
 @app.get("/node/issues/{issue_id}")
 async def issue_get(

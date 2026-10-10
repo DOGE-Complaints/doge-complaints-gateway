@@ -991,6 +991,7 @@ class SupabaseIssueProjectionStore:
         geo_region: list[str] | None = None,
         geo_country: list[str] | None = None,
         geo_postal_code: list[str] | None = None,
+        search: str | None = None,
     ) -> list[dict[str, object]]:
         from core.projection.columnar_storage import (
             COLUMNAR_ROW_SELECT,
@@ -1034,6 +1035,7 @@ class SupabaseIssueProjectionStore:
             geo_region=geo_region,
             geo_country=geo_country,
             geo_postal_code=geo_postal_code,
+            search=search,
         )
 
     def get_projection(self, issue_id: str) -> dict[str, object] | None:
@@ -1313,6 +1315,20 @@ class SupabaseIssueStoryLinkStore:
             return None
         return str(rows[0]["issue_id"])
 
+    def list_story_issue_ids(self) -> dict[str, str]:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/issue_story_links",
+            params={
+                "select": "story_id,issue_id,created_at",
+                "order": "created_at.asc",
+            },
+        )
+        out: dict[str, str] = {}
+        for row in rows:
+            out[str(row["story_id"])] = str(row["issue_id"])
+        return out
+
 
 @dataclass
 class SupabaseStorySignalStore:
@@ -1412,6 +1428,25 @@ class SupabaseStoryLabelRepository:
                 "select": "story_id,axis,label,disposition",
                 "axis": self.db._eq_filter(normalized),
                 "order": "story_id.asc,label.asc",
+            },
+        )
+        return tuple(
+            StoryLabel(
+                story_id=str(row["story_id"]),
+                axis=str(row["axis"]),
+                label=str(row["label"]),
+                disposition=str(row["disposition"]),
+            )
+            for row in rows
+        )
+
+    def list_all(self) -> tuple[StoryLabel, ...]:
+        rows = self.db._request(
+            method="GET",
+            path="/rest/v1/story_labels",
+            params={
+                "select": "story_id,axis,label,disposition",
+                "order": "story_id.asc,axis.asc,label.asc",
             },
         )
         return tuple(
