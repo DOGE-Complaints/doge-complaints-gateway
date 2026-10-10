@@ -10,8 +10,8 @@
 **Justification:** [`../../../../spa-app/docs/analysis/analysis-server-text-search-issues-comments-complexity-2026-10-10.md`](../../../../spa-app/docs/analysis/analysis-server-text-search-issues-comments-complexity-2026-10-10.md)  
 **Dashboard:** [`gateway-mvp-dashboard.md`](../../gateway-mvp-dashboard.md) (operator lock: MVP board)  
 **Naming:** `STORY-GW-REQ56-*`  
-**Updated:** 2026-10-10T16:15:39Z · REQ56-01 P6 audit T07–T08 Done · pkg-000111 unchanged  
-**Epic:** [`EPIC-req56-issues-server-text-search.md`](../../epics/EPIC-req56-issues-server-text-search.md) · Active pkg [`pkg-000111`](../../gateway-active-packages/pkg-000111-20261010-gw-req56-01-issues-list-search-filter.yaml)
+**Updated:** 2026-10-10T16:50:05Z · REQ56-02 P6 audit T04–T05 Done · pkg-000112 unchanged  
+**Epic:** [`EPIC-req56-issues-server-text-search.md`](../../epics/EPIC-req56-issues-server-text-search.md) · Active pkg [`pkg-000112`](../../gateway-active-packages/pkg-000112-20261010-gw-req56-02-api-docs-search-param.yaml)
 
 ---
 
@@ -39,7 +39,7 @@ Gateway: optional query param **`search`** on `GET /node/issues` with D-S1 in-me
 | Key | File | Status | Depends |
 |-----|------|--------|---------|
 | STORY-GW-REQ56-01 | [STORY-GW-REQ56-01-issues-list-search-filter.md](./STORY-GW-REQ56-01-issues-list-search-filter.md) → [pipeline](../../epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/STORY-GW-REQ56-01-issues-list-search-filter.md) · [pkg-000111](../../gateway-active-packages/pkg-000111-20261010-gw-req56-01-issues-list-search-filter.yaml) | **Done** P3 gate PASS · P6 G1/G3 CLOSED 2026-10-10T16:15:39Z · G2 WAIVED · offline **11** · backlog kept | — |
-| STORY-GW-REQ56-02 | [STORY-GW-REQ56-02-api-docs-search-param.md](./STORY-GW-REQ56-02-api-docs-search-param.md) | ⚪ Todo | REQ56-01 |
+| STORY-GW-REQ56-02 | [STORY-GW-REQ56-02-api-docs-search-param.md](./STORY-GW-REQ56-02-api-docs-search-param.md) → [pipeline](../../epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/STORY-GW-REQ56-02-api-docs-search-param.md) · [pkg-000112](../../gateway-active-packages/pkg-000112-20261010-gw-req56-02-api-docs-search-param.yaml) | **Done** P3 · P6 G1/G3 CLOSED 2026-10-10T16:50:05Z · G2 WAIVED · backlog kept | REQ56-01 |
 
 ---
 

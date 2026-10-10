@@ -11,7 +11,7 @@
 
 | Packages | Product stories (excl. superseded) | Done | Todo / In Progress | Deferred |
 |----------|-----------------------------------|------|--------------------|----------|
-| 14 | see MVP dashboard + non-MVP scopes | MVP active **43/46 (~93%)** after REQ56-01 P3 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ56-01 Done pkg-000111 + REQ56-02 Todo | **3** (CAB-03, L10N-04, TAX-04) |
+| 14 | see MVP dashboard + non-MVP scopes | MVP active **43/46 (~93%)** after REQ56-01 P3 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ56-01/02 Done pkg-000112 | **3** (CAB-03, L10N-04, TAX-04) |
 
 *Канон метрик MVP: [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md). `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в MVP %. Пакеты `req9-*`, `req10-*`, `req11-demo-life-sim-fixtures-and-replay`, `req56-issues-server-text-search` **включены** в MVP board (operator lock).*
 
@@ -32,7 +32,7 @@
 | [req9-ops-parity-env-naming](req9-ops-parity-env-naming/INDEX.md) | 2 Done (REQ9-01 pkg-000096; REQ9-02 pkg-000097) | **в MVP board** (ops); [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ53; parent REQ9; epic [EPIC-req9-ops-parity-env-naming](../epics/EPIC-req9-ops-parity-env-naming.md) |
 | [req10-lifecycle-status-normalize](req10-lifecycle-status-normalize/INDEX.md) | 2 Done (REQ10-01 pkg-000098; REQ10-02 pkg-000099) | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ54; parent REQ10; H8 skip this wave |
 | [req11-demo-life-sim-fixtures-and-replay](req11-demo-life-sim-fixtures-and-replay/INDEX.md) | REQ11 package Done on MVP board | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ55; parent REQ11 |
-| [req56-issues-server-text-search](req56-issues-server-text-search/INDEX.md) | REQ56-01 Done pkg-000111 · REQ56-02 Todo | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) · epic [`EPIC-req56`](../epics/EPIC-req56-issues-server-text-search.md) | REQ56; gateway-local; param `search`; TECH-ARCH linked |
+| [req56-issues-server-text-search](req56-issues-server-text-search/INDEX.md) | REQ56-01/02 Done pkg-000112 | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) · epic [`EPIC-req56`](../epics/EPIC-req56-issues-server-text-search.md) | REQ56; gateway-local; param `search`; TECH-ARCH linked |
 
 ## Retired
 

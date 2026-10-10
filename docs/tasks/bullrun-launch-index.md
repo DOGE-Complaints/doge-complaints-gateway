@@ -1038,7 +1038,35 @@
 | S | Key | Story | Status |
 |---|-----|-------|--------|
 | 🔵 | GW-REQ56-01 | [pipeline issues list search filter](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/STORY-GW-REQ56-01-issues-list-search-filter.md) → [backlog](./backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-01-issues-list-search-filter.md) | **Done** P3 gate PASS · P6 G1/G3 CLOSED 2026-10-10T16:15:39Z · G2 WAIVED · T01–T08 · param `search` D-S1 · offline **11** · [`pkg-000111`](./gateway-active-packages/pkg-000111-20261010-gw-req56-01-issues-list-search-filter.yaml) · [`run-summary`](./run-reports/run-summary-20261010-1601-gw-req56-01-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20261010-1615-gw-req56-01-audit-p6.md) · [`gate`](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t06-story-gate/story-acceptance-gate-STORY-GW-REQ56-01.md) |
-| ⚪ | GW-REQ56-02 | [backlog API docs search param](./backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-02-api-docs-search-param.md) | Todo · depends REQ56-01 |
+| 🔵 | GW-REQ56-02 | [pipeline API docs search param](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/STORY-GW-REQ56-02-api-docs-search-param.md) → [backlog](./backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-02-api-docs-search-param.md) | **Done** P3 gate PASS · P6 G1/G3 CLOSED 2026-10-10T16:50:05Z · G2 WAIVED · T01–T05 · [`pkg-000112`](./gateway-active-packages/pkg-000112-20261010-gw-req56-02-api-docs-search-param.yaml) unchanged · [`run-summary`](./run-reports/run-summary-20261010-1630-gw-req56-02-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20261010-1650-gw-req56-02-audit-p6.md) · [`gate`](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t03-story-gate/story-acceptance-gate-STORY-GW-REQ56-02.md) · docs-only · no runtime |
+
+### STORY-GW-REQ56-02 — API docs search param
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ56-02-T01 | [T01: API_REFERENCE search](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t01-api-reference-search/README.md) | docs | Done | optional `search`; D-S1; empty→no-op |
+| 🔵 | TASK-GW-REQ56-02-T02 | [T02: OpenAPI search param](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t02-openapi-search-param/README.md) | docs | Done | `openapi.yaml` param on list |
+| 🔵 | TASK-GW-REQ56-02-T03 | [T03: story acceptance gate](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t03-story-gate/README.md) | gate | Done | AC-GW-REQ5602-01…03 PASS |
+| 🔵 | TASK-GW-REQ56-02-T04 | [T04: audit G1 status enum SSOT](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t04-audit-g1-status-enum-ssot/README.md) | docs | Done | P6 G1 CLOSED · status NEW/IN_REVIEW/PUBLISHED · `gw_req56_02_audit_followup` 2026-10-10T16:50:05Z |
+| 🔵 | TASK-GW-REQ56-02-T05 | [T05: audit G3 binding line refs](./epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-02-api-docs-search-param/task-gw-req56-02-t05-audit-g3-binding-line-refs/README.md) | docs | Done | P6 G3 CLOSED · symbol binding cites · offline docs-only |
+
+#### P5 disposition note (REQ56-02 audit 2026-10-10) · APPLY 2026-10-10T16:45:04Z · P6 close 2026-10-10T16:50:05Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6) | none | T04 | status enum SSOT vs DOGEIssueStatus |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | TASKED → **CLOSED** (P6) | none | T05 | list binding symbol cites |
+
+**activation:** `run_mode=gw_req56_02_audit_followup` — T04–T05 Done; current.yaml stays pkg-000112. Draft: [`p5_gw_req56_02_gap_20261010T164014Z`](../../../.cursor/plans/p5_gw_req56_02_gap_20261010T164014Z.plan.md). [`run-summary-audit`](./run-reports/run-summary-20261010-1650-gw-req56-02-audit-p6.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1/G3 CLOSED; G2 WAIVED).
+
+**P6 audit follow-up:** 2026-10-10T16:50:05Z · T04–T05 Done · G1/G3 CLOSED · G2 WAIVED · [`run-summary-20261010-1650-gw-req56-02-audit-p6`](./run-reports/run-summary-20261010-1650-gw-req56-02-audit-p6.md) · `run_mode=gw_req56_02_audit_followup` · pkg-000112 unchanged · no §Актуальная точка rewrite.
+
+**P5 APPLY:** 2026-10-10T16:45:04Z · disposition G1 TASKED T04 / G2 WAIVED / G3 TASKED T05 · [`p5_gw_req56_02_gap_20261010T164014Z`](../../../.cursor/plans/p5_gw_req56_02_gap_20261010T164014Z.plan.md) · safe-override `gw_req56_02_audit_followup` · pkg-000112 **unchanged** · no §Актуальная точка rewrite · no product implement.
+
+**P3 execute:** 2026-10-10T16:30:12Z · gate PASS · [`run-summary-20261010-1630-gw-req56-02-p3`](./run-reports/run-summary-20261010-1630-gw-req56-02-p3.md) · docs-only · branch `dev` · no push · no §«Актуальная точка» rewrite.
+
+**P1 scaffold:** 2026-10-10T16:25:31Z · [`pkg-000112`](./gateway-active-packages/pkg-000112-20261010-gw-req56-02-api-docs-search-param.yaml) · draft [`p1_gw_req56_02_scaffold_20261010T162344Z`](../../../.cursor/plans/p1_gw_req56_02_scaffold_20261010T162344Z.plan.md). Epic **REUSE**. Soft depend REQ56-01 Done. Docs-only; no runtime. No §«Актуальная точка» rewrite.
 
 ### STORY-GW-REQ56-01 — issues list search filter (D-S1)
 
@@ -2264,6 +2292,10 @@ Standalone meta-script: [`.cursor/plans/Taxonomy_builder.plan.md`](../../../.cur
 | 2026-09-07 | P3 execute | STORY-GW-SSR-35 SCHEMA_ROOT_URL + refresh (`pkg-000092` T01–T07) | [run-summary-20260907-0854-gw-ssr-35-p3](./run-reports/run-summary-20260907-0854-gw-ssr-35-p3.md) | G35 PASS; remote_fetch + config + 12 tests; no invent registry; no push. |
 | 2026-09-07 | P5 APPLY | STORY-GW-SSR-35 audit disposition (`gw_ssr_35_audit_followup`) | [p5_ssr-35_gap_20260907T085854Z](../../../.cursor/plans/p5_ssr-35_gap_20260907T085854Z.plan.md) | G1 TASKED t08; G2 WAIVED operator; pkg-000092 unchanged; no §Актуальная точка rewrite. |
 | 2026-09-07 | P6 execute | STORY-GW-SSR-35 audit follow-up T08 (`gw_ssr_35_audit_followup`) | [run-summary-20260907-0858-gw-ssr-35-audit-p6](./run-reports/run-summary-20260907-0858-gw-ssr-35-audit-p6.md) | T08 G1 CLOSED; G2 WAIVED; pkg-000092 unchanged; no §Актуальная точка rewrite. |
+| 2026-10-10 | P6 execute | STORY-GW-REQ56-02 audit follow-up T04–T05 (`gw_req56_02_audit_followup`) | [run-summary-20261010-1650-gw-req56-02-audit-p6](./run-reports/run-summary-20261010-1650-gw-req56-02-audit-p6.md) | T04 G1 CLOSED; T05 G3 CLOSED; G2 WAIVED; pkg-000112 unchanged; no §Актуальная точка rewrite. |
+| 2026-10-10 | P5 APPLY | STORY-GW-REQ56-02 audit gaps (`gw_req56_02_audit_followup` T04–T05) | [p5_gw_req56_02_gap_20261010T164014Z](../../../.cursor/plans/p5_gw_req56_02_gap_20261010T164014Z.plan.md) | G1/G3 TASKED; G2 WAIVED; pkg-000112 unchanged; no §Актуальная точка rewrite; no product. |
+| 2026-10-10 | P3 execute | STORY-GW-REQ56-02 API docs search param (`pkg-000112` T01–T03) | [run-summary-20261010-1630-gw-req56-02-p3](./run-reports/run-summary-20261010-1630-gw-req56-02-p3.md) | Gate PASS AC-01…03; API_REFERENCE + openapi `search`; docs-only; no runtime; no §Актуальная точка rewrite. |
+| 2026-10-10 | P1 scaffold | STORY-GW-REQ56-02 API docs search param (`pkg-000112` T01–T03) | [p1_gw_req56_02_scaffold_20261010T162344Z](../../../.cursor/plans/p1_gw_req56_02_scaffold_20261010T162344Z.plan.md) | Epic REUSE + pipeline + 3 tasks; current.yaml → pkg-000112; docs-only; no runtime; no §Актуальная точка rewrite. |
 | 2026-10-10 | P6 execute | STORY-GW-REQ56-01 audit follow-up T07–T08 (`gw_req56_01_audit_followup`) | [run-summary-20261010-1615-gw-req56-01-audit-p6](./run-reports/run-summary-20261010-1615-gw-req56-01-audit-p6.md) | T07 G1 CLOSED; T08 G3 CLOSED; G2 WAIVED; offline 11; pkg-000111 unchanged; no §Актуальная точка rewrite. |
 | 2026-10-10 | P5 APPLY | STORY-GW-REQ56-01 audit gaps (`gw_req56_01_audit_followup`) | [p5_gw_req56_01_gap_20261010T160937Z](../../../.cursor/plans/p5_gw_req56_01_gap_20261010T160937Z.plan.md) | G1 TASKED T07; G2 WAIVED; G3 TASKED T08; pkg-000111 unchanged; no §Актуальная точка rewrite. |
 | 2026-10-10 | P3 execute | STORY-GW-REQ56-01 issues list search filter D-S1 (`pkg-000111` T01–T06) | [run-summary-20261010-1601-gw-req56-01-p3](./run-reports/run-summary-20261010-1601-gw-req56-01-p3.md) | Gate PASS; param `search` D-S1 hybrid; offline 10; no SQL/FTS; no push; no §Актуальная точка rewrite. |
