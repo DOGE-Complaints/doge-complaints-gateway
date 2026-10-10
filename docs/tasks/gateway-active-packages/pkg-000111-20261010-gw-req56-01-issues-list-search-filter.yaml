@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 111
+created_at: '2026-10-10T15:52:08Z'
+label: GW-REQ56-01 issues list text search filter (D-S1)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-01-issues-list-search-filter.md
+story_groups:
+- story_key: STORY-GW-REQ56-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t01-d-s1-match-helper/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t02-post-fetch-filter-compose/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t03-asgi-handler-search-wire/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t04-unit-match-and-compose/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t05-asgi-handler-search-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/task-gw-req56-01-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-10T15:52:08Z. Backlog REQ56-01 materialize.
+  Epic CREATE EPIC-req56-issues-server-text-search.
+  Branch dev only. Scaffold only — no product search filter this APPLY.
+  Locks: param search; D-S1 hybrid in-memory; no separate route; no comments;
+  no SQL/FTS invent; TECH-ARCH DP1–4; OpenAPI → REQ56-02.
+  Do not mutate pkg-000100…110 product bodies beyond current.yaml pointer.
+  Draft: .cursor/plans/p1_gw_req56_01_scaffold_20261010T154931Z.plan.md

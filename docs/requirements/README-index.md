@@ -70,11 +70,42 @@
 - `39-cross-layer-contract-testing.md` — **P2**: offline contract suite zones A–N (bootstrap↔Python, PostgREST coercion, intake mapping, repository parity, API facade, logging, store parity, factory wiring). EPIC-M2-18; complements REQ-24/40 acceptance tests.
 - `41-testing-production-coverage-target-state.md` — **P0–P2**: целевое покрытие 25 продакшн-сценариев (PS-01..PS-25): Layer 6 smoke (`LOCAL_SERVER_URL`), cron timing, concurrent intake, env-only config, CI `integration-live` + матрица в [`13-testing-and-quality-architecture.md`](../solution%20architecture/13-testing-and-quality-architecture.md) §6. Исполнение: EPIC-M2-18 stories M2-18-03..05, [`pkg-000021`](../tasks/gateway-active-packages/pkg-000021-20260518-req41-production-test-coverage.yaml).
 
+### Gap-интервью 2026-05-21 — GPT↔сервер data model alignment (пакет REQ-42…43)
+
+Сформированы по результатам gap-анализа `docs/analysis/gap-analysis-gpt-to-server-story-model-2026-05-21.md` и product-интервью 2026-05-21. Парные GPT-требования: `GPT UI/docs/requirements/REQ-22`, `REQ-23`.
+
+- `42-gpt-signals-story-intake-extension.md` — **P1**: новый опциональный intake-блок `gpt_signals` (`severity`, `impact_estimation`, `problem_status`); персистируется в `story_signals` с `extraction_policy="gpt.story_classifier.v1"`. Позволяет передавать GPT-классификационные сигналы на сервер без изменения StoryRecord.
+- `43-institution-json-story-column.md` — **P1**: новая колонка `institution_json` (JSONB, nullable) в `stories`; новое опциональное поле `narrative.institution {et,ru,en}` в intake-контракте; propagation в `doge_issues.payload_json` при promotion.
+
 ### Early Signal / Pre-Cluster (parent product REQ)
 
 - `48-early-signal-pre-cluster-data-readiness.md` — **Draft awaiting PA.2**: inventory существующих stores vs Level 1/2 metrics parent Early Signal Dashboard; privacy / Topic≠Issue; **без** invented public API path; sibling spa `15-early-signal-pre-cluster-public-dashboard.md`. Parent: `docs/requirements backlog/DOGEstonia-Early-Signal-Dashboard-Pre-Cluster-Product-Requirements.md`.
 - `49-early-signal-network-pulse-l1-api.md` — **Accepted 2026-08-10**: public `GET /node/network-pulse` path + payload schema (GW-ES-02 T00 / pkg-000059); predecessor REQ-48.
 - `50-early-signal-emerging-l2-api.md` — **Accepted 2026-08-10**: public `GET /node/emerging-signals` path + payload + MVP L2 rule closing REQ-48 open Q2 for MVP (GW-ES-03 T00 / pkg-000060).
+
+### Semantic Schema Runtime (parent product REQ3)
+
+- `51-semantic-schema-runtime.md` — **Accepted 2026-09-01** (package SSR-01…05, 08–25 Done; SSR-06/07 later): Schema Runtime, pack, required `schema_binding` wire, clustering+CL-006 promotion; IDX/QRY/processors **later**; **без** invented filter/UI HTTP paths. Parent REQ3-WAVE-001. Siblings: identity `20-…`, spa `16-…`, GPT `REQ-45-…`.
+
+### Threads / Issue context (parent product REQ7)
+
+- `52-issue-thread-context-and-node-verification.md` — **Draft awaiting PA.2 (shell)**: Issue ThreadContext on **pull** (D29, no Story bodies, route unnamed); pack = verification policy **+** shell knobs / Topic-guarded reaction defaults (T-REQ7-04/08); civic verify consumers use identity **verified boolean** (not phone hard-code); story-create sanction enforce + voice-source API → **REQ8**. Parent REQ7. Siblings: threads `01-…`, spa `17-…`, identity `21-…`.
+
+### Ops / env naming (parent product REQ9)
+
+- `53-req9-ops-parity-env-naming.md` — **Draft awaiting PA.2**: gateway `example.env` `API_BASE_URL` / `IDENTITY_BASE_URL` / `SPA_BASE_URL`; `make test`; hard-cut SPA verify name. Parent REQ9. Siblings: aibridge `REQ-08`, threads `02-…`, identity `22-…`, spa `18-…`. Tech-arch: `docs/architecture/req9-ops-naming/`.
+
+### Board / threads architecture hardening (parent product REQ10)
+
+- `54-req10-lifecycle-status-normalize.md` — **Draft awaiting PA.2**: inventory + backfill `RECEIVED`→`accepted`; remove permanent lifecycle special-case / debug I/O; H8 stretch `list_all` note. Parent REQ10. Siblings: threads `03-…`, spa `19-…`.
+
+### Demo life simulation (parent product REQ11)
+
+- `55-req11-demo-life-sim-fixtures-and-replay.md` — **Draft awaiting PA.2**: users+stories JSON; profiles local + Uus Veerenni; API replay; backdate TBD; multi-fixture submitters. Parent REQ11. Siblings: threads `04-…`, spa `20-…`.
+
+### Issues server text search (gateway-local)
+
+- `56-issues-server-text-search.md` — **Draft awaiting PA.2**: D-S1 text filter on `GET /node/issues` via query param **`search`**; anonymous + PUBLISHED/anti-DRAFT; **no** comments/separate endpoint. Backlog `req56-issues-server-text-search` (REQ56-01/02 Todo). **No** product-root REQ; SPA = consumer only.
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 
