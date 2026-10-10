@@ -291,7 +291,8 @@ components:
           type: string
         status:
           type: string
-          enum: [DRAFT, PUBLISHED]
+          enum: [NEW, IN_REVIEW, PUBLISHED]
+          description: Governed DOGEIssueStatus values (no invent DRAFT).
         type:
           type: string
           enum: [complaint, system_bug, observation, absurdity]
@@ -390,6 +391,27 @@ components:
         problem_status:
           type: string
           enum: [ONGOING, RESOLVED, RECURRING, UNKNOWN]
+    SchemaBinding:
+      type: object
+      additionalProperties: false
+      required: [schema_id, schema_version, structured_payload]
+      description: >
+        Optional sidecar on existing v2 intake/stash (D-SSR-1). Inner schema_version is
+        the semantic pack version, not the envelope id. payload_hash is not accepted on
+        the wire. Empty object or omitted key = civic intake.
+      properties:
+        schema_id:
+          type: string
+        schema_version:
+          type: string
+          description: Semantic pack version. Must not equal m2.story_intake_envelope.v2.
+        profile_id:
+          type: string
+        profile_version:
+          type: string
+        structured_payload:
+          type: object
+          additionalProperties: true
     StoryIntakeRequest:
       type: object
       required: [schema_version, submitter, narrative]
@@ -411,6 +433,8 @@ components:
           $ref: '#/components/schemas/LiveStoryContext'
         gpt_signals:
           $ref: '#/components/schemas/GptSignals'
+        schema_binding:
+          $ref: '#/components/schemas/SchemaBinding'
     StoryDraftStashRequest:
       type: object
       required: [schema_version, narrative]
@@ -433,6 +457,8 @@ components:
           $ref: '#/components/schemas/LiveStoryContext'
         gpt_signals:
           $ref: '#/components/schemas/GptSignals'
+        schema_binding:
+          $ref: '#/components/schemas/SchemaBinding'
     IntakeNotes:
       type: object
       required: [geo_resolved, gpt_signals_persisted]
@@ -775,9 +801,11 @@ paths:
         Runtime state:
         - returns saved intake JSON from draft store;
         - browser auth: `Authorization: Bearer` → identity `/me` (active session only, no phone_verified gate);
-        - on successful read, gateway best-effort associates `draft_id→sub` (GW-CAB-02);
+        - authz = valid Bearer **+ knowledge of `draft_id`** (capability); ownership is **not** checked on read (by design);
+        - on successful read, gateway best-effort `set_owner(draft_id→sub)` with **first-wins** semantics (GW-CAB-02);
         - unknown or expired draft id → 404;
         - handler: `handle_story_draft_get`; dep: `require_story_draft_read_user`.
+        Security SSOT: docs/tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md.
       operationId: getStoryDraft
       x-runtime-state: implemented-runtime-binding
       security:
@@ -827,8 +855,9 @@ paths:
         Runtime state:
         - browser auth: `Authorization: Bearer` → identity `/me` (active session only);
         - returns latest non-expired draft owned by `sub` (D-CAB02-3) or `{ "data": null }`;
-        - owner association written on `GET /story-drafts/{id}` (cross-device resume);
+        - owner association written on `GET /story-drafts/{id}` with **first-wins** `set_owner` (cross-device resume);
         - handler: `handle_story_draft_current`; dep: `require_story_draft_read_user`.
+        Security SSOT: docs/tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md.
       operationId: getStoryDraftCurrent
       x-runtime-state: implemented-runtime-binding
       security:
@@ -866,9 +895,11 @@ paths:
         Runtime state:
         - browser auth: `Authorization: Bearer` (Supabase session forwarded to identity `/me`);
         - gate: `evaluate_verification_gate` on `IntrospectionResult` from `IdentityMeClient`;
+        - authz = valid Bearer **+ knowledge of `draft_id`** (capability); ownership vs `draft_owner` is **not** checked on submit (by design);
         - loads draft payload, creates story via `handle_story_intake` with `idempotency_key=draft_id`;
         - deletes draft on success; idempotent replay returns same `story_id` (202);
         - handler: `handle_story_draft_submit` in `src/core/api/handlers.py`.
+        Security SSOT: docs/tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md.
       operationId: postStoryDraftSubmit
       x-runtime-state: implemented-runtime-binding
       parameters:
@@ -1123,6 +1154,15 @@ paths:
               type: string
           style: form
           explode: true
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+          description: |
+            Optional D-S1 text filter on issue title+description (et/ru/en concatenated).
+            Case-insensitive substring after trim. Empty / absent / whitespace-only → no text restriction.
+            AND-composed with structural/geo filters. Issues list only — not comments; not a separate search path.
         - in: query
           name: type
           schema:

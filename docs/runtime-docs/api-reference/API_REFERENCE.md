@@ -130,6 +130,15 @@ Validated in:
 - **Purpose**: in-process counters (`health_requests`, `readiness_requests`, `protected_requests`, `metrics_requests`, `auth_failures`)
 - **Auth required**: Bearer token or `X-Service-Token` when auth is enabled
 
+### `PATCH /ops/stories/{story_id}/created-at` (GW-REQ11-04 lock B)
+
+- **As-is implementation**: `PATCH /ops/stories/{story_id}/created-at` in `asgi_app` → `handle_story_created_at_backdate`
+- **Purpose**: **service-auth ops** backdate of `stories.created_at` **after** stash→submit so demo/life-sim fixture timestamps survive. **Not** a public intake field (stash/submit bodies do **not** accept client `created_at`).
+- **Auth required**: same channel gate as `POST /story-drafts` (`require_public_content_service_auth` — Bearer or `X-Service-Token`)
+- **Request body**: `{ "created_at": "2026-12-10T13:03:03Z" }` (ISO 8601)
+- **Success**: `200` — `{ "data": { "story_id", "created_at" }, "trace_id" }`
+- **Errors**: `401` unauthorized; `400` invalid body; `404` unknown story
+
 ## 6. Story intake (GW-DRAFT-06 — public HTTP path removed)
 
 Public `POST /intake/stories` was removed in GW-DRAFT-06. **GPT write path:** `POST /story-drafts` (stash). **User submit path:** `POST /story-drafts/{draft_id}/submit` (browser Bearer + identity `/me`). Domain logic `handle_story_intake` remains internal (submit-bridge only).
@@ -317,6 +326,18 @@ Source: `contracts.py` (`GptSignalsBlock`, `parse_story_intake_request`), `servi
 
 ---
 
+#### `schema_binding` — object, optional (D-SSR-1 / SSR-03)
+
+Sidecar on the **existing** v2 intake/stash body (same class of change as `gpt_signals`). No new HTTP path.
+
+- **Absent key** or **empty object `{}`:** civic intake succeeds (LegacyM2). Binding fields stay `None`.
+- **Present object:** inner keys allowed only: `schema_id`, `schema_version` (semantic pack, **not** envelope), optional `profile_id` / `profile_version`, `structured_payload`. Unknown inner keys (including `payload_hash`) → `IntakeValidationError`. Inner `schema_version` must not equal `m2.story_intake_envelope.v2`.
+- Gateway validates `structured_payload` via `LocalSchemaRuntime` **before** `save_story`. Invalid payload → 4xx, not silent drop. `payload_hash` is computed server-side.
+
+Source: `contracts.py` (`SchemaBinding`, `_parse_schema_binding_block`), `services.py` (`create_story`)
+
+---
+
 ### 6.4 Full request example
 
 ```json
@@ -498,6 +519,7 @@ Ephemeral handoff store: GPT stashes a validated `StoryDraftStashRequest` JSON (
 
 - **HTTP binding:** `asgi_app.py` → `handle_story_draft_get` (`handlers.py`)
 - **Auth:** browser `Authorization: Bearer` only (Supabase session); `require_story_draft_read_user` → identity `GET /me` (**active session only** — no `phone_verified` gate on read; per mvp §4)
+- **Authz (capability, by design):** valid Bearer **+ knowledge of `draft_id`**; ownership is **not** checked on read. On success, best-effort `set_owner` with **first-wins** (GW-CAB-02). See [DOC-TASK-DRAFT-OWNERSHIP-01](../../tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md).
 - **Success:** `200` — `{ "data": <saved StoryDraftStashRequest JSON>, "trace_id": "..." }`
 - **Auth error:** `401` — missing/inactive Bearer
 - **Identity unavailable:** `503` — `SERVICE_UNAVAILABLE` (fail-closed)
@@ -507,12 +529,21 @@ Persistence: separate `StoryDraftRepository` port (`domain/contracts.py`); adapt
 
 Test evidence: `tests/test_gw_draft_01_story_draft_stash_contract.py`, `tests/test_gw_draft_02_get_auth_contract.py`
 
+### `GET /story-drafts/current` (GW-CAB-02)
+
+- **HTTP binding:** `asgi_app.py` → `handle_story_draft_current` (`handlers.py`)
+- **Auth:** browser Bearer → `/me` (same dep as draft GET)
+- **Semantics:** latest non-expired draft for `sub` via `draft_owner` join; association written on `GET /story-drafts/{id}` with **first-wins** `set_owner`
+- **Success:** `200` — `{ "data": { "draft_id", "last_edited_at" } }` or `{ "data": null }`
+- **Security SSOT:** [DOC-TASK-DRAFT-OWNERSHIP-01](../../tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md)
+
 ### `POST /story-drafts/{draft_id}/submit` (GW-DRAFT-02)
 
 Browser handoff completion: verified user submits stashed draft; gateway calls identity `GET /me` with forwarded Supabase Bearer (no local JWT validation).
 
 - **HTTP binding:** `asgi_app.py` → `require_story_draft_submit_user` + `handle_story_draft_submit` (`handlers.py`)
 - **Auth:** browser `Authorization: Bearer` only (Supabase session); **no** service token, **no** `X-User-Token`
+- **Authz (capability, by design):** valid Bearer **+ knowledge of `draft_id`**; caller is **not** compared to `draft_owner` on submit
 - **Identity:** `IdentityMeClient` → `{IDENTITY_BASE_URL}/me` → `IntrospectionResult`; env `IDENTITY_BASE_URL` (falls back to `IDENTITY_INTROSPECT_URL` base when unset)
 - **Gate:** reuse `evaluate_verification_gate` — `phone_verified=true` → intake; `false` → **403** `verification_required` + `verify_url`; inactive/missing token → **401**; identity down → **503**
 - **Body:** none (payload loaded from draft store by `draft_id`; bridged to `StoryIntakeRequest` with `/me` author)
@@ -520,6 +551,7 @@ Browser handoff completion: verified user submits stashed draft; gateway calls i
 - **Idempotency:** `draft_id` is the idempotency key; repeat submit returns same `story_id` without duplicate stories; draft deleted after first success
 - **Not found / expired:** `404` — `DOMAIN_ERROR`
 - **Config:** `IDENTITY_BASE_URL`, `SPA_BASE_URL` (for `verify_url`)
+- **Security SSOT:** [DOC-TASK-DRAFT-OWNERSHIP-01](../../tasks/backlog-stories/cabinet-api/DOC-TASK-DRAFT-OWNERSHIP-01-clarify-capability-model.md)
 
 Test evidence: `tests/test_gw_draft_02_story_draft_submit_contract.py`
 
@@ -556,9 +588,48 @@ Source: `extraction_policy.py` (`DeterministicStoryToProjectionPolicy.build_draf
 
 ---
 
+### `GET /node/network-pulse` (GW-ES-02 / REQ-49)
+
+- **HTTP binding state**: implemented — `asgi_app.py` → `handle_network_pulse` (`handlers.py`); service `NetworkPulseService` (`application/network_pulse.py`)
+- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
+- **Contract SSOT**: [`49-early-signal-network-pulse-l1-api.md`](../../requirements/49-early-signal-network-pulse-l1-api.md)
+- **Returns**: `200` with `data` non-PII L1 aggregates for Early Signal Network Pulse
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `stories_collected` | int | `len(list_stories())` |
+| `languages` | `{key, count}[]` | by `narrative_language` |
+| `areas` | `{key, count}[]` | district → settlement → region fallback; small sample ≠ city coverage |
+| `topics` | `{label, axis, count}[]` | **topic/label** frequencies from public `story_labels` — **never Issues** |
+| `recent_stories_7d` | int | UTC 7-day window on `created_at` |
+
+**Normative:** Topic ≠ Issue; no «N Stories until Issue»; no `submitter_*` / narrative / Voices. Do **not** use `/metrics` for Pulse. `GET /node/issues` unchanged (L3).
+
+---
+
+### `GET /node/emerging-signals` (GW-ES-03 / REQ-50)
+
+- **HTTP binding state**: implemented — `asgi_app.py` → `handle_emerging_signals` (`handlers.py`); service `EmergingSignalsService` (`application/emerging_signals.py`)
+- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
+- **Contract SSOT**: [`50-early-signal-emerging-l2-api.md`](../../requirements/50-early-signal-emerging-l2-api.md)
+- **Returns**: `200` with `data` non-PII L2 Emerging aggregates (**not** Issues projections)
+
+| Query | Type | Default | Notes |
+|-------|------|---------|-------|
+| `top_n` | int | `10` | Clamped `[1, 50]` |
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `signals` | `{label, axis, story_count}[]` | Top-N **topic/label** frequencies from public `story_labels`; stories linked to cabinet-**published** Issues excluded |
+| `top_n` | int | Applied top_n after clamp |
+
+**Normative:** Emerging ≠ Issues (`data.signals` vs `data.issues`); Topic ≠ Issue; no «N Stories until Issue»; no PII; no persistent `EmergingSignal` table. Source = labels, **not** `list_projections`. L3 `GET /node/issues` and L1 Pulse unchanged.
+
+---
+
 ### `GET /node/issues`
 
-- **HTTP binding state**: implemented — `asgi_app.py:462` → `handle_issues_list` (`handlers.py:385`)
+- **HTTP binding state**: implemented — `asgi_app.issues_list` → `handlers.handle_issues_list`
 - **Auth**: public (no token required)
 - **Returns**: `200` with `data.issues` — list of `DOGEIssue.to_public_dict()` shapes
 
@@ -568,7 +639,8 @@ All parameters are optional and can be combined.
 
 | Parameter | Type | Semantics |
 |-----------|------|-----------|
-| `status` | `string[]` | Multi-value OR filter: `DRAFT`, `PUBLISHED` |
+| `status` | `string[]` | Multi-value OR filter on governed `DOGEIssueStatus`: `NEW`, `IN_REVIEW`, `PUBLISHED` |
+| `search` | `string` | Optional text filter (D-S1): case-insensitive substring on concatenated non-empty `et`/`ru`/`en` values from issue `title` and `description`. Trimmed empty / absent / whitespace-only → **no** text restriction. AND-composed with other structural/geo filters when those are present. Issues corpus only — not comments; same list route (no separate search endpoint). |
 | `type` | `string` | Exact match: `complaint`, `system_bug`, `observation`, `absurdity` |
 | `labels` | `string[]` | Multi-value OR — issue must carry at least one of the supplied labels |
 | `institution` | `string` | Exact match on `payload_json.institution`: compares against any of `et`, `ru`, `en` when stored as i18n object (REQ-43) |
@@ -721,45 +793,6 @@ Multi-value parameters are supplied as repeated query params: `?geo_district=Kes
 - `trace_id` is preserved or generated in API envelopes (`ensure_trace_id`).
 - Auth failure metrics are exposed via `ApiMetrics` and can be checked by `alert_contract`.
 
-### `GET /node/network-pulse` (GW-ES-02 / REQ-49)
-
-- **HTTP binding state**: implemented — `asgi_app.py` → `handle_network_pulse` (`handlers.py`); service `NetworkPulseService` (`application/network_pulse.py`)
-- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
-- **Contract SSOT**: [`49-early-signal-network-pulse-l1-api.md`](../../requirements/49-early-signal-network-pulse-l1-api.md)
-- **Returns**: `200` with `data` non-PII L1 aggregates for Early Signal Network Pulse
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `stories_collected` | int | `len(list_stories())` |
-| `languages` | `{key, count}[]` | by `narrative_language` |
-| `areas` | `{key, count}[]` | district → settlement → region fallback; small sample ≠ city coverage |
-| `topics` | `{label, axis, count}[]` | **topic/label** frequencies from public `story_labels` — **never Issues** |
-| `recent_stories_7d` | int | UTC 7-day window on `created_at` |
-
-**Normative:** Topic ≠ Issue; no «N Stories until Issue»; no `submitter_*` / narrative / Voices. Do **not** use `/metrics` for Pulse. `GET /node/issues` unchanged (L3).
-
----
-
-### `GET /node/emerging-signals` (GW-ES-03 / REQ-50)
-
-- **HTTP binding state**: implemented — `asgi_app.py` → `handle_emerging_signals` (`handlers.py`); service `EmergingSignalsService` (`application/emerging_signals.py`)
-- **Auth**: public (no service token; listed in `PUBLIC_ROUTES`)
-- **Contract SSOT**: [`50-early-signal-emerging-l2-api.md`](../../requirements/50-early-signal-emerging-l2-api.md)
-- **Returns**: `200` with `data` non-PII L2 Emerging aggregates (**not** Issues projections)
-
-| Query | Type | Default | Notes |
-|-------|------|---------|-------|
-| `top_n` | int | `10` | Clamped `[1, 50]` |
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `signals` | `{label, axis, story_count}[]` | Top-N **topic/label** frequencies from public `story_labels`; stories linked to cabinet-**published** Issues excluded |
-| `top_n` | int | Applied top_n after clamp |
-
-**Normative:** Emerging ≠ Issues (`data.signals` vs `data.issues`); Topic ≠ Issue; no «N Stories until Issue»; no PII; no persistent `EmergingSignal` table. Source = labels, **not** `list_projections`. L3 `GET /node/issues` and L1 Pulse unchanged.
-
----
-
 Sources:
 
 - `src/core/api/envelope.py`
@@ -782,10 +815,10 @@ Sources:
   - `GET /ready`
   - `POST /story-drafts` (201 Created — GPT stash; no story yet)
   - `POST /telemetry/label-misses` (202 Accepted — anonymous label miss telemetry, GW-L10N-03)
+  - `GET /node/issues` (16-parameter filter API, incl. optional `search`)
+  - `GET /node/issues/{issue_id}`
   - `GET /node/network-pulse` (GW-ES-02 / REQ-49 Network Pulse L1)
   - `GET /node/emerging-signals` (GW-ES-03 / REQ-50 Emerging L2)
-- `GET /node/issues` (15-parameter filter API)
-  - `GET /node/issues/{issue_id}`
 - Browser Bearer operations (`require_story_draft_read_user` / submit dep):
   - `GET /story-drafts/{draft_id}`
   - `GET /story-activity` (GW-CAB-01 — user cabinet list + metrics)
@@ -795,7 +828,7 @@ Sources:
 
 - Formal key lifecycle policy (rotation/revocation/audit procedures).
 - Optional multi-key/keyset strategy for higher-assurance environments.
-- `PATCH /node/issues/{issue_id}` — status transitions (DRAFT → PUBLISHED) by operator.
+- `PATCH /node/issues/{issue_id}` — status transitions among `NEW` / `IN_REVIEW` / `PUBLISHED` by operator.
 
 ## 10. Compatibility Guidance
 
