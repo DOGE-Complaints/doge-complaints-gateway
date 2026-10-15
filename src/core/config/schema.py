@@ -57,6 +57,9 @@ class AppConfig:
     schema_root_url: str | None
     schema_pack_refresh: bool
     schema_pack_ready: bool
+    aibridge_base_url: str | None
+    aibridge_worker_sense_brief_s2s_token: str | None
+    aibridge_sense_brief_nudge_enabled: bool
 
 
 ENV_SCHEMA: tuple[EnvSpec, ...] = (
@@ -215,6 +218,33 @@ ENV_SCHEMA: tuple[EnvSpec, ...] = (
             "If true, missing active pack does not abort boot (degraded mode). "
             "Default when unset: soft only when SCHEMA_PACKS_ROOT is set "
             "(empty Railway Volume chicken-egg)."
+        ),
+    ),
+    EnvSpec(
+        name="AIBRIDGE_BASE_URL",
+        required=False,
+        default=None,
+        description=(
+            "aibridge HTTPS origin (no path) for sense-brief nudge "
+            "(GW-REQ57-02). Required when AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED=true."
+        ),
+    ),
+    EnvSpec(
+        name="AIBRIDGE_WORKER_SENSE_BRIEF_S2S_TOKEN",
+        required=False,
+        default=None,
+        description=(
+            "Worker S2S Bearer for POST /v1/worker/sense-brief/accept "
+            "(GW-REQ57-02). Same secret as aibridge worker token."
+        ),
+    ),
+    EnvSpec(
+        name="AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED",
+        required=False,
+        default="false",
+        description=(
+            "Enable outbound sense-brief nudge after Issue create/publish "
+            "(GW-REQ57-02). Unset/false → fail-closed (no pretend success)."
         ),
     ),
 )
@@ -630,6 +660,20 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         environ=dict(source),
     )
 
+    aibridge_base_url_raw = _get_value(source, "AIBRIDGE_BASE_URL")
+    aibridge_base_url: str | None = None
+    if aibridge_base_url_raw is not None:
+        aibridge_base_url = _validate_http_url(
+            aibridge_base_url_raw, env_name="AIBRIDGE_BASE_URL"
+        ).rstrip("/")
+    aibridge_worker_sense_brief_s2s_token = _get_value(
+        source, "AIBRIDGE_WORKER_SENSE_BRIEF_S2S_TOKEN"
+    )
+    aibridge_sense_brief_nudge_enabled = _parse_bool(
+        _require_value(source, name="AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED"),
+        env_name="AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED",
+    )
+
     return AppConfig(
         profile=profile,
         api_base_url=api_base_url,
@@ -653,5 +697,8 @@ def load_config_from_env(env: Mapping[str, str] | None = None) -> AppConfig:
         schema_root_url=schema_root_url,
         schema_pack_refresh=schema_pack_refresh,
         schema_pack_ready=schema_pack_ready,
+        aibridge_base_url=aibridge_base_url,
+        aibridge_worker_sense_brief_s2s_token=aibridge_worker_sense_brief_s2s_token,
+        aibridge_sense_brief_nudge_enabled=aibridge_sense_brief_nudge_enabled,
     )
 

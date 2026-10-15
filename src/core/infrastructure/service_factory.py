@@ -143,6 +143,8 @@ class DefaultServiceFactory:
         return self.issue_projection_store
 
     def get_issue_create_service(self) -> IssueCreateService:
+        from core.application.sense_brief_nudge import build_nudge_service_from_config
+
         return IssueCreateService(
             promotion_service=self.get_issue_promotion_service(),
             projection_service=self.get_issue_projection_service(),
@@ -154,6 +156,7 @@ class DefaultServiceFactory:
             issue_projection_store=self.issue_projection_store,
             issue_projection_embedding_store=self.issue_projection_embedding_store,
             issue_story_link_store=self.issue_story_link_store,
+            sense_brief_nudge_service=build_nudge_service_from_config(self.config),
         )
 
     def get_story_cluster_orchestrator(self) -> StoryClusterOrchestrator:

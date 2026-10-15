@@ -5,9 +5,11 @@ from hashlib import sha256
 import json
 import logging
 from pathlib import Path
-from typing import Any
-from typing import Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from core.application.sense_brief_nudge import SenseBriefNudgeService
 
 from core.domain import StoryLabelRepository, StoryRecord, StoryRepository
 from core.promotion.gates import PromotionGatePolicy
@@ -192,6 +194,46 @@ class IssueCreateService:
     issue_projection_embedding_store: IssueProjectionEmbeddingStore | None = None
     issue_story_link_store: IssueStoryLinkStore | None = None
     packs_root: Path | None = None
+    sense_brief_nudge_service: "SenseBriefNudgeService | None" = None
+
+    def _apply_pending_and_nudge(
+        self,
+        *,
+        issue_id: str,
+        status: str,
+        projection_payload: dict[str, Any],
+        story_ids: tuple[str, ...],
+    ) -> dict[str, Any]:
+        """GW-REQ57-02: pending + initial version + thin nudge (fail-closed)."""
+        from core.application.sense_brief_nudge import (
+            INITIAL_GENERATION_VERSION,
+            build_corpus_from_stories,
+            mark_generation_pending,
+        )
+
+        pending_payload = mark_generation_pending(
+            projection_payload, generation_version=INITIAL_GENERATION_VERSION
+        )
+        if self.issue_projection_store is not None:
+            self.issue_projection_store.save_projection(
+                issue_id=issue_id,
+                status=status,
+                payload=pending_payload,
+                policy_version=DERIVATION_POLICY_VERSION,
+            )
+        if self.sense_brief_nudge_service is not None:
+            stories: list[StoryRecord] = []
+            for story_id in story_ids:
+                record = self.bridge.story_repository.get_story(story_id)
+                if record is not None:
+                    stories.append(record)
+            corpus = build_corpus_from_stories(stories) if stories else None
+            self.sense_brief_nudge_service.nudge(
+                issue_id=issue_id,
+                generation_version=str(pending_payload.get("generation_version")),
+                corpus=corpus,
+            )
+        return pending_payload
 
     def _schema_card_for_stories(self, story_ids: tuple[str, ...]) -> dict[str, Any] | None:
         for story_id in story_ids:
@@ -318,10 +360,16 @@ class IssueCreateService:
                 embedding_policy_version=ISSUE_EMBEDDING_POLICY_VERSION,
             )
 
+        pending_payload = self._apply_pending_and_nudge(
+            issue_id=promoted.candidate_id,
+            status=str(projection_payload.get("status", projection.status)),
+            projection_payload=projection_payload,
+            story_ids=story_ids,
+        )
         return IssueCreateResult(
             issue_id=promoted.candidate_id,
             status=promoted.status.value,
-            projection=projection_payload,
+            projection=pending_payload,
         )
 
     def _extend_issue(
@@ -467,6 +515,12 @@ class IssueCreateService:
                 cluster_id=cluster_id.strip(),
                 story_ids=normalized_story_ids,
             )
+        self._apply_pending_and_nudge(
+            issue_id=issue_id,
+            status=str(projection.status),
+            projection_payload=projection_payload,
+            story_ids=normalized_story_ids,
+        )
         return issue_id
 
 
