@@ -22,6 +22,9 @@ class DOGEIssue:
     image_hash: str | None = None
     geo: dict[str, object] | None = None
     original_locale: tuple[str, ...] = ()
+    generation_status: str | None = None
+    generation_version: str | None = None
+    poster_url: str | None = None
 
     def to_public_dict(
         self, *, schema_card: Mapping[str, Any] | None = None
@@ -31,6 +34,8 @@ class DOGEIssue:
         Civic card keys stay required as today. Optional ``schema_card`` is a named
         sidecar (flat dotted-path keys) — never a raw payload dump.
         """
+        from core.projection.columnar_storage import apply_public_generation_keys
+
         out: dict[str, Any] = {
             "id": self.id,
             "status": self.status,
@@ -54,6 +59,12 @@ class DOGEIssue:
             out["geo"] = self.geo
         if self.original_locale:
             out["original_locale"] = list(self.original_locale)
+        if self.generation_status is not None:
+            out["generation_status"] = self.generation_status
+        if self.generation_version is not None:
+            out["generation_version"] = self.generation_version
+        if self.poster_url is not None:
+            out["poster_url"] = self.poster_url
         if schema_card:
             out["schema_card"] = dict(schema_card)
-        return out
+        return apply_public_generation_keys(out)

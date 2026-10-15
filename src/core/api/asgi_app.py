@@ -35,6 +35,7 @@ from core.api.handlers import (
     handle_story_activity,
     handle_issue_create,
     handle_issue_get,
+    handle_issue_sense_brief_bind,
     handle_issues_list,
     handle_pack_shell_settings,
 )
@@ -607,6 +608,26 @@ async def issue_create(
     if not isinstance(body, dict):
         body = {}
     payload, status_code = handle_issue_create(
+        deps,
+        body=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.post(
+    "/v1/issue-sense-brief/bind",
+    dependencies=[Depends(require_public_content_service_auth)],
+)
+async def issue_sense_brief_bind(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    """GW-REQ57-01: peer bind-in (SERVICE_API_TOKEN / GATEWAY_SERVICE_API_TOKEN)."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_issue_sense_brief_bind(
         deps,
         body=body,
         trace_id=_read_trace_id(request),

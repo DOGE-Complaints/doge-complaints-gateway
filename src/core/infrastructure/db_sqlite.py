@@ -334,7 +334,11 @@ class SqliteDatabase:
                 original_locale_json TEXT NOT NULL DEFAULT '[]',
                 arweave_txid TEXT,
                 image_txid TEXT,
-                image_hash TEXT
+                image_hash TEXT,
+                generation_status TEXT,
+                generation_version TEXT,
+                poster_url TEXT,
+                generation_reason_class TEXT
             );
 
             CREATE TABLE IF NOT EXISTS doge_issue_embeddings (
@@ -559,6 +563,16 @@ class SqliteDatabase:
             ("arweave_txid", "ALTER TABLE doge_issues ADD COLUMN arweave_txid TEXT"),
             ("image_txid", "ALTER TABLE doge_issues ADD COLUMN image_txid TEXT"),
             ("image_hash", "ALTER TABLE doge_issues ADD COLUMN image_hash TEXT"),
+            ("generation_status", "ALTER TABLE doge_issues ADD COLUMN generation_status TEXT"),
+            (
+                "generation_version",
+                "ALTER TABLE doge_issues ADD COLUMN generation_version TEXT",
+            ),
+            ("poster_url", "ALTER TABLE doge_issues ADD COLUMN poster_url TEXT"),
+            (
+                "generation_reason_class",
+                "ALTER TABLE doge_issues ADD COLUMN generation_reason_class TEXT",
+            ),
         ):
             if name not in cols:
                 self.connection.execute(ddl)
@@ -1019,9 +1033,10 @@ class SqliteIssueProjectionStore:
                 issue_id, status, policy_version, created_at, updated_at,
                 issue_type, labels_json, title_json, summary_json, description_json,
                 institution_json, geo_json, original_locale_json,
-                arweave_txid, image_txid, image_hash
+                arweave_txid, image_txid, image_hash,
+                generation_status, generation_version, poster_url, generation_reason_class
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(issue_id) DO UPDATE SET
                 status = excluded.status,
                 policy_version = excluded.policy_version,
@@ -1036,7 +1051,11 @@ class SqliteIssueProjectionStore:
                 original_locale_json = excluded.original_locale_json,
                 arweave_txid = excluded.arweave_txid,
                 image_txid = excluded.image_txid,
-                image_hash = excluded.image_hash
+                image_hash = excluded.image_hash,
+                generation_status = excluded.generation_status,
+                generation_version = excluded.generation_version,
+                poster_url = excluded.poster_url,
+                generation_reason_class = excluded.generation_reason_class
             """,
             (
                 issue_id,
@@ -1055,6 +1074,10 @@ class SqliteIssueProjectionStore:
                 fields["arweave_txid"],
                 fields["image_txid"],
                 fields["image_hash"],
+                fields["generation_status"],
+                fields["generation_version"],
+                fields["poster_url"],
+                fields["generation_reason_class"],
             ),
         )
         self.db.connection.commit()
@@ -1088,7 +1111,8 @@ class SqliteIssueProjectionStore:
         query = """
             SELECT issue_id, status, created_at, issue_type, labels_json, title_json,
                    summary_json, description_json, institution_json, geo_json,
-                   original_locale_json, arweave_txid, image_txid, image_hash
+                   original_locale_json, arweave_txid, image_txid, image_hash,
+                   generation_status, generation_version, poster_url, generation_reason_class
             FROM doge_issues WHERE 1=1
         """
         params: list[object] = []
@@ -1117,6 +1141,10 @@ class SqliteIssueProjectionStore:
                 arweave_txid=fetched[11],
                 image_txid=fetched[12],
                 image_hash=fetched[13],
+                generation_status=fetched[14],
+                generation_version=fetched[15],
+                poster_url=fetched[16],
+                generation_reason_class=fetched[17],
             )
             assembled = assemble_public_issue_from_storage_row(row_dict)
             rows.append(
@@ -1157,7 +1185,8 @@ class SqliteIssueProjectionStore:
             """
             SELECT issue_id, status, created_at, issue_type, labels_json, title_json,
                    summary_json, description_json, institution_json, geo_json,
-                   original_locale_json, arweave_txid, image_txid, image_hash
+                   original_locale_json, arweave_txid, image_txid, image_hash,
+                   generation_status, generation_version, poster_url, generation_reason_class
             FROM doge_issues WHERE issue_id = ?
             """,
             (issue_id,),
@@ -1182,6 +1211,10 @@ class SqliteIssueProjectionStore:
             arweave_txid=row[11],
             image_txid=row[12],
             image_hash=row[13],
+            generation_status=row[14],
+            generation_version=row[15],
+            poster_url=row[16],
+            generation_reason_class=row[17],
         )
         assembled = assemble_public_issue_from_storage_row(row_dict)
         return merge_projection_columns(

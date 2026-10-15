@@ -611,6 +611,45 @@ def handle_issue_get(
         return envelope.as_dict(), 500
 
 
+def handle_issue_sense_brief_bind(
+    dependencies: ApiDependencies,
+    *,
+    body: dict[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """GW-REQ57-01: aibridge bind-in apply (service-auth already enforced by ASGI)."""
+    from core.application.sense_brief_bind import (
+        IssueSenseBriefBindService,
+        SenseBriefBindError,
+    )
+
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        store = dependencies.issue_projection_read_store
+        write_store = dependencies.issue_create_service.issue_projection_store
+        if write_store is None:
+            raise SenseBriefBindError("Issue projection store is not configured.")
+        # Prefer unified R/W when available (InMemory/SQLite/Supabase same object).
+        bind_store = write_store if hasattr(write_store, "get_projection") else store
+        if not hasattr(bind_store, "save_projection"):
+            raise SenseBriefBindError("Issue projection store is not writable.")
+        service = IssueSenseBriefBindService(store=bind_store)  # type: ignore[arg-type]
+        issue = service.apply_bind(body)
+        return (
+            build_success_envelope(
+                data={"issue": issue},
+                trace_id=resolved_trace_id,
+            ).as_dict(),
+            200,
+        )
+    except SenseBriefBindError as exc:
+        return build_error_envelope(exc, trace_id=resolved_trace_id).as_dict(), 400
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
 def handle_issue_create(
     dependencies: ApiDependencies,
     *,

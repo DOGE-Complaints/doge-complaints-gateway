@@ -372,6 +372,19 @@ class IssueCreateService:
         )
         projection = self.projection_service.project(projection_input)
         projection_payload = self._to_public_payload(projection, updated.story_ids)
+        # GW-REQ57-01 AC-06: brief wins until regenerate — do not overwrite ready brief.
+        if self.issue_projection_store is not None and hasattr(
+            self.issue_projection_store, "get_projection"
+        ):
+            from core.application.sense_brief_bind import preserve_brief_wins_fields
+
+            existing_projection = self.issue_projection_store.get_projection(  # type: ignore[attr-defined]
+                updated.candidate_id
+            )
+            projection_payload = preserve_brief_wins_fields(
+                new_payload=projection_payload,
+                existing=existing_projection,
+            )
 
         if self.issue_story_link_store is not None:
             self.issue_story_link_store.save_issue_story_links(

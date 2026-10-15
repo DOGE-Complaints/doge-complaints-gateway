@@ -9,7 +9,8 @@ from core.projection.read_filters import canonicalize_issue_type_on_read, parse_
 COLUMNAR_ROW_SELECT = (
     "issue_id,status,created_at,issue_type,labels_json,title_json,summary_json,"
     "description_json,institution_json,geo_json,original_locale_json,"
-    "arweave_txid,image_txid,image_hash"
+    "arweave_txid,image_txid,image_hash,"
+    "generation_status,generation_version,poster_url,generation_reason_class"
 )
 
 _IDENTITY_ROW_FIELDS = frozenset({"issue_id", "status", "created_at"})
@@ -20,7 +21,18 @@ DOGE_ISSUES_COLUMNAR_READINESS_COLUMNS = frozenset(
     if field.strip() and field.strip() not in _IDENTITY_ROW_FIELDS
 )
 
-_OPTIONAL_SCALARS = ("arweave_txid", "image_txid", "image_hash")
+_OPTIONAL_SCALARS = (
+    "arweave_txid",
+    "image_txid",
+    "image_hash",
+    "generation_status",
+    "generation_version",
+    "poster_url",
+    "generation_reason_class",
+)
+
+# Public Issue locked keys (REQ57 / operator 2026-10-15) — reason_class is persist-only.
+_PUBLIC_GENERATION_KEYS = ("generation_status", "generation_version", "poster_url")
 
 
 def _parse_json_field(raw: object, *, default: object) -> object:
@@ -116,6 +128,9 @@ def payload_body_from_storage_row(
         for scalar in _OPTIONAL_SCALARS:
             value = row.get(scalar)
             if value is not None and str(value).strip():
+                # reason_class stays in storage row path for apply; strip on public assemble
+                if scalar == "generation_reason_class":
+                    continue
                 out[scalar] = str(value)
         return out
     if legacy_payload_json is not None:
@@ -148,7 +163,7 @@ def assemble_public_issue_from_storage_row(
         payload.get("type"),
         issue_id=issue_id,
     )
-    return payload
+    return apply_public_generation_keys(payload)
 
 
 def sqlite_row_to_dict(
@@ -167,6 +182,10 @@ def sqlite_row_to_dict(
     arweave_txid: object,
     image_txid: object,
     image_hash: object,
+    generation_status: object = None,
+    generation_version: object = None,
+    poster_url: object = None,
+    generation_reason_class: object = None,
 ) -> dict[str, object]:
     return {
         "issue_id": issue_id,
@@ -183,4 +202,35 @@ def sqlite_row_to_dict(
         "arweave_txid": arweave_txid,
         "image_txid": image_txid,
         "image_hash": image_hash,
+        "generation_status": generation_status,
+        "generation_version": generation_version,
+        "poster_url": poster_url,
+        "generation_reason_class": generation_reason_class,
     }
+
+
+def apply_public_generation_keys(payload: dict[str, object]) -> dict[str, object]:
+    """Normalize locked public generation keys on a public Issue dict."""
+    out = dict(payload)
+    status = out.get("generation_status")
+    if isinstance(status, str) and status.strip():
+        out["generation_status"] = status.strip()
+    else:
+        out.pop("generation_status", None)
+    version = out.get("generation_version")
+    if isinstance(version, str) and version.strip():
+        out["generation_version"] = version.strip()
+    else:
+        out.pop("generation_version", None)
+    poster = out.get("poster_url")
+    if (
+        isinstance(poster, str)
+        and poster.startswith("https://")
+        and out.get("generation_status") == "ready"
+    ):
+        out["poster_url"] = poster
+    else:
+        # omit when not ready (operator lock: omit or null when not)
+        out.pop("poster_url", None)
+    out.pop("generation_reason_class", None)
+    return out

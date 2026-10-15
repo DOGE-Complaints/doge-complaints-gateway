@@ -312,6 +312,10 @@ class InMemoryIssueProjectionStore:
                 "arweave_txid": row.get("arweave_txid"),
                 "image_txid": row.get("image_txid"),
                 "image_hash": row.get("image_hash"),
+                "generation_status": row.get("generation_status"),
+                "generation_version": row.get("generation_version"),
+                "poster_url": row.get("poster_url"),
+                "generation_reason_class": row.get("generation_reason_class"),
             }
             legacy_payload = row.get("payload")
             assembled = assemble_public_issue_from_storage_row(
@@ -361,6 +365,10 @@ class InMemoryIssueProjectionStore:
             "arweave_txid": row.get("arweave_txid"),
             "image_txid": row.get("image_txid"),
             "image_hash": row.get("image_hash"),
+            "generation_status": row.get("generation_status"),
+            "generation_version": row.get("generation_version"),
+            "poster_url": row.get("poster_url"),
+            "generation_reason_class": row.get("generation_reason_class"),
         }
         legacy_payload = row.get("payload")
         assembled = assemble_public_issue_from_storage_row(
