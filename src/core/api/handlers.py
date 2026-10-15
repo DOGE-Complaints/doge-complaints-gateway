@@ -650,6 +650,65 @@ def handle_issue_sense_brief_bind(
         return envelope.as_dict(), 500
 
 
+def handle_issue_sense_brief_regenerate(
+    dependencies: ApiDependencies,
+    *,
+    body: dict[str, Any],
+    trace_id: str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """GW-REQ57-04: manual regenerate (service-auth already enforced by ASGI)."""
+    from core.application.sense_brief_regenerate import (
+        SenseBriefRegenerateError,
+        SenseBriefRegenerateService,
+    )
+
+    resolved_trace_id = ensure_trace_id(trace_id)
+    try:
+        issue_id = str(body.get("issue_id") or "").strip()
+        write_store = dependencies.issue_create_service.issue_projection_store
+        if write_store is None:
+            raise SenseBriefRegenerateError("Issue projection store is not configured.")
+        store = (
+            write_store
+            if hasattr(write_store, "get_projection")
+            else dependencies.issue_projection_read_store
+        )
+        if not hasattr(store, "save_projection"):
+            raise SenseBriefRegenerateError("Issue projection store is not writable.")
+        nudge = getattr(
+            dependencies.issue_create_service, "sense_brief_nudge_service", None
+        )
+        if nudge is None:
+            raise SenseBriefRegenerateError("Sense-brief nudge service is not configured.")
+        service = SenseBriefRegenerateService(
+            store=store,  # type: ignore[arg-type]
+            nudge_service=nudge,
+        )
+        result = service.regenerate(issue_id=issue_id)
+        return (
+            build_success_envelope(
+                data={
+                    "issue": result.projection,
+                    "generation_version": result.generation_version,
+                    "nudge": {
+                        "attempted": result.nudge.attempted,
+                        "succeeded": result.nudge.succeeded,
+                        "skip_reason": result.nudge.skip_reason,
+                        "status_code": result.nudge.status_code,
+                    },
+                },
+                trace_id=resolved_trace_id,
+            ).as_dict(),
+            200,
+        )
+    except SenseBriefRegenerateError as exc:
+        return build_error_envelope(exc, trace_id=resolved_trace_id).as_dict(), 400
+    except Exception as exc:  # noqa: BLE001
+        envelope = build_error_envelope(exc, trace_id=resolved_trace_id)
+        log_error(envelope)
+        return envelope.as_dict(), 500
+
+
 def handle_issue_create(
     dependencies: ApiDependencies,
     *,

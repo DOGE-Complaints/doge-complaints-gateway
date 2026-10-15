@@ -36,6 +36,7 @@ from core.api.handlers import (
     handle_issue_create,
     handle_issue_get,
     handle_issue_sense_brief_bind,
+    handle_issue_sense_brief_regenerate,
     handle_issues_list,
     handle_pack_shell_settings,
 )
@@ -654,6 +655,26 @@ async def issue_sense_brief_bind(
     if not isinstance(body, dict):
         body = {}
     payload, status_code = handle_issue_sense_brief_bind(
+        deps,
+        body=body,
+        trace_id=_read_trace_id(request),
+    )
+    return JSONResponse(content=payload, status_code=status_code)
+
+
+@app.post(
+    "/v1/issue-sense-brief/regenerate",
+    dependencies=[Depends(require_public_content_service_auth)],
+)
+async def issue_sense_brief_regenerate(
+    request: Request,
+    deps: ApiDependencies = Depends(get_api_dependencies),
+) -> JSONResponse:
+    """GW-REQ57-04: manual regenerate (SERVICE_API_TOKEN only; no citizen)."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        body = {}
+    payload, status_code = handle_issue_sense_brief_regenerate(
         deps,
         body=body,
         trace_id=_read_trace_id(request),
