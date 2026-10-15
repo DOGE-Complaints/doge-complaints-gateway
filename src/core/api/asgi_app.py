@@ -57,7 +57,8 @@ from core.identity.verify_url import build_verify_url
 from core.config import ConfigError
 from core.config import schema as config_schema
 from core.logging_setup import log_runtime_exception
-from core.scheduler import ClusterCronJob
+from core.application.sense_brief_sweep import SenseBriefSweepService
+from core.scheduler import ClusterCronJob, SenseBriefSweepCronJob
 from core.logging_setup import configure_logging
 
 PUBLIC_ROUTES: tuple[str, ...] = (
@@ -193,6 +194,7 @@ async def _lifespan(_: FastAPI):
             extra={"hint": "set DB_BACKEND=supabase for persistent remote writes"},
         )
     cron_job: ClusterCronJob | None = None
+    sense_brief_sweep_cron: SenseBriefSweepCronJob | None = None
     if deps.config.cluster_cron_enabled and not deps.config.schema_pack_ready:
         logging.getLogger(__name__).warning(
             "startup.cluster_cron_skipped schema_pack_ready=False",
@@ -224,6 +226,28 @@ async def _lifespan(_: FastAPI):
                 min_size_guard=civic.min_size,
             )
             cron_job.start()
+    # GW-REQ57-03: sense-brief sweep alongside cluster cron (reuse nudge enable + interval).
+    if deps.config.aibridge_sense_brief_nudge_enabled:
+        nudge = getattr(deps.issue_create_service, "sense_brief_nudge_service", None)
+        if nudge is None:
+            logging.getLogger(__name__).warning(
+                "startup.sense_brief_sweep_skipped reason=no_nudge_service",
+                extra={"stage": "api.startup"},
+            )
+        elif deps.config.db_backend == "supabase" and not deps.db_ready:
+            logging.getLogger(__name__).warning(
+                "startup.sense_brief_sweep_skipped db_ready=False",
+                extra={"stage": "api.startup", "db_ready": False},
+            )
+        else:
+            sense_brief_sweep_cron = SenseBriefSweepCronJob(
+                sweep_service=SenseBriefSweepService(
+                    store=deps.issue_projection_read_store,
+                    nudge_service=nudge,
+                ),
+                interval_s=deps.config.cluster_cron_interval_s,
+            )
+            sense_brief_sweep_cron.start()
     try:
         yield
         if _shutdown_reason == "unknown":
@@ -237,6 +261,8 @@ async def _lifespan(_: FastAPI):
         )
         raise
     finally:
+        if sense_brief_sweep_cron is not None:
+            sense_brief_sweep_cron.stop()
         if cron_job is not None:
             cron_job.stop()
         logging.getLogger(__name__).info(
