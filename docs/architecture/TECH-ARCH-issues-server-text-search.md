@@ -114,33 +114,42 @@ Parity target: `spa-app/src/router/issueSearchMatch.js` (`issueMatchesSearchQuer
 
 ## 5) Coexistence with as-is (verified)
 
+### As-of-Done (post REQ56-01/02 · 2026-10-10T17:20:20Z)
+
 | Fact | Evidence |
 |------|----------|
-| List query params today: status/type/labels/institution/dates/geo only | `src/core/api/asgi_app.py:528–546` |
-| Handler → `list_projections(...)` without text | `src/core/api/handlers.py:535–573` |
-| Success envelope `data.issues` | `src/core/api/handlers.py:574–576` |
-| Supabase path: fetch rows → assemble → `filter_projection_rows` | `src/core/infrastructure/db_supabase.py:976–1037` |
+| Query param `search` on list | `src/core/api/asgi_app.py:546`, `:566` |
+| Handler passes `search` into list path | `src/core/api/handlers.py:553`, `:574` |
+| D-S1 helper Present | `src/core/projection/issue_search_match.py` |
+| Post-fetch text compose | `src/core/projection/read_filters.py:339–383` |
+| Success envelope `data.issues` | `src/core/api/handlers.py` (unchanged shape) |
 | Status filter only if caller passed status | `src/core/projection/read_filters.py:340–350` |
 | Governed statuses: NEW / IN_REVIEW / PUBLISHED (no DRAFT) | `src/core/projection/enums.py:6–11` |
-| Projection text columns | `supabase/bootstrap/000_full_init.sql:122–124` (`title_json` / `description_json`) |
-| Client D-S1 reference | `spa-app/src/router/issueSearchMatch.js:39–43` |
-| SPA board URL key `search` | `spa-app/src/router/boardQuery.js:68`, `103–104` |
+| API_REFERENCE + OpenAPI document `search` | `docs/runtime-docs/api-reference/API_REFERENCE.md` ~L643; `openapi.yaml` ~L1157–1165 |
+| Client D-S1 reference / SPA URL key `search` | `spa-app/src/router/issueSearchMatch.js:39–43`; `boardQuery.js:68`, `103–104` |
+| Validation note | [`../analysis/validation-req56-api-docs-vs-as-is-2026-10-10.md`](../analysis/validation-req56-api-docs-vs-as-is-2026-10-10.md) |
+
+### Historical (pre-REQ56 implement)
+
+| Fact | Evidence |
+|------|----------|
+| List/handler without text; text param Absent | arch snapshot at interview 2026-10-10T14:52:31Z |
 
 ---
 
 ## 6) Verify surfaces (named)
 
-1. **Unit:** D-S1 match helper (trim / empty / case / locales haystack) + compose with at least one structural filter.  
-2. **Production entry:** ASGI or handler-level test that query param **`search`** affects `GET /node/issues` filtering (wiring, not only an orphan helper).  
-3. **Docs (after Ready):** API_REFERENCE / OpenAPI document `search` on the list endpoint.
+1. **Unit:** D-S1 match helper + compose — **Present** (`tests/test_gw_req56_01_issues_list_search_filter.py`).  
+2. **Production entry:** ASGI/handler `search` wiring tests — **Present** (same).  
+3. **Docs:** API_REFERENCE / OpenAPI `search` — **Present** (REQ56-02 Done).
 
 ---
 
 ## 7) Open questions (residual)
 
 1. When corpus size justifies SQL/index/FTS spike (threshold Unknown — measure later).  
-2. Exact Python module placement of the match helper (implement detail; must remain on post-fetch path for v1).  
-3. Exact API_REFERENCE/OpenAPI file edit — after implement wave.
+2. ~~Exact Python module placement~~ — **Closed:** `core.projection.issue_search_match` on post-fetch path.  
+3. ~~API_REFERENCE/OpenAPI edit~~ — **Closed:** documented (REQ56-02).
 
 ---
 

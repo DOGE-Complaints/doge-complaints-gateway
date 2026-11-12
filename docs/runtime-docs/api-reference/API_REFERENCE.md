@@ -640,7 +640,7 @@ All parameters are optional and can be combined.
 | Parameter | Type | Semantics |
 |-----------|------|-----------|
 | `status` | `string[]` | Multi-value OR filter on governed `DOGEIssueStatus`: `NEW`, `IN_REVIEW`, `PUBLISHED` |
-| `search` | `string` | Optional text filter (D-S1): case-insensitive substring on concatenated non-empty `et`/`ru`/`en` values from issue `title` and `description`. Trimmed empty / absent / whitespace-only → **no** text restriction. AND-composed with other structural/geo filters when those are present. Issues corpus only — not comments; same list route (no separate search endpoint). |
+| `search` | `string` | Optional text filter (D-S1): case-insensitive substring on concatenated non-empty `et`/`ru`/`en` values from issue `title` and `description`. Trimmed empty / absent / whitespace-only → **no** text restriction. AND-composed with other structural/geo filters when those are present. Does **not** change status filtering rules (board-parity public consumers still pass `status=PUBLISHED`; no invent DRAFT). Issues corpus only — not comments; same list route (no separate search endpoint). |
 | `type` | `string` | Exact match: `complaint`, `system_bug`, `observation`, `absurdity` |
 | `labels` | `string[]` | Multi-value OR — issue must carry at least one of the supplied labels |
 | `institution` | `string` | Exact match on `payload_json.institution`: compares against any of `et`, `ru`, `en` when stored as i18n object (REQ-43) |

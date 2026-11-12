@@ -247,14 +247,14 @@ def test_story_roundtrip():
 ```
 tests/smoke/
 ├── conftest.py
-├── test_local_server_smoke.py
-├── test_local_server_async_read.py
+├── test_local_server_smoke.py      # /health /ready /node/* ; /tallinn/issues → 404
+├── test_local_server_async_read.py # async GET /node/issues
 └── test_gpt_pirita_demo_intake_smoke.py
 ```
 
-**Backend:** реально запущенный сервер (localhost или Railway URL)  
-**Когда:** после деплоя или вручную  
-**Не входят в стандартный pytest run без специального conftest**
+**Backend:** реально запущенный uvicorn на **localhost** (`GATEWAY_URL`). Hosted Railway conftest **скипает**.  
+**Когда:** после локального `make serve`.  
+**Как запускать:** [test-matrix § Local real-HTTP smoke](../testing/test-matrix-by-type-layer-mocks.md). In-process TestClient (без uvicorn) — `tests/test_gw_ssr_15_scenarios.py`, `tests/test_req24_issues_read_api.py`.
 
 ---
 
@@ -322,8 +322,11 @@ python3.11 -m pytest tests/test_story_intake_contract.py -v
 # С debug логами
 LOG_LEVEL=DEBUG python3.11 -m pytest tests/test_e2e_story_cluster_issue_pipeline.py -v -s
 
-# Базовый smoke (быстрая проверка после изменений)
+# Базовый smoke (in-process, без живого uvicorn)
 python3.11 -m pytest tests/test_bootstrap_smoke.py tests/test_http_transport_smoke.py -q
+
+# Живой localhost: сначала make serve, GATEWAY_URL в .env.test
+.venv/bin/python -m pytest tests/smoke/test_local_server_smoke.py -q
 ```
 
 ---

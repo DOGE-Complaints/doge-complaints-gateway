@@ -203,20 +203,12 @@ def get_signals_for_story(story: StoryRecord) -> dict[str, str]:
 ```python
 def lens_dimension(lens: ClusterLens) -> SignalDimension:
     mapping: dict[ClusterLens, SignalDimension] = {
-        # ── Новые semantic линзы ──────────────────────────────────────
         ClusterLens.CIVIC_DOMAIN_MICRO:        SignalDimension.CIVIC_DOMAIN,
         ClusterLens.FAILURE_PATTERN_MICRO:     SignalDimension.FAILURE_PATTERN,
         ClusterLens.CIVIC_WEIGHT_SYSTEMIC:     SignalDimension.CIVIC_WEIGHT,
         ClusterLens.DESIRED_OUTCOME_LOCAL:     SignalDimension.DESIRED_OUTCOME,
         ClusterLens.AFFECTED_GROUP_LOCAL:      SignalDimension.AFFECTED_GROUP,
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO: SignalDimension.GEOGRAPHIC_DISTRICT,
-        # ── Legacy линзы ─────────────────────────────────────────────
-        ClusterLens.TOPIC_MICRO:         SignalDimension.TOPIC,
-        ClusterLens.NEED_LOCAL:          SignalDimension.NEED,
-        ClusterLens.FAILURE_SYSTEMIC:    SignalDimension.SYSTEM_FAILURE,
-        ClusterLens.FAILURE_MICRO:       SignalDimension.SYSTEM_FAILURE,
-        ClusterLens.REPEATABILITY_LOCAL: SignalDimension.REPEATABILITY,
-        ClusterLens.RELEVANCE_SYSTEMIC:  SignalDimension.RELEVANCE,
     }
     return mapping[lens]
 ```
@@ -244,9 +236,9 @@ def cluster_key_for_lens(profile: StoryProfileSignals, lens: ClusterLens) -> str
         ClusterLens.AFFECTED_GROUP_LOCAL,  # alternative
     })
 
-    if lens in _SYSTEMIC_LENSES or lens in (ClusterLens.FAILURE_SYSTEMIC, ClusterLens.RELEVANCE_SYSTEMIC):
+    if lens in _SYSTEMIC_LENSES:
         return f"{lens.value}:{dimension.value}:{raw_value}:systemic"
-    if lens in _LOCAL_LENSES or lens in (ClusterLens.NEED_LOCAL, ClusterLens.REPEATABILITY_LOCAL):
+    if lens in _LOCAL_LENSES:
         return f"{lens.value}:{dimension.value}:{raw_value}:local"
     return f"{lens.value}:{dimension.value}:{raw_value}:micro"
 ```
@@ -269,12 +261,12 @@ process_story(story_id)
            ├─ если cached: использовать cached
            │
            └─ иначе:
-                  signals = get_signals_for_story(story, signal_source)
+                  signals = get_signals_for_story(story)
                   signal_store.save_signals(story.story_id, policy, signals)
                   использовать signals
 ```
 
-**Policy string:** `"v2.canonical"` при `CLUSTER_SIGNAL_SOURCE=canonical`, `"v1.keyword"` при keyword, `"v2.hybrid"` при hybrid. Позволяет параллельно хранить сигналы по разным политикам.
+**Policy string:** `"v2.canonical"` — единственное поддерживаемое значение (режимы `keyword` и `hybrid` удалены в REQ-34, 2026-05-15).
 
 ---
 
@@ -287,8 +279,6 @@ def lens_readiness_bonus(lens: ClusterLens) -> int:
     })
     _MED_BONUS = frozenset({
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,  # гео-привязка повышает actionability
-        ClusterLens.FAILURE_SYSTEMIC,           # legacy systemic
-        ClusterLens.RELEVANCE_SYSTEMIC,         # legacy (degenerate, но bonus сохраняем)
     })
     if lens in _HIGH_BONUS:
         return 10
@@ -306,7 +296,6 @@ def lens_readiness_bonus(lens: ClusterLens) -> int:
 | `test_canonical_signals_language_neutral` | ET-нарратив с `canonical_labels=["roads"]` → `civic_domain="roads"` |
 | `test_civic_weight_priority_order` | Labels с `systemic_pattern` + `recurring_issue` → `civic_weight="systemic_pattern"` |
 | `test_civic_weight_default_isolated` | Labels без civic_signal → `civic_weight="isolated"` |
-| `test_hybrid_fallback_on_unknown` | canonical дал "unknown" для civic_domain, keyword имеет "road" → fallback применён |
 | `test_vocabulary_completeness` | Все значения из taxonomy §4 присутствуют в vocabulary registries |
 | `test_signal_persistence_read_after_write` | save → get возвращает те же данные |
 | `test_signals_not_recomputed_if_cached` | При наличии записи в signal_store → get_signals_for_story не вызывается |

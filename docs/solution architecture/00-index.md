@@ -29,6 +29,7 @@
 - `15-phased-implementation-plan.md`
 - `16-automation-orchestration-and-scheduled-jobs.md` (post-demo: cron/queue vs единый use-case слой)
 - `17-post-demo-story-tokenization-context.md` (указатель на post-demo токенизацию/уведомления; детали в `requirements/21`)
+- `18-issue-filtering-and-geo-search-architecture.md` — расширенная фильтрация issues + geo-поиск (bbox и address identifiers); geo propagation gap; два режима поиска
 
 ## Принцип чтения
 

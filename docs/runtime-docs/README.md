@@ -39,9 +39,9 @@
 4. [Test Matrix by Type, Layer and Mocks](./test-matrix-by-type-layer-mocks.md)  
    Вопрос: какую уверенность дает текущий набор тестов и где остаются blind spots.
 5. [Database State and Integration Roadmap](./database-state-and-integration-roadmap.md)  
-   Вопрос: каков фактический persistence baseline и что нужно для перехода к real DB.
-6. [Database State and Integration Roadmap](./database-state-and-integration-roadmap.md)  
-   Вопрос: что фактически есть по DB/Supabase в текущем runtime и какой целевой контур хранения stories/projections/embeddings/linkage.
+   Вопрос: каков фактический persistence baseline / DB·Supabase в runtime и что нужно для перехода к real DB.
+6. [Story Persistence Model](./story-persistence-model.md)  
+   Вопрос: как связаны таблицы bootstrap (drafts/owner, stories, labels, clustering, board) — операционная ER-схема по группам.
 7. [Operations Playbook](./operations-playbook.md)  
    Вопрос: как запускать и сопровождать текущий runtime, и как готовиться к DB/chain расширениям.
 8. [Quickstart: server/env](./server-env-quickstart.md)  
@@ -50,6 +50,21 @@
    Вопрос: как поддерживать консистентность документации и верификацию claims.
 10. [Issue Intake and SPA Projection Audit](./issue-intake-and-spa-projection-audit.md)  
    Вопрос: какой фактический входной контракт intake в коде и как отдельно строится SPA-compatible projection.
+11. [Schema packs: модель данных ноды (оператор)](./manuals/schema-packs-node-data-model-ru.md)  
+   Вопрос: civic vs `schema_binding`, как добавить pack-ноду, ALTER колонок `stories` (не DROP), `SCHEMA_PACKS_ROOT`, чего нет (IDX/processors).
+12. [Life-sim: наполнить демо-ноду](./manuals/life-sim-demo-node-load-manual-ru.md)  
+   Вопрос: как с чистой базы (есть админ) через кросс-проектный диалог загрузить REQ11 life-sim и какие входные параметры задают социальное направление ноды.
+13. [Наполнение демо canvas (малый seed)](./manuals/seed-demo-data-runbook-ru.md)  
+   Вопрос: как прогнать stash→submit→cron до карточек на малом canvas (не life-sim).
+
+### Cross-repo GDPR / quality as-built (GPT UI runtime-docs)
+
+Полный end-to-end аудит instruction-layer + gateway cite (не дублировать сюда):
+
+- [PII pre-send & server handling](../../../GPT%20UI/docs/runtime-docs/story-pii-processing-before-send-as-built.md) — очистка / флаги / persist raw / `redact_pii` scope  
+- [Story validation & garbage filtering](../../../GPT%20UI/docs/runtime-docs/story-validation-and-garbage-filtering-as-built.md) — civic gates, junk rule, что режет HTTP
+
+Monorepo paths: `GPT UI/docs/runtime-docs/…`.
 
 ## Дополнительные приложения
 

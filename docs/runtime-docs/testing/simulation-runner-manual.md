@@ -2,7 +2,7 @@
 
 Скрипт `tests/simulation_runner.py` загружает тестовые истории из canvas-файла в задеплоенное приложение через реальные HTTP-запросы: **stash** (service) → **submit** (user).
 
-> Это **SSOT по загрузке** (детали скрипта, env, группы). Нужна **вся цепочка** «загрузка → кластеризация (cron) → карточки на доске»? — см. сквозной e2e-runbook: [`seed-demo-data-runbook-ru.md`](../manuals/seed-demo-data-runbook-ru.md). Загрузка историй сама по себе доску **не** наполняет — карточки создаёт кластеризация (≥8 на группу).
+> Это **SSOT по загрузке canvas** (`make simulate`, env, группы). Нужна **вся цепочка** малого seed «загрузка → cron → доска»? — [`seed-demo-data-runbook-ru.md`](../manuals/seed-demo-data-runbook-ru.md). Полный **life-sim ноды** (`make simulate-life-sim`, ~200 жителей, треды) — [`life-sim-demo-node-load-manual-ru.md`](../manuals/life-sim-demo-node-load-manual-ru.md). Загрузка историй сама по себе доску **не** наполняет — карточки создаёт кластеризация.
 
 ---
 

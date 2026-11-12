@@ -9,6 +9,8 @@
 - операционные «sweep»-задачи (ретеншн, reconcile);
 - ручной replay тех же сценариев без дублирования бизнес-логики.
 
+**Уже в MVP:** минимальный in-process `ClusterCronJob` (`CLUSTER_CRON_ENABLED`, default ON) выполняет периодический `process_all_pending()` (promotion + projection) как триггер доски и уже вызывает те же application use-case, что и API. Настоящий документ описывает **обобщённый** automation plane (выбор runner/queue, sweep-задачи, replay) **поверх** него — post-demo (EPIC-M2-11), не замена.
+
 Документ **не** выбирает конкретный продукт (Kubernetes CronJob, Supabase `pg_cron`, внешний scheduler, worker-процесс). Он задаёт **границы слоёв**, чтобы cron не превратился в параллельную систему правил.
 
 ## Проблема без этого слоя

@@ -1,6 +1,6 @@
 # Наполнение демо-данными с нуля — runbook (как наполнить базу и доску)
 
-> Этот мануал — **сквозной процесс** «загрузить истории → получить карточки на доске». Детали самого загрузчика — в [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md) (SSOT по загрузке); здесь — вся цепочка целиком. Метод: `.cursor/rules/analysis.mdc` — шаги по фактическому коду.
+> Этот мануал — **сквозной процесс** «загрузить истории → получить карточки на доске» для **малого canvas-seed**. Детали загрузчика — в [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md). Полный life-sim ноды (~200 жителей, треды, Planning-диалог) — [`life-sim-demo-node-load-manual-ru.md`](./life-sim-demo-node-load-manual-ru.md). Метод: `.cursor/rules/analysis.mdc`.
 >
 > **Статус (2026-07-11, SEED-03):** цепочка stash→submit→cron→проекция→доска **проверена end-to-end локально** — расширенный датасет `v0_2` ([SEED-02](../../tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md), Done) даёт **2 карточки** на `GET /node/issues` (см. [«Локальный e2e»](#локальный-e2e--быстрая-сквозная-проверка-без-hosted) и [verification](../../analysis/verify-gw-seed-03-end-to-end-2026-06-22.md)). Hosted read-path разблокирован после [GW-RC-07](../../tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md) **Done** 2026-07-10 — hosted-прогон по §Шаг1–5 ниже.
 
@@ -138,7 +138,8 @@ SUPABASE_URL= SUPABASE_SERVICE_ROLE= \
 ---
 
 ## Связанные документы
-- Загрузчик (детали, переменные, группы) — **SSOT по загрузке**: [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md)
+- Полный life-sim ноды (~200 жителей, треды, параметры): [`life-sim-demo-node-load-manual-ru.md`](./life-sim-demo-node-load-manual-ru.md)
+- Загрузчик canvas (детали, переменные, группы) — **SSOT по загрузке малого seed**: [`simulation-runner-manual.md`](../testing/simulation-runner-manual.md)
 - Решения и контекст: [`interview-seed-demo-data-2026-06-20.md`](../../analysis/interview-seed-demo-data-2026-06-20.md)
 - Пакет стори: [`demo-data-seeding/INDEX.md`](../../tasks/backlog-stories/demo-data-seeding/INDEX.md)
 - Ожидаемое наполнение доски (SEED-02 T04): [`expected-board-fill-matrix.md`](../../tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t04-expected-board-fill-matrix/expected-board-fill-matrix.md)

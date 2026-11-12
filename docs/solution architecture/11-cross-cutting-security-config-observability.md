@@ -33,7 +33,7 @@ def redact_pii(text: str, contains_pii: bool) -> str:
   - clustering latency
   - issue promotion success rate
   - projection contract violations
-  - (post-demo) scheduled job / automation runs: success rate, duration, last error (см. `16-automation-orchestration-and-scheduled-jobs.md`, EPIC-M2-11)
+  - (post-demo) метрики обобщённого automation plane (job runner / queue / replay): success rate, duration, last error (см. `16-automation-orchestration-and-scheduled-jobs.md`, EPIC-M2-11; MVP-триггер доски — `ClusterCronJob`, не этот backlog)
 
 ## Per-story Debug Files — `StoryDebugLogger` (G-05)
 

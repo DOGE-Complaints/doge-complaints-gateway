@@ -1,32 +1,119 @@
 # Story Persistence Model — Supabase
 
-**Дата:** 2026-05-20  
-**Источники:** `supabase/bootstrap/000_full_init.sql`, `src/core/infrastructure/db_supabase.py`, `src/core/domain/contracts.py`, `src/core/application/services.py`
+**Дата:** 2026-07-21 (обновлено: 2026-08-29T09:20:52Z — SSR-02 binding-колонки `stories`)  
+**Источники:** `supabase/bootstrap/000_full_init.sql`, `src/core/infrastructure/db_supabase.py`, `src/core/infrastructure/db_sqlite.py`, `src/core/domain/contracts.py`, `src/core/application/services.py`
 
-Документ описывает все таблицы и поля, в которые история сохраняется или с которыми она связана. Структура — по слоям: от основной записи к производным.
+Документ — операционная схема таблиц gateway: группы связанных таблиц (mermaid) + колонки + зачем связь существует. Claims только из bootstrap/кода.
 
 ---
 
-## Обзор: таблицы, связанные с историей
+## Карта групп (быстрая валидация)
+
+| Группа | Таблицы | Роль |
+|--------|---------|------|
+| A. Intake handoff | `story_drafts`, `draft_owner` | GPT stash → browser; владелец появляется позже |
+| B. Story core | `stories`, `idempotency_keys`, `story_embeddings`, `story_signals`, `story_labels` | Принятая история и её производные |
+| C. Clustering / promotion | `cluster_memberships`, `issue_candidates`, `review_audit_log` | Группировка → кандидат → audit |
+| D. Published board | `issue_story_links`, `doge_issues`, `doge_issue_embeddings`, view `issues_dashboard` | Карточки на доске |
+
+RLS: таблицы — `service_role` only. View `issues_dashboard` — select для `anon` / `authenticated`.
+
+---
+
+## Группа A — Intake handoff (черновик без истории)
+
+Черновик **не** является строкой в `stories`. GPT кладёт JSON; браузер забирает по opaque `draft_id`; владелец фиксируется при **первом** авторизованном чтении (first-wins).
+
+```mermaid
+erDiagram
+  story_drafts ||--o| draft_owner : "owned_after_first_read"
+  story_drafts {
+    text draft_id PK
+    jsonb payload_json
+    timestamptz created_at
+    timestamptz expires_at
+    timestamptz updated_at
+  }
+  draft_owner {
+    text draft_id PK_FK
+    text submitter_external_user_id
+    timestamptz created_at
+  }
+```
+
+### `public.story_drafts` (GW-DRAFT-01 + `updated_at` из GW-CAB-02)
+
+| Колонка | Тип | Описание |
+|---------|-----|----------|
+| `draft_id` | `text PK` | Opaque id (`secrets.token_urlsafe(16)`) |
+| `payload_json` | `jsonb NOT NULL` | Полный stash JSON (без submitter на момент GPT) |
+| `created_at` | `timestamptz NOT NULL` | UTC момент стеша |
+| `expires_at` | `timestamptz NOT NULL` | `created_at + STORY_DRAFT_TTL_SECONDS` |
+| `updated_at` | `timestamptz NOT NULL` | Init = `created_at`; для кабинетного «свежести» |
+
+**TTL:** `get_draft()` → `None` (HTTP 404), когда `expires_at <= now()`.
+
+**Порт:** `StoryDraftRepository` — [`contracts.py`](../../src/core/domain/contracts.py).
+
+### `public.draft_owner` (GW-CAB-02)
+
+| Колонка | Тип | Описание |
+|---------|-----|----------|
+| `draft_id` | `text PK` | FK → `story_drafts` ON DELETE CASCADE |
+| `submitter_external_user_id` | `text NOT NULL` | Владелец из `/me` (browser Bearer) |
+| `created_at` | `timestamptz NOT NULL` | Момент ассоциации |
+
+**Индекс:** `idx_draft_owner_submitter` — lookup для `GET /story-drafts/current`.
+
+**Порт:** `DraftOwnerRepository.set_owner` / `get_current_draft` — join `draft_owner × story_drafts`, TTL + `ORDER BY created_at DESC` ([`db_sqlite.py`](../../src/core/infrastructure/db_sqlite.py)).
+
+### FAQ: почему не колонки в `story_drafts`?
+
+Связь формально 1:0..1, но **жизненный цикл разный**:
+
+1. GPT создаёт draft **без** user id (`StoryDraftRecord` не содержит submitter).
+2. Владелец пишется на read: `set_owner` с **first-wins** (`INSERT … ON CONFLICT DO NOTHING` / `setdefault` / `ignore-duplicates`) — не UPDATE payload-строки.
+3. Отдельный порт `DraftOwnerRepository` отражает «ассоциация после stash», не поля черновика.
+
+Nullable `submitter_*` на `story_drafts` технически возможны; текущий код и миграции держат отдельную таблицу — bootstrap следует им.
+
+**Миграции:** `20260703_1200_gw_draft_01_story_drafts.sql`, `20260714_1000_gw_cab_02_draft_owner_and_updated_at.sql`.
+
+---
+
+## Группа B — Story core
+
+```mermaid
+erDiagram
+  stories ||--o{ idempotency_keys : has
+  stories ||--o{ story_embeddings : has
+  stories ||--o{ story_signals : has
+  stories ||--o{ story_labels : has
+  stories {
+    text story_id PK
+    text lifecycle_status
+    text submitter_external_user_id
+  }
+  story_labels {
+    text story_id FK
+    text axis
+    text label
+    text disposition
+  }
+```
+
+### Обзор связей с историей
 
 ```
-stories                     ← основная запись, все поля из intake
+stories                     ← основная запись intake
   ├── idempotency_keys      ← dedup: intake_key → story_id
-  ├── story_drafts          ← ephemeral intake JSON stash (GW-DRAFT-01; TTL via expires_at)
-  ├── story_embeddings      ← векторный индекс (8-dim, deterministic-baseline-v1)
+  ├── story_embeddings      ← векторный fingerprint
   ├── story_signals         ← кэш extraction_policy → signals_json
-  └── cluster_memberships   ← lens → cluster_id для аналитики
+  └── story_labels          ← per-axis taxonomy (GW-TAX-01); 1:N строк
 
-issue_candidates            ← кандидат на промоцию (state machine)
-  ├── story_ids_json        ← (внутри записи) список историй кластера
-  └── review_audit_log      ← история решений по кандидату
-
-issue_story_links           ← финальная связь story ↔ issue
-doge_issues                 ← финальный read-model (payload_json = DOGEIssue)
-  └── doge_issue_embeddings ← векторный индекс issue
+(отдельный контур, не FK на stories:)
+story_drafts ──o| draft_owner   ← handoff GPT→browser (группа A)
 ```
-
-RLS: все таблицы — `service_role` only (полные права). `doge_issues` также читаем через view `issues_dashboard` (anon/authenticated).
 
 ---
 
@@ -57,6 +144,25 @@ Source: `domain/contracts.py:20-25`, `services.py:281-338`
 
 ---
 
+### Schema pack binding (SSR-02, nullable)
+
+Шесть колонок на **существующей** `stories` (`ALTER … ADD COLUMN IF NOT EXISTS`). Civic строки без `schema_binding` остаются `NULL`. Колонка `schema_version` выше — **envelope** `m2.story_intake_envelope.v2`, не версия пака.
+
+| Колонка | Тип | Обязательно | Описание |
+|---------|-----|-------------|---------|
+| `schema_id` | `text` | нет | id пака (`legal_process`, …) |
+| `bound_schema_version` | `text` | нет | версия пака (напр. `v1`); **не** путать с envelope `schema_version` |
+| `profile_id` | `text` | нет | optional profile |
+| `profile_version` | `text` | нет | optional |
+| `structured_payload` | `jsonb` | нет | канонический JSON пака; pack clustering читает **только** это поле |
+| `payload_hash` | `text` | нет | SHA-256 канонического JSON; считает сервер, не клиент |
+
+DDL: [`supabase/migrations/20260828_1400_gw_ssr_02_stories_schema_binding.sql`](../../supabase/migrations/20260828_1400_gw_ssr_02_stories_schema_binding.sql); тот же ALTER в [`000_full_init.sql`](../../supabase/bootstrap/000_full_init.sql). SQLite: `_ensure_sqlite_schema_migrations` в [`db_sqlite.py`](../../src/core/infrastructure/db_sqlite.py) (`schema_id` … `payload_hash`). Domain: [`StoryRecord`](../../src/core/domain/contracts.py) `:68–74`.
+
+Hosted: пока колонок нет, omit-probe в [`db_supabase.py`](../../src/core/infrastructure/db_supabase.py) вырезает `_STORIES_BINDING_COLUMNS` из SELECT/save. **Не** класть эти имена в `required_columns_ready`. Операторский мануал: [`manuals/schema-packs-node-data-model-ru.md`](./manuals/schema-packs-node-data-model-ru.md).
+
+---
+
 ### Нарратив
 
 | Колонка | Тип | Обязательно | Описание |
@@ -70,7 +176,7 @@ Source: `domain/contracts.py:20-25`, `services.py:281-338`
 | `institution_json` | `jsonb` | нет | Многоязычное ведомство из `narrative.institution` (REQ-43): `{"et": "...", "ru": "...", "en": "..."}` |
 | `narrative_consistency_notes` | `text` | нет | Заметки о согласованности нарратива из `live_story_context.consistency_notes` |
 | `narrative_canonical_type` | `text` | нет | Тип из GPT: `complaint`, `observation`, `system_bug`, `absurdity` (без enum-валидации при intake) |
-| `narrative_canonical_labels_json` | `text NOT NULL default '[]'` | да | JSON-массив строк: canonical labels из GPT, нормализованные (`.strip().lower()`, deduped) |
+| `narrative_canonical_labels_json` | `text NOT NULL default '[]'` | да | JSON-массив строк: canonical labels из GPT, нормализованные (`.strip().lower()`, deduped) — legacy flat; per-axis → `story_labels` |
 
 **Легаси `narrative_title_hint*` (REQ-46 §2.4, STORY-M2-02-12 T11–T13):** колонки удалены из bootstrap и persistence; hosted purge — `supabase/migrations/20260603_1200_req46_title_hint_test_purge_and_column_drop.sql`. Чтение/запись title — только через `narrative_title_json`.
 
@@ -130,6 +236,26 @@ Source: `domain/contracts.py:27-42`, `db_supabase.py:96-122`
 
 ---
 
+## Слой 1b: `public.story_labels` — per-axis taxonomy (GW-TAX-01)
+
+Каждая строка = одна метка на одной оси с disposition. Не заменяет flat `narrative_canonical_labels_json` (legacy), а хранит точную ось из контракта / fallback.
+
+```sql
+story_id     text NOT NULL  -- FK → stories.story_id ON DELETE CASCADE
+axis         text NOT NULL  -- напр. topic_domain, failure_mode, deep_need
+label        text NOT NULL
+disposition  text NOT NULL  -- canonical | internal | …
+PRIMARY KEY (story_id, axis, label)
+```
+
+**Индексы:** `idx_story_labels_story`, `idx_story_labels_axis`.
+
+**Порт:** `StoryLabelRepository` — persist on intake ([`services.py`](../../src/core/application/services.py)); clustering читает via `get_signals_for_story` → `signals_from_story_labels`.
+
+**Тип FK:** bootstrap, sqlite и repo migration `20260714_1200_gw_tax_01_story_labels.sql` (**post TAX-03**) используют `text` (как `stories.story_id`). **Pre-TAX-03** migration объявляла `UUID` — historical; fresh init / migrations path = text. Hosted Public Node text via DRAFT-07 (не rewrite здесь).
+
+---
+
 ## Слой 2: `public.idempotency_keys` — дедупликация intake
 
 ```sql
@@ -185,7 +311,7 @@ Source: `services.py:412-438`, `db_supabase.py:559-586`
 
 ```sql
 story_id           text NOT NULL  -- FK → stories.story_id ON DELETE CASCADE
-extraction_policy  text NOT NULL  -- ключ политики (напр. "m3.doge_issue_derivation.v1")
+extraction_policy  text NOT NULL  -- ключ политики (напр. "v2.canonical")
 signals_json       jsonb NOT NULL -- dict: SignalDimension.value → значение
 extracted_at       timestamptz    -- UTC, момент вычисления
 PRIMARY KEY (story_id, extraction_policy)
@@ -193,25 +319,49 @@ PRIMARY KEY (story_id, extraction_policy)
 
 **Назначение:** signals вычисляются при первом `process_story()` и персистируются. При повторном вызове — читаются из кэша (ADR-CE-006). Предотвращает повторное вычисление для всех `READY_FOR_PROFILE` историй при каждом тике cron.
 
-**Формат `signals_json`:**
+**Формат `signals_json` (пример, post GW-TAX-02):**
 
 ```json
 {
-  "civic_domain":          "infrastructure",
-  "failure_pattern":       "infrastructure_failure",
-  "civic_weight":          "systemic",
-  "desired_outcome":       "fix",
-  "affected_group":        "residents",
-  "geographic_district":   "kesklinn",
-  "canonical_type":        "complaint"
+  "civic_domain": "infrastructure",
+  "failure_pattern": "broken_infrastructure",
+  "civic_weight": "systemic_pattern",
+  "desired_outcome": "safer_space",
+  "affected_group": "general_public",
+  "geographic_district": "kesklinn",
+  "service_object": "unknown",
+  "need": "unknown",
+  "ecosystem_signal": "unknown",
+  "canonical_type": "complaint"
 }
 ```
 
-Ключи — значения `SignalDimension` enum (6 civic осей + `canonical_type`).
+Источник: `story_labels` per-axis если репозиторий заполнен, иначе `infer_signals_from_canonical`.
 
 **Индекс:** `idx_story_signals_policy` на `extraction_policy`
 
-Source: `domain/contracts.py:108-128`, `db_supabase.py:927-963`
+Source: `domain/contracts.py` SignalDimension, `db_supabase.py` story_signals adapters
+
+---
+
+## Группа C — Clustering / promotion
+
+```mermaid
+erDiagram
+  stories ||--o{ cluster_memberships : membership
+  issue_candidates ||--o{ review_audit_log : audited
+  cluster_memberships {
+    text story_id FK
+    text lens
+    text cluster_id
+  }
+  issue_candidates {
+    text candidate_id PK
+    text cluster_id
+    jsonb story_ids_json
+    int readiness_score
+  }
+```
 
 ---
 
@@ -219,28 +369,19 @@ Source: `domain/contracts.py:108-128`, `db_supabase.py:927-963`
 
 ```sql
 story_id    text NOT NULL  -- FK → stories.story_id ON DELETE CASCADE
-lens        text NOT NULL  -- ClusterLens value (напр. "civic_domain_micro")
+lens        text NOT NULL  -- civic ClusterLens value **или** pack `lens_id` (строка, не enum)
 cluster_id  text NOT NULL  -- SHA-256 cluster key
 computed_at timestamptz    -- UTC
 PRIMARY KEY (story_id, lens)
 ```
 
-**Назначение:** аналитический read-side — сохраняет результат кластеризации per lens. Используется для drill-down запросов. Не блокирует основной pipeline (ADR-CE-008): запись выполняется after issue creation; при ошибке записи — логируется, не падает.
+**Назначение:** аналитический read-side — сохраняет результат кластеризации per lens. Не блокирует основной pipeline (ADR-CE-008). DDL таблицы **не** менялся под pack (SSR-04): pack пишет `lens` строкой (`police_station`, …).
 
-**Активные линзы (REQ-34):**
-
-| Линза | Cluster key суффикс |
-|-------|-------------------|
-| `civic_domain_micro` | `civic_domain:{value}` |
-| `failure_pattern_micro` | `failure_pattern:{value}` |
-| `civic_weight_systemic` | `civic_weight:{value}` |
-| `desired_outcome_local` | `desired_outcome:{value}` |
-| `affected_group_local` | `affected_group:{value}` |
-| `geographic_district_micro` | `geographic_district:{value}` |
+**Активные civic-линзы (post GW-TAX-02):** 10 членов `ClusterLens` в `cluster/types.py` (включая `composite_primary_micro`, civic six + `service_object_micro` / `deep_need_local` / `ecosystem_signal_systemic`). Pack-линзы — не члены этого enum.
 
 **Индекс:** `idx_cluster_memberships_cluster` на `cluster_id`
 
-Source: `domain/contracts.py:140-148`, `db_supabase.py:966-997`
+Source: `domain/contracts.py`, `db_supabase.py` cluster_memberships
 
 ---
 
@@ -268,7 +409,7 @@ updated_at      timestamptz        -- UTC
 | `promoted` | Промотирован в `doge_issues` |
 | `rejected` | Отклонён (story lifecycle может быть откачен) |
 
-Source: `promotion/types.py:8-28`, `db_supabase.py:741-846`
+Source: `promotion/types.py:8-28`, `db_supabase.py`
 
 ---
 
@@ -287,94 +428,65 @@ created_at            timestamptz       -- UTC
 
 **Индекс:** `idx_review_audit_candidate` на `candidate_id`
 
-Source: `promotion/types.py:39-45`, `db_supabase.py:849-892`
+Source: `promotion/types.py`, `db_supabase.py`
+
+---
+
+## Группа D — Published board
+
+```mermaid
+erDiagram
+  doge_issues ||--o{ issue_story_links : linked
+  doge_issues ||--o{ doge_issue_embeddings : embedded
+  stories ||--o{ issue_story_links : member
+  doge_issues {
+    text issue_id PK
+    text status
+    text issue_type
+    jsonb title_json
+  }
+  issue_story_links {
+    text issue_id
+    text story_id
+    text cluster_id
+  }
+```
 
 ---
 
 ## Слой 8: `public.issue_story_links` — финальная связь story↔issue
 
 ```sql
-issue_id    text NOT NULL     -- FK не объявлен, фактически → doge_issues.issue_id
+issue_id    text NOT NULL     -- фактически → doge_issues.issue_id
 cluster_id  text NOT NULL     -- cluster_id, при котором создан issue
-story_id    text NOT NULL     -- FK → stories.story_id (implicit)
+story_id    text NOT NULL     -- → stories.story_id
 created_at  timestamptz       -- UTC
 PRIMARY KEY (issue_id, story_id)
 ```
 
-Заполняется в `IssueCreateService` после успешного `save_projection()`. Идемпотентно: `on_conflict (issue_id, story_id)` → ignore.
+Заполняется в `IssueCreateService` после успешного `save_projection()`. Идемпотентно: conflict → ignore.
 
-**Индексы:** `idx_issue_story_links_issue` (issue_id), `idx_issue_story_links_story` (story_id)
+**Индексы:** `idx_issue_story_links_issue`, `idx_issue_story_links_story`
 
-Source: `db_supabase.py:895-924`
+Source: `db_supabase.py`
 
 ---
 
 ## Слой 9: `public.doge_issues` — read-model issue
 
-```sql
-issue_id      text PK            -- UUID4 = candidate_id из issue_candidates
-status        text NOT NULL      -- "DRAFT" | "PUBLISHED" (не связан с IssueCandidateStatus)
-payload_json  jsonb NOT NULL     -- DOGEIssue.to_public_dict() (см. ниже)
-policy_version text NOT NULL     -- "m3.doge_issue_derivation.v1"
-created_at    timestamptz        -- UTC
-updated_at    timestamptz        -- UTC
-```
+Колоночная модель (не единый `payload_json` в bootstrap): `issue_type`, `labels_json`, `title_json`, `summary_json`, `description_json`, `institution_json`, `geo_json`, `original_locale_json`, …
 
-### Структура `payload_json` — `DOGEIssue.to_public_dict()`
+См. `supabase/bootstrap/000_full_init.sql` и GW-RC-04 columnar migrations.
 
-```json
-{
-  "id":          "<issue_id>",
-  "status":      "PUBLISHED",
-  "type":        "complaint",
-  "labels":      ["pothole", "road_maintenance"],
-  "title":       { "et": "...", "ru": "...", "en": "..." },
-  "summary":     { "et": "...", "ru": "...", "en": "..." },
-  "description": { "et": "...", "ru": "...", "en": "..." },
-  "institution": {
-    "et": "Tallinna Linnavalitsus",
-    "ru": "Таллинская городская управа",
-    "en": "Tallinn City Government"
-  },
-  "created_at":  "2026-05-01T10:00:00Z",
-  "arweave_txid": null,
-  "image_txid":   null,
-  "image_hash":   null,
-  "geo": {
-    "admin_district":   "Kesklinn",
-    "admin_settlement": "tallinn",
-    "admin_region":     "harju",
-    "admin_country":    "ee",
-    "lat":  59.437,
-    "lon":  24.753
-  }
-}
-```
+**Происхождение полей (REQ-34 / projection policy):**
+- `type` / `issue_type` = `canonical_type` доминантной истории или fallback
+- `labels` = public disposition labels из кластера (`story_labels` / flat union)
+- i18n title/summary/description — из narrative dicts доминантной истории
+- `geo` — из `StoryGeoSnapshot` доминантной истории
 
-**Поля, добавляемые только если не null:** `institution`, `created_at`, `arweave_txid`, `image_txid`, `image_hash`, `geo`.
+**View `issues_dashboard`:** select из колонок `doge_issues` (title/summary/description en/et/ru + labels) — grant anon/authenticated.
 
-**Происхождение полей (REQ-34):**
-- `type` = `canonical_type` доминантной истории (по `alpha_score`) или `"observation"`
-- `labels` = union `canonical_labels` всех историй кластера, без дублей
-- `title`, `summary`, `description` = агрегация из `narrative_title_json` / `narrative_summary_json` / `narrative_description_json` доминантной истории
-- `institution` = `institution_json` доминантной истории (`narrative_institution`), если не `null`
-- `geo` = `StoryGeoSnapshot` доминантной истории
-
-**View `issues_dashboard`** (доступен anon/authenticated):
-
-```sql
-SELECT issue_id, status, policy_version, updated_at,
-       payload_json->>'type'       AS type,
-       payload_json->'title'->>'en' AS title_en,
-       payload_json->'title'->>'et' AS title_et,
-       payload_json->'title'->>'ru' AS title_ru,
-       payload_json->'summary'->>'en' AS summary_en, ...
-       payload_json->'labels'      AS labels_json,
-       payload_json
-FROM public.doge_issues;
-```
-
-Source: `projection/dto.py`, `bootstrap/000_full_init.sql:162-183`
+Source: `projection/`, `bootstrap/000_full_init.sql` issues_dashboard
 
 ---
 
@@ -395,76 +507,39 @@ created_at             timestamptz
 
 **Индекс:** `idx_issue_embeddings_issue_id` на `issue_id`
 
-Source: `db_supabase.py:693-738`
+Source: `db_supabase.py`
 
 ---
 
-## Сводная диаграмма зависимостей
+## Сводный поток (runtime)
 
 ```
-POST /story-drafts/{id}/submit  (browser → handle_story_intake internal)
+POST /story-drafts                    → story_drafts (без owner)
+GET  /story-drafts/{id} (+ Bearer)    → set_owner → draft_owner (first-wins)
+GET  /story-drafts/current            → JOIN draft_owner × story_drafts
+POST /story-drafts/{id}/submit        → stories + story_labels + embeddings; draft deleted
         │
         ▼
-stories [story_id, narrative_*, submitter_*, geo_*, lifecycle_status=ACCEPTED→ready_for_profile]
-        │
-        ├── idempotency_keys [key → story_id]
-        │
-        └── story_embeddings [story_id, model=deterministic-baseline-v1, embedding_vector_json, checksum]
+stories [lifecycle → ready_for_profile]
+        ├── idempotency_keys
+        ├── story_embeddings
+        └── story_labels
 
-ClusterCronJob (каждые cluster_cron_interval_s)
-        │
+ClusterCron / process_story
         ▼
-story_signals [story_id, extraction_policy → signals_json]          ← compute once, cache
-        │
+story_signals → issue_candidates → review_audit_log
         ▼
-issue_candidates [candidate_id, cluster_id, story_ids_json, readiness_score, status=draft→promoted]
-        │
-        ├── review_audit_log [candidate_id, actor, decision, rationale]
-        │
-        ▼
-doge_issues [issue_id, status, payload_json=DOGEIssue, policy_version]
-        │
-        └── doge_issue_embeddings [issue_id, embedding_vector_json]
-
-issue_story_links [issue_id, cluster_id, story_id]    ← связь story↔issue
-cluster_memberships [story_id, lens, cluster_id]       ← аналитика lens-membership
+doge_issues + issue_story_links + cluster_memberships + doge_issue_embeddings
 ```
 
 Stories lifecycle: `accepted → partial_ready → ready_for_profile → clustered`
 
 ---
 
-## Слой 0: `public.story_drafts` — ephemeral draft stash (GW-DRAFT-01)
-
-Отдельный store для handoff GPT→браузер. **Не** создаёт запись в `stories` и **не** создаёт issue.
-
-| Колонка | Тип | Обязательно | Описание |
-|---------|-----|-------------|---------|
-| `draft_id` | `text PK` | да | Opaque id (`secrets.token_urlsafe(16)`) |
-| `payload_json` | `jsonb NOT NULL` | да | Полный `StoryDraftStashRequest` JSON (без `submitter`) как нормализован на `POST /story-drafts` |
-| `created_at` | `timestamptz NOT NULL` | да | UTC момент стеша |
-| `expires_at` | `timestamptz NOT NULL` | да | `created_at + STORY_DRAFT_TTL_SECONDS` (default 86400) |
-
-**TTL:** `get_draft()` возвращает `None` (→ HTTP 404) когда `expires_at <= now()`; sqlite/supabase адаптеры удаляют протухшую строку при чтении.
-
-**Порт:** `StoryDraftRepository` в `domain/contracts.py`; адаптеры: `InMemoryStoryDraftRepository`, `SqliteStoryDraftRepository`, `SupabaseStoryDraftRepository`.
-
-**Миграция:** `supabase/migrations/20260703_1200_gw_draft_01_story_drafts.sql`
-
-**Browser submit (GW-DRAFT-02):** после успешного `POST /story-drafts/{draft_id}/submit` строка удаляется из `story_drafts`; story создаётся в `stories` через `StoryIntakeService`. См. [`API_REFERENCE.md`](api-reference/API_REFERENCE.md) §6.8 submit + [`architecture-and-layers-as-is.md`](architecture-and-layers-as-is.md) §4.1.
-
----
-
 ## Условия проверки готовности БД при старте
 
-При запуске в режиме `DB_BACKEND=supabase` сервис выполняет три probe-запроса:
-
-| Проверка | Метод | Что проверяет |
-|----------|-------|--------------|
-| `required_tables_ready()` | GET 1 строку из каждой из 11 таблиц | Все таблицы существуют и доступны |
-| `required_columns_ready()` | SELECT только нужных колонок | `stories`: geo-колонки; `story_embeddings`, `doge_issue_embeddings`: `embedding_vector_json` |
-| `required_stories_intake_v2_columns_ready()` | SELECT intake v2 колонок | `narrative_title_json`, `narrative_description_json`, `narrative_session_language` применены (миграция 20260513) |
+При запуске в режиме `DB_BACKEND=supabase` сервис выполняет probe-запросы к required tables/columns (см. `db_supabase.py` `_REQUIRED_TABLES` и column probes). Список таблиц включает в т.ч. `story_drafts`, `story_labels` (и связанные core tables).
 
 Если `db_ready=False` → cron не запускается; readiness endpoint возвращает `degraded`.
 
-Source: `db_supabase.py:276-392`
+Source: `db_supabase.py` readiness helpers

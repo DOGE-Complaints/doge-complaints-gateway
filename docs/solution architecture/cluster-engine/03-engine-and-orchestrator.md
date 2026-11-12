@@ -53,8 +53,6 @@ def lens_readiness_bonus(lens: ClusterLens) -> int:
     })
     _MED_BONUS = frozenset({
         ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
-        ClusterLens.FAILURE_SYSTEMIC,
-        ClusterLens.RELEVANCE_SYSTEMIC,
     })
     if lens in _HIGH_BONUS:
         return 10

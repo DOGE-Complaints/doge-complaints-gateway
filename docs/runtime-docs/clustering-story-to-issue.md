@@ -1,134 +1,157 @@
 # Clustering: Story → Issue — Runtime Architecture
 
-**Дата:** 2026-04-30  
+**Дата:** 2026-04-30 (обновлён 2026-08-29T09:20:52Z — указатель pack-ветки SSR-04/05)  
 **Методология:** analysis.mdc — только факты из кода, без предположений  
-**Scope:** `doge-complaints-gateway` — cluster subsystem (wave 1, post 4 Supabase migrations)
+**Scope:** `doge-complaints-gateway` — cluster subsystem (civic lenses, post REQ-34 migration 2026-05-15). Pack-ветка — §1.3, не дублирует civic-схему ниже.
 
 ---
 
 ## 1. Общая схема пайплайна
 
+### 1.1 Intake — приём истории (синхронно, без кластеризации)
+
 ```
-POST /stories/{id}/intake
+POST /intake/stories
         │
         ▼
-StoryClusterOrchestrator.process_story(story_id)
-        │
-        ├─ guard: story.lifecycle_status == READY_FOR_PROFILE?
-        │
-        ▼
-list_stories() → filter READY_FOR_PROFILE
+geo_scope check (если CLUSTER_GEO_SCOPE задан и location_query не пуст)
+→ GeoScopeMismatchError если story вне зоны ответственности ноды
         │
         ▼
-infer_signals_from_narrative(text) × N stories
-→ StoryProfileSignals(story_id, signals: dict[dimension → value])
+StoryIntakeService.create_story()
+→ StoryRecord сохранён, lifecycle_status = READY_FOR_PROFILE
+        │
+        ▼
+logs: story_cluster_issue_pending reason=cron_deferred
+```
+
+**Важно:** `POST /intake/stories` **не запускает кластеризацию синхронно**. После сохранения story intake возвращает ответ и логирует `reason=cron_deferred`. Кластеризация полностью отдана фоновому крону.
+
+**Источник:** `src/core/api/handlers.py` (строки 195–203: явный комментарий "Intake path no longer clusters synchronously")
+
+---
+
+### 1.2 Cron — фоновая кластеризация (каждые CLUSTER_CRON_INTERVAL_S секунд)
+
+```
+ClusterCronJob._run_loop()  [daemon thread]
+        │  каждые CLUSTER_CRON_INTERVAL_S секунд
+        ▼
+if ready_count < min_size_guard → skip (logs: cluster.batch_skipped_min_size)
+        │
+        ▼
+StoryClusterOrchestrator.process_all_pending()
+        │
+        ▼
+list_stories_ready_for_clustering()  ← DB-side filter (только READY_FOR_PROFILE)
+        │
+        ▼
+для каждой story: get_signals_for_story(story)
+→ infer_signals_from_canonical(canonical_type, canonical_labels, geo)
+→ StoryProfileSignals(story_id, signals, geo)
         │
         ▼
 ClusteringEngine.memberships(profiles)
 → {story_id → {lens_name → cluster_id}} для всех active_lenses
+geo_filter_bucket() включается в cluster_key: "...base...|geo:{level}:{token}"
         │
         ▼
-first_lens = active_lenses[0]              ← только первый линз!
-cluster_id = memberships[story_id][first_lens]
-member_story_ids = все истории в том же кластере по first_lens
+per-cluster: _create_issue_for_cluster(...)
+│
+├─ readiness_for_story() → readiness_score per Cluster (не max в view)
+│
+├─ PromotionGates check (min_stories, readiness_threshold, canonical_type gate)
+│
+├─ IssueCreateService.create_issue(IssueCreateCommand(
+│       cluster_id, story_ids, readiness_score, title
+│   ))
+│
+└─ lifecycle: все members → CLUSTERED
         │
         ▼
-IssueCreateService.create_issue(IssueCreateCommand(
-    cluster_id=cluster_id,
-    story_ids=member_story_ids,
-    readiness_score=100,                   ← захардкожено!
-    title=story.narrative_title_hint or f"cluster:{first_lens}",
-))
-        │
-        ▼
-→ issue_id | None
+logs: cluster.cron_run_end run_id=... created_issue_count=... duration_ms=...
 ```
 
 **Источники:**
-- `src/core/application/cluster_orchestrator.py:18-70`
-- `src/core/infrastructure/service_factory.py:71-118`
+- `src/core/scheduler/cluster_cron.py`
+- `src/core/application/cluster_orchestrator.py` (civic path ниже; файл не `story_cluster_orchestrator.py`)
+- `src/core/infrastructure/service_factory.py`
+
+---
+
+### 1.3 Schema-pack ветка (SSR-04/05) — тот же cron, другой engine
+
+Диаграмма §1.2 описывает **civic** stories **без** persist-binding. Если у `StoryRecord` truthy `schema_id` и `bound_schema_version` (`is_schema_bound`, [`pack_engine.py:16–18`](../../src/core/schema/pack_engine.py)), `process_story` идёт в `_process_pack_bound_story` ([`cluster_orchestrator.py:236–237`](../../src/core/application/cluster_orchestrator.py)): exact-lens по `structured_payload`, promote по `readiness_policy` пака. Civic pool `_civic_ready` эти строки не берёт. Второй cron нет — по-прежнему `process_all_pending` ([`cluster_cron.py:64`](../../src/core/scheduler/cluster_cron.py)).
+
+Операторский мануал (два мира, ALTER, как добавить ноду): [`manuals/schema-packs-node-data-model-ru.md`](./manuals/schema-packs-node-data-model-ru.md).
 
 ---
 
 ## 2. Сигнальные измерения (SignalDimension)
 
-Каждый StoryProfileSignals содержит значения по 6 обязательным осям:
+Каждый StoryProfileSignals содержит значения по 6 обязательным осям (civic lenses, REQ-34):
 
-| Dimension | Смысл оси | Текущие значения |
-|-----------|-----------|-----------------|
-| `TOPIC` | Тематика жалобы | `infrastructure` / `public_service` |
-| `SYSTEM_FAILURE` | Тип сбоя | `service_disruption` / `quality_gap` |
-| `NEED` | Потребность гражданина | `restore_access` / `resolve_issue` |
-| `DESIRED_STATE` | Желаемый результат | `stable_public_service` (всегда) |
-| `REPEATABILITY` | Повторяемость проблемы | `recurrent` / `single_or_unknown` |
-| `RELEVANCE` | Релевантность сигнала | `high` (всегда) |
+| Dimension | Смысл оси | Пример значений |
+|-----------|-----------|----------------|
+| `CIVIC_DOMAIN` | Тематика жалобы | `roads`, `transport`, `housing`, `waste`, ... (12 вариантов) |
+| `FAILURE_PATTERN` | Тип сбоя | `broken_infrastructure`, `delay`, `unsafe_condition`, ... (9 вариантов) |
+| `CIVIC_WEIGHT` | Системность сигнала | `systemic_pattern`, `not_only_me`, `recurring_issue`, `isolated` |
+| `DESIRED_OUTCOME` | Желаемый результат | `better_maintenance`, `faster_response`, `safer_space`, ... |
+| `AFFECTED_GROUP` | Затронутая группа | `residents`, `pedestrians`, `elderly_context`, `general_public` |
+| `GEOGRAPHIC_DISTRICT` | Административный район | `lasnamäe`, `kesklinn`, `unknown` |
 
-**Источник:** `src/core/profile/schema.py` (REQUIRED_SIGNAL_DIMENSIONS)
+**Источник:** `src/core/domain/contracts.py` (SignalDimension enum)  
+**Словари:** `src/core/cluster/vocabulary.py`
 
 ---
 
-## 3. Извлечение сигналов: `infer_signals_from_narrative()`
+## 3. Извлечение сигналов: `infer_signals_from_canonical()`
 
-Единственный метод получения сигналов — keyword-matching по plain text нарратива:
+Единственная функция извлечения сигналов (REQ-34, 2026-05-15). `infer_signals_from_narrative()` удалена.
 
 ```python
 # src/core/profile/enrichment.py
-def infer_signals_from_narrative(narrative: str) -> dict[str, str]:
-    text = narrative.lower()
-
-    # TOPIC: infrastructure если есть "road"/"water"/"bridge"/"infrastructure"
-    TOPIC = "infrastructure" if any(k in text for k in ("road","water","bridge","infrastructure")) \
-            else "public_service"
-
-    # SYSTEM_FAILURE: service_disruption если "blocked"/"outage"/"leak"/"broken"
-    SYSTEM_FAILURE = "service_disruption" if any(k in text for k in ("blocked","outage","leak","broken")) \
-                     else "quality_gap"
-
-    # NEED: restore_access если "blocked"
-    NEED = "restore_access" if "blocked" in text else "resolve_issue"
-
-    # DESIRED_STATE: всегда "stable_public_service" — нет вариации
-    DESIRED_STATE = "stable_public_service"
-
-    # REPEATABILITY: recurrent если "again"/"repeated"/"recurring"/"еще раз"
-    REPEATABILITY = "recurrent" if any(k in text for k in ("again","repeated","recurring")) \
-                    else "single_or_unknown"
-
-    # RELEVANCE: всегда "high" — нет вариации
-    RELEVANCE = "high"
+def get_signals_for_story(story: StoryRecord) -> dict[str, str]:
+    return infer_signals_from_canonical(
+        story.narrative_canonical_type,
+        story.narrative_canonical_labels,
+        story.geo.admin_settlement if story.geo else None,
+    )
 ```
 
-**Критические ограничения:**
-- Только английские ключевые слова — эстонские и русские нарративы дают TOPIC=`public_service`, SYSTEM_FAILURE=`quality_gap` по умолчанию
-- `DESIRED_STATE` и `RELEVANCE` лишены вариативности — 2 из 6 измерений вырождены
-- Бинарная классификация без градаций — нет вектора уверенности
-- GPT canonical_type и canonical_labels (уже в StoryRecord) полностью игнорируются
+**Принцип:** GPT нормализует нарратив на любом языке (ET/RU/EN) в `canonical_labels` — vocabulary-lookup в `vocabulary.py` даёт сигнал. Языковая нейтральность обеспечивается GPT, а не кодом gateway.
+
+**Инвариант:** функция возвращает все 6 SignalDimension ключей; отсутствие данных → `"unknown"` или dimension-specific дефолт (`"isolated"` для civic_weight, `"general_public"` для affected_group).
+
+**Источник:** `src/core/profile/enrichment.py` — `infer_signals_from_canonical()`, `get_signals_for_story()`
 
 ---
 
 ## 4. Кластерные линзы (ClusterLens)
 
-6 линз определяют, по какому сигнальному измерению объединяются истории:
+6 civic линз определяют, по какому сигнальному измерению объединяются истории (REQ-34):
 
 | Lens | Измерение | Суффикс ключа | Бонус readiness |
 |------|-----------|--------------|-----------------|
-| `topic_micro` | TOPIC | `:micro` | — |
-| `need_local` | NEED | `:local` | — |
-| `failure_systemic` | SYSTEM_FAILURE | `:systemic` | **+5** |
-| `failure_micro` | SYSTEM_FAILURE | `:micro` | — |
-| `repeatability_local` | REPEATABILITY | `:local` | — |
-| `relevance_systemic` | RELEVANCE | `:systemic` | **+5** |
+| `civic_domain_micro` | CIVIC_DOMAIN | `:micro` | — |
+| `failure_pattern_micro` | FAILURE_PATTERN | `:micro` | — |
+| `civic_weight_systemic` | CIVIC_WEIGHT | `:systemic` | **+10** |
+| `desired_outcome_local` | DESIRED_OUTCOME | `:local` | — |
+| `affected_group_local` | AFFECTED_GROUP | `:local` | — |
+| `geographic_district_micro` | GEOGRAPHIC_DISTRICT | `:micro` | **+5** |
 
-**Формирование cluster_id:**
+**Формирование cluster_id (SHA-256):**
 ```python
 # src/core/cluster/engine.py
-key = f"{lens}:{dimension}:{value}:{suffix}"   # e.g. "topic_micro:TOPIC:infrastructure:micro"
-cluster_id = f"cluster:{lens}:{abs(hash((lens.value, key))) % 1_000_000_000}"
+key = f"{lens.value}:{dimension.value}:{raw_value}:{suffix}"
+digest_hex = hashlib.sha256(f"{lens.value}:{key}".encode()).hexdigest()
+numeric = int(digest_hex, 16) % 10_000_000_000
+cluster_id = f"cluster:{lens.value}:{numeric:010d}"
 ```
 
-ID детерминирован: одинаковое значение dimension для одного lens → один и тот же cluster_id.
+ID детерминирован и стабилен между процессами (ADR-CE-001 — SHA-256, не Python `hash()`).
 
-**Источник:** `src/core/cluster/engine.py:lens_dimension(), cluster_key_for_lens(), stable_cluster_id()`
+**Источник:** `src/core/cluster/types.py` (ClusterLens enum), `src/core/cluster/engine.py` (stable_cluster_id)
 
 ---
 
@@ -136,24 +159,24 @@ ID детерминирован: одинаковое значение dimension
 
 ```python
 # src/core/cluster/engine.py:readiness_score_for_cluster()
-base = min(100, 20 + size * 15)       # size = количество историй в кластере
-lens_bonus = 5 if lens in (FAILURE_SYSTEMIC, RELEVANCE_SYSTEMIC) else 0
+size       = len(members)
+base       = min(100, 20 + size * 15)
+lens_bonus = lens_readiness_bonus(lens)  # CIVIC_WEIGHT_SYSTEMIC → +10, GEOGRAPHIC_DISTRICT_MICRO → +5
 mode_bonus = 10 if mode == ISSUE_READY else 0
-score = base + lens_bonus + mode_bonus
+score      = min(100, base + lens_bonus + mode_bonus)
 ```
 
 Таблица base-score по размеру кластера:
 
-| Stories | base | + FAILURE/RELEVANCE_SYSTEMIC | + ISSUE_READY mode |
-|---------|------|-----------------------------|--------------------|
-| 1 | 35 | 40 | 45 |
-| 2 | 50 | 55 | 60 |
-| 3 | 65 | 70 | 75 |
-| 4 | 80 | 85 | 90 |
-| 5 | 95 | 100 | 105→100 |
-| 6+ | 100 | 100 | 100 |
+| Stories | base | +civic_weight_systemic | +ISSUE_READY mode | итого (systemic) |
+|---------|------|----------------------|-------------------|-----------------|
+| 1 | 35 | +10 | +10 | 55 |
+| 2 | 50 | +10 | +10 | 70 |
+| 3 | 65 | +10 | +10 | 85 |
+| 4 | 80 | +10 | +10 | 100 |
+| 5+ | 95+ | — | — | 100 |
 
-**Важно:** `StoryClusterOrchestrator.process_story()` передаёт `readiness_score=100` захардкоженно (`cluster_orchestrator.py:66`). Реальный score кластера при issue creation не используется.
+Readiness score вычисляется для конкретного кластера story (не для max кластера в view) и передаётся в `IssueCreateCommand`.
 
 ---
 
@@ -163,168 +186,278 @@ score = base + lens_bonus + mode_bonus
 # src/core/promotion/gates.py
 @dataclass(frozen=True)
 class PromotionGatePolicy:
-    min_readiness_score: int = 70    # default fallback
-    min_stories: int = 2             # default fallback
+    min_readiness_score: int  # из CLUSTER_READINESS_THRESHOLD
+    min_stories: int          # из CLUSTER_MIN_SIZE
 
-# Реальные значения из AppConfig (service_factory.py:82-85):
+# Реальные значения из AppConfig (service_factory.py):
 PromotionGatePolicy(
-    min_readiness_score=config.cluster_readiness_threshold,  # CLUSTER_READINESS_THRESHOLD
-    min_stories=config.cluster_min_size,                     # CLUSTER_MIN_SIZE
+    min_readiness_score=config.cluster_readiness_threshold,  # default: 60
+    min_stories=config.cluster_min_size,                     # default: 5
 )
 ```
 
 Кандидат блокируется если:
 1. `candidate.readiness_score < min_readiness_score` → `"readiness_below_threshold"`
 2. `len(candidate.story_ids) < min_stories` → `"insufficient_story_evidence"`
-
-**Но:** т.к. orchestrator передаёт `readiness_score=100` захардкоженно — gate по readiness всегда проходит. Gate по `min_stories` активен.
-
----
-
-## 7. Текущая конфигурация (env vars)
-
-| Переменная | Default | Тип | Проверка | Используется в runtime |
-|------------|---------|-----|----------|----------------------|
-| `CLUSTER_MIN_SIZE` | `8` | int >0 | да | `PromotionGatePolicy.min_stories` |
-| `CLUSTER_READINESS_THRESHOLD` | `70` | int 1-100 | да | `PromotionGatePolicy.min_readiness_score` |
-| `CLUSTER_ACTIVE_LENSES` | все 6 | comma-list | валидация enum | `ClusteringEngine.active_lenses` |
-| `CLUSTER_GEO_FILTER` | `any` | str | нет | **хранится в AppConfig, в engine НЕ передаётся** |
-| `CLUSTER_TIE_BREAKER` | `lexical` | str | нет | **хранится в AppConfig, не используется** |
-| `CLUSTER_TYPE_RESOLUTION` | `canonical_priority` | str | нет | **хранится в AppConfig, не используется** |
-
-**Факт:** `cluster_geo_filter`, `cluster_tie_breaker`, `cluster_type_resolution` парсятся и хранятся в `AppConfig` (строки 48-50, 401-403 config/schema.py), но НЕ передаются в `ClusteringEngine` (`service_factory.py:71-76`) и НЕ подключены ни к какой логике. Это config-заглушки для будущей реализации.
+3. Кластер без хотя бы одной истории с `canonical_type in {"complaint", "system_bug"}` → `"canonical_type_gate_reject"` (REQ-34)
 
 ---
 
-## 8. Что фактически конфигурируется сегодня
+## 7. Конфигурация (env vars)
 
-1. **Набор активных линз** — можно исключить линзы. Например, `CLUSTER_ACTIVE_LENSES=topic_micro,failure_systemic` включит только две.
-   - **Критично:** orchestrator использует только `active_lenses[0]`. Порядок в списке определяет, по какой линзе создаётся issue.
-
-2. **CLUSTER_MIN_SIZE** — минимум историй для promotion. Default=8 означает, что issue создаётся только при ≥8 историях в кластере по первому линзу.
-
-3. **CLUSTER_READINESS_THRESHOLD** — порог readiness. Фактически игнорируется в orchestrator (см. п.5).
-
-**Что НЕ конфигурируется:**
-- Алгоритм извлечения сигналов (хардкод keyword-matching)
-- Язык keyword-matching (только English)
-- Веса линз при агрегации (все одинаковы)
-- Приоритет линза для создания issue (только первый в списке)
-- Источник сигналов (GPT canonical не используется)
-
----
-
-## 9. Архитектурные ограничения текущей реализации
-
-### 9.1 Один линз для создания issue
-
-`process_story()` использует только `active_lenses[0]`. Если topic_micro кластер → 2 истории "road damage" и 2 истории "water leak" — это 4 истории в одном кластере TOPIC=infrastructure. Но это семантически разные проблемы.
-
-Линз failure_micro различил бы их: "road" → `quality_gap`, "water/leak" → `service_disruption`. Но failure_micro не задействован при создании issue.
-
-### 9.2 Сигналы не персистируются
-
-`infer_signals_from_narrative()` вызывается каждый раз при `process_story()` для всех READY_FOR_PROFILE историй. Нет кэша сигналов в БД — пересчёт при каждом вызове.
-
-### 9.3 GPT canonical данные игнорируются
-
-StoryRecord хранит `narrative_canonical_type` и `narrative_canonical_labels` (из GPT через intake). Эти поля имеют прямой mapping на SYSTEM_FAILURE / TOPIC / labels. Но clustering их не читает — применяет keyword-matching к сырому тексту.
-
-### 9.4 DESIRED_STATE и RELEVANCE — константы
-
-Два из шести измерений не несут информации (`stable_public_service`, `high` для всех). Clustering по линзам `relevance_systemic` объединяет 100% историй в один кластер — т.к. все имеют RELEVANCE=`high`.
-
-### 9.5 Языковой барьер
-
-Эстонские и русские нарративы ("Katki läinud tänav", "Сломанная дорога") не содержат English keywords → получают дефолтные значения: TOPIC=`public_service`, SYSTEM_FAILURE=`quality_gap`. Две семантически идентичные истории на разных языках попадут в разные кластеры, если одна написана по-английски.
+| Переменная | Default | Тип | Используется в runtime |
+|------------|---------|-----|----------------------|
+| `CLUSTER_MIN_SIZE` | `5` | int >0 | `PromotionGatePolicy.min_stories` |
+| `CLUSTER_READINESS_THRESHOLD` | `60` | int 1-100 | `PromotionGatePolicy.min_readiness_score` |
+| `CLUSTER_ACTIVE_LENSES` | `civic_domain_micro,failure_pattern_micro,civic_weight_systemic,desired_outcome_local,affected_group_local,geographic_district_micro` | comma-list | `ClusteringEngine.active_lenses` |
+| `CLUSTER_PRIMARY_LENS` | `civic_domain_micro` | str | `ClusteringEngine.primary_lens` |
+| `CLUSTER_ID_ALGORITHM` | `sha256` | str | `stable_cluster_id()` |
+| `CLUSTER_CRON_ENABLED` | `true` | bool | запуск/остановка фонового cron |
+| `CLUSTER_CRON_INTERVAL_S` | `60` | int | интервал между прогонами cron (секунды) |
+| `CLUSTER_GEO_FILTER` | `country` | str | гранулярность гео-бакета в cluster_key: `district\|settlement\|region\|country` |
+| `CLUSTER_GEO_SCOPE` | `null` | str\|null | зона ответственности ноды: `<level>:<value>`, напр. `settlement:tallinn` |
+| `CLUSTER_TIE_BREAKER` | `alpha` | str | стратегия выбора dominant story (alpha_score в orchestrator) |
+| `CLUSTER_TYPE_RESOLUTION` | `canonical_priority` | str | стратегия определения issue_type из canonical_type историй кластера |
 
 ---
 
-## 10. Технические возможности для расширения
+## 8. Что конфигурируется
 
-### 10.1 Подключить GPT canonical → сигналы (GAP-IMP-02)
+1. **Набор активных линз** — `CLUSTER_ACTIVE_LENSES` (comma-list civic линз). Дефолт: все 6.
+2. **Primary lens** — `CLUSTER_PRIMARY_LENS` (по какой линзе создаётся issue). Дефолт: `civic_domain_micro`.
+3. **CLUSTER_MIN_SIZE** — минимум историй для промоции. Дефолт: `5`.
+4. **CLUSTER_READINESS_THRESHOLD** — порог score для создания issue. Дефолт: `60`.
+5. **CLUSTER_CRON_ENABLED / CLUSTER_CRON_INTERVAL_S** — фоновый cron для `process_all_pending`.
 
-Уже есть `StoryRecord.narrative_canonical_type`, `StoryRecord.narrative_canonical_labels`. Маппинг:
+---
+
+## 9. Фоновый cron — структура, жизненный цикл, обработка ошибок
+
+### 9.1 Структура
+
+`ClusterCronJob` (`src/core/scheduler/cluster_cron.py`) — daemon-поток с именем `cluster-cron-job`. Работает поверх `threading.Event` и `threading.Lock`.
 
 ```python
-# Пример маппинга (не реализован)
-CANONICAL_TYPE_TO_SYSTEM_FAILURE = {
-    "INCIDENT": "service_disruption",
-    "SERVICE_REQUEST": "restore_access",
-    "IMPROVEMENT": "quality_gap",
-}
-CANONICAL_LABEL_TO_TOPIC = {
-    "infrastructure": "infrastructure",
-    "waste": "public_service",
-    "safety": "infrastructure",
-}
+@dataclass
+class ClusterCronJob:
+    orchestrator: StoryClusterOrchestrator
+    interval_s: int          # из CLUSTER_CRON_INTERVAL_S (дефолт: 60)
+    min_size_guard: int      # из CLUSTER_MIN_SIZE (дефолт: 5)
+    _stop_event: Event       # сигнал остановки
+    _run_lock: Lock          # исключает параллельные прогоны
+    _thread: Thread | None   # daemon=True → не блокирует завершение процесса
 ```
 
-Это устранило бы языковой барьер — GPT разговаривает с гражданином на его языке и возвращает canonical поля, независимые от языка нарратива.
+### 9.2 Жизненный цикл
 
-### 10.2 Персистировать StoryProfileSignals в БД
+**Запуск** (ASGI lifespan startup):
+```python
+# src/core/api/asgi_app.py
+if deps.config.cluster_cron_enabled:
+    if deps.config.db_backend == "supabase" and not deps.db_ready:
+        # DB не готова → cron не стартует, только warning в лог
+        logger.warning("startup.cluster_cron_skipped ...")
+    else:
+        cron_job = ClusterCronJob(orchestrator, interval_s, min_size_guard)
+        cron_job.start()
+```
 
-Вычислять сигналы один раз при intake, хранить в отдельной таблице `story_signals`. Clustering использует готовые векторы, а не пересчитывает при каждом вызове.
+**Сторожевое условие при старте:** если бэкенд Supabase и `db_ready=False` (нет связи, не применены миграции) — cron **не запускается**. Подсказка в логе: `"fix SUPABASE_URL/secrets or apply migrations; or CLUSTER_CRON_ENABLED=false"`.
 
-### 10.3 Использовать несколько линз при создании issue
+**Цикл ожидания:**
+```python
+def _run_loop(self) -> None:
+    while not self._stop_event.wait(max(self.interval_s, 1)):
+        ...
+```
+`Event.wait(interval_s)` ждёт `interval_s` секунд **перед** каждым прогоном. Первый прогон — через `interval_s` секунд после старта, не мгновенно.
 
-Сейчас: `first_lens = active_lenses[0]` (hardcode).  
-Вместо этого: найти пересечение кластеров по 2+ линзам → более точный кластер.
+**Остановка** (ASGI lifespan shutdown):
+```python
+cron_job.stop()  # → _stop_event.set() + thread.join(timeout=max(interval_s, 1))
+```
+Graceful: ждёт завершения текущего прогона не дольше `interval_s` секунд, затем завершается.
+
+### 9.3 Pre-run guard: min_size_guard
+
+Перед вызовом `process_all_pending()` cron считает количество готовых историй:
+```python
+ready_count = len(repo.list_stories_ready_for_clustering())
+# если ready_count < min_size_guard → пропустить прогон:
+#   logs: cluster.batch_skipped_min_size
+```
+Смысл: не запускать кластеризацию, если историй меньше минимального порога — всё равно ни один кластер не пройдёт PromotionGates.
+
+### 9.4 Обработка ошибок
+
+Cron **никогда не падает** из-за ошибок в задаче. Вся кластеризация обёрнута в `try/except Exception`:
 
 ```python
-# Пример (не реализован): пересечение topic_micro + failure_systemic
-topic_cluster = memberships[story_id]["topic_micro"]
-failure_cluster = memberships[story_id]["failure_systemic"]
-refined_members = [s for s in profiles
-                   if memberships[s.story_id]["topic_micro"] == topic_cluster
-                   and memberships[s.story_id]["failure_systemic"] == failure_cluster]
+try:
+    issue_ids = self.orchestrator.process_all_pending()
+    # → logs: cluster.cron_run_end created_issue_count=N failed_count=0
+except Exception as exc:
+    log_runtime_exception(logger, exc,
+        stage="cluster.cron", run_id=run_id, duration_ms=elapsed_ms)
+    # → logs: cluster.cron_run_end created_issue_count=0 failed_count=1
+    # loop продолжается — следующий прогон через interval_s секунд
 ```
 
-### 10.4 Передать cluster_geo_filter в ClusteringEngine
+`log_runtime_exception()` (`src/core/logging_setup.py`) — структурированный лог с `stage`, `run_id`, `duration_ms` и traceback. После любого исключения (инфраструктурного, доменного, сетевого) loop **продолжается** со следующей итерацией.
 
-Config-заглушка `CLUSTER_GEO_FILTER` уже парсится. При наличии `story.geo` (normalized_label) можно группировать только истории из одного гео-района:
-
+**Параллельные прогоны** исключены через `_run_lock`:
 ```python
-# Пример (не реализован)
-if geo_filter != "any":
-    ready_stories = [s for s in ready_stories
-                     if s.geo and s.geo.normalized_label == target.geo.normalized_label]
+with self._run_lock:   # следующий прогон ждёт завершения текущего
+    ...
 ```
+Если прогон занимает больше `interval_s` (медленный DB) — следующий не запустится параллельно, а дождётся.
 
-Требует сначала GAP-IMP-03 (geo persistence в Supabase).
+### 9.5 Наблюдаемость (log events)
 
-### 10.5 Реализовать cluster_type_resolution = canonical_priority
-
-Config-заглушка. Логика: если все истории в кластере имеют одинаковый `narrative_canonical_type` → использовать его как issue_type вместо keyword-derived `_derive_issue_type()`.
+| Событие | Когда |
+|---------|-------|
+| `cluster.cron_started` | Cron запущен, в extra: `interval_s`, `min_size_guard` |
+| `cluster.cron_run_start` | Начало прогона, в extra: `run_id`, `ready_count`, `min_size_guard` |
+| `cluster.batch_skipped_min_size` | Прогон пропущен: `ready_count < min_size_guard` |
+| `cluster.cron_run_end` | Конец прогона: `created_issue_count`, `failed_count`, `duration_ms` |
+| `cluster.cron_stopped` | Cron остановлен (ASGI shutdown) |
+| `startup.cluster_cron_skipped` | DB не готова при старте; cron не запущен |
 
 ---
 
-## 11. Семантические возможности для расширения
+## 10. Гео-кластеризация — конфигурирование
 
-### 11.1 Новые линзы
+### 10.1 Два параметра, два разных смысла
 
-| Потенциальный линз | Измерение | Смысл |
-|-------------------|-----------|-------|
-| `geo_district` | GEO (новое) | Кластеризация по административному районам Таллина |
-| `institution_responsible` | INSTITUTION (новое) | Ответственное ведомство: Tallinn Transpordi Amet, AS Tallinna Vesi |
-| `urgency_level` | URGENCY (новое) | срочная → дорожная авария, несрочная → просьба покрасить скамейку |
-| `citizen_sentiment` | SENTIMENT (новое) | повторная жалоба (frustrated) vs. первичная |
+| Параметр | Роль | Момент применения |
+|----------|------|-------------------|
+| `CLUSTER_GEO_SCOPE` | Зона ответственности ноды — что **принимается** | Intake: `POST /intake/stories` |
+| `CLUSTER_GEO_FILTER` | Гранулярность кластеров — как **делятся** принятые истории | Кластеризация: `cluster_key_for_lens()` |
 
-### 11.2 Geo-кластеризация
+### 10.2 Уровни гео-иерархии
 
-Если `story.geo.normalized_label` персистирована (требует GAP-IMP-03), можно объединять истории по Таллинским районам: Kesklinn, Lasnamäe, Mustamäe и т.д. Это даёт кластеры типа "5 жалоб на дороги в Lasnamäe" — напрямую адресует городской администрации.
+Оба параметра используют одни и те же уровни (`src/core/geo/scope.py`):
 
-### 11.3 Taxonomy-aware labelling
+| Уровень | `StoryGeoSnapshot` поле | Пример для Таллинна |
+|---------|------------------------|---------------------|
+| `district` | `admin_district` | `"lasnamäe"`, `"kesklinn"`, `"mustamäe"` |
+| `settlement` | `admin_settlement` | `"tallinn"` |
+| `region` | `admin_region` | `"harjumaa"` |
+| `country` | `admin_country` | `"estonia"` |
 
-`story-label-taxonomy.md` определяет canonical labels. Текущий `_derive_labels()` использует English keywords и не знает о taxonomy. GPT уже выдаёт taxonomy-совместимые labels — нужно только их читать.
+Историческое значение `"any"` — алиас для `"country"`.
 
-### 11.4 Weighted clustering (по повторяемости)
+### 10.3 CLUSTER_GEO_SCOPE — intake gate
 
-Recurrent-истории (REPEATABILITY=`recurrent`) могут получать повышенный вес при подсчёте readiness_score — т.к. повторная жалоба от разных граждан означает системную проблему, а не единичный инцидент.
+**Формат:** `<level>:<value>`, например `settlement:tallinn`.
 
-### 11.5 Институциональная маршрутизация
+**Что делает:**
+```python
+# src/core/api/handlers.py
+if geo_scope is not None and location_query:
+    resolved_geo = geo_service.resolve_for_story(location_query)
+    assert_geo_in_scope(resolved_geo, level=scope_level, expected_value=scope_value)
+    # → если geo не совпадает → GeoScopeMismatchError → 400 GEO_SCOPE_MISMATCH
+```
 
-Когда кластер сформирован → нужно определить ответственное ведомство. Текущий pipeline этого не делает. Новый линз `institution_responsible` позволит строить кластеры сразу с routing hint для SPA-дашборда.
+Проверка срабатывает **только если**: CLUSTER_GEO_SCOPE задан **и** в intake-запросе передан непустой `narrative.location_query`. Story без `location_query` принимается всегда.
+
+**Возможные значения:**
+
+| Значение | Смысл |
+|----------|-------|
+| не задан (null) | Нода принимает истории из любого места — нет ограничения |
+| `settlement:tallinn` | Нода принимает только истории из города Таллинн |
+| `district:lasnamäe` | Нода принимает только истории из района Ласнамяэ |
+| `region:harjumaa` | Нода принимает только истории из уезда Харьюмаа |
+| `country:estonia` | Нода принимает только истории из Эстонии |
+
+### 10.4 CLUSTER_GEO_FILTER — гранулярность кластеров
+
+**Что делает:** добавляет гео-суффикс к каждому cluster_key:
+```python
+# src/core/cluster/engine.py
+geo_part = geo_filter_bucket(profile.geo, geo_filter)
+return f"{base}|{geo_part}"
+```
+
+Результирующий cluster_key: `"{lens}:{dimension}:{value}:{suffix}|geo:{level}:{token}"`
+
+**Поведение по уровням:**
+
+| Значение | Гео-часть ключа | Эффект на кластеры |
+|----------|-----------------|-------------------|
+| `country` (дефолт) | `geo:country:estonia` | Все истории из одной страны — в один кластер |
+| `region` | `geo:region:harjumaa` | Истории Харьюмаа и Тартумаа — в разные кластеры |
+| `settlement` | `geo:settlement:tallinn` | Таллинн и Нарва — в разные кластеры |
+| `district` | `geo:district:lasnamäe` | Каждый район Таллинна — отдельный кластер |
+
+**Истории без geo:**
+- `geo is None` → `"geo:agnostic"` — все geo-less истории попадают в общий бакет, независимо от filter-уровня
+- Гео есть, но нужный уровень пустой → `"geo:unknown"`
+
+### 10.5 Пример: CLUSTER_GEO_SCOPE=settlement:tallinn + CLUSTER_GEO_FILTER=district
+
+Конфигурация для Таллиннской публичной ноды:
+```bash
+CLUSTER_GEO_SCOPE=settlement:tallinn    # нода принимает только таллиннские истории
+CLUSTER_GEO_FILTER=district            # внутри Таллинна кластеры делятся по районам
+```
+
+**Что происходит:**
+
+1. **Intake:** история с `location_query="Narva mnt 5"` → geo resolve → `admin_settlement=narva` → `GeoScopeMismatchError` → 400. История из Нарвы не принята.
+
+2. **Intake:** история с `location_query="Mustamäe tee 12"` → geo resolve → `admin_settlement=tallinn` → scope OK → story сохранена.
+
+3. **Кластеризация:**
+   - История из Ласнамяэ с `civic_domain=roads`: ключ = `civic_domain_micro:civic_domain:roads:micro|geo:district:lasname`
+   - История из Кескlinна с `civic_domain=roads`: ключ = `civic_domain_micro:civic_domain:roads:micro|geo:district:kesklinn`
+   - → **Два разных кластера**, не один. "Roads в Ласнамяэ" ≠ "Roads в Кескlinне".
+
+4. **Результат в `GET /node/issues`:**
+   - Issue: "Дорожные проблемы в Ласнамяэ" (civic_domain=roads, district=lasnamäe, 7 историй)
+   - Issue: "Дорожные проблемы в Кескlinне" (civic_domain=roads, district=kesklinn, 3 истории)
+
+### 10.6 Другие реальные конфигурации
+
+**Нода одного города без районирования** — все жалобы на roads из любого района Таллинна в один кластер:
+```bash
+CLUSTER_GEO_SCOPE=settlement:tallinn
+CLUSTER_GEO_FILTER=settlement    # → geo:settlement:tallinn для всех
+```
+
+**Страновая нода без гео-разделения** — глобальная агрегация по тематике:
+```bash
+# CLUSTER_GEO_SCOPE не задан
+CLUSTER_GEO_FILTER=country       # дефолт — все Estonia в одном бакете
+```
+
+**Региональная нода** — две ноды для разных уездов, каждая кластеризует свои истории по районам:
+```bash
+# Нода Харьюмаа:
+CLUSTER_GEO_SCOPE=region:harjumaa
+CLUSTER_GEO_FILTER=district
+
+# Нода Тартумаа:
+CLUSTER_GEO_SCOPE=region:tartumaa
+CLUSTER_GEO_FILTER=district
+```
+
+**Тестовая нода — без гео-ограничений:**
+```bash
+# CLUSTER_GEO_SCOPE не задан (принимает всё)
+CLUSTER_GEO_FILTER=country       # кластеры без гео-разделения
+CLUSTER_MIN_SIZE=1               # issue при первой же истории
+```
+
+---
+
+## 11. Архитектурные ограничения текущей реализации
+
+1. **Нет DB-backed signal persistence** — `story_signals` in-memory; при рестарте сигналы пересчитываются (`infer_signals_from_canonical` вызывается заново).
+2. **Нет DB-backed cluster_memberships** — после рестарта membership history не восстанавливается.
+3. **Нет chaos/failure тестов** — rollback lifecycle при `PromotionStateError` не покрыт тестами.
 
 ---
 
@@ -332,19 +465,16 @@ Recurrent-истории (REPEATABILITY=`recurrent`) могут получать
 
 | Компонент | Состояние | Примечание |
 |-----------|-----------|------------|
-| SignalDimension (6) | Реализовано | 2 из 6 вырождены (DESIRED_STATE, RELEVANCE) |
-| ClusterLens (6) | Реализовано | Вычисляются все, используется только первый |
-| infer_signals_from_narrative() | Реализовано | English-only, без GPT canonical |
-| stable_cluster_id() | Реализовано | Детерминирован, hash-based |
-| readiness_score_for_cluster() | Реализовано | Hardcode=100 в orchestrator override |
-| PromotionGatePolicy | Реализовано | min_stories актуален; readiness bypassed |
-| CLUSTER_ACTIVE_LENSES | Конфигурируется | Порядок = приоритет (только [0] используется) |
-| CLUSTER_MIN_SIZE | Конфигурируется | Активный gate |
-| CLUSTER_READINESS_THRESHOLD | Конфигурируется | Parsed, но bypassed в orchestrator |
-| CLUSTER_GEO_FILTER | Config-заглушка | Parsed, не подключён |
-| CLUSTER_TIE_BREAKER | Config-заглушка | Parsed, не подключён |
-| CLUSTER_TYPE_RESOLUTION | Config-заглушка | Parsed, не подключён |
-| GPT canonical → signals | Не реализовано | GAP-IMP-02 |
-| Geo clustering | Не реализовано | Требует GAP-IMP-03 |
+| SignalDimension (6 civic) | Реализовано | CIVIC_DOMAIN, FAILURE_PATTERN, CIVIC_WEIGHT, DESIRED_OUTCOME, AFFECTED_GROUP, GEOGRAPHIC_DISTRICT |
+| ClusterLens (6 civic) | Реализовано | Legacy lenses удалены (REQ-34, 2026-05-15) |
+| infer_signals_from_canonical() | Реализовано | Единственная функция; language-agnostic |
+| infer_signals_from_narrative() | Удалено | Удалена в REQ-34, 2026-05-15 |
+| stable_cluster_id() SHA-256 | Реализовано | Cross-process deterministic |
+| readiness_score_for_cluster() | Реализовано | Вычисляется по engine, передаётся в IssueCreateCommand |
+| lens_readiness_bonus() | Реализовано | CIVIC_WEIGHT_SYSTEMIC +10, GEOGRAPHIC_DISTRICT_MICRO +5 |
+| PromotionGatePolicy | Реализовано | min_stories=5, readiness_threshold=60 |
+| canonical_type readiness gate | Реализовано | Кластер без `complaint`/`system_bug` → не промотируется |
+| CLUSTER_PRIMARY_LENS | Реализовано | Именованный config, не active_lenses[0] |
+| lifecycle: CLUSTERED | Реализовано | Все members → CLUSTERED после создания issue |
+| Signal persistence in DB | Не реализовано | Пересчёт при каждом вызове; story_signals in-memory |
 | Multi-lens intersection | Не реализовано | Архитектурная возможность |
-| Signal persistence in DB | Не реализовано | Пересчёт при каждом вызове |

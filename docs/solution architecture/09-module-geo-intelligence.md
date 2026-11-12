@@ -27,3 +27,36 @@
 - location confidence score;
 - normalized city/region/country;
 - geo tags for cluster lenses.
+- **structured admin levels** (v2): `admin_district`, `admin_settlement`, `admin_region`, `admin_country`
+
+## StoryGeoSnapshot — целевые поля (v2, решения интервью 2026-05-13)
+
+```python
+@dataclass(frozen=True)
+class StoryGeoSnapshot:
+    normalized_label: str
+    latitude: float
+    longitude: float
+    confidence: float
+    provider: str
+    cluster_tags: tuple[str, ...] = ()
+    # Новые структурированные admin-уровни:
+    admin_district: str | None = None    # "Kalamaja", "Mustamäe"
+    admin_settlement: str | None = None  # "Tallinn", "Narva"
+    admin_region: str | None = None      # "Harju maakond", "Ida-Viru"
+    admin_country: str | None = None     # "EE"
+```
+
+## Node Geo Scope и Geo Filter (новые env vars)
+
+| Env var | Описание | Дефолт |
+|---------|----------|--------|
+| `CLUSTER_GEO_FILTER` | Уровень гранулярности кластеризации: `district\|settlement\|region\|country` | `country` |
+| `CLUSTER_GEO_SCOPE` | Зона ответственности ноды. Формат: `<level>:<value>`, напр. `settlement:tallinn`. Истории вне скоупа отклоняются на intake (HTTP 4xx) | не задан (принимает всё) |
+
+**Разница:** `GEO_FILTER` — как группировать в кластеры; `GEO_SCOPE` — какие истории принимать вообще.
+
+**Демо-стабы** (текущее состояние): `_TallinnOpenCageStub` и `_NarvaNominatimStub` достаточны для `country`-уровня фильтрации; реальный маппинг admin-уровней — post-demo.
+
+## Решения интервью (2026-05-13)
+Подробно: REQ-35, `docs/analysis/gap-interview-decisions-2026-05-13.md` G-02

@@ -7,6 +7,40 @@
 
 ---
 
+## Быстро: копировать pack на Railway Volume
+
+Volume: `doge-complaints-gateway-volume` (корень Volume = mount `SCHEMA_PACKS_ROOT`, обычно `/data/schema-packs`).  
+Пример ниже — `uus_veerenni_civic` (замените `<schema_id>` при другом pack). Upload с **`--overwrite`** (override, если путь уже есть). Проект Railway должен быть linked (`railway link` в gateway).
+
+**Из корня workspace (`DOGEstonia/`):**
+
+```bash
+railway volume files -v doge-complaints-gateway-volume upload --overwrite \
+  doge-complaints-gateway/schema-packs/uus_veerenni_civic \
+  /uus_veerenni_civic
+```
+
+**Из `doge-complaints-gateway/`:**
+
+```bash
+railway volume files -v doge-complaints-gateway-volume upload --overwrite \
+  schema-packs/uus_veerenni_civic \
+  /uus_veerenni_civic
+```
+
+**Проверить, что скопировалось:**
+
+```bash
+railway volume list
+railway volume browse -v doge-complaints-gateway-volume /
+railway volume files -v doge-complaints-gateway-volume list /
+railway volume files -v doge-complaints-gateway-volume list /uus_veerenni_civic
+```
+
+После upload — redeploy/restart сервиса, чтобы boot заново прочитал pack.
+
+---
+
 ## Коротко
 
 Модель ноды — это **файлы pack**, не новые колонки на каждое поле и не город в URL.

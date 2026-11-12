@@ -22,26 +22,29 @@ cluster-engine/
 ## 2. Компоненты и их текущее состояние
 
 ```
-narrative_original_text                    canonical_labels[] + canonical_type
-        │                                              │
-        ▼ (legacy, keyword-matching)                   ▼ (target, vocabulary lookup)
-infer_signals_from_narrative()         infer_signals_from_canonical()
-        │                                              │
-        └──────────────────┬────────────────────────────┘
-                           ▼  (CLUSTER_SIGNAL_SOURCE switch)
-                  StoryProfileSignals
-                           │
-                           ▼
-                  ClusteringEngine.memberships()
-                  per-lens: build_view() + stable_cluster_id()
-                           │
-                           ▼
-              StoryClusterOrchestrator.process_story()
-              └─ idempotency check
-              └─ PromotionGates (min_stories, readiness)
-              └─ IssueCreateService
-              └─ lifecycle: READY_FOR_PROFILE → CLUSTERED
+canonical_labels[] + canonical_type + geo.admin_settlement
+        │
+        ▼ (vocabulary lookup — language-agnostic)
+infer_signals_from_canonical()
+        │
+        ▼
+StoryProfileSignals
+        │
+        ▼
+ClusteringEngine.memberships()
+per-lens: build_view() + stable_cluster_id() [SHA-256]
+        │
+        ▼
+StoryClusterOrchestrator.process_story()
+└─ idempotency check (CLUSTERED lifecycle guard)
+└─ primary_lens из CLUSTER_PRIMARY_LENS
+└─ readiness_for_story() → score per-cluster
+└─ PromotionGates (min_stories, readiness, canonical_type gate)
+└─ IssueCreateService
+└─ lifecycle: READY_FOR_PROFILE → CLUSTERED (все members)
 ```
+
+**Примечание:** `infer_signals_from_narrative()` и режимы `keyword`/`hybrid` удалены в REQ-34 (2026-05-15). Единственный путь — canonical lookup.
 
 ---
 
@@ -66,15 +69,15 @@ infer_signals_from_narrative()         infer_signals_from_canonical()
 | Компонент | Проблема | Решение |
 |-----------|----------|---------|
 | `stable_cluster_id()` | `hash()` зависит от PYTHONHASHSEED → разные IDs при рестарте | `hashlib.sha256` → cross-process stable |
-| `infer_signals_from_narrative()` | keyword-matching только по EN тексту; 2 из 6 осей вырождены | `infer_signals_from_canonical()` → vocabulary lookup из GPT labels |
-| `SignalDimension` enum | 6 осей: TOPIC, SYSTEM_FAILURE, NEED, DESIRED_STATE, REPEATABILITY, RELEVANCE — все бинарные или константы | 6 новых семантических осей из GPT taxonomy (civic_domain, failure_pattern, civic_weight, desired_outcome, affected_group, geographic_district) |
-| `ClusterLens` enum | 6 legacy линз, 1 вырожденная (relevance_systemic) | 6 новых семантических линз; legacy сохраняются для backward compat |
+| `infer_signals_from_narrative()` | keyword-matching только по EN тексту; 2 из 6 осей вырождены | **Реализовано (REQ-34)**: функция удалена; `infer_signals_from_canonical()` — единственный путь |
+| `SignalDimension` enum | 6 осей: TOPIC, SYSTEM_FAILURE, NEED, DESIRED_STATE, REPEATABILITY, RELEVANCE — бинарные/константы | **Реализовано (REQ-34)**: 6 civic осей (CIVIC_DOMAIN, FAILURE_PATTERN, CIVIC_WEIGHT, DESIRED_OUTCOME, AFFECTED_GROUP, GEOGRAPHIC_DISTRICT) |
+| `ClusterLens` enum | 6 legacy линз, 1 вырожденная (relevance_systemic) | **Реализовано (REQ-34)**: 6 civic линз; legacy полностью удалены |
 | `orchestrator.active_lenses[0]` | Primary lens = позиционная зависимость от порядка в env | `primary_lens` как именованный параметр из `CLUSTER_PRIMARY_LENS` |
 | `readiness_score=100` hardcode | Gate по readiness всегда проходит; смысл порога потерян | Вычисляемый score per-cluster, передаётся в IssueCreateCommand |
 | `readiness_score_for_cluster()` | Score по largest cluster в view, не по cluster target story | Score встраивается в `Cluster`, не в `ClusterView` |
 | Нет lifecycle advancement | Stories остаются `READY_FOR_PROFILE` после кластеризации → дубликаты issues при каждом новом intake | Новый статус `CLUSTERED`, lifecycle advance после создания issue |
 | `list_stories()` full table scan | O(N) на каждый intake | `list_stories_ready_for_clustering()` с DB-side filter |
-| Нет персистенции сигналов | Пересчёт `infer_signals_from_narrative()` на каждый `process_story()` | Таблица `story_signals`, compute once + cache |
+| Нет персистенции сигналов | Пересчёт сигналов на каждый `process_story()` | **Реализовано**: таблица `story_signals`, compute once + cache |
 | `handlers.py` молча отбрасывает `process_story()` result | Нет observability — создался issue или нет | Логировать `issue_id` / причину отказа |
 | `ClusteringMode.ISSUE_READY` не используется | Режим объявлен, но orchestrator всегда передаёт ANALYTIC | В orchestrator использовать ISSUE_READY при создании issue |
 | `build_cluster_narrative()` static string | Narrative не несёт информации | Динамический narrative из dominant signals (§03) |
@@ -94,9 +97,9 @@ infer_signals_from_narrative()         infer_signals_from_canonical()
 ### ADR-CE-002: Vocabulary lookup как основной источник сигналов
 
 - **Статус:** Accepted
-- **Решение:** `infer_signals_from_canonical(canonical_type, canonical_labels, geo)` — первичный путь. Keyword-matching — legacy fallback через `CLUSTER_SIGNAL_SOURCE=keyword`.
+- **Решение:** `infer_signals_from_canonical(canonical_type, canonical_labels, geo)` — единственный путь. Режимы `keyword` и `hybrid` (`CLUSTER_SIGNAL_SOURCE=keyword/hybrid`) удалены в REQ-34 (2026-05-15).
 - **Причина:** GPT уже разговаривает с гражданином на его языке и возвращает language-agnostic canonical labels. Дублировать NLP keyword-matching в Python — потеря уже сделанной работы GPT.
-- **Trade-off:** Зависимость от заполненности `canonical_labels` в StoryRecord; требует §22 (canonical fields в intake).
+- **Trade-off:** Зависимость от заполненности `canonical_labels` в StoryRecord; требует canonical fields в intake (реализовано).
 
 ### ADR-CE-003: Readiness score per Cluster, не per ClusterView
 
@@ -123,15 +126,15 @@ infer_signals_from_narrative()         infer_signals_from_canonical()
 
 - **Статус:** Accepted
 - **Решение:** При первом вычислении сигналы записываются в `story_signals (story_id, policy, signals_json)`. При повторном `process_story()` — читаются из кэша.
-- **Причина:** В текущей реализации `infer_signals_from_narrative()` вызывается для ВСЕХ `READY_FOR_PROFILE` stories при каждом intake. С ростом данных — quadratic overhead.
+- **Причина:** До REQ-34 `infer_signals_from_narrative()` (а после — `infer_signals_from_canonical()`) вызывается для ВСЕХ `READY_FOR_PROFILE` stories при каждом intake. С ростом данных — quadratic overhead.
 - **Trade-off:** Лишний round-trip в БД при первом вычислении; justified при N > ~20 stories.
 
 ### ADR-CE-007: Новые и legacy линзы сосуществуют
 
-- **Статус:** Accepted
-- **Решение:** `ClusterLens` и `SignalDimension` расширяются новыми значениями. Старые (TOPIC_MICRO, FAILURE_SYSTEMIC и т.д.) не удаляются — deprecated label, используются только при `CLUSTER_SIGNAL_SOURCE=keyword`.
-- **Причина:** Нельзя поломать существующие тесты и данные в БД.
-- **Trade-off:** Enum становится больше; документировать deprecated ясно.
+- **Статус:** ~~Accepted~~ **Superseded REQ-34 (2026-05-15)**
+- **Решение (устаревшее):** Старые лензы не удаляются — deprecated label, при `CLUSTER_SIGNAL_SOURCE=keyword`.
+- **Фактическое состояние:** Legacy лензы (TOPIC_MICRO, NEED_LOCAL, FAILURE_SYSTEMIC, FAILURE_MICRO, REPEATABILITY_LOCAL, RELEVANCE_SYSTEMIC) **полностью удалены** из `ClusterLens` enum. `CLUSTER_SIGNAL_SOURCE=keyword/hybrid` не поддерживается. `ClusterLens` содержит только 6 civic значений.
+- **Причина отмены:** Поломки тестов не было — тесты к тому моменту уже тестировали civic-систему. Коэкзистенция вызывала документационный дрейф.
 
 ### ADR-CE-008: cluster_memberships — аналитическая таблица, не core
 
