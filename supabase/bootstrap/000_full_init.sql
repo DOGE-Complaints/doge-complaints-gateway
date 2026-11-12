@@ -64,6 +64,15 @@ alter table if exists public.stories
 alter table if exists public.stories
     add column if not exists institution_json jsonb;
 
+-- STORY-GW-SSR-02: schema/profile binding + structured_payload (nullable; civic stays NULL)
+alter table if exists public.stories
+    add column if not exists schema_id text,
+    add column if not exists bound_schema_version text,
+    add column if not exists profile_id text,
+    add column if not exists profile_version text,
+    add column if not exists structured_payload jsonb,
+    add column if not exists payload_hash text;
+
 create table if not exists public.idempotency_keys (
     key text primary key,
     story_id text not null references public.stories(story_id) on delete cascade,
@@ -89,13 +98,36 @@ alter table if exists public.story_embeddings
 
 create index if not exists idx_story_embeddings_story_id on public.story_embeddings(story_id);
 
+-- GW-TAX-01: per-axis taxonomy labels (fresh bootstrap uses text FK to match stories.story_id;
+-- pre-TAX-03 migration 20260714_1200 used UUID; post-TAX-03 repo migration is text FK —
+-- do not rewrite applied hosted migrations here)
+create table if not exists public.story_labels (
+    story_id text not null references public.stories(story_id) on delete cascade,
+    axis text not null,
+    label text not null,
+    disposition text not null,
+    primary key (story_id, axis, label)
+);
+create index if not exists idx_story_labels_story on public.story_labels(story_id);
+create index if not exists idx_story_labels_axis on public.story_labels(axis);
+
 create table if not exists public.doge_issues (
     issue_id text primary key,
     status text not null,
-    payload_json jsonb not null,
     policy_version text not null,
     created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
+    updated_at timestamptz not null default now(),
+    issue_type text not null default 'IMPROVEMENT',
+    labels_json jsonb not null default '[]'::jsonb,
+    title_json jsonb not null default '{}'::jsonb,
+    summary_json jsonb not null default '{}'::jsonb,
+    description_json jsonb not null default '{}'::jsonb,
+    institution_json jsonb,
+    geo_json jsonb,
+    original_locale_json jsonb not null default '[]'::jsonb,
+    arweave_txid text,
+    image_txid text,
+    image_hash text
 );
 
 create table if not exists public.doge_issue_embeddings (
@@ -167,6 +199,26 @@ create table if not exists public.cluster_memberships (
 );
 create index if not exists idx_cluster_memberships_cluster on public.cluster_memberships(cluster_id);
 
+-- GW-DRAFT-01 + GW-CAB-02: ephemeral GPT→browser draft stash and first-wins owner association
+-- Draft may exist without owner; ownership is written on first authenticated read (DraftOwnerRepository).
+create table if not exists public.story_drafts (
+    draft_id text primary key,
+    payload_json jsonb not null,
+    created_at timestamptz not null default now(),
+    expires_at timestamptz not null,
+    updated_at timestamptz not null default now()
+);
+create index if not exists idx_story_drafts_expires_at
+    on public.story_drafts (expires_at);
+
+create table if not exists public.draft_owner (
+    draft_id text primary key references public.story_drafts (draft_id) on delete cascade,
+    submitter_external_user_id text not null,
+    created_at timestamptz not null default now()
+);
+create index if not exists idx_draft_owner_submitter
+    on public.draft_owner (submitter_external_user_id);
+
 -- Issues read model
 create or replace view public.issues_dashboard as
 select
@@ -174,18 +226,17 @@ select
     p.status,
     p.policy_version,
     p.updated_at,
-    p.payload_json->>'type' as type,
-    p.payload_json->'title'->>'en' as title_en,
-    p.payload_json->'title'->>'et' as title_et,
-    p.payload_json->'title'->>'ru' as title_ru,
-    p.payload_json->'summary'->>'en' as summary_en,
-    p.payload_json->'summary'->>'et' as summary_et,
-    p.payload_json->'summary'->>'ru' as summary_ru,
-    p.payload_json->'description'->>'en' as description_en,
-    p.payload_json->'description'->>'et' as description_et,
-    p.payload_json->'description'->>'ru' as description_ru,
-    p.payload_json->'labels' as labels_json,
-    p.payload_json as payload_json
+    p.issue_type as type,
+    p.title_json->>'en' as title_en,
+    p.title_json->>'et' as title_et,
+    p.title_json->>'ru' as title_ru,
+    p.summary_json->>'en' as summary_en,
+    p.summary_json->>'et' as summary_et,
+    p.summary_json->>'ru' as summary_ru,
+    p.description_json->>'en' as description_en,
+    p.description_json->>'et' as description_et,
+    p.description_json->>'ru' as description_ru,
+    p.labels_json as labels_json
 from public.doge_issues p;
 
 grant select on public.issues_dashboard to anon, authenticated;
@@ -245,6 +296,9 @@ alter table public.review_audit_log enable row level security;
 alter table public.issue_story_links enable row level security;
 alter table public.story_signals enable row level security;
 alter table public.cluster_memberships enable row level security;
+alter table public.story_labels enable row level security;
+alter table public.story_drafts enable row level security;
+alter table public.draft_owner enable row level security;
 
 drop policy if exists issue_candidates_service_role_all on public.issue_candidates;
 create policy issue_candidates_service_role_all
@@ -281,6 +335,30 @@ with check (true);
 drop policy if exists cluster_memberships_service_role_all on public.cluster_memberships;
 create policy cluster_memberships_service_role_all
 on public.cluster_memberships
+for all
+to service_role
+using (true)
+with check (true);
+
+drop policy if exists story_labels_service_role_all on public.story_labels;
+create policy story_labels_service_role_all
+on public.story_labels
+for all
+to service_role
+using (true)
+with check (true);
+
+drop policy if exists story_drafts_service_role_all on public.story_drafts;
+create policy story_drafts_service_role_all
+on public.story_drafts
+for all
+to service_role
+using (true)
+with check (true);
+
+drop policy if exists draft_owner_service_role_all on public.draft_owner;
+create policy draft_owner_service_role_all
+on public.draft_owner
 for all
 to service_role
 using (true)
