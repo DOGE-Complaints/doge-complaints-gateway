@@ -488,7 +488,6 @@ def main(argv: list[str] | None = None) -> int:
     failures: list[str] = []
     for i, user in enumerate(users):
         fid = str(user["fixture_user_id"])
-        did_phone_otp = False
         try:
             entry = provision_one(
                 user,
@@ -503,11 +502,6 @@ def main(argv: list[str] | None = None) -> int:
             )
             entry["generation_id"] = generation_id
             entries.append(entry)
-            # Checkpoint: survive Cursor/shell death mid-run (secrets gitignored).
-            if not args.dry_run:
-                doc = lib.build_creds_document(generation_id=generation_id, entries=entries)
-                lib.write_creds_document(out_path, doc)
-            did_phone_otp = entry.get("verify") == "file_otp_confirmed"
             print(
                 f"[{i+1:>4}/{len(users)}] {fid} "
                 f"email={entry['email']} phone={entry['phone_e164']} "
@@ -518,13 +512,7 @@ def main(argv: list[str] | None = None) -> int:
             failures.append(fid)
             print(f"[{i+1:>4}/{len(users)}] {fid} -> ERROR {exc}", file=sys.stderr)
             # Still record partial? fail-closed: skip incomplete entry
-        # Pace only after a live phone/request (rate-limit); skip for already_verified.
-        if (
-            i + 1 < len(users)
-            and not args.dry_run
-            and args.pace_s > 0
-            and did_phone_otp
-        ):
+        if i + 1 < len(users) and not args.dry_run and args.pace_s > 0:
             time.sleep(args.pace_s)
 
     doc = lib.build_creds_document(generation_id=generation_id, entries=entries)

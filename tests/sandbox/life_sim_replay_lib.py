@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 SANDBOX = Path(__file__).resolve().parent
 # Legacy flat sample paths (Absent after 2026-09-30 cleanup). Prefer LIFE_SIM_PACK_DIR.
@@ -29,13 +29,114 @@ EXPECTED_STORIES_MIN = 1600  # REQ11-01 scale lock (~1661)
 POOL_EMAIL_ENV_TMPL = "LIFE_SIM_POOL_{slot:02d}_EMAIL"
 POOL_PASSWORD_ENV_TMPL = "LIFE_SIM_POOL_{slot:02d}_PASSWORD"
 
+# Theme label → uus_veerenni_civic/v3 exact-lens signals (taxonomy canonical_keys).
+# Without service_object + facility_or_service_need, pack lenses skip (missing_value_policy).
+_THEME_TO_V3_SIGNALS: dict[str, dict[str, str]] = {
+    "waste": {
+        "civic_domain": "cleanliness_waste",
+        "failure_pattern": "capacity_shortage",
+        "service_object": "waste_bin",
+        "facility_or_service_need": "household_service",
+    },
+    "lighting": {
+        "civic_domain": "safety",
+        "failure_pattern": "broken_infrastructure",
+        "service_object": "street_lighting",
+        "facility_or_service_need": "community_space",
+    },
+    "pothole": {
+        "civic_domain": "infrastructure_maintenance",
+        "failure_pattern": "broken_infrastructure",
+        "service_object": "pedestrian_route",
+        "facility_or_service_need": "household_service",
+    },
+    "construction": {
+        "civic_domain": "environment_comfort",
+        "failure_pattern": "recurring_friction",
+        "service_object": "community_space",
+        "facility_or_service_need": "community_space",
+    },
+    "crossing": {
+        "civic_domain": "mobility_access",
+        "failure_pattern": "unsafe_condition",
+        "service_object": "crossing",
+        "facility_or_service_need": "household_service",
+    },
+    "noise": {
+        "civic_domain": "environment_comfort",
+        "failure_pattern": "recurring_friction",
+        "service_object": "community_space",
+        "facility_or_service_need": "community_space",
+    },
+    "parking": {
+        "civic_domain": "mobility_access",
+        "failure_pattern": "access_blocked",
+        "service_object": "car_parking",
+        "facility_or_service_need": "household_service",
+    },
+    "playground": {
+        "civic_domain": "children_families",
+        "failure_pattern": "maintenance_gap",
+        "service_object": "playground",
+        "facility_or_service_need": "children_indoor_space",
+    },
+    "greenery": {
+        "civic_domain": "public_space",
+        "failure_pattern": "maintenance_gap",
+        "service_object": "green_space",
+        "facility_or_service_need": "community_space",
+    },
+    "drainage": {
+        "civic_domain": "infrastructure_maintenance",
+        "failure_pattern": "broken_infrastructure",
+        "service_object": "pedestrian_route",
+        "facility_or_service_need": "household_service",
+    },
+}
+_DEFAULT_V3_SIGNALS: dict[str, str] = {
+    "civic_domain": "public_space",
+    "failure_pattern": "recurring_friction",
+    "service_object": "community_space",
+    "facility_or_service_need": "community_space",
+}
+
+
+def v3_signals_from_canonical_labels(labels: list[str] | tuple[str, ...] | None) -> dict[str, str]:
+    """Map life-sim theme labels to pack exact-lens signal tokens."""
+    for label in labels or ():
+        key = str(label).strip().lower()
+        if key in _THEME_TO_V3_SIGNALS:
+            return dict(_THEME_TO_V3_SIGNALS[key])
+    return dict(_DEFAULT_V3_SIGNALS)
+
+
+def enrich_schema_binding_for_life_sim_story(
+    schema_binding: Mapping[str, Any],
+    story: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Copy binding and fill structured_payload.signals from story canonical_labels."""
+    binding = dict(schema_binding)
+    raw_payload = binding.get("structured_payload")
+    payload: dict[str, Any] = dict(raw_payload) if isinstance(raw_payload, Mapping) else {}
+    raw_signals = payload.get("signals")
+    signals: dict[str, Any] = dict(raw_signals) if isinstance(raw_signals, Mapping) else {}
+    labels_raw = story.get("canonical_labels")
+    labels = (
+        [str(x) for x in labels_raw if str(x).strip()]
+        if isinstance(labels_raw, list)
+        else []
+    )
+    signals.update(v3_signals_from_canonical_labels(labels))
+    canonical_type = str(story.get("canonical_type") or "").strip()
+    if canonical_type:
+        signals.setdefault("canonical_type", canonical_type)
+    payload["signals"] = signals
+    binding["structured_payload"] = payload
+    return binding
+
 
 def resolve_life_sim_pack_dir() -> Path | None:
-    """Optional pack root: LIFE_SIM_PACK_DIR or PACK_DIR → users/stories/meta.json.
-
-    Legacy simulate-life-sim may omit env (falls back to Absent flat *_v0_1).
-    Pack-wave CLIs must call require_life_sim_pack_dir() instead.
-    """
+    """Optional pack root: LIFE_SIM_PACK_DIR → users.json / stories.json / meta.json."""
     raw = os.getenv("LIFE_SIM_PACK_DIR", "").strip() or os.getenv("PACK_DIR", "").strip()
     if not raw:
         return None
@@ -48,19 +149,14 @@ def resolve_life_sim_pack_dir() -> Path | None:
 
 
 def require_life_sim_pack_dir(*, require_stories: bool = True) -> Path:
-    """Fail-closed pack root for pack-wave CLIs (REQ11-08/10 standard)."""
+    """Fail-closed pack root for REQ11-10 replay (LIFE_SIM_PACK_DIR / PACK_DIR)."""
     path = resolve_life_sim_pack_dir()
     if path is None:
         raise RuntimeError(
-            "LIFE_SIM_PACK_DIR not set (or PACK_DIR). "
-            "Pack stories.json is the SSOT input for pack-wave replay."
+            "LIFE_SIM_PACK_DIR (or PACK_DIR) is required for pack-wave replay"
         )
-    if not path.is_dir():
-        raise RuntimeError(f"LIFE_SIM_PACK_DIR is not a directory: {path}")
-    if require_stories:
-        stories = path / "stories.json"
-        if not stories.is_file():
-            raise RuntimeError(f"pack stories.json missing: {stories}")
+    if require_stories and not (path / "stories.json").is_file():
+        raise RuntimeError(f"stories.json missing under pack: {path}")
     return path
 
 
@@ -313,24 +409,20 @@ def count_secrets_users_ready(path: Path | None = None) -> int:
     return ready
 
 
-def _coerce_i18n_map(
-    raw: Any,
+def _i18n_triplet(
+    primary: Mapping[str, Any] | None,
     *,
     fallback: str,
-    lang: str,
+    langs: tuple[str, ...] = ("et", "ru", "en"),
 ) -> dict[str, str]:
-    """Prefer on-disk i18n map when Present; else synthesize thin 3-lang map."""
-    langs = ("et", "ru", "en")
-    if isinstance(raw, dict) and raw:
-        out: dict[str, str] = {}
-        for k in langs:
-            val = raw.get(k)
-            if val is None or str(val).strip() == "":
-                val = raw.get(lang) if k != lang else None
-            text = str(val if val is not None else fallback).strip() or fallback
-            out[k] = text
-        return out
-    return {k: fallback for k in langs}
+    """Build et/ru/en map from optional i18n object; fill gaps from fallback."""
+    src = primary if isinstance(primary, Mapping) else {}
+    out: dict[str, str] = {}
+    for lang in langs:
+        raw = src.get(lang)
+        text = str(raw).strip() if raw is not None else ""
+        out[lang] = text or fallback
+    return out
 
 
 def life_sim_story_to_intake_payload(
@@ -342,61 +434,64 @@ def life_sim_story_to_intake_payload(
 ) -> dict[str, Any]:
     """Convert one life-sim story fixture into gateway intake stash payload shape.
 
-    Prefer REQ11-11 v2 flat fields when Present; keep thin 6-key synthesis path.
-    Does not invent product HTTP APIs / gpt_signals / taxonomy axis IDs.
+    v2 packs: prefer title_i18n / summary_i18n / description_i18n / session_language /
+    location_query / canonical_* (REQ11-12). Thin 6-key packs fall back to title/body.
     """
-    lang = str(story.get("language") or "en").strip() or "en"
+    lang = str(
+        story.get("session_language") or story.get("language") or "en"
+    ).strip() or "en"
     title = str(story.get("title") or "").strip()
     body = str(story.get("body") or "").strip()
     if not body:
+        # Prefer description/summary of session language when body absent.
+        desc = story.get("description_i18n")
+        if isinstance(desc, Mapping) and desc.get(lang):
+            body = str(desc.get(lang)).strip()
+        elif isinstance(desc, Mapping):
+            body = str(next((desc[k] for k in ("et", "ru", "en") if desc.get(k)), "")).strip()
+    if not body:
         raise ValueError(f"story {story.get('fixture_story_id')!r} missing body")
 
-    title_i18n = _coerce_i18n_map(story.get("title_i18n"), fallback=title, lang=lang)
-    description_i18n = _coerce_i18n_map(
-        story.get("description_i18n"), fallback=body, lang=lang
-    )
-    summary_fallback = description_i18n.get(lang) or body
-    summary_i18n = _coerce_i18n_map(
-        story.get("summary_i18n"), fallback=summary_fallback, lang=lang
-    )
-
-    session_language = str(story.get("session_language") or lang).strip() or lang
-    original_text = description_i18n.get(lang) or body
+    title_i18n = _i18n_triplet(story.get("title_i18n"), fallback=title or body)
+    description_i18n = _i18n_triplet(story.get("description_i18n"), fallback=body)
+    summary_src = story.get("summary_i18n")
+    if isinstance(summary_src, Mapping) and any(
+        str(summary_src.get(k) or "").strip() for k in ("et", "ru", "en")
+    ):
+        summary_i18n = _i18n_triplet(summary_src, fallback=body)
+    else:
+        # 6-key / thin: gateway requires narrative.summary.et (and peers).
+        summary_i18n = {k: body for k in ("et", "ru", "en")}
 
     canonical_type = str(story.get("canonical_type") or "complaint").strip() or "complaint"
     labels_raw = story.get("canonical_labels")
-    if isinstance(labels_raw, (list, tuple)):
-        canonical_labels = [str(x).strip() for x in labels_raw if str(x).strip()]
-    else:
-        canonical_labels = []
+    canonical_labels = (
+        [str(x) for x in labels_raw if str(x).strip()]
+        if isinstance(labels_raw, list)
+        else []
+    )
 
     narrative: dict[str, Any] = {
-        "original_text": original_text,
+        "original_text": body,
         "language": lang,
-        "session_language": session_language,
+        "session_language": lang,
         "title": title_i18n,
         "description": description_i18n,
         "summary": summary_i18n,
         "canonical_type": canonical_type,
         "canonical_labels": canonical_labels,
     }
-
-    loc = story.get("location_query")
-    if isinstance(loc, str) and loc.strip():
-        narrative["location_query"] = loc.strip()
-    elif location_query and location_query.strip():
-        narrative["location_query"] = location_query.strip()
-
-    institution_raw = story.get("institution_i18n")
-    if isinstance(institution_raw, dict) and institution_raw:
-        narrative["institution"] = _coerce_i18n_map(
-            institution_raw, fallback="", lang=lang
-        )
+    loc = (location_query or str(story.get("location_query") or "")).strip()
+    if loc:
+        narrative["location_query"] = loc
+    inst = story.get("institution_i18n")
+    if isinstance(inst, Mapping) and any(str(inst.get(k) or "").strip() for k in ("et", "ru", "en")):
+        narrative["institution"] = _i18n_triplet(inst, fallback="")
 
     fixture_story_id = str(story.get("fixture_story_id") or "unknown")
     return {
         "schema_version": intake_schema_version,
-        "schema_binding": schema_binding,
+        "schema_binding": enrich_schema_binding_for_life_sim_story(schema_binding, story),
         "narrative": narrative,
         "origin": {
             "source": "simulation",

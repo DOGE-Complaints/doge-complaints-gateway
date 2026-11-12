@@ -131,6 +131,12 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
 
+        # Same as provision/replay: Bearer must come from Identity's Supabase
+        # (gateway .env may point at a different project).
+        from life_sim_provision_config import force_identity_supabase_auth_env
+
+        force_identity_supabase_auth_env()
+
         # Live: resolve user Bearer per fixture_user_id (never service token).
         from simulation_intake_http import resolve_fixture_user_bearer_token
 

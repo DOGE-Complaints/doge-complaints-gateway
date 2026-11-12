@@ -212,7 +212,13 @@ def run_wave(args: argparse.Namespace) -> int:
 
     from gw_ssr_16_node_schema import active_node_schema_binding
 
-    schema_binding = active_node_schema_binding()
+    # Match running gateway NODE_SCHEMA_* (local uus_veerenni_civic/v3); do not
+    # silently default to tallinn_civic/v1 test helpers when env is set.
+    schema_binding = active_node_schema_binding(
+        schema_id=(os.getenv("NODE_SCHEMA_ID") or "tallinn_civic").strip()
+        or "tallinn_civic",
+        schema_version=(os.getenv("NODE_SCHEMA_VERSION") or "v1").strip() or "v1",
+    )
     gateway_url = _gateway_url_from_profile(profile)
     service_token = "" if dry_run else _service_token_from_profile(profile)
     location_query = (

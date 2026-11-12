@@ -1,0 +1,78 @@
+{
+  "profile_id": "local",
+  "n_users": 200,
+  "stories_per_user": {
+    "mean": 8.5,
+    "sigma": 2.0,
+    "clamp": [
+      1,
+      20
+    ]
+  },
+  "lang_mix": {
+    "et": 0.6,
+    "ru": 0.3,
+    "en": 0.1
+  },
+  "calendar": {
+    "year": 2026,
+    "breakpoint": "2026-09-30T00:00:00Z",
+    "mass_pre": 0.25,
+    "mass_post": 0.75
+  },
+  "seed": 20260929,
+  "node_social_direction": "Во дворе Уус-Веэрэнни соседи живут бытовыми civic-сигналами: переполненные баки и график вывоза, тёмные участки двора вечером, шум и пыль от стройки у квартала. На доске это выглядит как несколько плотных кластеров «двор / мусор / свет / стройка», а не одна абстрактная жалоба на город.",
+  "user_context": {
+    "personas": [],
+    "neighbourhood_tags": [
+      "Uus Veerenni",
+      "Tallinn"
+    ],
+    "notes": "users.json copy from ls-20261002T0906Z-veerenni-v2-rich; stories regenerate v2 same params; local-five Uus Veerenni demo"
+  },
+  "story_foci": {
+    "themes": [
+      {
+        "id": "construction",
+        "weight": 0.25
+      },
+      {
+        "id": "waste",
+        "weight": 0.2
+      },
+      {
+        "id": "lighting",
+        "weight": 0.15
+      },
+      {
+        "id": "noise",
+        "weight": 0.15
+      },
+      {
+        "id": "pothole",
+        "weight": 0.1
+      },
+      {
+        "id": "parking",
+        "weight": 0.08
+      },
+      {
+        "id": "crossing",
+        "weight": 0.07
+      }
+    ]
+  },
+  "pipeline": {
+    "cluster_force": true,
+    "threads_seed": true,
+    "spa_verify": true
+  },
+  "ops": {
+    "pack_id": "ls-20261003T0949Z-veerenni-yard-v2-local",
+    "source_users_pack": "ls-20261002T0906Z-veerenni-v2-rich",
+    "stories_mode": "regenerate_v2_same_params",
+    "provision_mode": "wipe-fixture-users",
+    "preserve_admin_email": "zeya.meysapuu@gmail.com",
+    "richness_target": "full_v2_pass"
+  }
+}

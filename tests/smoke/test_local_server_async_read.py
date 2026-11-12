@@ -28,7 +28,7 @@ def seeded_issue_list_base(http_client: httpx.Client, local_server_url: str) -> 
 
 
 @pytest.mark.asyncio
-async def test_ac01_async_get_tallinn_issues_returns_json(
+async def test_ac01_async_get_node_issues_returns_json(
     seeded_issue_list_base: str,
 ) -> None:
     async with httpx.AsyncClient(base_url=seeded_issue_list_base, timeout=30.0) as client:

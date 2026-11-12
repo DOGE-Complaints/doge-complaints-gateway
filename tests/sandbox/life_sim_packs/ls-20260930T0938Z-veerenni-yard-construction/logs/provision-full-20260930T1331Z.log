@@ -1,0 +1,10 @@
+DOGEstonia life-sim provision (REQ11-05)
+Users: 200 (of 200)
+Generation: 20260930T133132Z
+Secrets out: /Users/eslinko/Development/DOGEstonia/doge-complaints-gateway/tests/sandbox/.secrets/life_sim_users_creds_20260930T133132Z.json (gitignored)
+Identity: http://127.0.0.1:8100
+Auth Supabase host (Identity project): ydocxoquirltrrfmvpqz.supabase.co
+Outbox: /Users/eslinko/Development/DOGEstonia/doge-identity-service/var/sms-outbox
+Pace: 65.0s between phone/request
+
+[   1/200] life-sim-user-0001 email=life.sim.user.0001@dogestonia.me phone=+37251000001 verified=True via=already_verified

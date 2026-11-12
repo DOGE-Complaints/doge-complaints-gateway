@@ -42,8 +42,9 @@
     "post_fraction": 0.7502
   },
   "paths": {
-    "users": "dogestonia_life_sim_users_v0_1.json",
-    "stories": "dogestonia_life_sim_stories_v0_1.json"
+    "users": "users.json",
+    "stories": "stories.json",
+    "pack_id": "ls-20260930T0938Z-veerenni-yard-construction"
   },
   "relation_to_canvas": "supersedes canvas v0_1/v0_2 for life-sim multi-user scale; canvas remains runner stash→submit scenario array"
 }

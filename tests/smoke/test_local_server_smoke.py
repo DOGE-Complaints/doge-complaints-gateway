@@ -28,6 +28,13 @@ def test_ls01_health_returns_status(http_client: httpx.Client) -> None:
     assert "status" in str(payload)
 
 
+def test_ls01b_ready_returns_status(http_client: httpx.Client) -> None:
+    response = http_client.get("/ready")
+    assert response.status_code == 200
+    status = response.json()["data"]["status"]
+    assert status in {"ready", "degraded"}
+
+
 def test_ls02_intake_infrastructure_scenario_returns_story_id(http_client: httpx.Client) -> None:
     scenario = first_scenario_for_group("infrastructure")
     payload = _scenario_to_payload(scenario)
@@ -53,11 +60,46 @@ def test_ls03_intake_all_four_canvas_groups_accepted(http_client: httpx.Client) 
         assert response.status_code == 202, f"group={group} body={response.text}"
 
 
-def test_ls04_get_tallinn_issues_json(http_client: httpx.Client) -> None:
+def test_ls04_get_node_issues_json(http_client: httpx.Client) -> None:
     response = http_client.get("/node/issues")
     assert response.status_code == 200
     assert response.headers.get("content-type", "").startswith("application/json")
-    assert "issues" in response.json()["data"]
+    issues = response.json()["data"]["issues"]
+    assert isinstance(issues, list)
+
+
+def test_ls04b_get_node_issue_by_id(http_client: httpx.Client) -> None:
+    missing = http_client.get("/node/issues/smoke-missing-issue-id")
+    assert missing.status_code == 404
+    listed = http_client.get("/node/issues")
+    assert listed.status_code == 200
+    issues = listed.json()["data"]["issues"]
+    if not issues:
+        return
+    issue_id = issues[0]["id"]
+    detail = http_client.get(f"/node/issues/{issue_id}")
+    assert detail.status_code == 200
+    assert detail.json()["data"]["issue"]["id"] == issue_id
+
+
+def test_ls04c_get_node_network_pulse(http_client: httpx.Client) -> None:
+    response = http_client.get("/node/network-pulse")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert "issues" not in data
+    assert "stories_collected" in data
+
+
+def test_ls04d_get_node_emerging_signals(http_client: httpx.Client) -> None:
+    response = http_client.get("/node/emerging-signals")
+    assert response.status_code == 200
+    assert "signals" in response.json()["data"]
+    assert "issues" not in response.json()["data"]
+
+
+def test_ls04e_legacy_tallinn_issues_is_404(http_client: httpx.Client) -> None:
+    response = http_client.get("/tallinn/issues")
+    assert response.status_code == 404
 
 
 def test_ls05_invalid_payload_returns_client_error_envelope(http_client: httpx.Client) -> None:
