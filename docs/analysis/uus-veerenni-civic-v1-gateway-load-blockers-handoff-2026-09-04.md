@@ -2,140 +2,145 @@
 
 | Field | Value |
 |-------|--------|
-| **Date** | 2026-09-04 (refresh: **D-SSR-11** node-specific taxonomy; **As-of-Done** Contour2/Contour1 after SSR-31/32; docs SSR-33) |
+| **Date** | 2026-09-04 (post **D-SSR-11** ship: SSR-31/32/33 Done) |
 | **Project** | `doge-complaints-gateway` |
 | **Method** | [`.cursor/rules/analysis.mdc`](../../../.cursor/rules/analysis.mdc) — only verified claims |
-| **Parent context (workspace)** | [`docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md`](../../../docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md) |
+| **Parent context** | [`docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md`](../../../docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md) |
 | **Architecture SSOT** | [`architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md`](./architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md) (**D-SSR-11**) |
-| **Stories** | [GW-SSR-31](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md) · [GW-SSR-32](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-32-node-specific-contour1-wire-axes.md) · [GW-SSR-33](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md) |
-| **Purpose** | Two gap analyses with gateway load as SSOT; taxonomy Contour2 lockstep = **obsolete** post-SSR-31 (not «uus must remap to 13») |
+| **Node-taxonomy stories** | [SSR-31](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md) Contour2 · [SSR-32](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-32-node-specific-contour1-wire-axes.md) Contour1 · [SSR-33](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md) docs — all **Done (Awaiting Commits)** pkg-000088…090 |
 
-**Out of this document (do not execute here):** repair uus `pack.json` civic/exact; GPT-SSR-15 rewrite; Railway Volume.
+**Purpose:** Parts A + B under the **shipped** flexible node taxonomy (not the pre-31 lockstep world).
 
----
-
-## Operator summary (two verdicts)
-
-**A — Onboarding meta:** Pack Builder meta + overlays checklist are **authoring checks only**, still **weaker** than runtime on `readiness_policy`, civic ClusterLens + `_CIVIC_REQUIRED_KEYS`, `geo_intake.mode`, `field_policy`. Taxonomy: meta already allows free axes (uus VALID). **As-of-Done:** gateway Contour2 is pack-defined (SSR-31) and Contour1 wire is open (SSR-32). Meta should **stay free / structural** and **not** be tightened to 13 — sibling [GPT-SSR-15](../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-15-taxonomy-meta-axis-lockstep.md) (lock-to-13) must be **superseded/inverted** (SSR-33 records handoff). Meta still wrongly **requires** `geo_model` / `gpt_instance_territory` / `taxonomy_schema` (gateway optional).
-
-**B — uus_veerenni_civic/v1:** GPT six-file set complete for checklist. Gateway load **NOT ready** until pack.json civic/exact repair. **Historical** `/tmp` chain (2026-09-03): `readiness_policy` → `min_size_by_lens` → unknown civic lenses → taxonomy 24≠13. **As-of-Done:** taxonomy step **obsolete as load-blocker** after SSR-31 — **keep uus 24 axes**; do **not** remap Contour2 to 13. Contour1 wire with uus axes = SSR-32 Done. Remaining hard blockers: readiness_policy, `min_size_by_lens`, civic `ClusterLens` ids.
+**Out of this pass:** uus `pack.json` civic/exact repair; GPT-SSR-15 rewrite; Railway Volume; code.
 
 ---
 
-## SSOT references (gateway)
+## Operator summary
 
-| Artifact | Path |
+**A — Onboarding meta vs gateway (now):** Contour2/Contour1 axis openness is **aligned**: Pack Builder already allows free `axes`; gateway **As-of-Done** accepts pack-defined Contour2 axes (SSR-31) and any non-empty Contour1 wire axis (SSR-32). Residual meta gaps are **non-taxonomy**: weak `exact_lenses` / civic clustering shape, wrong `geo_intake.mode` examples, free `field_policy` strings, meta-required optional blocks. Sibling [GPT-SSR-15](../../../GPT%20UI/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GPT-SSR-15-taxonomy-meta-axis-lockstep.md) (lock meta to 13) remains **wrong direction** — invert in GPT wave (SSR-33 recorded).
+
+**B — uus_veerenni:** 24-axis Contour2 is **valid node model** under D-SSR-11 — **not** a load blocker and **must not** be remapped to 13. Gateway load still **FAIL** on pack.json only: missing `readiness_policy` → missing `min_size_by_lens` → civic lenses outside `ClusterLens`. Wire custom axes OK after SSR-32. Next: repair civic/exact in pack.json, copy 3 JSON into nested `schema-packs/`, re-`resolve_pack`.
+
+---
+
+## Flexible taxonomy — as-built (verified)
+
+| Contour | Behaviour **As-of-Done** | Evidence |
+|---------|--------------------------|----------|
+| Contour2 pack | `axes[]` = non-empty unique strings; **no** membership / set-eq to `TAXONOMY_AXIS_VALUES` | [`resolver.py`](../../src/core/schema/resolver.py) L282–295; README D-SSR-11 row |
+| Contour2 structural | `internal_axes ⊆ axes`; map keys ∈ axes; dispositions enum; dupe key reject | same parser after L295 |
+| Contour1 wire | `normalize_axis` = strip+lower only | [`axes.py`](../../src/core/taxonomy/axes.py) L24–31 |
+| Reference set | `TAXONOMY_AXIS_VALUES` = tallinn exemplar / helpers — **not** reject SSOT | `axes.py` L3–21 |
+| Civic | Unmapped axes skipped for `SignalDimension`; `ClusterLens` still 10 | unchanged D-SSR-11 |
+
+**Historical (pre-SSR-31, for audit only):** Contour2 required `set(axes) == TAXONOMY_AXIS_VALUES` (exactly 13). That gate is **gone**.
+
+---
+
+## SSOT references (unchanged load gates outside taxonomy)
+
+| Artifact | Role |
 |----------|------|
-| Load / parse | [`src/core/schema/resolver.py`](../../src/core/schema/resolver.py) |
-| Field / geo enums | [`src/core/schema/contracts.py`](../../src/core/schema/contracts.py) |
-| Civic lens enum | [`src/core/cluster/types.py`](../../src/core/cluster/types.py) `ClusterLens` |
-| Taxonomy axes reference (tallinn exemplar; **not** reject SSOT after D-SSR-11) | [`src/core/taxonomy/axes.py`](../../src/core/taxonomy/axes.py) `TAXONOMY_AXIS_VALUES` |
-| Label dispositions | [`src/core/taxonomy/disposition.py`](../../src/core/taxonomy/disposition.py) |
-| Control pack | [`schema-packs/tallinn_civic/v1/`](../../schema-packs/tallinn_civic/v1/) |
-| Node-taxonomy arch | [`architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md`](./architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md) |
+| [`resolver.py`](../../src/core/schema/resolver.py) | Pack load |
+| [`contracts.py`](../../src/core/schema/contracts.py) | `FIELD_POLICY_STATES`, `GEO_INTAKE_MODES` |
+| [`cluster/types.py`](../../src/core/cluster/types.py) | `ClusterLens` (10) — civic only |
+| [`schema-packs/tallinn_civic/v1/`](../../schema-packs/tallinn_civic/v1/) | Control; 13 axes as **data** |
 
-**As-of-Done (post SSR-31/32):** Contour2 pack-defined axes; Contour1 wire open; `TAXONOMY_AXIS_VALUES` = tallinn/reference only. **Historical (pre-SSR-31):** Contour2 lockstep to 13 (`resolver.py` membership/set-eq).
-
-**ClusterLens (civic only — unchanged by D-SSR-11):**  
-`composite_primary_micro`, `civic_domain_micro`, `failure_pattern_micro`, `civic_weight_systemic`, `desired_outcome_local`, `affected_group_local`, `geographic_district_micro`, `service_object_micro`, `deep_need_local`, `ecosystem_signal_systemic`.
-
-**`_CIVIC_REQUIRED_KEYS`:**  
-`active_lenses`, `primary_lens`, `min_size`, `min_size_by_lens`, `readiness_threshold`, `signal_source`, `id_algorithm`, `geo_filter`, `geo_scope`, `tie_breaker`, `type_resolution`.
-
-**`GEO_INTAKE_MODES`:** `optional` \| `require_location_or_detail` \| `require_detail` (+ `merge`, `mirror_to_payload`).
-
-**`FIELD_POLICY_STATES`:** `required` \| `optional` \| `disabled` \| `forbidden` \| `node_private` \| `derived` \| `computed_aggregate_only`.
+**`_CIVIC_REQUIRED_KEYS`:** `active_lenses`, `primary_lens`, `min_size`, `min_size_by_lens`, `readiness_threshold`, `signal_source`, `id_algorithm`, `geo_filter`, `geo_scope`, `tie_breaker`, `type_resolution`.
 
 ---
 
-## Part A — Gap: Pack Builder onboarding meta vs gateway load
+## Part A — Gap: Pack Builder onboarding meta vs gateway (post D-SSR-11)
 
-**Meta sources (verified on disk):**
+**Meta sources:** [`GPT UI/instructions/node-onboarding/`](../../../GPT%20UI/instructions/node-onboarding/) — `pack-builder-pack.schema.json`, `…payload-schema…`, `…taxonomy…`, `pack-builder-overlays.checklist.md`.
 
-- [`pack-builder-pack.schema.json`](../../../GPT%20UI/instructions/node-onboarding/pack-builder-pack.schema.json)
-- [`pack-builder-payload-schema.schema.json`](../../../GPT%20UI/instructions/node-onboarding/pack-builder-payload-schema.schema.json)
-- [`pack-builder-taxonomy.schema.json`](../../../GPT%20UI/instructions/node-onboarding/pack-builder-taxonomy.schema.json)
-- [`pack-builder-overlays.checklist.md`](../../../GPT%20UI/instructions/node-onboarding/pack-builder-overlays.checklist.md)
+| Topic | Meta today | Gateway **As-of-Done** | Severity **now** |
+|-------|------------|------------------------|------------------|
+| taxonomy `axes` | Free strings, `minItems: 1` | Pack-defined Contour2; open Contour1 | **Aligned** (uus 24 VALID on both sides for axes). Residual: GPT-SSR-15 would **break** alignment if executed as written |
+| `dispositions` / `internal_axes` | Loose / any | Disposition enum; internal ⊆ axes | **blocker when wrong** |
+| `exact_lenses` | MAY `[]`; required only lens_id / source_fields / algorithm | Non-empty; + scope/scale/missing_value_policy/min_size/version/**readiness_policy** | **blocker** |
+| `node_clustering` | MAY `{}` | `civic` + all `_CIVIC_REQUIRED_KEYS`; lenses ∈ `ClusterLens` | **blocker** |
+| `geo_intake.mode` | Examples include invalid `required` / `disabled` | `optional` \| `require_location_or_detail` \| `require_detail` + merge/mirror; no extra keys | **blocker** |
+| `field_policy` values | Any string | ∈ `FIELD_POLICY_STATES` (7) | **blocker** |
+| `geo_model` / `gpt_instance_territory` / `taxonomy_schema` | Meta **required** | Gateway **optional** (typed if present) | **semantic drift** |
+| Overlays checklist | Prose MD presence | MD never read by `load_pack` | **cosmetic** for load |
+| Payload meta skeleton | Requires `properties.signals` | Load needs JSON Schema object only | **drift** |
 
-| Topic | Meta allows / requires | Gateway **historical (pre-31)** | Gateway **As-of-Done (D-SSR-11)** | Severity **today** |
-|-------|------------------------|----------------------------------|-----------------------------------|--------------------|
-| `exact_lenses` | MAY `[]`; weak item required | non-empty + readiness_policy + … | unchanged | **blocker** (stays) |
-| `node_clustering` | MAY `{}` | civic + ClusterLens + keys | unchanged | **blocker** (stays) |
-| taxonomy `axes` | Free strings, minItems 1 | lockstep exactly 13 | **pack-defined** (SSR-31); wire open (SSR-32) | **aligned** (meta free = shipped); GPT-SSR-15 lock-to-13 = **wrong direction** |
-| `dispositions` / `internal_axes` | loose | disposition enum; internal ⊆ axes | same structural | **blocker when wrong** (stays) |
-| `geo_intake.mode` | bad examples `required`/`disabled` | three modes + merge/mirror | unchanged | **blocker** (stays) |
-| `field_policy` | any string | 7 states | unchanged | **blocker** (stays) |
-| `geo_model` / territory / `taxonomy_schema` | meta **required** | gateway **optional** (+ typed if present) | unchanged asymmetry | **drift** |
-| overlays / payload skeleton | prose / signals skeleton | MD unused; payload blob at load | unchanged | cosmetic / drift |
+### Part A — notes
 
-### Part A — notes (refreshed)
+1. **Taxonomy is no longer the primary meta↔runtime false-admission story.** uus Contour2 axes were always meta-VALID; gateway now matches that product rule.
+2. False admission for uus still comes from **exact lenses + civic clustering** meta weakness (VALID pack.json without readiness_policy / ClusterLens / `min_size_by_lens`).
+3. Do **not** tighten Pack Builder taxonomy meta to 13. Prefer: free axes + structural (`dispositions`, `internal_axes ⊆ axes`) + invert GPT-SSR-15.
+4. Gateway docs (README / manual) already describe node-defined axes (**SSR-33 Done**).
 
-1. Taxonomy gap flipped by product: **uus Contour2 richness is correct**; historical gateway lockstep was the defect (arch-doc + SSR-31…33 **As-of-Done**). Do **not** recommend locking Pack Builder meta to 13.
-2. Meta remains weaker on readiness_policy / civic ClusterLens — uus still fails those first.
-3. Checklist still lacks gateway load-gate ticks (readiness, civic keys, ClusterLens, geo modes) — keep; «axis lockstep» tick → «Contour2 structural + node axes OK» (**SSR-33 Done**).
+### Part A — repair recommendations (GPT / meta wave; not this file’s execute)
 
-### Part A — repair recommendations (docs only; not executed)
-
-1. Pack meta: harden exact lenses + civic ClusterLens + geo_intake + field_policy (unchanged from prior deepen).
-2. **`pack-builder-taxonomy.schema.json`:** keep/allow **free axes** + dispositions enum + `internal_axes ⊆ axes`; **do not** const-lock to 13. Invert/cancel GPT-SSR-15.
-3. Overlays checklist: gateway load gates without «must be 13 axes».
-4. Optional symmetry: meta `geo_model` / territory / `taxonomy_schema` optional like gateway.
+1. Harden `pack-builder-pack.schema.json`: exact lens readiness + civic ClusterLens + geo_intake enum + field_policy enum.
+2. Keep taxonomy meta **free axes**; add structural checks; **cancel/invert GPT-SSR-15**.
+3. Checklist: gateway load gates for readiness / civic / geo modes — **without** «must equal 13 axes».
+4. Optional: make meta `geo_model` / territory / `taxonomy_schema` optional like gateway.
 
 ---
 
-## Part B — Gap: uus_veerenni_civic/v1 vs gateway
+## Part B — Gap: uus_veerenni_civic/v1 vs gateway (post D-SSR-11)
 
-### B.1 Artifact inventory
+### B.1 Artifacts
 
-| Flat GPT path (`GPT UI/instructions/`) | Class | Gateway load? |
-|----------------------------------------|-------|----------------|
-| `schema-packs.uus_veerenni_civic.v1.pack.json` | JSON model | **Yes** → `pack.json` |
-| `…payload.schema.json` | JSON model | **Yes** |
-| `…taxonomy.json` | JSON model | **Yes** (`taxonomy_schema` set) — **24 axes = target Contour2 under D-SSR-11** |
-| `…inbound-validation.md` / interview / locale | GPT prose | **No** |
+| Flat GPT path | Class | Gateway? |
+|---------------|-------|----------|
+| `schema-packs.uus_veerenni_civic.v1.pack.json` | JSON | **Yes** |
+| `…payload.schema.json` | JSON | **Yes** |
+| `…taxonomy.json` (24 node axes) | JSON | **Yes** — Contour2 **accepted** under D-SSR-11 |
+| three `*.md` overlays | GPT prose | **No** |
 
-`schema-packs/uus_veerenni_civic/` **not** in gateway tree yet.
+Nested `schema-packs/uus_veerenni_civic/` **still absent** in gateway tree.
 
 ### B.2 Verdict split
 
+> **Supersession (2026-09-05):** after GPT-PB-06 harden, uus `pack.json` is Pack Builder meta **INVALID** (readiness / `min_size_by_lens` / ClusterLens). Payload + taxonomy remain VALID. Full re-audit: [`docs/analysis/uus-veerenni-civic-v1-pack-validation-audit-2026-09-05.md`](../../../docs/analysis/uus-veerenni-civic-v1-pack-validation-audit-2026-09-05.md).
+
 | Gate | Result |
 |------|--------|
-| Pack Builder meta | **VALID** |
+| Pack Builder meta (3 JSON) | **Was VALID** at writing (pre PB-06); **as of 2026-09-05:** pack.json **INVALID**, payload+taxonomy **VALID** |
 | Overlays checklist | **PASS** |
-| Gateway `resolve_pack` (as-built 2026-09-03) | **FAIL** |
+| Contour2 axes (24) vs gateway | **OK As-of-Done** (SSR-31) — not a fail reason |
+| Contour1 custom axes on wire | **OK As-of-Done** (SSR-32) |
+| Gateway `resolve_pack` of uus pack.json as authored | **FAIL** (civic/exact only) |
 | Control `tallinn_civic`/`v1` | **SUCCESS** |
 
-### B.3 Failure chain (as-built) vs target
+### B.3 Load failure chain (current)
 
-| Step | As-built failure (2026-09-03) | After D-SSR-11 / SSR-31…33 |
-|------|-------------------------------|----------------------------|
-| 0 | `KeyError: 'readiness_policy'` | **Still blocker** — pack.json repair |
-| 1 | missing `min_size_by_lens` | **Still blocker** — pack.json repair |
-| 2 | civic lens `primary_story_shape` / `service_object_local` ∉ ClusterLens | **Still blocker** — map to ClusterLens ids |
-| 3+ | taxonomy 24 ≠ 13 | **Obsolete** — Contour2 unlock **SSR-31 Done**; **keep 24 axes** |
+Only pack.json civic/exact remain. Taxonomy step removed from the live chain.
 
-Exact `lens_id`s may stay custom; civic list cannot invent enum members.
+| Step | Failure | Status |
+|------|---------|--------|
+| 0 | `KeyError: 'readiness_policy'` on `exact_lenses[]` | **Active blocker** — uus lenses lack object |
+| 1 | `node_clustering.civic missing keys: ['min_size_by_lens']` | **Active blocker** |
+| 2 | `active_lenses unknown lens: primary_story_shape` (+ `service_object_local` ∉ ClusterLens) | **Active blocker** — map to e.g. `composite_primary_micro` / `service_object_micro` |
+| ~~3+~~ | ~~taxonomy 24 ≠ 13~~ | **Obsolete** (SSR-31); keep uus axes |
 
-### B.4 Geo / district intent
+**Exact vs civic:** custom `exact_lenses[].lens_id` OK once `readiness_policy` present; civic `active_lenses` / `primary_lens` **must** ∈ `ClusterLens`.
 
-Unchanged: uus `geo_intake` compatible; `geo_scope=settlement:tallinn`; district community in prose/signals — not a new gateway zone level.
+### B.4 Geo / district
 
-### B.5 Soft-ignored
+Unchanged and **not** blocking: `geo_intake` optional/merge/mirror; `geo_scope=settlement:tallinn`; Uus-Veerenni community = prose/signals, not a new `geo_scope` level.
 
-`semantic_merge_policy`, `preserve_distinct_variants`, `community_focus` — ignored by civic parser.
+### B.5 Soft-ignored civic keys
+
+`semantic_merge_policy`, `preserve_distinct_variants`, `community_focus` — ignored by parser.
 
 ### B.6 Non-blockers
 
-Payload / field_policy / card_fields extras / MD GPT-only — as before.
+Payload ≈ tallinn shape; `field_policy` values ∈ enum; `card_fields` extras OK; MD GPT-only; 24-axis taxonomy OK.
 
-### B.7 Repair direction (docs only; refreshed)
+### B.7 Repair direction (operator; docs only here)
 
-1. **pack.json:** `readiness_policy` on all exact lenses; `min_size_by_lens`; civic `active_lenses` / `primary_lens` ∈ ClusterLens (e.g. → `composite_primary_micro`, `service_object_micro`).
-2. **taxonomy.json:** **keep** uus axes / keys (node-specific). Contour2 load accepts them (**SSR-31 Done**). Do **not** remap to 13. Contour1 wire with those axes = **SSR-32 Done**.
-3. Copy three JSON → `schema-packs/uus_veerenni_civic/v1/`; `NODE_SCHEMA_*`; `resolve_pack` after pack.json repair (runtime axes unlock already shipped).
-4. Docs/setup: **SSR-33 Done**.
+1. **Only `pack.json`:** add `readiness_policy` per exact lens; add `min_size_by_lens`; set civic lenses to `ClusterLens` values.
+2. **`taxonomy.json`:** leave node axes/keys as authored — Contour2 + Contour1 already flexible.
+3. Copy three JSON → `doge-complaints-gateway/schema-packs/uus_veerenni_civic/v1/`; set `NODE_SCHEMA_ID` / `NODE_SCHEMA_VERSION`; `resolve_pack` until SUCCESS.
+4. Then: validate samples, `card_fields` → `schema_card`, geo behaviour.
 
-### B.8 Local layout reminder
+### B.8 Layout
 
 ```text
 doge-complaints-gateway/schema-packs/uus_veerenni_civic/v1/
@@ -151,13 +156,14 @@ NODE_SCHEMA_VERSION=v1
 
 ---
 
-## What to deepen next
+## Next
 
-| Layer | Action |
-|-------|--------|
-| SSR-31 → 32 → 33 | **Shipped** Contour2 unlock / Contour1 open / docs (D-SSR-11) |
-| uus pack.json | Civic/exact repair only |
-| Post-load | validate samples; card_fields; geo behaviour |
+| Priority | Action |
+|----------|--------|
+| 1 | Repair uus `pack.json` (readiness + civic ClusterLens + `min_size_by_lens`) |
+| 2 | Nested copy + env + `resolve_pack` SUCCESS |
+| 3 | GPT wave: invert GPT-SSR-15; optionally harden pack meta non-taxonomy gates |
+| 4 | Post-load smoke: validate / card / geo |
 
 ---
 
@@ -165,13 +171,10 @@ NODE_SCHEMA_VERSION=v1
 
 | Doc | Role |
 |-----|------|
-| [Architecture D-SSR-11](./architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md) | Flexible taxonomy vs hardcoded 13 |
-| [GW-SSR-31](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md) | Contour2 pack axes |
-| [GW-SSR-32](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-32-node-specific-contour1-wire-axes.md) | Contour1 wire |
-| [GW-SSR-33](../tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md) | Docs / setup / hygiene |
-| [Workspace handoff](../../../docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md) | Parent GPT + Pack Builder summary |
-| [`schema-packs/tallinn_civic/v1/`](../../schema-packs/tallinn_civic/v1/) | Control pack (13 as **data**) |
-| Onboarding meta | [`GPT UI/instructions/node-onboarding/`](../../../GPT%20UI/instructions/node-onboarding/) |
+| [D-SSR-11 architecture](./architecture-node-specific-taxonomy-vs-hardcoded-axes-2026-09-04.md) | Flexible vs hardcoded |
+| [INDEX node-taxonomy](../tasks/backlog-stories/semantic-schema-runtime/INDEX.md) | SSR-31…33 Done |
+| [Parent handoff](../../../docs/analysis/uus-veerenni-civic-v1-pack-validation-gateway-handoff-2026-09-03.md) | First VALID/FAIL inventory |
+| Onboarding meta | [`node-onboarding/`](../../../GPT%20UI/instructions/node-onboarding/) |
 
 ---
 
@@ -179,12 +182,12 @@ NODE_SCHEMA_VERSION=v1
 
 | Claim | Evidence |
 |-------|----------|
-| D-SSR-11 + story map | arch-doc + INDEX node-taxonomy section |
-| Historical Contour2 lockstep | `resolver.py` pre-SSR-31 membership/set-eq |
-| As-of-Done Contour2/Contour1 | SSR-31/32 product + commits; docs SSR-33 |
-| Failure chain 0→taxonomy | `/tmp` resolve_pack 2026-09-03 + parent analysis |
-| Taxonomy step obsolete | SSR-31 Done — not a current uus load blocker |
-| Remaining uus blockers | readiness_policy, min_size_by_lens, ClusterLens ids |
-| GPT-SSR-15 conflict | GPT story locks meta to 13 vs D-SSR-11 — invert in GPT wave |
+| Contour2 no lockstep | `resolver.py` L282–295 (no `TAXONOMY_AXIS_VALUES` compare) |
+| Contour1 open | `axes.py` `normalize_axis` L24–31 |
+| README node-defined axes | `schema-packs/README.md` D-SSR-11 row |
+| SSR-31/32/33 Done | Story Status + INDEX pkg-000088…090 |
+| uus still missing readiness_policy | GPT flat pack.json exact_lenses (no readiness_policy key) |
+| Taxonomy not current blocker | D-SSR-11 As-of-Done + B.3 |
+| GPT-SSR-15 still lock-to-13 intent | GPT story file (invert pending) |
 
-No uus pack repair, no GPT meta edit in this SSR-33 align pass.
+No uus pack repair and no GPT meta edit in this analysis refresh.
