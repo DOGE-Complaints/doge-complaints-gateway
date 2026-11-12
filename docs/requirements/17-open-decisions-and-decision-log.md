@@ -29,7 +29,7 @@
 
 ## Post-demo decision backlog (не блокирует demo)
 
-- **Оркестрация и cron:** зафиксировать выбор паттерна job runner и инфраструктуры планировщика после стабилизации use-case — см. `20-post-demo-orchestration-and-scheduled-jobs.md`, архитектура `solution architecture/16-automation-orchestration-and-scheduled-jobs.md`, эпик EPIC-M2-11.
+- **Обобщённый automation plane (job runner / queue):** зафиксировать выбор паттерна runner и инфраструктуры планировщика после стабилизации use-case — см. `20-post-demo-orchestration-and-scheduled-jobs.md`, архитектура `solution architecture/16-automation-orchestration-and-scheduled-jobs.md`, эпик EPIC-M2-11. NB: минимальный in-process `ClusterCronJob` уже в MVP; решение касается слоя поверх него.
 - **Токенизация на уровне story и уведомления авторам:** продуктовые и юридические границы, сроки — **не зафиксированы**; см. `21-post-demo-story-tokenization-and-contributor-notifications.md`, эпик EPIC-M2-12.
 
 ## Зафиксированные решения (ADR-lite, после интервью)

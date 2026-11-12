@@ -105,7 +105,13 @@
 
 ### Issues server text search (gateway-local)
 
-- `56-issues-server-text-search.md` — **Draft awaiting PA.2**: D-S1 text filter on `GET /node/issues` via query param **`search`**; anonymous + PUBLISHED/anti-DRAFT; **no** comments/separate endpoint. Backlog `req56-issues-server-text-search` (REQ56-01/02 Todo). **No** product-root REQ; SPA = consumer only.
+- `56-issues-server-text-search.md` — **Ready**: D-S1 text filter on `GET /node/issues` via query param **`search`**; anonymous + PUBLISHED/anti-DRAFT; **no** comments/separate endpoint. Stories REQ56-01/02 Done (pkg-000111/112). **No** product-root REQ; SPA consumer — DUI-Q12 until FE enable.
+
+### Issue sense brief + civic poster (parent product REQ13)
+
+- `57-req13-issue-sense-brief-poster-projection.md` — **Draft / stories Done**: projection + nudge + bind + sweep + single regenerate. Parent REQ13. Siblings: aibridge `REQ-09`, spa `23`.
+- `58-req13-existing-issues-sense-brief-backfill-via-regenerate.md` — **Draft · locks 2026-10-16**: backfill via regenerate; CLI batch; corpus `{stories}`; dry-run; sequential; local-five; skip ready; sibling aibridge `REQ-10`. Parent REQ13.
+- `59-req15-story-draft-stash-channel-parity-verify.md` — **Draft**: REQ15 verify Present `/story-drafts` stash for aibridge client (no redesign unless T1 hard break). Siblings: aibridge REQ-11, spa 25, GPT UI REQ-48. Parent REQ15.
 
 ### Post-demo (вне обязательного MVP, сроки не зафиксированы)
 

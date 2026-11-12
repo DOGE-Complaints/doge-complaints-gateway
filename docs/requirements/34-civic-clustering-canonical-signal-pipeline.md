@@ -1,6 +1,6 @@
 # REQ-34: Civic Clustering Engine — Canonical Signal Pipeline
 
-**Статус:** Требует реализации  
+**Статус:** Реализовано (2026-05-15) — полная имплементация подтверждена аудитом `docs/analysis/audit-req34-civic-clustering-canonical-pipeline-2026-05-15.md`  
 **Источник:** Gap-интервью 2026-05-13, G-04, G-09  
 **Приоритет:** P1  
 **Связанные SA:** SA-06, cluster-engine/02, cluster-engine/03  
@@ -108,12 +108,12 @@ labels = list(dict.fromkeys(
 
 ## 4. Acceptance Criteria
 
-- [ ] `ClusterLens` enum не содержит legacy значений
-- [ ] `infer_signals_from_narrative()` отсутствует в codebase
-- [ ] `get_signals_for_story(story)` работает без `signal_source` параметра
-- [ ] `canonical_type` присутствует в signal dict (не `_`)
-- [ ] Кластер из историй с `canonical_type="observation"` → не промотируется (gate reject)
-- [ ] `Issue.type` = `canonical_type` dominant story
-- [ ] `Issue.labels` = union canonical_labels всех историй кластера
-- [ ] `CLUSTER_ACTIVE_LENSES` в `.env` содержит только civic линзы
-- [ ] Тесты проходят на ET/RU историях с заполненными `canonical_labels`
+- [x] `ClusterLens` enum не содержит legacy значений
+- [x] `infer_signals_from_narrative()` отсутствует в codebase
+- [x] `get_signals_for_story(story)` работает без `signal_source` параметра
+- [x] `canonical_type` присутствует в signal dict (не `_`)
+- [x] Кластер из историй с `canonical_type="observation"` → не промотируется (gate reject)
+- [x] `Issue.type` = `canonical_type` dominant story
+- [x] `Issue.labels` = union canonical_labels всех историй кластера
+- [x] `CLUSTER_ACTIVE_LENSES` в `.env` содержит только civic линзы
+- [x] Тесты проходят на ET/RU историях с заполненными `canonical_labels`

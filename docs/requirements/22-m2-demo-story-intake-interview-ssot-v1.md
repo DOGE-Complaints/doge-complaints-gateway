@@ -35,7 +35,8 @@
 
 ### 2.4 HTTP API
 
-- В runtime зарегистрированы и `POST /intake/stories`, и `POST /issues` — см. `src/core/api/asgi_app.py` (список путей и декораторы `@app.post`).
+- В runtime зарегистрирован `POST /intake/stories` — см. `src/core/api/asgi_app.py`.
+- **⚠️ Верификация 2026-05-14:** `POST /issues` **отсутствует** как в `asgi_app.py`, так и в `openapi.yaml`. Эндпоинт не удалён — просто никогда не был реализован. Требует implementation task (см. REQ-39).
 
 ### 2.5 Ответ `POST /intake/stories`
 
@@ -49,7 +50,7 @@
 
 | ID | Решение | Смысл для backend / GPT |
 |----|---------|-------------------------|
-| D-01 | `POST /issues` deprecated в demo | Внешнее ручное создание issue не primary-path; выключить из публичного сценария или отвечать `410 Gone` (конкретика — в задаче на API boundary). |
+| D-01 | `POST /issues` **не реализован** (⚠️ обновлено 2026-05-14) | Эндпоинт никогда не был реализован — не deprecated, а pending. Внешнее ручное создание issue не primary-path для demo. Планируется как отдельный requirement (REQ-39). |
 | D-02 | Extraction issue — **асинхронно** (фон) | `POST /intake/stories` сохраняет story и возвращает **только** идентификатор и статус приёма; тяжёлая обработка — не в синхронном ответе. |
 | D-03 | `language` + `title_hint` **обязательны** | При отсутствии — **HTTP 400** на intake (отказ от модели `PARTIAL_READY` как допустимого исходда для demo при неполном narrative). |
 | D-04 | `title_hint` генерирует GPT (конец Phase 7) | Источник — GPT pipeline, не свободный ввод пользователя вне сценария. |

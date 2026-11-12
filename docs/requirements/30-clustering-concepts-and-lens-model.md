@@ -64,15 +64,14 @@ geographic_district = "lasnamäe"
 
 ### Как сигналы извлекаются: два метода
 
-**Метод 1 — keyword-matching** (legacy, `infer_signals_from_narrative`):
+**Метод 1 — keyword-matching** (legacy, `infer_signals_from_narrative`) — **удалён в REQ-34 (2026-05-15)**:
 
 ```python
-# src/core/profile/enrichment.py:16-44
-inferred["topic"] = "infrastructure" if "road" in text else "public_service"
-inferred["system_failure"] = "service_disruption" if "blocked" in text else "quality_gap"
+# УДАЛЕНО: src/core/profile/enrichment.py — infer_signals_from_narrative()
+# Работало только с английским текстом. Заменено infer_signals_from_canonical().
 ```
 
-Проблема: работает только с английским текстом. Эстонская и русская жалоба всегда получают дефолтные значения.
+Причина удаления: работало только с английским текстом. Эстонская и русская жалоба всегда получали дефолтные значения.
 
 **Метод 2 — canonical lookup** (целевой, `infer_signals_from_canonical`):
 
@@ -283,7 +282,7 @@ def memberships(self, profiles: tuple[StoryProfileSignals, ...]) -> dict[str, di
 def readiness_score_for_cluster(lens, members, mode):
     size       = len(members)
     base       = min(100, 20 + size * 15)    # растёт с числом историй
-    lens_bonus = lens_readiness_bonus(lens)   # CIVIC_WEIGHT_SYSTEMIC → +10, FAILURE_SYSTEMIC → +5
+    lens_bonus = lens_readiness_bonus(lens)   # CIVIC_WEIGHT_SYSTEMIC → +10, GEOGRAPHIC_DISTRICT_MICRO → +5
     mode_bonus = 10 if mode == ClusteringMode.ISSUE_READY else 0
     score      = min(100, base + lens_bonus + mode_bonus)
     return score, factors
@@ -306,8 +305,7 @@ def readiness_score_for_cluster(lens, members, mode):
 ```python
 def lens_readiness_bonus(lens: ClusterLens) -> int:
     high_bonus = frozenset({ClusterLens.CIVIC_WEIGHT_SYSTEMIC})
-    med_bonus  = frozenset({ClusterLens.GEOGRAPHIC_DISTRICT_MICRO,
-                            ClusterLens.FAILURE_SYSTEMIC, ClusterLens.RELEVANCE_SYSTEMIC})
+    med_bonus  = frozenset({ClusterLens.GEOGRAPHIC_DISTRICT_MICRO})
     if lens in high_bonus: return 10
     if lens in med_bonus:  return 5
     return 0
@@ -321,7 +319,7 @@ def lens_readiness_bonus(lens: ClusterLens) -> int:
 
 Если активных линз несколько, orchestrator создаёт issue только по **одной** — `primary_lens`. Остальные линзы формируют дополнительный контекст, но не создают separate issues (для simple случая).
 
-Выбор primary lens (`cluster_orchestrator.py:179`):
+Выбор primary lens (`story_cluster_orchestrator.py`):
 
 ```python
 primary = self.clustering_engine.resolved_primary_lens()
@@ -344,7 +342,7 @@ POST /intake/stories
   lifecycle_status = READY_FOR_PROFILE
         │
         ▼  (синхронно: process_story / или асинхронно: cron process_all_pending)
-  get_signals_for_story(story, signal_source)
+  get_signals_for_story(story)
         │  → infer_signals_from_canonical(canonical_type, canonical_labels, geo)
         │  → {"civic_domain": "roads", "failure_pattern": "broken_infrastructure", ...}
         │
@@ -372,22 +370,24 @@ POST /intake/stories
 
 ## 11. Два поколения линз: legacy и civic
 
-Система содержит два поколения линз. Оба набора зарегистрированы в коде; **целевым является civic**.
+Система использует только civic линзы. Legacy линзы **удалены в REQ-34 (2026-05-15)**. Для понимания истории миграции — ниже.
 
-### Legacy (keyword-based) — устаревший
+### Legacy (keyword-based) — **удалено в REQ-34 (2026-05-15)**
 
 ```python
-LEGACY_LENSES = (
-    ClusterLens.TOPIC_MICRO,          # topic: infrastructure / public_service
-    ClusterLens.NEED_LOCAL,           # need: restore_access / resolve_issue
-    ClusterLens.FAILURE_SYSTEMIC,     # system_failure: service_disruption / quality_gap
-    ClusterLens.FAILURE_MICRO,        # system_failure: micro
-    ClusterLens.REPEATABILITY_LOCAL,  # repeatability: recurrent / single_or_unknown
-    ClusterLens.RELEVANCE_SYSTEMIC,   # relevance: "high" для всех → ВЫРОЖДЕННАЯ
-)
+# ИСТОРИЧЕСКИ: было в src/core/cluster/types.py до 2026-05-15
+# LEGACY_LENSES = (
+#     ClusterLens.TOPIC_MICRO,          # topic: infrastructure / public_service
+#     ClusterLens.NEED_LOCAL,           # need: restore_access / resolve_issue
+#     ClusterLens.FAILURE_SYSTEMIC,     # system_failure: service_disruption / quality_gap
+#     ClusterLens.FAILURE_MICRO,        # system_failure: micro
+#     ClusterLens.REPEATABILITY_LOCAL,  # repeatability: recurrent / single_or_unknown
+#     ClusterLens.RELEVANCE_SYSTEMIC,   # relevance: "high" для всех → ВЫРОЖДЕННАЯ
+# )
+# Удалено: keyword-matching несовместим с многоязычностью ET/RU (REQ-34)
 ```
 
-Почему legacy не подходит для публичной ноды:
+Почему legacy не подходило для публичной ноды:
 - `TOPIC` имеет только 2 значения (infrastructure/public_service) → слабая разделительная сила
 - `DESIRED_STATE = "stable_public_service"` для всех → все stories в одном кластере → информация не несётся
 - `RELEVANCE = "high"` для всех → аналогично вырожденная линза
@@ -412,24 +412,26 @@ GEOGRAPHIC_DISTRICT_MICRO   = "geographic_district_micro"   # район гор�
 
 ---
 
-## 12. Статус реализации (аудит 2026-05-07)
+## 12. Статус реализации (аудит 2026-05-19, REQ-34 выполнен)
 
-Актуальная таблица: что сейчас в коде (`src/core/config/schema.py`) и что является целевым по civic lens model:
+Актуальная таблица: фактическое состояние кода (`src/core/config/schema.py`) после реализации REQ-34 (2026-05-15):
 
-| Параметр | Сейчас в коде / schema.py | Целевое (civic lenses.md) | Статус |
-|---------|--------------------------|---------------------------|--------|
-| `CLUSTER_ACTIVE_LENSES` default | `topic_micro,need_local,failure_systemic,failure_micro,repeatability_local` | `civic_domain_micro,failure_pattern_micro,civic_weight_systemic,geographic_district_micro` | ❌ нужно переключить |
-| `CLUSTER_PRIMARY_LENS` default | `topic_micro` | `failure_pattern_micro` | ❌ нужно переключить |
-| `CLUSTER_ID_ALGORITHM` default | `sha256` | `sha256` | ✅ |
-| `CLUSTER_MIN_SIZE` default | `8` | `5` | ❌ нужно изменить |
-| `CLUSTER_READINESS_THRESHOLD` default | `60` | `60` | ✅ |
-| Supabase bootstrap: `story_signals` | создаётся в `000_full_init.sql:105` | нужна таблица | ✅ |
-| Supabase bootstrap: `cluster_memberships` | создаётся в `000_full_init.sql:114` | нужна таблица | ✅ |
-| Все 6 civic ClusterLens enum values | реализованы в `types.py:17-22` | реализованы | ✅ |
-| `infer_signals_from_canonical` | реализована в `enrichment.py:47-88` | реализована | ✅ |
-| Vocabulary frozensets для 6 dimensions | реализованы в `vocabulary.py` | реализованы | ✅ |
+| Параметр | Фактически в коде / schema.py | Статус |
+|---------|-------------------------------|--------|
+| `CLUSTER_ACTIVE_LENSES` default | `civic_domain_micro,failure_pattern_micro,civic_weight_systemic,desired_outcome_local,affected_group_local,geographic_district_micro` | ✅ civic-only (REQ-34) |
+| `CLUSTER_PRIMARY_LENS` default | `civic_domain_micro` | ✅ |
+| `CLUSTER_ID_ALGORITHM` default | `sha256` | ✅ |
+| `CLUSTER_MIN_SIZE` default | `5` | ✅ |
+| `CLUSTER_READINESS_THRESHOLD` default | `60` | ✅ |
+| Supabase bootstrap: `story_signals` | создаётся в `000_full_init.sql:105` | ✅ |
+| Supabase bootstrap: `cluster_memberships` | создаётся в `000_full_init.sql:114` | ✅ |
+| Все 6 civic ClusterLens enum values | реализованы в `types.py` | ✅ |
+| Legacy ClusterLens values | удалены из `types.py` | ✅ удалено (REQ-34) |
+| `infer_signals_from_canonical` | реализована в `enrichment.py` | ✅ |
+| `infer_signals_from_narrative` | удалена | ✅ удалено (REQ-34) |
+| Vocabulary frozensets для 6 dimensions | реализованы в `vocabulary.py` | ✅ |
 
-**Вывод:** бизнес-логика и персистентный слой полностью реализованы. Оставшийся gap — только config defaults в `schema.py` и значения в `.env`.
+**Вывод:** вся civic-система реализована и активна (REQ-34, 2026-05-15). Аудит: `docs/analysis/audit-req34-civic-clustering-canonical-pipeline-2026-05-15.md`.
 
 ---
 
@@ -603,14 +605,14 @@ cluster:affected_group_local:5102938475
 
 ---
 
-## 14. Файлы кодовой базы
+## 15. Файлы кодовой базы
 
 | Файл | Роль |
 |------|------|
 | `src/core/cluster/engine.py` | `ClusteringEngine`, `stable_cluster_id`, `readiness_score_for_cluster`, `memberships` |
 | `src/core/cluster/types.py` | `ClusterLens` enum, `Cluster`, `ClusterView`, `ClusterMember`, `ClusteringMode` |
 | `src/core/cluster/vocabulary.py` | frozenset словари: `CIVIC_DOMAIN_VOCABULARY`, `FAILURE_PATTERN_VOCABULARY`, `CIVIC_SIGNAL_PRIORITY`, etc. |
-| `src/core/profile/enrichment.py` | `infer_signals_from_canonical`, `infer_signals_from_narrative`, `get_signals_for_story` |
+| `src/core/profile/enrichment.py` | `infer_signals_from_canonical`, `get_signals_for_story` |
 | `src/core/domain/contracts.py` | `SignalDimension` enum, `StoryRecord`, `StoryLifecycleStatus` |
-| `src/core/application/cluster_orchestrator.py` | `StoryClusterOrchestrator.process_story`, `process_all_pending` |
+| `src/core/application/story_cluster_orchestrator.py` | `StoryClusterOrchestrator.process_story`, `process_all_pending` |
 | `src/core/config/schema.py` | env vars: `CLUSTER_ACTIVE_LENSES`, `CLUSTER_ID_ALGORITHM`, `CLUSTER_MIN_SIZE`, etc. |

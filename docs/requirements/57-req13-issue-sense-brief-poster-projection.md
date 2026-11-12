@@ -7,7 +7,8 @@ Siblings:
 - [spa-app 23](../../../spa-app/docs/requirements/23-req13-issue-poster-board-surfaces.md) (contract: public Issue payload exposes poster HTTPS URL + generation status for List/detail — field names TBD)  
 Architecture: [`../architecture/issue-sense-brief-poster/00-overview.md`](../architecture/issue-sense-brief-poster/00-overview.md) · interview [`../analysis/zeya888.target-tech-arch-interview-issue-sense-brief-poster-2026-10-14.md`](../analysis/zeya888.target-tech-arch-interview-issue-sense-brief-poster-2026-10-14.md)  
 **Related — aibridge worker as-built handoff:** [`../../../doge-ai-bridge/docs/analysis/handoff-gateway-req13-sense-brief-worker-2026-10-15.md`](../../../doge-ai-bridge/docs/analysis/handoff-gateway-req13-sense-brief-worker-2026-10-15.md) (nudge `POST /v1/worker/sense-brief/accept`; bind client posts `POST /v1/issue-sense-brief/bind`)  
-Status: Draft — stories scaffolded (`req57-issue-sense-brief-poster`); DP1–6 + peer wire + public keys + gateway env + brief-wins locked  
+**Related — code validation (stories 01…04):** [`../analysis/zeya888.req57-stories-01-04-code-validation-2026-10-15.md`](../analysis/zeya888.req57-stories-01-04-code-validation-2026-10-15.md) (PASS with residual)  
+Status: Draft — stories Done (pkg-000113…116); DP1–6 + peer wire + public keys + gateway env + brief-wins locked; code validation 2026-10-15  
 Дата: 2026-10-13 · Arch: 2026-10-14 · Peer wire: 2026-10-15 · Backlog: 2026-10-15T10:42:18Z  
 Backlog: [`../tasks/backlog-stories/req57-issue-sense-brief-poster/INDEX.md`](../tasks/backlog-stories/req57-issue-sense-brief-poster/INDEX.md) · env [`ENV-CHECKLIST.md`](../tasks/backlog-stories/req57-issue-sense-brief-poster/ENV-CHECKLIST.md)
 

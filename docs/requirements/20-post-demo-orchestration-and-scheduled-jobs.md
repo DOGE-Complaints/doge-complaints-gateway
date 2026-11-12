@@ -4,6 +4,8 @@
 
 **Post-demo / pilot-ops.** Не входит в обязательный объём demo delivery Module 2 до отдельного решения о сроках. Служит **требованиями-направлением** для архитектуры (`solution architecture/16-automation-orchestration-and-scheduled-jobs.md`).
 
+MVP уже содержит минимальный in-process `ClusterCronJob` (`CLUSTER_CRON_ENABLED`, default ON) как триггер promotion→доска; эти требования — про **обобщение** (job runner / queue / sweep / ручной replay) поверх него, а не про отсутствие фона в MVP.
+
 ## Цель
 
 После стабилизации доменных модулей (story → profile → cluster → promotion → projection) обеспечить:

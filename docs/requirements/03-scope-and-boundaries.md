@@ -17,7 +17,9 @@
 
 ## Post-demo backlog (документировано отдельно, без расширения MVP)
 
-Исследования и требования после demo (оркестрация/cron, сценарии токенизации/уведомлений на уровне story) ведутся в `20-post-demo-orchestration-and-scheduled-jobs.md` и `21-post-demo-story-tokenization-and-contributor-notifications.md` и **не меняют** границы текущего MVP до отдельного решения.
+Исследования и требования после demo (**обобщённый** automation plane: job runner / queue / replay; сценарии токенизации/уведомлений на уровне story) ведутся в `20-post-demo-orchestration-and-scheduled-jobs.md` и `21-post-demo-story-tokenization-and-contributor-notifications.md` и **не меняют** границы текущего MVP до отдельного решения.
+
+**NB:** минимальный in-process `ClusterCronJob` (`CLUSTER_CRON_ENABLED`, default ON) — триггер promotion→projection→доска — **входит в MVP** и уже вызывает те же application use-case, что и API. «Post-demo automation» относится к **обобщённому** plane поверх него (EPIC-M2-11), а не к этому минимальному циклу.
 
 ## Границы ответственности
 - **Upstream:** GPT поставляет narrative + (опц.) структурные сигналы.
