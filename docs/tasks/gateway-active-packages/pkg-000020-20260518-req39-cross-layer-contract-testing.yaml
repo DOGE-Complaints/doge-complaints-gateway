@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 20
+created_at: '2026-05-18T18:00:00Z'
+label: REQ-39 cross-layer contract testing (STORY-M2-18-01/02)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing.md
+story_groups:
+- story_key: STORY-M2-18-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-01-cross-layer-contract-zones-j-n-req39/task-m2-18-01-t01-zone-l-issue-projection-store-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-01-cross-layer-contract-zones-j-n-req39/task-m2-18-01-t02-zone-m-filter-projection-rows-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-01-cross-layer-contract-zones-j-n-req39/task-m2-18-01-t03-zone-j-clustering-pipeline-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-01-cross-layer-contract-zones-j-n-req39/task-m2-18-01-t04-zone-k-geo-propagation-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-01-cross-layer-contract-zones-j-n-req39/task-m2-18-01-t05-zone-n-e2e-sandbox-full-pipeline/README.md
+- story_key: STORY-M2-18-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t06-zone-ag-bootstrap-schema-contracts/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t07-zone-b-supabase-deserialization-contracts/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t08-zone-c-story-intake-field-persistence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t09-zone-d-story-repository-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t10-zone-e-api-service-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t11-zone-f-logging-setup-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t12-zone-h-store-contract-parity/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-02-cross-layer-contract-zones-a-i-req39/task-m2-18-02-t13-zone-i-config-loading-and-req39-hygiene/README.md

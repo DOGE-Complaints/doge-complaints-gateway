@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 115
+created_at: '2026-10-15T11:57:04Z'
+label: GW-REQ57-03 sweep / retry sense-brief jobs
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-03-sweep-retry-sense-brief.md
+story_groups:
+- story_key: STORY-GW-REQ57-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t01-sweep-eligible-query/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t02-sense-brief-cron-job/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t03-asgi-cron-wire/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t04-ready-no-alpha-overwrite/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t05-sweep-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-15T11:57:04Z. Backlog REQ57-03 materialize.
+  Epic UPDATE EPIC-req57 (REQ57-03 row + soft).
+  Branch dev only. Scaffold only — no product sweep this APPLY.
+  Locks: ClusterCronJob precedent; reuse nudge from 02; brief-wins;
+  AC-GW-REQ5703-01…03 verbatim; no invent AC.
+  Soft sibling REQ57-04 not materialized.
+  Depends REQ57-01 Done pkg-000113; REQ57-02 Done pkg-000114.
+  Draft: .cursor/plans/p1_gw_req57_03_scaffold_20261015T115606Z.plan.md

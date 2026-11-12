@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 60
+created_at: '2026-08-10T12:06:12Z'
+label: GW-ES-03 Public Emerging L2 read (EPIC-M2-24)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/early-signal-pre-cluster/STORY-GW-ES-03-public-emerging-l2-read.md
+story_groups:
+- story_key: STORY-GW-ES-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t00-path-payload-mvp-l2-rule-gate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t01-emerging-signals-service/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t02-di-factory-api-deps/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t03-public-get-handler/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t04-normative-emerging-ne-issues/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t05-unit-http-issues-regression/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t06-runtime-docs-openapi/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-24-early-signal-pre-cluster/stories/STORY-GW-ES-03-public-emerging-l2-read/task-gw-es-03-t07-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-10. Backlog ES-03 materialize. T00 hard-gate before T03/T06 — do not invent HTTP path.
+  Path+payload + MVP L2 rule / Q2 close only from follow-on REQ NN or ADR.
+  ES-02 / TASK-ES-04 / ES-05 / ES-06 out of this pkg.

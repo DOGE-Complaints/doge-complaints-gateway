@@ -1,0 +1,19 @@
+schema_version: 1
+package_sequence: 54
+created_at: '2026-07-14T19:36:58Z'
+label: GW-TAX-01 taxonomy persistence fidelity (EPIC-M2-23)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/taxonomy-fidelity/STORY-GW-TAX-01-taxonomy-persistence-fidelity.md
+story_groups:
+- story_key: STORY-GW-TAX-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t01-intake-per-axis-taxonomy-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t02-domain-story-label-repository/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t03-story-label-adapters-migrations-and-di/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t04-persist-labels-on-story-intake-submit/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t05-public-read-filter-by-disposition/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t06-legacy-flat-labels-fallback-compat/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t07-tests-per-axis-persist-read-filter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-01-taxonomy-persistence-fidelity/task-gw-tax-01-t08-story-acceptance-gate/README.md

@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 41
+created_at: '2026-06-25T12:56:04Z'
+label: GW-GAUTH-03 verification gate 403 (EPIC-M2-20)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/gpt-submit-authz/STORY-GW-GAUTH-03-verification-gate-403.md
+story_groups:
+- story_key: STORY-GW-GAUTH-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t01-verify-url-env-config/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t02-verification-gate-decision/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t03-verification-required-response/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t04-wire-gate-and-status-separation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t05-verification-gate-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-03-verification-gate-403/task-gw-gauth-03-t06-story-acceptance-gate/README.md

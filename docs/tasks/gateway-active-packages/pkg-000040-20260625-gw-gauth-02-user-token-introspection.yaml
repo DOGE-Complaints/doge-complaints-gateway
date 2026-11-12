@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 40
+created_at: '2026-06-25T11:01:21Z'
+label: GW-GAUTH-02 user token introspection (EPIC-M2-20)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/gpt-submit-authz/STORY-GW-GAUTH-02-user-token-introspection.md
+story_groups:
+- story_key: STORY-GW-GAUTH-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t01-identity-introspect-env-config/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t02-introspection-http-client/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t03-wire-user-gate-to-introspection/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t04-fail-closed-introspection-policy/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t05-introspection-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-02-user-token-introspection/task-gw-gauth-02-t06-story-acceptance-gate/README.md

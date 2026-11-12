@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 105
+created_at: '2026-09-30T07:51:07Z'
+label: GW-REQ11-06 wipe node content stories+derivatives+threads (EPIC-req11-demo-life-sim-fixtures-and-replay)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives.md
+story_groups:
+- story_key: STORY-GW-REQ11-06
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t01-wipe-script-confirm-gate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t02-fk-safe-gateway-deletes/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t03-threads-tables-wipe/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t04-dry-run-operator-docs/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t05-offline-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-06-wipe-node-content-stories-derivatives/task-gw-req11-06-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-30T07:51:07Z. Backlog REQ11-06 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. No product/wipe execute this turn.
+  Locks: --confirm-wipe / LIFE_SIM_WIPE_CONFIRMED=1; REQUIRED_READINESS_TABLES only;
+  threads thread_reaction_marks → thread_comments → thread_threads; no Identity DELETE;
+  no invent wipe HTTP API.
+  Do not rewrite bullrun §Актуальная точка.
+  Do not mutate pkg-000100…104.

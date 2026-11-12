@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 47
+created_at: '2026-07-10T10:03:51Z'
+label: GW-RC-07 hosted tallinn issues INTERNAL_ERROR (EPIC-M2-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issues-read-contract/STORY-GW-RC-07-hosted-tallinn-issues-internal-error.md
+story_groups:
+- story_key: STORY-GW-RC-07
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-07-hosted-tallinn-issues-internal-error/task-gw-rc-07-t01-reproduce-and-collect-hosted-evidence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-07-hosted-tallinn-issues-internal-error/task-gw-rc-07-t02-deploy-version-parity-vs-local-rc/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-07-hosted-tallinn-issues-internal-error/task-gw-rc-07-t03-per-row-read-probe-seven-incident-issues/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-07-hosted-tallinn-issues-internal-error/task-gw-rc-07-t04-fix-hosted-read-path-root-cause/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-07-hosted-tallinn-issues-internal-error/task-gw-rc-07-t05-story-acceptance-gate/README.md

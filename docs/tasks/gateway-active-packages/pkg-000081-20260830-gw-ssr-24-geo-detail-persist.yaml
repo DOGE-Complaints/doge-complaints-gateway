@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 81
+created_at: '2026-08-30T20:55:32Z'
+label: GW-SSR-24 geo detail persist (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-24-geo-detail-persist.md
+story_groups:
+- story_key: STORY-GW-SSR-24
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t01-snapshot-depth/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t02-sqlite-alter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t03-supabase-migration/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t04-lifecycle-preserve/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t05-mirror-payload/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t06-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-24-geo-detail-persist/task-gw-ssr-24-t07-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T20:55:32Z. Backlog SSR-24 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  StoryGeoSnapshot depth; sqlite/supabase; migration; omit-probe; mirror; lifecycle.
+  Tests test_gw_ssr_24_*. G24 = full offline pytest. ClusterLens=10.
+  No ClusterLens change. No GET /schema-active. No IDX / story_dimensions. No GPT UI.
+  New geo cols not in required_columns_ready. Do not drop geo_admin_*.
+  No SSR-06/07/12. Do not start 25. Do not mutate pkg-000061…pkg-000080. Do not reopen 01–23.

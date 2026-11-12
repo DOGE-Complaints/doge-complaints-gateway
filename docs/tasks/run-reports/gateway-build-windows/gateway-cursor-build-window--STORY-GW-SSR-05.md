@@ -1,0 +1,28 @@
+---
+generated_utc: 2026-08-28T14:53:08Z
+builder_project: gateway
+gateway_input_package: doge-complaints-gateway/docs/tasks/gateway-active-packages/pkg-000065-20260828-gw-ssr-05-schema-lens-promotion-t-wave-close.yaml
+window_mode: story_key
+artifact_kind: gateway_cursor_build_window
+pkg_schema_version: 1
+---
+
+# Gateway Cursor build window
+
+**Не SSOT.** Очередь и порядок задаёт только YAML-пакет в `gateway_input_package`. Не менять список `@…README.md` вручную — перегенерируйте файл командой ниже.
+
+```bash
+python3 docs/methodology/Zeya888-builder-queue/cli/builder_resolve_queue.py --project gateway --write-build-window --story-key STORY-GW-SSR-05
+```
+
+После **последнего** README в **полной** story в пакете — **Story parent AC**; после всех story эпика — **Epic AC** — см. [`m2-epic-story-execution-pipeline.md`](../../m2-epic-story-execution-pipeline.md) (Gate: Story parent AC, Gate: Epic AC). Срез по плоскому диапазону (`--window-flat-*`) может обрезать story: не пропускайте story-gate.
+
+## STORY-GW-SSR-05
+1. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t01-pack-policy-mapper/README.md`
+2. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t02-optional-gate-policy-command/README.md`
+3. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t03-pack-promote-clustered/README.md`
+4. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t04-public-card-no-payload/README.md`
+5. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t05-negative-ac-018-no-qry/README.md`
+6. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t06-civic-promotion-regression/README.md`
+7. `@doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-05-schema-lens-promotion-t-wave-close/task-gw-ssr-05-t07-story-acceptance-gate/README.md`
+

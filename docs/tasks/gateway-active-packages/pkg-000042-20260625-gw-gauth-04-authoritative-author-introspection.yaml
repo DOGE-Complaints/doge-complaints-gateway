@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 42
+created_at: '2026-06-25T18:36:52Z'
+label: GW-GAUTH-04 authoritative author from introspection (EPIC-M2-20)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/gpt-submit-authz/STORY-GW-GAUTH-04-authoritative-author-from-introspection.md
+story_groups:
+- story_key: STORY-GW-GAUTH-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t01-authoritative-sub-mapping/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t02-plumb-introspection-to-intake/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t03-mismatch-priority-and-log/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t04-req-19-section-5-alignment/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t05-authoritative-author-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-04-authoritative-author-from-introspection/task-gw-gauth-04-t06-story-acceptance-gate/README.md

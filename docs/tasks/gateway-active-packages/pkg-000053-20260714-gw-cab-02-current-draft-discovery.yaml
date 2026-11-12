@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 53
+created_at: '2026-07-14T10:02:46Z'
+label: GW-CAB-02 current draft discovery (EPIC-M2-22)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/cabinet-api/STORY-GW-CAB-02-current-draft-discovery.md
+story_groups:
+- story_key: STORY-GW-CAB-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t01-domain-updated-at-and-draft-owner-repository/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t02-draft-owner-adapters-migrations-and-di/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t03-draft-get-owner-association-on-read/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t04-get-story-drafts-current-route-openapi/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t05-tests-draft-current-auth-scoping-and-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-02-current-draft-discovery/task-gw-cab-02-t06-story-acceptance-gate/README.md

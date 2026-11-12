@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 69
+created_at: '2026-08-29T18:50:30Z'
+label: GW-SSR-13 abstract /node/* public API (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-13-abstract-node-public-api.md
+story_groups:
+- story_key: STORY-GW-SSR-13
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t01-node-public-routes/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t02-rename-tallinn-handlers/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t03-openapi-node-paths/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t04-spa-gateway-url-clients/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t05-sibling-req-node-paths/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-13-abstract-node-public-api/task-gw-ssr-13-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-29T18:50:30Z. Backlog SSR-13 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Hard cut /node/*; NO /tallinn/* alias. Do not expand ClusterLens.
+  G13: rg /tallinn/ empty in src/core/api; five /node/ families; SPA three repos; spa-16 GET /node/issues.
+  Red gateway pytest on old /tallinn/ ALLOWED until G15.
+  Do not rewrite T-wave G3. SSR-06/07/11/12/14/15 out of this pkg. Do not mutate pkg-000061…pkg-000068.
+  Do not reopen 01–05/08–10. Do not invent HTTP filter. Overlay UI not this story.

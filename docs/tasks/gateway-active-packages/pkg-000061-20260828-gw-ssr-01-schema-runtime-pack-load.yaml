@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 61
+created_at: '2026-08-28T13:11:39Z'
+label: GW-SSR-01 SchemaRuntime pack load (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-01-schema-runtime-pack-load.md
+story_groups:
+- story_key: STORY-GW-SSR-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t00-pack-layout-manifest/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t01-jsonschema-dependency/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t02-schema-runtime-protocol/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t03-pack-resolver/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t04-jsonschema-validate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t05-legacy-m2-compat-type/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t06-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-01-schema-runtime-pack-load/task-gw-ssr-01-t07-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-28T13:11:39Z. Backlog SSR-01 materialize. T00 hard-gate before T03/T04.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  SSR-02…07 out of this pkg.

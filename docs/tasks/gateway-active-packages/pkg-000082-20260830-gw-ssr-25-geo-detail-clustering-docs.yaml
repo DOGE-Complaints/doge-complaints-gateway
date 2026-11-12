@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 82
+created_at: '2026-08-30T21:20:50Z'
+label: GW-SSR-25 geo detail clustering + docs (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-25-geo-detail-clustering-docs.md
+story_groups:
+- story_key: STORY-GW-SSR-25
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t01-civic-cluster-regression/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t02-pack-exact-geo-lenses/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t03-manual-geo-intake/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t04-readme-matrix/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-25-geo-detail-clustering-docs/task-gw-ssr-25-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T21:20:50Z. Backlog SSR-25 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Civic/pack cluster regression; manuals geo_intake; README/matrix; tests test_gw_ssr_25_*.
+  G25 = full offline pytest. ClusterLens=10. End of geo-detail wave after G25.
+  No ClusterLens change. No GET /schema-active. No HTTP geo-filter. No IDX / story_dimensions.
+  No GPT UI. Civic geo_filter_bucket stays admin_*. No SSR-06/07/12. Do not start 26.
+  Do not mutate pkg-000061…pkg-000081. Do not reopen 01–24. Do not rewrite T-wave G3.

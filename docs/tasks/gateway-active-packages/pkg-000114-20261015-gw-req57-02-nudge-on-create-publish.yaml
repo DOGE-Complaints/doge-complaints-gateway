@@ -1,0 +1,27 @@
+schema_version: 1
+package_sequence: 114
+created_at: '2026-10-15T11:34:35Z'
+label: GW-REQ57-02 thin nudge on Issue create/publish
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-02-nudge-on-create-publish.md
+story_groups:
+- story_key: STORY-GW-REQ57-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t01-nudge-config-env/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t02-nudge-http-client/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t03-corpus-from-issue-stories/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t04-create-publish-hook/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t05-nudge-fail-closed/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t06-nudge-tests-double/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t07-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-15T11:34:35Z. Backlog REQ57-02 materialize.
+  Epic UPDATE EPIC-req57 (REQ57-02 row + soft).
+  Branch dev only. Scaffold only — no product nudge this APPLY.
+  Locks: POST {AIBRIDGE_BASE_URL}/v1/worker/sense-brief/accept + worker S2S;
+  AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED fail-closed; no invent AC.
+  Soft siblings REQ57-03/04 not materialized.
+  Depends REQ57-01 Done pkg-000113.
+  Draft: .cursor/plans/p1_gw_req57_02_scaffold_20261015T113307Z.plan.md

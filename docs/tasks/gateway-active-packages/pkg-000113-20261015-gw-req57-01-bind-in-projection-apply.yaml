@@ -1,0 +1,28 @@
+schema_version: 1
+package_sequence: 113
+created_at: '2026-10-15T11:04:04Z'
+label: GW-REQ57-01 bind-in + sense-brief projection apply
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-01-bind-in-projection-apply.md
+story_groups:
+- story_key: STORY-GW-REQ57-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t01-generation-fields-persist/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t02-public-payload-keys/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t03-bind-success-apply/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t04-bind-fail-apply/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t05-bind-route-service-auth/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t06-brief-wins-guard/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t07-unit-asgi-bind-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t08-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-15T11:04:04Z. Backlog REQ57-01 materialize.
+  Epic CREATE EPIC-req57-issue-sense-brief-poster.
+  Branch dev only. Scaffold only — no product bind/projection this APPLY.
+  Locks: POST /v1/issue-sense-brief/bind + SERVICE_API_TOKEN; public keys;
+  brief wins until regenerate; DP5 no job table; no invent AC.
+  Soft siblings REQ57-02/03/04 not materialized.
+  Do not mutate pkg-000100…112 product bodies beyond current.yaml pointer.
+  Draft: .cursor/plans/p1_gw_req57_01_scaffold_20261015T110204Z.plan.md

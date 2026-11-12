@@ -1,0 +1,15 @@
+schema_version: 1
+package_sequence: 15
+created_at: '2026-05-16T12:00:00Z'
+label: REQ-36 alpha scoring and story quality gate (STORY-M2-04-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views.md
+story_groups:
+- story_key: STORY-M2-04-06
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-06-alpha-scoring-and-story-quality-gate/task-m2-04-06-t01-cluster-alpha-score-module/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-06-alpha-scoring-and-story-quality-gate/task-m2-04-06-t02-select-dominant-story-alpha/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-06-alpha-scoring-and-story-quality-gate/task-m2-04-06-t03-cluster-tie-breaker-config-engine/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-06-alpha-scoring-and-story-quality-gate/task-m2-04-06-t04-promotion-gate-req36-verification/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-04-dynamic-cluster-views/stories/STORY-M2-04-06-alpha-scoring-and-story-quality-gate/task-m2-04-06-t05-tests-req36-acceptance/README.md

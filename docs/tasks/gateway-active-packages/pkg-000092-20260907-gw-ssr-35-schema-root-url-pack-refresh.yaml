@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 92
+created_at: '2026-09-07T08:45:20Z'
+label: GW-SSR-35 SCHEMA_ROOT_URL + SCHEMA_PACK_REFRESH federation consume (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-35-schema-root-url-pack-refresh.md
+story_groups:
+- story_key: STORY-GW-SSR-35
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t01-config-schema-root-url-refresh/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t02-fetch-manifest-into-cache/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t03-boot-wire-before-resolve/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t04-refresh-overwrite-fail-fast/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t05-tests-tmp-path-http-mock/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t06-docs-federation-vs-volume/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-35-schema-root-url-pack-refresh/task-gw-ssr-35-t07-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-07T08:45:20Z. Backlog SSR-35 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  SCHEMA_ROOT_URL = remote federation registry URL (NOT Volume mount).
+  SCHEMA_PACK_REFRESH; boot fetch into SCHEMA_PACKS_ROOT/default; fail-fast.
+  Tests: tmp_path + HTTP mock; no live registry in CI.
+  NO invent registry product; NO Volume/gitignore reopen (SSR-34).
+  Soft depends SSR-34 Done (f51dcf8). Do not mutate pkg-000061…091.

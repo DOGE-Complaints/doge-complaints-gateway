@@ -1,0 +1,15 @@
+schema_version: 1
+package_sequence: 12
+created_at: '2026-05-13T12:00:00Z'
+label: REQ-33 multilingual intake contract v2 (STORY-M2-02-07)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store.md
+story_groups:
+- story_key: STORY-M2-02-07
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-07-multilingual-intake-contract-v2/task-m2-02-07-t01-intake-contract-v2-parse-and-validation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-07-multilingual-intake-contract-v2/task-m2-02-07-t02-domain-storyrecord-v2-fields/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-07-multilingual-intake-contract-v2/task-m2-02-07-t03-api-raw-body-idempotency-sha256/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-07-multilingual-intake-contract-v2/task-m2-02-07-t04-persistence-stories-v2-columns/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-07-multilingual-intake-contract-v2/task-m2-02-07-t05-tests-and-wire-contract-docs/README.md

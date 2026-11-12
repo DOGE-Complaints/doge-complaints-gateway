@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 55
+created_at: '2026-07-15T11:32:07Z'
+label: GW-TAX-02 clustering axis expansion (EPIC-M2-23)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/taxonomy-fidelity/STORY-GW-TAX-02-clustering-axis-expansion.md
+story_groups:
+- story_key: STORY-GW-TAX-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t01-composite-primary-cluster-key/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t02-new-signal-dimensions-and-lenses/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t03-story-labels-signal-source/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t04-per-lens-min-size-config/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t05-expected-board-fill-matrix-recalc/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-23-taxonomy-fidelity/stories/STORY-GW-TAX-02-clustering-axis-expansion/task-gw-tax-02-t06-story-acceptance-gate/README.md

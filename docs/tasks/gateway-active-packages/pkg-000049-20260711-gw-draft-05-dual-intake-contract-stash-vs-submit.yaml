@@ -1,0 +1,19 @@
+schema_version: 1
+package_sequence: 49
+created_at: '2026-07-11T07:42:13Z'
+label: GW-DRAFT-05 dual intake contract stash vs submit (EPIC-M2-21)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/story-draft-handoff/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit.md
+story_groups:
+- story_key: STORY-GW-DRAFT-05
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t01-domain-stash-request-bridge-and-cleanup/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t02-handlers-stash-submit-intake-wiring/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t03-intake-v2-fixtures-stash-payload/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t04-contract-and-draft-regression-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t05-runtime-openapi-stash-schema/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t06-runtime-docs-dual-path-ssot/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t07-backlog-index-sync/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-05-dual-intake-contract-stash-vs-submit/task-gw-draft-05-t08-story-acceptance-gate/README.md

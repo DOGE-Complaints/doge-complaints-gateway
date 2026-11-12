@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 68
+created_at: '2026-08-29T18:25:31Z'
+label: GW-SSR-10 civic taxonomy + exact dual (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses.md
+story_groups:
+- story_key: STORY-GW-SSR-10
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t00-dual-pack-flag-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t01-orchestrator-dual-membership/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t02-promote-separate-candidates/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t03-tests-dual-and-regression/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-10-civic-taxonomy-and-exact-lenses/task-gw-ssr-10-t04-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-29T18:25:31Z. Backlog SSR-10 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Path B dual opt-in; default exact-only (legal_process). Do not expand ClusterLens.
+  G10: dual fixture civic lens + pack lens_id; pack without dual key = T-wave exact-only.
+  Do not rewrite T-wave G3. SSR-06/07/11/12/13 out of this pkg. Do not mutate pkg-000061…pkg-000067.
+  Do not reopen 01–05/08/09. Do not invent HTTP. Do not implement SSR-12.

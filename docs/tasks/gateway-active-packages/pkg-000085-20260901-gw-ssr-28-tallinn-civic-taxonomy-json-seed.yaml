@@ -1,0 +1,22 @@
+schema_version: 1
+package_sequence: 85
+created_at: '2026-09-01T13:31:30Z'
+label: GW-SSR-28 tallinn taxonomy.json seed (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed.md
+story_groups:
+- story_key: STORY-GW-SSR-28
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t01-extract-inventory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t02-compose-taxonomy-json/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t03-pack-manifest/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t04-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t05-handoff-indicator/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-28-tallinn-civic-taxonomy-json-seed/task-gw-ssr-28-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-01T13:31:30Z. Backlog SSR-28 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Seed tallinn taxonomy.json from GPT story-label-taxonomy.md — no invent.
+  Depends SSR-26 loader. Do not start SSR-29. Do not mutate pkg-000061…084.

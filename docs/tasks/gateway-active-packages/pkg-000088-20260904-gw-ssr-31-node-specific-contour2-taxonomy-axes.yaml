@@ -1,0 +1,21 @@
+schema_version: 1
+package_sequence: 88
+created_at: '2026-09-04T12:50:23Z'
+label: GW-SSR-31 node-specific Contour2 taxonomy axes (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes.md
+story_groups:
+- story_key: STORY-GW-SSR-31
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t01-resolver-contour2-unlock/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t02-adapt-ssr26-taxonomy-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t03-adapt-ssr28-seed-helper/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t04-tests-uus-shaped-contour2-load/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-31-node-specific-contour2-taxonomy-axes/task-gw-ssr-31-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-04T12:50:23Z. Backlog SSR-31 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  D-SSR-11 Contour2: drop axis lockstep; keep structural validation. No Contour1/docs/ClusterLens/GPT-SSR-15.
+  Depends SSR-26. Do not mutate pkg-000061…087.

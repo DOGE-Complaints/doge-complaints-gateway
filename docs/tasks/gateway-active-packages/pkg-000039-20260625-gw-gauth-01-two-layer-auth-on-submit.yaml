@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 39
+created_at: '2026-06-25T09:36:47Z'
+label: GW-GAUTH-01 two-layer auth on submit (EPIC-M2-20)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/gpt-submit-authz/STORY-GW-GAUTH-01-two-layer-auth-on-submit.md
+story_groups:
+- story_key: STORY-GW-GAUTH-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-01-two-layer-auth-on-submit/task-gw-gauth-01-t01-inventory-public-content-write-paths/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-01-two-layer-auth-on-submit/task-gw-gauth-01-t02-attach-service-gate-to-uncovered-writes/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-01-two-layer-auth-on-submit/task-gw-gauth-01-t03-mandatory-service-auth-policy-config/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-01-two-layer-auth-on-submit/task-gw-gauth-01-t04-two-layer-auth-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-20-gpt-submit-authz/stories/STORY-GW-GAUTH-01-two-layer-auth-on-submit/task-gw-gauth-01-t05-story-acceptance-gate/README.md

@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 16
+created_at: '2026-05-16T14:00:00Z'
+label: REQ-37 pipeline observability and PII safety (STORY-M2-09-07)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability.md
+story_groups:
+- story_key: STORY-M2-09-07
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t01-redact-pii-api-logging/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t02-story-debug-logger-jsonl/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t03-services-intake-debug-logger/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t04-geo-signals-debug-stages/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t05-cluster-promotion-debug-stages/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-07-pipeline-observability-and-pii-safety/task-m2-09-07-t06-tests-req37-acceptance/README.md

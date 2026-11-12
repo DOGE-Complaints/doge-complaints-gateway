@@ -1,0 +1,15 @@
+schema_version: 1
+package_sequence: 22
+created_at: '2026-05-22T12:00:00Z'
+label: REQ-42 GPT signals story intake (EPIC-M2-02)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store.md
+decision_ref: doge-complaints-gateway/docs/requirements/42-gpt-signals-story-intake-extension.md
+story_groups:
+- story_key: STORY-M2-02-08
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-08-gpt-signals-intake-persistence-req42/task-m2-02-08-t01-intake-contract-gpt-signals/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-08-gpt-signals-intake-persistence-req42/task-m2-02-08-t02-story-intake-service-signals-persist/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-08-gpt-signals-intake-persistence-req42/task-m2-02-08-t03-gpt-signals-intake-acceptance-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-08-gpt-signals-intake-persistence-req42/task-m2-02-08-t04-runtime-openapi-api-reference/README.md

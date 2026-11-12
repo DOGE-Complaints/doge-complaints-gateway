@@ -1098,6 +1098,192 @@
 
 **P1 scaffold:** 2026-10-10T15:52:08Z · [`pkg-000111`](./gateway-active-packages/pkg-000111-20261010-gw-req56-01-issues-list-search-filter.yaml) · draft [`p1_gw_req56_01_scaffold_20261010T154931Z`](../../../.cursor/plans/p1_gw_req56_01_scaffold_20261010T154931Z.plan.md). Epic **CREATE**.
 
+## EPIC-req57-issue-sense-brief-poster — REQ57 issue sense brief + civic poster (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req57-issue-sense-brief-poster.md`](./epics/EPIC-req57-issue-sense-brief-poster.md). Пакет [`req57-issue-sense-brief-poster/`](./backlog-stories/req57-issue-sense-brief-poster/INDEX.md). Ветка `dev`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md). Operator lock: bind `POST /v1/issue-sense-brief/bind` + `SERVICE_API_TOKEN`; public keys `generation_status`/`generation_version`/`poster_url`; brief wins until regenerate; DP5 no job table.
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ57-01 | [pipeline bind-in + projection apply](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/STORY-GW-REQ57-01-bind-in-projection-apply.md) → [backlog](./backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-01-bind-in-projection-apply.md) | **Done** P3 gate PASS 2026-10-15T11:13:59Z · T01–T08 · audit P6 T09–T11 Done 2026-10-15T11:28:04Z · stub suite **10** · [`pkg-000113`](./gateway-active-packages/pkg-000113-20261015-gw-req57-01-bind-in-projection-apply.yaml) · [`run-summary-p3`](./run-reports/run-summary-20261015-1113-gw-req57-01-p3.md) · [`run-summary-audit-p6`](./run-reports/run-summary-20261015-1128-gw-req57-01-audit-p6.md) · [`gate`](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t08-story-gate/story-acceptance-gate-STORY-GW-REQ57-01.md) PASS |
+| 🔵 | GW-REQ57-02 | [pipeline nudge on create/publish](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/STORY-GW-REQ57-02-nudge-on-create-publish.md) → [backlog](./backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-02-nudge-on-create-publish.md) | **Done** P3 gate PASS 2026-10-15T11:41:13Z · T01–T07 · audit P6 T08–T09 Done 2026-10-15T11:51:25Z · suite **9** · [`pkg-000114`](./gateway-active-packages/pkg-000114-20261015-gw-req57-02-nudge-on-create-publish.yaml) · [`run-summary`](./run-reports/run-summary-20261015-1141-gw-req57-02-p3.md) · [`gate`](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t07-story-gate/story-acceptance-gate-STORY-GW-REQ57-02.md) PASS |
+| 🔵 | GW-REQ57-03 | [pipeline sweep/retry](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/STORY-GW-REQ57-03-sweep-retry-sense-brief.md) → [backlog](./backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-03-sweep-retry-sense-brief.md) | **Done** P3 gate PASS 2026-10-15T12:03:07Z · T01–T06 · audit P6 T07–T08 Done 2026-10-15T12:11:38Z · suite **7** · [`pkg-000115`](./gateway-active-packages/pkg-000115-20261015-gw-req57-03-sweep-retry-sense-brief.yaml) · [`run-summary`](./run-reports/run-summary-20261015-1203-gw-req57-03-p3.md) · [`gate`](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t06-story-gate/story-acceptance-gate-STORY-GW-REQ57-03.md) PASS |
+| 🔵 | GW-REQ57-04 | [pipeline manual regenerate](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/STORY-GW-REQ57-04-manual-regenerate-service.md) → [backlog](./backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-04-manual-regenerate-service.md) | **Done** P3 gate PASS 2026-10-15T12:23:00Z · T01–T06 · audit P6 T07–T08 Done 2026-10-15T12:31:24Z · suite **8** · [`pkg-000116`](./gateway-active-packages/pkg-000116-20261015-gw-req57-04-manual-regenerate-service.yaml) · [`run-summary`](./run-reports/run-summary-20261015-1223-gw-req57-04-p3.md) · [`gate`](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t06-story-gate/story-acceptance-gate-STORY-GW-REQ57-04.md) PASS |
+
+### STORY-GW-REQ57-04 — manual regenerate (service-auth)
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ57-04-T01 | [T01: regenerate apply](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t01-regenerate-apply/README.md) | implement | Done | bump version → pending · AC-01 |
+| 🔵 | TASK-GW-REQ57-04-T02 | [T02: regenerate route service-auth](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t02-regenerate-route-service-auth/README.md) | implement | Done | `POST /v1/issue-sense-brief/regenerate` · DP6 |
+| 🔵 | TASK-GW-REQ57-04-T03 | [T03: regenerate nudge](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t03-regenerate-nudge/README.md) | implement | Done | reuse 02 client · AC-04 |
+| 🔵 | TASK-GW-REQ57-04-T04 | [T04: authz reject citizen](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t04-authz-reject-citizen/README.md) | implement | Done | AC-02/03 · no citizen regen |
+| 🔵 | TASK-GW-REQ57-04-T05 | [T05: regenerate tests](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t05-regenerate-tests/README.md) | test | Done | ASGI/unit · suite **6** |
+| 🔵 | TASK-GW-REQ57-04-T06 | [T06: story acceptance gate](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t06-story-gate/README.md) | gate | Done | AC-GW-REQ5704-01…04 PASS |
+| 🔵 | TASK-GW-REQ57-04-T07 | [T07: audit G1+G3 SSOT docs](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t07-audit-g1-g3-ssot-docs/README.md) | docs | Done | pipeline Status + T01 Purpose · P6 2026-10-15T12:31:24Z |
+| 🔵 | TASK-GW-REQ57-04-T08 | [T08: audit G4 unknown issue_id test](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t08-audit-g4-unknown-issue-id-test/README.md) | test | Done | empty/unknown → 400 · P6 · suite **8** |
+
+#### P5 disposition note (REQ57-04 audit 2026-10-15) · APPLY 2026-10-15T12:29:46Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED → **CLOSED** (P6) | none | T07 | pipeline Meta Status → Done (Awaiting Commits) |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | TASKED → **CLOSED** (P6) | none | T07 | T01 Purpose omit public poster wording |
+| G4 | TASKED → **CLOSED** (P6) | none | T08 | empty/unknown issue_id → 400 · suite **8** |
+
+**activation:** `run_mode=gw_req57_04_audit_followup` — T07–T08 Done; current.yaml stays pkg-000116. Draft: [`p5_gw_req57_04_gap_20261015T122823Z`](../../../.cursor/plans/p5_gw_req57_04_gap_20261015T122823Z.plan.md). Audit: [`audit-gw-req57-04-…`](../analysis/audit-gw-req57-04-manual-regenerate-service-2026-10-15.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2 WAIVED kept). P7/P8 **not** run this fence.
+
+**P6 T07–T08:** 2026-10-15T12:31:24Z · G1+G3+G4 CLOSED · suite **8** · pkg-000116 unchanged · no §Актуальная точка rewrite · no push.
+
+**P5 APPLY:** 2026-10-15T12:29:46Z · disposition G1+G3→T07 · G4→T08 · G2 WAIVED · safe-override `gw_req57_04_audit_followup` · pkg-000116 **unchanged** · no §Актуальная точка rewrite · no product implement.
+
+**P3 execute (REQ57-04):** 2026-10-15T12:23:00Z · gate PASS · [`run-summary-20261015-1223-gw-req57-04-p3`](./run-reports/run-summary-20261015-1223-gw-req57-04-p3.md) · stub suite 6 · branch `dev` · no push · no §«Актуальная точка» rewrite.
+
+**P1 scaffold (REQ57-04):** 2026-10-15T12:17:03Z · [`pkg-000116`](./gateway-active-packages/pkg-000116-20261015-gw-req57-04-manual-regenerate-service.yaml) · draft [`p1_gw_req57_04_scaffold_20261015T121517Z`](../../../.cursor/plans/p1_gw_req57_04_scaffold_20261015T121517Z.plan.md). Epic **UPDATE**. Branch `dev`. No §«Актуальная точка» rewrite. Backlog KEEP. No product.
+
+### STORY-GW-REQ57-03 — sweep / retry sense-brief
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ57-03-T01 | [T01: sweep eligible query](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t01-sweep-eligible-query/README.md) | implement | Done | pending/failed without brief apply |
+| 🔵 | TASK-GW-REQ57-03-T02 | [T02: sense-brief cron job](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t02-sense-brief-cron-job/README.md) | implement | Done | ClusterCronJob precedent · AC-01 |
+| 🔵 | TASK-GW-REQ57-03-T03 | [T03: ASGI cron wire](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t03-asgi-cron-wire/README.md) | implement | Done | asgi_app lifespan alongside cluster |
+| 🔵 | TASK-GW-REQ57-03-T04 | [T04: ready no alpha overwrite](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t04-ready-no-alpha-overwrite/README.md) | implement | Done | brief-wins · AC-02 |
+| 🔵 | TASK-GW-REQ57-03-T05 | [T05: sweep tests](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t05-sweep-tests/README.md) | test | Done | stub nudge · suite **5** |
+| 🔵 | TASK-GW-REQ57-03-T06 | [T06: story acceptance gate](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t06-story-gate/README.md) | gate | Done | AC-GW-REQ5703-01…03 PASS |
+| 🔵 | TASK-GW-REQ57-03-T07 | [T07: audit G1 ASGI lifespan sweep test](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t07-audit-g1-asgi-lifespan-sweep-test/README.md) | test | Done | lifespan start/stop · P6 2026-10-15T12:11:38Z · suite **7** |
+| 🔵 | TASK-GW-REQ57-03-T08 | [T08: audit G4 T03 ASGI line-refs](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-03-sweep-retry-sense-brief/task-gw-req57-03-t08-audit-g4-t03-asgi-line-refs/README.md) | docs | Done | ~229–265 nudge-enabled · P6 2026-10-15T12:11:38Z |
+
+#### P5 disposition note (REQ57-03 audit 2026-10-15) · APPLY 2026-10-15T12:08:59Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | CLOSED | none | T07 | ASGI lifespan sweep cron test · P6 |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | WAIVED info-nonblocking | none | — | AC-01 = re-nudge; bind owned by 01 |
+| G4 | CLOSED | none | T08 | T03 line-ref ~229–265 · P6 |
+
+**activation:** `run_mode=gw_req57_03_audit_followup` — T07–T08 Done; current.yaml stays pkg-000115. Draft: [`p5_gw_req57_03_gap_20261015T120749Z`](../../../.cursor/plans/p5_gw_req57_03_gap_20261015T120749Z.plan.md). Audit: [`audit-gw-req57-03-…`](../analysis/audit-gw-req57-03-sweep-retry-sense-brief-2026-10-15.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G2/G3 WAIVED kept). P7/P8 **not** run this fence.
+
+**P6 T07–T08:** 2026-10-15T12:11:38Z · G1+G4 CLOSED · suite **7** · pkg-000115 unchanged · no §Актуальная точка rewrite · no push.
+
+**P5 APPLY:** 2026-10-15T12:08:59Z · disposition G1→T07 · G4→T08 · G2/G3 WAIVED · safe-override `gw_req57_03_audit_followup` · pkg-000115 **unchanged** · no §Актуальная точка rewrite · no product implement.
+
+**P3 execute (REQ57-03):** 2026-10-15T12:03:07Z · gate PASS · [`run-summary-20261015-1203-gw-req57-03-p3`](./run-reports/run-summary-20261015-1203-gw-req57-03-p3.md) · stub suite 5 · branch `dev` · no push · no §«Актуальная точка» rewrite.
+
+**P1 scaffold (REQ57-03):** 2026-10-15T11:57:04Z · [`pkg-000115`](./gateway-active-packages/pkg-000115-20261015-gw-req57-03-sweep-retry-sense-brief.yaml) · draft [`p1_gw_req57_03_scaffold_20261015T115606Z`](../../../.cursor/plans/p1_gw_req57_03_scaffold_20261015T115606Z.plan.md). Epic **UPDATE**. Branch `dev`. No §«Актуальная точка» rewrite. Backlog KEEP. No product.
+
+### STORY-GW-REQ57-02 — thin nudge on create/publish
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ57-02-T01 | [T01: nudge config env](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t01-nudge-config-env/README.md) | implement | Done | locked AIBRIDGE_* names |
+| 🔵 | TASK-GW-REQ57-02-T02 | [T02: nudge HTTP client](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t02-nudge-http-client/README.md) | implement | Done | accept + Bearer S2S · AC-02 |
+| 🔵 | TASK-GW-REQ57-02-T03 | [T03: corpus from Issue Stories](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t03-corpus-from-issue-stories/README.md) | implement | Done | optional corpus |
+| 🔵 | TASK-GW-REQ57-02-T04 | [T04: create/publish hook](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t04-create-publish-hook/README.md) | implement | Done | pending + nudge · AC-01 |
+| 🔵 | TASK-GW-REQ57-02-T05 | [T05: nudge fail-closed](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t05-nudge-fail-closed/README.md) | implement | Done | AC-04 |
+| 🔵 | TASK-GW-REQ57-02-T06 | [T06: nudge tests double](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t06-nudge-tests-double/README.md) | test | Done | HTTP double · suite **9** (w/ T09) |
+| 🔵 | TASK-GW-REQ57-02-T07 | [T07: story acceptance gate](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t07-story-gate/README.md) | gate | Done | AC-GW-REQ5702-01…04 PASS |
+| 🔵 | TASK-GW-REQ57-02-T08 | [T08: audit G3+G5 SSOT docs](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t08-audit-g3-g5-ssot-docs/README.md) | docs | Done | Code touchpoints + ENV-CHECKLIST · P6 2026-10-15T11:50:24Z |
+| 🔵 | TASK-GW-REQ57-02-T09 | [T09: audit G4 manual-issue nudge test](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-02-nudge-on-create-publish/task-gw-req57-02-t09-audit-g4-manual-issue-nudge-test/README.md) | test | Done | `create_manual_issue` pending + nudge · P6 2026-10-15T11:51:25Z |
+
+#### P5 disposition note (REQ57-02 audit 2026-10-15) · APPLY 2026-10-15T11:47:15Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED info-nonblocking | none | — | AC-01 Covered by service create+nudge |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | CLOSED | none | T08 | backlog Code touchpoints As-of-Done · P6 |
+| G4 | CLOSED | none | T09 | create_manual_issue suite wire · P6 |
+| G5 | CLOSED | none | T08 | ENV-CHECKLIST aligned to schema default · P6 |
+
+**activation:** `run_mode=gw_req57_02_audit_followup` — T08–T09 Done; current.yaml stays pkg-000114. Draft: [`p5_gw_req57_02_gap_20261015T114558Z`](../../../.cursor/plans/p5_gw_req57_02_gap_20261015T114558Z.plan.md). Audit: [`audit-gw-req57-02-…`](../analysis/audit-gw-req57-02-nudge-on-create-publish-2026-10-15.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G1/G2 WAIVED kept). P7/P8 **not** run this fence.
+
+**P6 T08–T09:** 2026-10-15T11:50:24Z / 11:51:25Z · G3+G5+G4 CLOSED · suite **9** · pkg-000114 unchanged · no §Актуальная точка rewrite · no push.
+
+**P5 APPLY:** 2026-10-15T11:47:15Z · disposition G3/G5→T08 · G4→T09 · G1/G2 WAIVED · [`p5_gw_req57_02_gap_20261015T114558Z`](../../../.cursor/plans/p5_gw_req57_02_gap_20261015T114558Z.plan.md) · safe-override `gw_req57_02_audit_followup` · pkg-000114 **unchanged** · no §Актуальная точка rewrite · no product implement.
+
+**P3 execute (REQ57-02):** 2026-10-15T11:41:13Z · gate PASS · [`run-summary-20261015-1141-gw-req57-02-p3`](./run-reports/run-summary-20261015-1141-gw-req57-02-p3.md) · stub suite 8 · branch `dev` · no push · no §«Актуальная точка» rewrite.
+
+**P1 scaffold (REQ57-02):** 2026-10-15T11:34:35Z · [`pkg-000114`](./gateway-active-packages/pkg-000114-20261015-gw-req57-02-nudge-on-create-publish.yaml) · draft [`p1_gw_req57_02_scaffold_20261015T113307Z`](../../../.cursor/plans/p1_gw_req57_02_scaffold_20261015T113307Z.plan.md). Epic **UPDATE**. Branch `dev`. No §«Актуальная точка» rewrite. Backlog KEEP.
+
+### STORY-GW-REQ57-01 — bind-in + projection apply
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ57-01-T01 | [T01: generation fields persist](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t01-generation-fields-persist/README.md) | implement | Done | columnar + SQLite migrate · DP5 |
+| 🔵 | TASK-GW-REQ57-01-T02 | [T02: public payload keys](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t02-public-payload-keys/README.md) | implement | Done | AC-03/04 |
+| 🔵 | TASK-GW-REQ57-01-T03 | [T03: bind success apply](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t03-bind-success-apply/README.md) | implement | Done | AC-01/02 |
+| 🔵 | TASK-GW-REQ57-01-T04 | [T04: bind fail apply](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t04-bind-fail-apply/README.md) | implement | Done | AC-05 |
+| 🔵 | TASK-GW-REQ57-01-T05 | [T05: bind route service-auth](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t05-bind-route-service-auth/README.md) | implement | Done | `POST /v1/issue-sense-brief/bind` |
+| 🔵 | TASK-GW-REQ57-01-T06 | [T06: brief-wins guard](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t06-brief-wins-guard/README.md) | implement | Done | AC-06 |
+| 🔵 | TASK-GW-REQ57-01-T07 | [T07: unit/ASGI bind tests](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t07-unit-asgi-bind-tests/README.md) | test | Done | stub suite **8** · no live LLM |
+| 🔵 | TASK-GW-REQ57-01-T08 | [T08: story acceptance gate](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t08-story-gate/README.md) | gate | Done | AC-GW-REQ5701-01…07 PASS |
+| 🔵 | TASK-GW-REQ57-01-T09 | [T09: audit G1+G4 SSOT docs](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t09-audit-g1-g4-ssot-docs/README.md) | docs | Done | G1+G4 CLOSED 2026-10-15T11:25:34Z · backlog As-of-Done + T06 Where · `gw_req57_01_audit_followup` |
+| 🔵 | TASK-GW-REQ57-01-T10 | [T10: audit G3 extend_issue test](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t10-audit-g3-extend-issue-test/README.md) | test | Done | G3 CLOSED 2026-10-15T11:28:04Z · live `_extend_issue` AC-06 |
+| 🔵 | TASK-GW-REQ57-01-T11 | [T11: audit G5 wrong Bearer test](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t11-audit-g5-wrong-bearer-test/README.md) | test | Done | G5 CLOSED 2026-10-15T11:28:04Z · wrong Bearer → 401 |
+
+#### P5 disposition note (REQ57-01 audit 2026-10-15) · APPLY 2026-10-15T11:21:05Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | TASKED→**CLOSED** (P6 2026-10-15T11:25:34Z) | none | T09 | backlog SSOT As-of-Done |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | TASKED→**CLOSED** (P6 2026-10-15T11:28:04Z) | none | T10 | live `_extend_issue` test |
+| G4 | TASKED→**CLOSED** (P6 2026-10-15T11:25:34Z) | none | T09 | T06 Where path drift (shared) |
+| G5 | TASKED→**CLOSED** (P6 2026-10-15T11:28:04Z) | none | T11 | wrong Bearer ASGI |
+
+**activation:** `run_mode=gw_req57_01_audit_followup` — T09–T11 **Done**; current.yaml stays pkg-000113. Draft: [`p5_gw_req57_01_gap_20261015T111932Z`](../../../.cursor/plans/p5_gw_req57_01_gap_20261015T111932Z.plan.md). Audit: [`audit-gw-req57-01-…`](../analysis/audit-gw-req57-01-bind-in-projection-apply-2026-10-15.md). **Product Story Done** = yes. **Empty OPEN gap-list** = **yes** (G1/G3/G4/G5 CLOSED; G2 WAIVED kept).
+
+**P6 audit follow-up Done:** 2026-10-15T11:28:04Z · T09–T11 · suite **10 passed** · [`run-summary`](./run-reports/run-summary-20261015-1128-gw-req57-01-audit-p6.md) · pkg-000113 unchanged · no §Актуальная точка rewrite · no push.
+
+**P6 T09:** 2026-10-15T11:25:34Z · G1+G4 CLOSED · docs-only · [`acceptance-verification-gw-req57-01-t09`](./epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-01-bind-in-projection-apply/task-gw-req57-01-t09-audit-g1-g4-ssot-docs/acceptance-verification-gw-req57-01-t09.md) PASS · pkg-000113 unchanged · no §Актуальная точка rewrite.
+
+**P5 APPLY:** 2026-10-15T11:21:05Z · disposition G1/G4→T09 · G3→T10 · G5→T11 · G2 WAIVED · [`p5_gw_req57_01_gap_20261015T111932Z`](../../../.cursor/plans/p5_gw_req57_01_gap_20261015T111932Z.plan.md) · safe-override `gw_req57_01_audit_followup` · pkg-000113 **unchanged** · no §Актуальная точка rewrite · no product implement.
+
+**P3 execute:** 2026-10-15T11:13:59Z · gate PASS · [`run-summary-20261015-1113-gw-req57-01-p3`](./run-reports/run-summary-20261015-1113-gw-req57-01-p3.md) · stub suite 8 · branch `dev` · no push · no §«Актуальная точка» rewrite.
+
+**P1 scaffold:** 2026-10-15T11:04:04Z · [`pkg-000113`](./gateway-active-packages/pkg-000113-20261015-gw-req57-01-bind-in-projection-apply.yaml) · draft [`p1_gw_req57_01_scaffold_20261015T110204Z`](../../../.cursor/plans/p1_gw_req57_01_scaffold_20261015T110204Z.plan.md). Epic **CREATE**. Branch `dev`. No §«Актуальная точка» rewrite.
+
+## EPIC-req59-req15-story-draft-stash-channel-parity-verify — REQ59 / REQ15 stash channel parity verify (gateway)
+
+> Не `EPIC-M2-*`. Эпик на диске: [`EPIC-req59-req15-story-draft-stash-channel-parity-verify.md`](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify.md). Пакет [`req59-req15-story-draft-stash-channel-parity-verify/`](./backlog-stories/req59-req15-story-draft-stash-channel-parity-verify/INDEX.md). Ветка `dev`. §«Актуальная точка» **не** переписана. Dashboard: [`gateway-mvp-dashboard.md`](./gateway-mvp-dashboard.md). Operator lock: verify-first · `POST /story-drafts` + service Bearer · 201 + `draft_id` · stash ≠ Story · Default Pass = no GW code if parity holds.
+
+| S | Key | Story | Status |
+|---|-----|-------|--------|
+| 🔵 | GW-REQ59-01 | [pipeline aibridge stash parity verify](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/STORY-GW-REQ59-01-aibridge-stash-parity-verify.md) → [backlog](./backlog-stories/req59-req15-story-draft-stash-channel-parity-verify/STORY-GW-REQ59-01-aibridge-stash-parity-verify.md) | **Done** P3 gate PASS · P6 G3/G4 CLOSED 2026-11-05T12:20:04Z · G1/G2 WAIVED · T01–T07 · verify-first · no product · [`pkg-000117`](./gateway-active-packages/pkg-000117-20261105-gw-req59-01-aibridge-stash-parity-verify.yaml) · [`run-summary`](./run-reports/run-summary-20261105-1210-gw-req59-01-p3.md) · [`run-summary-audit`](./run-reports/run-summary-20261105-1220-gw-req59-01-audit-p6.md) · [`evidence`](../analysis/evidence-gw-req59-01-aibridge-stash-parity-verify-2026-11-05.md) · [`gate`](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t06-story-gate/story-acceptance-gate-STORY-GW-REQ59-01.md) PASS |
+
+### STORY-GW-REQ59-01 — aibridge stash parity verify
+
+| S | Key | Task | Type | Status | Notes |
+|---|-----|------|------|--------|-------|
+| 🔵 | TASK-GW-REQ59-01-T01 | [T01: stash path inventory](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t01-stash-path-inventory/README.md) | verify | Done | AC-01/02 · GW-DRAFT-01 |
+| 🔵 | TASK-GW-REQ59-01-T02 | [T02: aibridge client contract parity](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t02-aibridge-client-contract-parity/README.md) | verify | Done | AC-GW-59-01 · peer `01-keep-pipe` |
+| 🔵 | TASK-GW-REQ59-01-T03 | [T03: auth boundary service vs citizen](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t03-auth-boundary-service-vs-citizen/README.md) | verify | Done | AC-GW-59-04 |
+| 🔵 | TASK-GW-REQ59-01-T04 | [T04: stash ≠ Story assert](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t04-stash-neq-story-assert/README.md) | verify | Done | AC-GW-59-02 |
+| 🔵 | TASK-GW-REQ59-01-T05 | [T05: evidence or gap note](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t05-evidence-or-gap-note/README.md) | docs | Done | evidence Present · empty gap · no GW code |
+| 🔵 | TASK-GW-REQ59-01-T06 | [T06: story acceptance gate](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t06-story-gate/README.md) | gate | Done | AC-GW-59-01…04 PASS |
+| 🔵 | TASK-GW-REQ59-01-T07 | [T07: audit G3+G4 SSOT docs](./epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t07-audit-g3-g4-ssot-docs/README.md) | docs | Done | §Verified As-of-Done + T01–T05 Code Facts · P6 2026-11-05T12:20:04Z |
+
+#### P5 disposition note (REQ59-01 audit 2026-11-05) · APPLY 2026-11-05T12:18:51Z · P6 close 2026-11-05T12:20:04Z
+
+| Gap | Disposition | follow_up | Task | Notes |
+|-----|-------------|-----------|------|-------|
+| G1 | WAIVED info-nonblocking | none | — | live Unknown; no invent PASS |
+| G2 | WAIVED operator | none | — | do not rewrite §«Актуальная точка» |
+| G3 | TASKED → **CLOSED** (P6) | none | T07 | pipeline §Verified heading |
+| G4 | TASKED → **CLOSED** (P6) | none | T07 | T01–T05 Code Facts Await/Absent |
+
+**activation:** `run_mode=gw_req59_01_audit_followup` — T07 Done; current.yaml stays pkg-000117. Draft: [`p5_gw_req59_01_gap_20261105T121733Z`](../../../.cursor/plans/p5_gw_req59_01_gap_20261105T121733Z.plan.md). Audit: [`audit-gw-req59-01-…`](../analysis/audit-gw-req59-01-aibridge-stash-parity-verify-2026-11-05.md). [`run-summary-audit`](./run-reports/run-summary-20261105-1220-gw-req59-01-audit-p6.md). **Product Story Done** = yes. **Empty OPEN gap-list** = yes (G3/G4 CLOSED; G1/G2 WAIVED kept).
+
+**P6 audit follow-up:** 2026-11-05T12:20:04Z · T07 Done · G3/G4 CLOSED · G1/G2 WAIVED · [`run-summary-20261105-1220-gw-req59-01-audit-p6`](./run-reports/run-summary-20261105-1220-gw-req59-01-audit-p6.md) · pkg-000117 unchanged · no invent live PASS · no §Актуальная точка rewrite · no product.
+
+**P5 APPLY:** 2026-11-05T12:18:51Z · disposition G3+G4→T07 · G1/G2 WAIVED · safe-override `gw_req59_01_audit_followup` · pkg-000117 **unchanged** · no §Актуальная точка rewrite · no product · no invent live PASS.
+
+**P3 execute:** 2026-11-05T12:10:10Z · gate PASS · [`run-summary-20261105-1210-gw-req59-01-p3`](./run-reports/run-summary-20261105-1210-gw-req59-01-p3.md) · harness Present · live Unknown · branch `dev` · no push · no §«Актуальная точка» rewrite · **no product**.
+
+**P1 scaffold:** 2026-11-05T12:01:41Z · [`pkg-000117`](./gateway-active-packages/pkg-000117-20261105-gw-req59-01-aibridge-stash-parity-verify.yaml) · draft [`p1_gw_req59_01_scaffold_20261105T115913Z`](../../../.cursor/plans/p1_gw_req59_01_scaffold_20261105T115913Z.plan.md). Epic **CREATE**. Branch `dev`. No §«Актуальная точка» rewrite. Backlog KEEP. No product. Verify-first.
+
 ## EPIC-M2-01 — Core Foundation and Governance
 
 | S | Key | Story | Type | Status | Scope / Notes |

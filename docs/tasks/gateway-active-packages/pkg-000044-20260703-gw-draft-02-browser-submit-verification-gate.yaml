@@ -1,0 +1,18 @@
+schema_version: 1
+package_sequence: 44
+created_at: '2026-07-03T10:04:43Z'
+label: GW-DRAFT-02 browser submit verification gate (EPIC-M2-21)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/story-draft-handoff/STORY-GW-DRAFT-02-browser-submit-verification-gate.md
+story_groups:
+- story_key: STORY-GW-DRAFT-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t01-identity-me-client-and-config/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t02-post-story-drafts-submit-route/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t03-verification-gate-and-intake-submit/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t04-draft-submit-idempotency-and-cleanup/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t05-story-draft-submit-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t06-runtime-docs-submit-api/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-02-browser-submit-verification-gate/task-gw-draft-02-t07-story-acceptance-gate/README.md

@@ -1,0 +1,26 @@
+schema_version: 1
+package_sequence: 104
+created_at: '2026-09-29T18:09:49Z'
+label: GW-REQ11-05 provision 200 fixture users Identity + secrets (EPIC-req11-demo-life-sim-fixtures-and-replay)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-05-provision-fixture-users-identity.md
+story_groups:
+- story_key: STORY-GW-REQ11-05
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t01-provision-script-signup/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t02-csprng-secrets-gitignore/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t03-file-otp-verify-pacing/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t04-wire-replay-1to1-bearer/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t05-operator-docs-preconditions/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t06-offline-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-05-provision-fixture-users-identity/task-gw-req11-05-t07-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-29T18:09:49Z. Backlog REQ11-05 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only. No product/provision execute this turn.
+  Locks: 200 1:1; CSPRNG≥24; gitignored secrets; supersede M=20; file OTP; pacing; K1 no SPA.
+  Do not invent GET /dev/last-otp; no Telnyx pilot; no regenerate fixtures.
+  Never commit secrets. Do not rewrite bullrun §Актуальная точка.
+  Do not mutate pkg-000100…103.

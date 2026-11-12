@@ -1,0 +1,18 @@
+schema_version: 1
+package_sequence: 9
+created_at: '2026-05-08T12:20:00Z'
+label: EPIC-M2-09 trace debug observability wave (STORY-05)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability.md
+story_groups:
+- story_key: STORY-M2-09-05
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-trace-observability-primary/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t01-gap-trace-00-loglevel-apply/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t02-gap-trace-00b-db-backend-supabase/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t03-gap-trace-01-startup-config-log/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t04-gap-trace-07-configure-logging-module/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t05-gap-trace-02-03-intake-supabase-trace/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t06-gap-trace-04-05-06-cluster-geo-issue-trace/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-05/task-m2-09-05-t07-gap-trace-08-per-story-file-log/README.md

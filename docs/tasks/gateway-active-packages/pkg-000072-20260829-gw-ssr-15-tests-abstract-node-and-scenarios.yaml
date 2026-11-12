@@ -1,0 +1,28 @@
+schema_version: 1
+package_sequence: 72
+created_at: '2026-08-29T19:41:20Z'
+label: GW-SSR-15 tests abstract node and scenarios (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-15-tests-abstract-node-and-scenarios.md
+story_groups:
+- story_key: STORY-GW-SSR-15
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t01-path-rename/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t02-civic-scenario/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t03-pack-scenario/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t04-pulse-emerging/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t05-negative-tallinn-404/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t-dual-membership-public-path/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-15-tests-abstract-node-and-scenarios/task-gw-ssr-15-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-29T19:41:20Z. Backlog SSR-15 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Pytest public URLs /node/*. Rename test_req24_tallinn_issues_read_api.py preferred.
+  Negative GET /tallinn/issues 404. No alias 200. T-dual include (SSR-10 Done).
+  G15 full offline pytest -m "not live_integration" REQUIRED.
+  Do not expand ClusterLens. Civic factory default True. No HTTP filter. No identity.
+  Geo settlement:tallinn + pack id tallinn_civic stay. Do not rewrite T-wave G3.
+  SSR-06/07/12 out of this pkg. Do not mutate pkg-000061…pkg-000071.
+  Do not reopen 01–05/08–11/13/14.

@@ -1,0 +1,18 @@
+schema_version: 1
+package_sequence: 19
+created_at: '2026-05-18T12:00:00Z'
+label: REQ-24 Tallinn issues read API (STORY-M2-06-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n.md
+story_groups:
+- story_key: STORY-M2-06-06
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t01-issue-projection-read-store-protocol/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t02-inmemory-read-store-list-get/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t03-sqlite-supabase-read-store/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t04-factory-di-read-store-wiring/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t05-handlers-tallinn-issues-and-manual-create/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t06-routes-cors-public-tallinn-issues/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t07-extended-filters-geo-time-institution/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-M2-06-06-tallinn-issues-read-api-req24/task-m2-06-06-t08-req24-acceptance-tests-and-openapi/README.md

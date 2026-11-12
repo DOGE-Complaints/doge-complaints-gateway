@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 76
+created_at: '2026-08-30T19:16:21Z'
+label: GW-SSR-19 node clustering pack contract (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-19-node-clustering-pack-contract.md
+story_groups:
+- story_key: STORY-GW-SSR-19
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t00-contract-readme/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t01-types-schema-context/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t02-loader-parse-validate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t03-pack-data-defaults/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t04-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-19-node-clustering-pack-contract/task-gw-ssr-19-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T19:16:21Z. Backlog SSR-19 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  node_clustering.civic loader + pack data only. No factory wire (→20).
+  Values from EnvSpec defaults. No ClusterLens change. No cron in pack. No env override.
+  No GET /schema-active. No SSR-06/07/12. No GPT UI. No T06.
+  Do not mutate pkg-000061…pkg-000075. Do not reopen 01–05/08–18. Do not start 20/21.

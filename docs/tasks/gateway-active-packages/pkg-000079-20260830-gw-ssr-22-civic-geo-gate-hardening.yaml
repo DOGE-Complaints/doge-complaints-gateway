@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 79
+created_at: '2026-08-30T20:01:08Z'
+label: GW-SSR-22 civic geo-gate hardening (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-22-civic-geo-gate-hardening.md
+story_groups:
+- story_key: STORY-GW-SSR-22
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t00-fail-mode-decision/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t01-handlers-no-silent-skip/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t02-boot-fail-if-chosen/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t03-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-22-civic-geo-gate-hardening/task-gw-ssr-22-t04-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T20:01:08Z. Backlog SSR-22 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Remove silent skip when geo_scope active + geo_service None.
+  No full geo_detail (→23). No ClusterLens change. No GET /schema-active.
+  No global require-geo. No SSR-06/07/12. No GPT UI. Do not start 23…25.
+  Do not mutate pkg-000061…pkg-000078. Do not reopen 01–21.

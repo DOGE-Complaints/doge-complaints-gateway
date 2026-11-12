@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 116
+created_at: '2026-10-15T12:17:03Z'
+label: GW-REQ57-04 manual regenerate (service-auth)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-04-manual-regenerate-service.md
+story_groups:
+- story_key: STORY-GW-REQ57-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t01-regenerate-apply/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t02-regenerate-route-service-auth/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t03-regenerate-nudge/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t04-authz-reject-citizen/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t05-regenerate-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req57-issue-sense-brief-poster/stories/STORY-GW-REQ57-04-manual-regenerate-service/task-gw-req57-04-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-10-15T12:17:03Z. Backlog REQ57-04 materialize.
+  Epic UPDATE EPIC-req57 (REQ57-04 row + soft).
+  Branch dev only. Scaffold only — no product regenerate this APPLY.
+  Locks: POST /v1/issue-sense-brief/regenerate + SERVICE_API_TOKEN;
+  AC-GW-REQ5704-01…04 verbatim; no invent AC; no citizen regenerate.
+  Depends REQ57-01 Done pkg-000113; REQ57-02 Done pkg-000114.
+  Draft: .cursor/plans/p1_gw_req57_04_scaffold_20261015T121517Z.plan.md

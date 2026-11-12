@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 91
+created_at: '2026-09-07T08:28:33Z'
+label: GW-SSR-34 uus active schema-packs volume ops (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops.md
+story_groups:
+- story_key: STORY-GW-SSR-34
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t01-server-env-local-railway-playbook/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t02-warehouse-model-manual-d-ssr-12/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t03-gitignore-node-packs/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t04-env-examples-node-schema-inventory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t05-sibling-gpt-schema-binding-note/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-34-uus-active-schema-packs-volume-ops/task-gw-ssr-34-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-07T08:28:33Z. Backlog SSR-34 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  D-SSR-12 docs/env/gitignore: local schema-packs + NODE_SCHEMA_*; Railway SCHEMA_PACKS_ROOT;
+  SCHEMA_ROOT_URL ≠ mount (SSR-35 later). No pack repair; no remote-fetch code; no Railway UI.
+  Depends SSR-16 + loadable uus precondition (вне story). Do not mutate pkg-000061…090.

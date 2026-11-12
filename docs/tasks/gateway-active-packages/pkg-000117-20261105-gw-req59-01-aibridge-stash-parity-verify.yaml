@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 117
+created_at: '2026-11-05T12:01:41Z'
+label: GW-REQ59-01 aibridge stash parity verify (REQ15)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req59-req15-story-draft-stash-channel-parity-verify/STORY-GW-REQ59-01-aibridge-stash-parity-verify.md
+story_groups:
+- story_key: STORY-GW-REQ59-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t01-stash-path-inventory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t02-aibridge-client-contract-parity/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t03-auth-boundary-service-vs-citizen/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t04-stash-neq-story-assert/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t05-evidence-or-gap-note/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req59-req15-story-draft-stash-channel-parity-verify/stories/STORY-GW-REQ59-01-aibridge-stash-parity-verify/task-gw-req59-01-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-11-05T12:01:41Z. Backlog REQ59-01 materialize.
+  Epic CREATE EPIC-req59-req15-story-draft-stash-channel-parity-verify.
+  Branch dev only. Scaffold only — verify-first; no product this APPLY.
+  AC-GW-59-01…04 verbatim; no invent AC.
+  Default Pass = no gateway code change if parity holds.
+  Draft: .cursor/plans/p1_gw_req59_01_scaffold_20261105T115913Z.plan.md

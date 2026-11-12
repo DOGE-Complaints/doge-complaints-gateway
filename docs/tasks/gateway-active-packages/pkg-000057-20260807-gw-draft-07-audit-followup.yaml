@@ -1,0 +1,35 @@
+schema_version: 1
+package_sequence: 57
+created_at: '2026-08-07T07:35:23Z'
+label: GW-DRAFT-07 audit follow-up R1/R2/G3/G4 (EPIC-M2-21) — DRAFT pkg activation none
+input_kind: epic_story_tree
+activation: none
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/analysis/audit-gw-draft-07-hosted-schema-blocks-browser-submit-2026-08-07.md
+story_groups:
+- story_key: STORY-GW-DRAFT-07
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t07-audit-r1-ac-retry-wording-align/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t08-audit-r2-post-done-as-is-tense/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t09-audit-g4-required-story-labels-assert/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t10-audit-g3-spa-bug-01-unblock-pointer/README.md
+notes: |
+  P5 scaffold 2026-08-07 (redo handoff 2026-08-07T08:12:18Z). TASKED=4 (>3) → draft pkg;
+  do NOT point gateway-active-package.current.yaml in P5. No run_mode (threshold exceeded).
+  Parent pkg-000056 remains default YAML until P1 promote. Field activation: none = P5 did not
+  auto-activate; after P1, queue SSOT is current.yaml pointer (do not rewrite this pkg paths).
+
+  Next operator launch (copy-paste order):
+  1) P1 promote — ONLY edit doge-complaints-gateway/docs/tasks/gateway-active-package.current.yaml:
+     package_file: gateway-active-packages/pkg-000057-20260807-gw-draft-07-audit-followup.yaml
+  2) P2 — from DOGEstonia/ root:
+     python3 docs/methodology/Zeya888-builder-queue/cli/builder_resolve_queue.py --project gateway --verify
+     python3 docs/methodology/Zeya888-builder-queue/cli/builder_resolve_queue.py --project gateway --write-build-window --story-key STORY-GW-DRAFT-07
+     (or --window-flat-start 1 --window-flat-end 4)
+  3) P6 Execute (NOT P3) — product DRAFT-07 already Done; gaps only:
+     @.cursor/plans/Gateway_builder.plan.md + @$buildWindowFile
+  4) Optional P7 re-audit / P8 commits.
+
+  Audit SSOT: doge-complaints-gateway/docs/analysis/audit-gw-draft-07-hosted-schema-blocks-browser-submit-2026-08-07.md
+  (repo-root audit-gw-draft-07-….md does not exist).

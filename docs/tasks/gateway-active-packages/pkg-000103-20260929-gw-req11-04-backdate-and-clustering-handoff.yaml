@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 103
+created_at: '2026-09-29T14:33:30Z'
+label: GW-REQ11-04 backdate B + clustering handoff (EPIC-req11-demo-life-sim-fixtures-and-replay)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req11-demo-life-sim-fixtures-and-replay/STORY-GW-REQ11-04-backdate-and-clustering-handoff.md
+story_groups:
+- story_key: STORY-GW-REQ11-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t01-created-at-stamp-evidence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t02-lock-b-service-auth-backdate/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t03-replay-apply-fixture-timestamps/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t04-clustering-wait-runbook/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t05-k3-card-count-follows-clustering/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req11-demo-life-sim-fixtures-and-replay/stories/STORY-GW-REQ11-04-backdate-and-clustering-handoff/task-gw-req11-04-t06-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-29T14:33:30Z. Backlog REQ11-04 materialize.
+  Epic REUSE EPIC-req11-demo-life-sim-fixtures-and-replay.
+  Branch dev only.
+  Lock B: service-auth backdate after stash→submit; no invent public intake timestamps.
+  Clustering wait runbook + K3 note; no threads/spa/SQL dump Pass.
+  Do not rewrite bullrun §Актуальная точка.
+  Do not mutate pkg-000100…102.

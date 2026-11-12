@@ -2,12 +2,12 @@ builder_project: gateway
 op_chat_title: OP-gateway
 builder_chat_title: BLD-gateway
 validator_chat_title: VAL-gateway
-builder_agent_id: fe872a2c-f26c-46f6-adb1-82b5db94a1d3
-validator_agent_id: bd1200a7-c410-4eca-83d5-f38f37fec33e
+builder_agent_id: 8af9aafe-8e7e-44fc-9192-77c27de04a7a
+validator_agent_id: d6ae2f99-eb74-4e31-b3ec-0d418ac90288
 bind_mode: task
 delivery: subagent
 process_file: doge-complaints-gateway/docs/tasks/run-reports/operator-sessions/OP-gateway.process.md
-working_plan: .cursor/plans/OP-gateway-req11-11-12-20261002.plan.md
+working_plan: .cursor/plans/OP-gateway-req59-01-20261105.plan.md
 overnight: on
 pause_after_story: false
 auto_approve_plan: true
@@ -15,10 +15,10 @@ stop_only_on: explicit operator стоп|stop|pause|halt OR runbook G* HALT
 stay_on_branch: dev
 return_to_dev: done
 branch_policy: default-dev-only — never switch to semantic-schema-runtime (or any other branch) unless operator explicitly orders it in chat
-status: agents-live
-wave: req11-11-12-20261002
-queue: REQ11-11,REQ11-12
-next: REQ11-11
-phase: P1.3a
-pkg_tip: pkg-000108
-Updated: 2026-10-02T08:50:00Z
+status: queue-exhausted
+wave: req59-01-20261105
+queue: REQ59-01
+next: none
+phase: STOP
+pkg_tip: pkg-000117
+Updated: 2026-11-05T12:22:00Z

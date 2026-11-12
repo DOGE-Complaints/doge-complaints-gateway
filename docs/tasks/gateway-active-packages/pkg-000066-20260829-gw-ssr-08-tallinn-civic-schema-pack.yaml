@@ -1,0 +1,22 @@
+schema_version: 1
+package_sequence: 66
+created_at: '2026-08-29T17:47:38Z'
+label: GW-SSR-08 Tallinn civic as schema pack (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-08-tallinn-civic-schema-pack.md
+story_groups:
+- story_key: STORY-GW-SSR-08
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t00-tallinn-civic-pack-catalog/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t01-exact-lenses-civic-equivalents/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t02-pack-readiness-policy/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t03-pack-load-membership/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t04-civic-unbound-regression/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t05-envelope-example/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-08-tallinn-civic-schema-pack/task-gw-ssr-08-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-29T17:47:38Z. Backlog SSR-08 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Do not rewrite T-wave G3. SSR-06/07/09/12 out of this pkg. Do not mutate pkg-000061…pkg-000065.

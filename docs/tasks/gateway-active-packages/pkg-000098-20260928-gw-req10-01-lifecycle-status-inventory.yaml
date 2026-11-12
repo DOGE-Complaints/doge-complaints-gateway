@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 98
+created_at: '2026-09-28T17:11:07Z'
+label: GW-REQ10-01 lifecycle_status inventory (EPIC-req10-lifecycle-status-normalize)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-req10-lifecycle-status-normalize.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/req10-lifecycle-status-normalize/STORY-GW-REQ10-01-lifecycle-status-inventory.md
+story_groups:
+- story_key: STORY-GW-REQ10-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t01-db-distinct-inventory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t02-fixture-sqlite-scan/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t03-closed-list-normalize-note/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-req10-lifecycle-status-normalize/stories/STORY-GW-REQ10-01-lifecycle-status-inventory/task-gw-req10-01-t04-story-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-28T17:11:07Z. Backlog REQ10-01 materialize.
+  Epic NEW EPIC-req10-lifecycle-status-normalize (no EPIC-M2-*).
+  Branch dev only.
+  Inventory ONLY — no production backfill / mapper slim / debug removal (→ REQ10-02).
+  Do not invent DB schema; H8 out of wave.
+  Do not rewrite bullrun §Актуальная точка.
+  Do not mutate pkg-000097.

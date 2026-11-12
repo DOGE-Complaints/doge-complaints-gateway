@@ -1,0 +1,23 @@
+schema_version: 1
+package_sequence: 75
+created_at: '2026-08-30T14:55:04Z'
+label: GW-SSR-18 cluster active schema (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-18-cluster-active-schema.md
+story_groups:
+- story_key: STORY-GW-SSR-18
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t01-pack-iff-active-pair/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t02-civic-unbound-legacy/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t03-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t04-docs-warehouse-vs-env/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-18-cluster-active-schema/task-gw-ssr-18-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T14:55:04Z. Backlog SSR-18 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Cluster only active pack; persist pair ≠ NODE_SCHEMA_* → skip+log; unbound civic as-is.
+  Dual from active pack.json. Manual warehouse vs NODE_SCHEMA_*. No ClusterLens change.
+  No GET /schema-active. No SSR-06/07/12. No new SQL. No GPT UI. No T06.
+  Do not mutate pkg-000061…pkg-000074. Do not reopen 01–05/08–17.

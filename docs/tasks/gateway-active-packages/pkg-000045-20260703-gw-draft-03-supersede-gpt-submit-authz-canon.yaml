@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 45
+created_at: '2026-07-03T11:15:28Z'
+label: GW-DRAFT-03 supersede gpt-submit-authz canon (EPIC-M2-21)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/story-draft-handoff/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon.md
+story_groups:
+- story_key: STORY-GW-DRAFT-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon/task-gw-draft-03-t01-gpt-submit-authz-superseded-index/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon/task-gw-draft-03-t02-gateway-runtime-docs-browser-submit-as-built/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon/task-gw-draft-03-t03-identity-side-canon-sync-backlog-pointer/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon/task-gw-draft-03-t04-grep-doc-consistency-no-dual-truth/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-03-supersede-gpt-submit-authz-canon/task-gw-draft-03-t05-story-acceptance-gate/README.md

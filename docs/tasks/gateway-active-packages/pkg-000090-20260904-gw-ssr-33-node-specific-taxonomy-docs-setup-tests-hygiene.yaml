@@ -1,0 +1,22 @@
+schema_version: 1
+package_sequence: 90
+created_at: '2026-09-04T13:23:06Z'
+label: GW-SSR-33 node-specific taxonomy docs setup tests hygiene (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene.md
+story_groups:
+- story_key: STORY-GW-SSR-33
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t01-schema-packs-readme-axes-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t02-manual-operator-setup-usage/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t03-index-inventory-gpt-ssr15-handoff/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t04-gap-handoff-uus-align/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-33-node-specific-taxonomy-docs-setup-tests-hygiene/task-gw-ssr-33-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-04T13:23:06Z. Backlog SSR-33 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  D-SSR-11 docs-only: README/manual/INDEX/inventory/GPT-SSR-15 handoff note; gap handoff align.
+  No resolver/normalize_axis/ClusterLens/uus pack.json/GPT file edit.
+  Depends SSR-31+32 Done. Do not mutate pkg-000061…089.

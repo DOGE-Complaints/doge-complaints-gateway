@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 84
+created_at: '2026-09-01T13:12:45Z'
+label: GW-SSR-27 geo precision + instance territory (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-27-geo-precision-instance-territory.md
+story_groups:
+- story_key: STORY-GW-SSR-27
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t00-contract-readme/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t01-types-geo-precision/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t02-loader-geo-blocks/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t03-wire-persist-detail-level/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t04-projection-detail-level/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t05-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t06-manual-three-level-geo/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-27-geo-precision-instance-territory/task-gw-ssr-27-t07-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-01T13:12:45Z. Backlog SSR-27 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  geo_model + gpt_instance_territory pack; detail_level wire→persist→Issue.geo.
+  No ClusterLens. No invent coords. No HTTP geo-filter. Parallel-safe vs taxonomy.
+  Tallinn instance seed Option A/B at P3 only. Do not start 28/29. Do not mutate pkg-000061…083.

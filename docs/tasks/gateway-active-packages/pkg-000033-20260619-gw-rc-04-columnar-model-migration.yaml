@@ -1,0 +1,20 @@
+schema_version: 1
+package_sequence: 33
+created_at: '2026-06-19T21:03:09Z'
+label: GW-RC-04 columnar model migration (EPIC-M2-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issues-read-contract/STORY-GW-RC-04-columnar-model-migration.md
+story_groups:
+- story_key: STORY-GW-RC-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t01-adr-column-schema-and-view-decision/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t02-schema-migration-doge-issues-columns/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t03-write-path-save-projection-columnar/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t04-read-path-and-filters-columnar/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t05-three-backend-parity-supabase-sqlite-inmemory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t06-issues-dashboard-view-columnar/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t07-data-migration-drop-payload-json/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t08-contract-tests-and-reproject-script/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-04-columnar-model-migration/task-gw-rc-04-t09-story-acceptance-gate/README.md

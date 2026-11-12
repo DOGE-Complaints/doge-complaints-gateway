@@ -1,0 +1,14 @@
+schema_version: 1
+package_sequence: 25
+created_at: '2026-05-28T11:40:00Z'
+label: REQ-45 Production logging noise reduction (EPIC-M2-09)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability.md
+decision_ref: doge-complaints-gateway/docs/requirements/45-production-logging-noise-reduction.md
+story_groups:
+- story_key: STORY-M2-09-08
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-08-production-logging-noise-reduction-req45/task-m2-09-08-t01-logging-setup-stdout-stderr-split-and-httpx-httpcore-suppress/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-08-production-logging-noise-reduction-req45/task-m2-09-08-t02-logging-setup-tests-handler-split-update/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-08-production-logging-noise-reduction-req45/task-m2-09-08-t03-production-logging-docs-quickstart-guidance/README.md

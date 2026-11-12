@@ -1,0 +1,22 @@
+schema_version: 1
+package_sequence: 86
+created_at: '2026-09-01T13:43:47Z'
+label: GW-SSR-29 taxonomy docs + operator copy-paste seam (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam.md
+story_groups:
+- story_key: STORY-GW-SSR-29
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t01-manual-taxonomy-copy-paste/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t02-schema-packs-readme-crosslink/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t03-gateway-index-hygiene/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t04-story-checklist-canonical/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t05-cross-repo-handoff/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-29-taxonomy-docs-operator-copy-paste-seam/task-gw-ssr-29-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-01T13:43:47Z. Backlog SSR-29 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Docs-only: manual + README cross-link + INDEX + checklist + handoff. No implement code.
+  Depends SSR-26 + SSR-28 Done. No GPT UI materialize in this pkg. Do not mutate pkg-000061…085.

@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 10
+created_at: '2026-05-08T13:05:00Z'
+label: EPIC-M2-09 runtime log diagnostics wave (STORY-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability.md
+story_groups:
+- story_key: STORY-M2-09-06
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-log-observability-primary/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-t01-gap-log-01-global-exception-trace/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-t02-gap-log-02-cron-run-correlation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-t03-gap-log-03-supabase-request-failed/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-t04-gap-log-04-story-pipeline-outcome/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-09-security-config-observability/stories/STORY-M2-09-06/task-m2-09-06-t05-gap-log-05-shutdown-reason/README.md

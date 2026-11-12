@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 62
+created_at: '2026-08-28T13:38:52Z'
+label: GW-SSR-02 structured_payload persist (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-02-structured-payload-persist.md
+story_groups:
+- story_key: STORY-GW-SSR-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t00-parent-persist-field-map/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t01-story-record-optional-fields/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t02-payload-hash/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t03-sqlite-alter-upsert/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t04-lifecycle-copy-replace/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t05-supabase-row-select/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t06-migration-bootstrap-alter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t07-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-02-structured-payload-persist/task-gw-ssr-02-t08-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-28T13:38:52Z. Backlog SSR-02 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  SSR-03…07 out of this pkg. Do not mutate pkg-000061.

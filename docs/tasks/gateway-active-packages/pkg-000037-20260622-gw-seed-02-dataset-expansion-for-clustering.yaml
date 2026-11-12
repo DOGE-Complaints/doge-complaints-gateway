@@ -1,0 +1,16 @@
+schema_version: 1
+package_sequence: 37
+created_at: '2026-06-22T10:20:39Z'
+label: GW-SEED-02 dataset expansion for clustering (EPIC-M2-19)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/demo-data-seeding/STORY-GW-SEED-02-dataset-expansion-for-clustering.md
+story_groups:
+- story_key: STORY-GW-SEED-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t01-target-cluster-design-matrix/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t02-generate-simulation-canvas-v0-2/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t03-local-clustering-and-promotion-verify/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t04-expected-board-fill-matrix/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-19-demo-data-seeding/stories/STORY-GW-SEED-02-dataset-expansion-for-clustering/task-gw-seed-02-t05-story-acceptance-gate/README.md

@@ -1,0 +1,18 @@
+schema_version: 1
+package_sequence: 43
+created_at: '2026-07-03T08:28:53Z'
+label: GW-DRAFT-01 story draft stash (EPIC-M2-21)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/story-draft-handoff/STORY-GW-DRAFT-01-story-draft-stash.md
+story_groups:
+- story_key: STORY-GW-DRAFT-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t01-story-draft-repository-port/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t02-story-draft-store-adapters/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t03-post-story-drafts-route/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t04-get-story-drafts-route/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t05-story-draft-contract-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t06-runtime-docs-story-drafts-api/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-01-story-draft-stash/task-gw-draft-01-t07-story-acceptance-gate/README.md

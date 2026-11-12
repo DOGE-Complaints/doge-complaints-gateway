@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 23
+created_at: '2026-05-23T12:00:00Z'
+label: REQ-43 institution_json story intake (EPIC-M2-02)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store.md
+decision_ref: doge-complaints-gateway/docs/requirements/43-institution-json-story-column.md
+story_groups:
+- story_key: STORY-M2-02-09
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t01-intake-contract-narrative-institution/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t02-story-record-and-intake-mapping/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t03-story-store-institution-json-persistence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t04-issue-projection-institution-propagation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t05-institution-intake-acceptance-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-09-institution-json-story-column-req43/task-m2-02-09-t06-runtime-docs-openapi-persistence-model/README.md

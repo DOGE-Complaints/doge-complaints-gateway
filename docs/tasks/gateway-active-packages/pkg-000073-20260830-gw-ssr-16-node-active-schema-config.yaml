@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 73
+created_at: '2026-08-30T14:18:27Z'
+label: GW-SSR-16 node active schema config (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-16-node-active-schema-config.md
+story_groups:
+- story_key: STORY-GW-SSR-16
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t01-config-fields/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t02-boot-resolve/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t03-lifespan-log/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t04-env-docs/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t05-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-16-node-active-schema-config/task-gw-ssr-16-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-30T14:18:27Z. Backlog SSR-16 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  NODE_SCHEMA_ID + NODE_SCHEMA_VERSION required in AppConfig; boot resolve_pack.
+  No DEFAULT_SCHEMA_PACK. No SCHEMA_PACKS_ROOT in AppConfig. No intake gate (→17).
+  No ClusterLens change. No GET /schema-active. No SSR-06/07/12. No T07.
+  Do not mutate pkg-000061…pkg-000072. Do not reopen 01–05/08–15.

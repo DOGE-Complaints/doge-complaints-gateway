@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 31
+created_at: '2026-05-29T12:00:00Z'
+label: GW-RC-02 type canonical on read (EPIC-M2-06)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/issues-read-contract/STORY-GW-RC-02-type-canonical-on-read.md
+story_groups:
+- story_key: STORY-GW-RC-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t01-canonicalize-type-in-merge/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t02-unknown-type-default-improvement/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t03-unknown-type-anomaly-file-log/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t04-type-filter-canonical-compare/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t05-acceptance-tests-legacy-lowercase-type/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-06-spa-projection-and-i18n/stories/STORY-GW-RC-02-type-canonical-on-read/task-gw-rc-02-t06-story-acceptance-gate/README.md

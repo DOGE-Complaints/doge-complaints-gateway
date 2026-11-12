@@ -1,0 +1,15 @@
+schema_version: 1
+package_sequence: 17
+created_at: '2026-05-17T12:00:00Z'
+label: REQ-38 data integrity issue links tests validation (STORY-M2-17-02)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model.md
+story_groups:
+- story_key: STORY-M2-17-02
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-02-data-integrity-issue-links-tests-validation-req38/task-m2-17-02-t01-living-issues-extend-e2e-test/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-02-data-integrity-issue-links-tests-validation-req38/task-m2-17-02-t02-issue-story-links-story-index/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-02-data-integrity-issue-links-tests-validation-req38/task-m2-17-02-t03-supabase-linkage-lookup-semantics/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-02-data-integrity-issue-links-tests-validation-req38/task-m2-17-02-t04-arweave-txid-validation/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-17-living-issues-cluster-growth-model/stories/STORY-M2-17-02-data-integrity-issue-links-tests-validation-req38/task-m2-17-02-t05-req38-acceptance-tests/README.md

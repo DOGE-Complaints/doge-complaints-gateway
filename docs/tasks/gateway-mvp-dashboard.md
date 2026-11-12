@@ -3,23 +3,23 @@
 > **Scope-Id:** mvp  
 > **Scope:** MVP  
 > **SSOT:** package `INDEX.md` files + [bullrun-launch-index.md](bullrun-launch-index.md)  
-> **Updated:** 2026-10-10T15:30:33Z  
-> **Last change:** REQ56-01 P3 Done pkg-000111 (gate PASS · offline 10); REQ56-02 Todo; param `search` locked.
+> **Updated:** 2026-10-15T10:42:18Z  
+> **Last change:** Materialize REQ57 backlog package `req57-issue-sense-brief-poster` (4 stories Todo) + ENV-CHECKLIST; public keys / env / brief-wins locked.
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Backlog packages | 12 |
-| Active work items | 46 |
-| Done | 42 |
-| Todo / In Progress | 4 |
+| Backlog packages | 13 |
+| Active work items | 48 |
+| Done | 43 |
+| Todo / In Progress | 5 |
 | Deferred | 3 |
-| **Overall progress (active)** | **~91%** `███████████░` |
+| **Overall progress (active)** | **~90%** `███████████░` |
 
-*Active = prior MVP Done + TASK-ES-04 Todo + REQ56-01 Done pkg-000111 + REQ56-02 Todo. Deferred вне %.*  
+*Active = MVP Done packages + TASK-ES-04 Todo + REQ57-01…04 Todo. Deferred вне %.*  
 *SSR + REQ7 THR packages remain outside this denominator (separate scope dashboards).*  
-*REQ9 + REQ10 + REQ11 + REQ56 packages are on this board (operator lock).*
+*REQ9 + REQ10 + REQ11 + REQ56 + **REQ57** packages are on this board (operator lock).*
 
 ## By package
 
@@ -36,34 +36,37 @@
 | [req9-ops-parity-env-naming](backlog-stories/req9-ops-parity-env-naming/INDEX.md) | 2 | 2 | 0 | 0 | 100% `████████████` |
 | [req10-lifecycle-status-normalize](backlog-stories/req10-lifecycle-status-normalize/INDEX.md) | 2 | 2 | 0 | 0 | 100% `████████████` |
 | [req11-demo-life-sim-fixtures-and-replay](backlog-stories/req11-demo-life-sim-fixtures-and-replay/INDEX.md) | 5 | 5 | 0 | 0 | 100% `████████████` |
-| [req56-issues-server-text-search](backlog-stories/req56-issues-server-text-search/INDEX.md) | 2 | 0 | 1 | 1 | 50% `██████░░░░░░` |
+| [req56-issues-server-text-search](backlog-stories/req56-issues-server-text-search/INDEX.md) | 2 | 2 | 0 | 0 | 100% `████████████` |
+| [req57-issue-sense-brief-poster](backlog-stories/req57-issue-sense-brief-poster/INDEX.md) | 4 | 0 | 4 | 0 | 0% `░░░░░░░░░░░░` |
 
 *gpt-submit-authz: GAUTH-01/02 Superseded — excluded from story counts.*  
 *cabinet-api: GW-CAB-03 Deferred (post-MVP web3).*  
 *taxonomy-fidelity: TAX-01/02/03 Done; **TAX-04 Deferred**.*  
 *early-signal: TASK-ES-01/ES-02/ES-03 Done; TASK-ES-04 Todo.*  
-*req9-ops-parity-env-naming: REQ9-01 **Done** pkg-000096; REQ9-02 **Done** pkg-000097.*  
-*req10-lifecycle-status-normalize: REQ10-01 **Done** pkg-000098; REQ10-02 **Done** pkg-000099; H8 skip this wave.*  
-*req11-demo-life-sim: REQ11-01…05 **Done** pkg-000100…104 (05 PASS* live signup 429); auth lock → secrets file 1:1.*  
-*req56-issues-server-text-search: REQ56-01 **Done** [`pkg-000111`](gateway-active-packages/pkg-000111-20261010-gw-req56-01-issues-list-search-filter.yaml) P3 gate PASS; REQ56-02 Todo; param `search`; TECH-ARCH linked.*
+*req9/10/11/56: packages Done on this board.*  
+*req57-issue-sense-brief-poster: REQ57-01…04 **Todo** scaffold 2026-10-15; env [`ENV-CHECKLIST.md`](backlog-stories/req57-issue-sense-brief-poster/ENV-CHECKLIST.md).*
 
 ## Remaining
 
 | Type | Key | Title | Package/Epic | Status | Priority | Essence |
 |------|-----|-------|--------------|--------|----------|---------|
-| Story | [STORY-GW-REQ56-01](backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-01-issues-list-search-filter.md) → [pipeline](epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/STORY-GW-REQ56-01-issues-list-search-filter.md) | Issues list `search` D-S1 filter | req56 | 🔵 Done | pkg-000111 | P3 gate PASS · offline 10 |
-| Story | [STORY-GW-REQ56-02](backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-02-api-docs-search-param.md) | Document `search` API | req56 | ⚪ Todo | — | API_REFERENCE + openapi.yaml |
+| Story | [STORY-GW-REQ57-01](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-01-bind-in-projection-apply.md) | Bind-in + projection apply | req57 | ⚪ Todo | — | `/v1/issue-sense-brief/bind` + public keys |
+| Story | [STORY-GW-REQ57-02](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-02-nudge-on-create-publish.md) | Thin nudge on create/publish | req57 | ⚪ Todo | — | accept + S2S env |
+| Story | [STORY-GW-REQ57-03](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-03-sweep-retry-sense-brief.md) | Sweep / retry | req57 | ⚪ Todo | — | ClusterCronJob recover |
+| Story | [STORY-GW-REQ57-04](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-04-manual-regenerate-service.md) | Manual regenerate | req57 | ⚪ Todo | — | service-auth version bump |
 | Task | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | REQ-48 PA.2 + spa-15 seam | early-signal | ⚪ Todo | — | Docs/contract; no API |
 
 ## Requirements (intake)
 
 | REQ | Title | Status | Notes |
 |-----|-------|--------|-------|
-| [56](../requirements/56-issues-server-text-search.md) | Issues server text search (`search`) | Draft — PA.2 sync done | REQ56-01 pkg-000111 P1 scaffold; REQ56-02 Todo; TECH-ARCH linked; no product-root; SPA consumer after Ready |
-| [55](../requirements/55-req11-demo-life-sim-fixtures-and-replay.md) | REQ11 — demo life sim fixtures + replay | Draft — stories Done | REQ11-01…05 Done pkg-000100…104 (05 PASS* live signup 429); Q3 auth → 05; siblings threads `04-…`, spa `20-…` |
-| [54](../requirements/54-req10-lifecycle-status-normalize.md) | REQ10 — lifecycle_status normalize | Draft — awaiting PA.2 | REQ10-01/02 Done pkg-000098/099; siblings threads 03, spa 19; H8 skip |
-| [53](../requirements/53-req9-ops-parity-env-naming.md) | REQ9 — ops parity & env naming | Draft — awaiting PA.2 | REQ9-01/02 Done pkg-000096/097; siblings aibridge REQ-08, threads 02, identity 22, spa 18 |
-| [48](../requirements/48-early-signal-pre-cluster-data-readiness.md) | Early Signal / Pre-Cluster — Data Readiness (no invented API) | Draft — awaiting PA.2 | ES-02/03 Done; TASK-ES-04 Todo; sibling spa 15 |
+| [58](../requirements/58-req13-existing-issues-sense-brief-backfill-via-regenerate.md) | REQ13 — backfill existing Issues via regenerate | **Draft · locks closed** | CLI batch; corpus `{stories}`; dry-run; skip ready; sibling REQ-10 |
+| [57](../requirements/57-req13-issue-sense-brief-poster-projection.md) | REQ13 — sense brief + poster projection | Draft · stories Done | Package [`req57-…`](backlog-stories/req57-issue-sense-brief-poster/INDEX.md); REQ57-01…04; peer handoff |
+| [56](../requirements/56-issues-server-text-search.md) | Issues server text search (`search`) | **Ready** | REQ56-01/02 Done pkg-000111/112; SPA DUI-Q12 until FE enable |
+| [55](../requirements/55-req11-demo-life-sim-fixtures-and-replay.md) | REQ11 — demo life sim fixtures + replay | Draft — stories Done | REQ11-01…05 Done pkg-000100…104 |
+| [54](../requirements/54-req10-lifecycle-status-normalize.md) | REQ10 — lifecycle_status normalize | Draft — awaiting PA.2 | REQ10-01/02 Done pkg-000098/099 |
+| [53](../requirements/53-req9-ops-parity-env-naming.md) | REQ9 — ops parity & env naming | Draft — awaiting PA.2 | REQ9-01/02 Done pkg-000096/097 |
+| [48](../requirements/48-early-signal-pre-cluster-data-readiness.md) | Early Signal / Pre-Cluster — Data Readiness | Draft — awaiting PA.2 | ES-02/03 Done; TASK-ES-04 Todo |
 
 ## Doc-tasks Done (в active %)
 
@@ -85,34 +88,37 @@
 | EPIC-M2-22 | In Progress | CAB-01/02 Done; **GW-CAB-03 Deferred** post-MVP |
 | EPIC-M2-23 | Done active / Deferred hygiene | TAX-01/02/03 Done; **TAX-04 Deferred** |
 | [EPIC-M2-24](epics/EPIC-M2-24-early-signal-pre-cluster.md) | ES-02/ES-03 Done | TASK-ES-04 Todo |
-| [EPIC-req9-ops-parity-env-naming](epics/EPIC-req9-ops-parity-env-naming.md) | 🔵 Done | pkg-000096 + pkg-000097 Done; not `EPIC-M2-*` |
-| [EPIC-req10-lifecycle-status-normalize](epics/EPIC-req10-lifecycle-status-normalize.md) | 🔵 Done | pkg-000098 + pkg-000099 Done; not `EPIC-M2-*` |
-| [EPIC-req11-demo-life-sim-fixtures-and-replay](epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md) | 🔵 Done* | REQ11-01…05 Done pkg-000100…104 (05 PASS* live signup 429 ops leftover); not `EPIC-M2-*` |
+| [EPIC-req9-ops-parity-env-naming](epics/EPIC-req9-ops-parity-env-naming.md) | 🔵 Done | pkg-000096 + pkg-000097 |
+| [EPIC-req10-lifecycle-status-normalize](epics/EPIC-req10-lifecycle-status-normalize.md) | 🔵 Done | pkg-000098 + pkg-000099 |
+| [EPIC-req11-demo-life-sim-fixtures-and-replay](epics/EPIC-req11-demo-life-sim-fixtures-and-replay.md) | 🔵 Done* | REQ11-01…05 Done pkg-000100…104 |
+| [EPIC-req56-issues-server-text-search](epics/EPIC-req56-issues-server-text-search.md) | 🔵 Done | pkg-000111 + pkg-000112 |
 
 ## Roadmap → 100%
 
-**Текущая точка:** active **43/46 (~93%)**. Remaining: **REQ56-02**, **TASK-ES-04**. Deferred: GW-CAB-03, GW-L10N-04, **GW-TAX-04**.
+**Текущая точка:** active **43/48 (~90%)**. Remaining: **REQ57-01…04**, **TASK-ES-04**. Deferred: GW-CAB-03, GW-L10N-04, **GW-TAX-04**.
 
 | Цель | Знаменатель | Как закрыть |
 |------|-------------|-------------|
-| **Активные 100%** | 46 work items | REQ56-01 → REQ56-02; TASK-ES-04 |
+| **Активные 100%** | 48 work items | REQ57-01→04; TASK-ES-04 |
 | **Полные 100%** | + 3 deferred | CAB-03, L10N-04, TAX-04 после web3 / product / ops residual |
 
 ### Упорядоченный остаток (active then deferred)
 
 | # | Item | Почему здесь |
 |---|------|--------------|
-| 1 | [STORY-GW-REQ56-01](backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-01-issues-list-search-filter.md) | Server `search` filter (D-S1) |
-| 2 | [STORY-GW-REQ56-02](backlog-stories/req56-issues-server-text-search/STORY-GW-REQ56-02-api-docs-search-param.md) | Docs after 01 |
-| 3 | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | Docs/PA.2 seam |
+| 1 | [STORY-GW-REQ57-01](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-01-bind-in-projection-apply.md) | Bind-in + public wire |
+| 2 | [STORY-GW-REQ57-02](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-02-nudge-on-create-publish.md) | Nudge after 01 |
+| 3 | [STORY-GW-REQ57-03](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-03-sweep-retry-sense-brief.md) | Sweep after 01+02 |
+| 4 | [STORY-GW-REQ57-04](backlog-stories/req57-issue-sense-brief-poster/STORY-GW-REQ57-04-manual-regenerate-service.md) | Regenerate after 01+02 |
+| 5 | [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md) | Docs/PA.2 seam |
 | — | [GW-TAX-04](backlog-stories/taxonomy-fidelity/STORY-GW-TAX-04-alter-story-labels-uuid-residual-hosts.md) | ALTER residual UUID hosts |
 | — | [GW-CAB-03](backlog-stories/cabinet-api/STORY-GW-CAB-03-contribution-layer-api.md) / [GW-L10N-04](backlog-stories/localization-l10n/STORY-GW-L10N-04-label-taxonomy-registry-future.md) | Deferred post-MVP |
 
 ## §Now
 
-1. **REQ56-01 Done pkg-000111:** [pipeline](epics/EPIC-req56-issues-server-text-search/stories/STORY-GW-REQ56-01-issues-list-search-filter/STORY-GW-REQ56-01-issues-list-search-filter.md) · next REQ56-02 docs; param **`search`** locked.
+1. **REQ57 backlog scaffold:** [`req57-issue-sense-brief-poster`](backlog-stories/req57-issue-sense-brief-poster/INDEX.md) — fill [`ENV-CHECKLIST.md`](backlog-stories/req57-issue-sense-brief-poster/ENV-CHECKLIST.md); next story work REQ57-01.
 2. Lead product seam: [TASK-GW-ES-04](backlog-stories/early-signal-pre-cluster/TASK-GW-ES-04-req48-spa15-contract-seam.md).
-3. REQ11 / REQ10 / REQ9 packages **closed** on this board.
+3. REQ56 / REQ11 / REQ10 / REQ9 packages **closed** on this board.
 4. Deferred TAX-04 / CAB-03 / L10N-04 — только по явному решению.
 
 ## §Deferred
@@ -127,13 +133,13 @@
 
 ## §Deploy (optional)
 
-Gateway на Railway: [`railpack.json`](../../railpack.json) + env (`SERVICE_API_TOKEN`, `IDENTITY_BASE_URL`, `SPA_BASE_URL`, `DB_BACKEND=supabase`, `CORS_ALLOWED_ORIGINS`). Hosted readiness: [`REQUIRED_READINESS_TABLES`](../../src/core/infrastructure/db_supabase.py) incl. `story_labels` (DRAFT-07 Done).
+Gateway на Railway: [`railpack.json`](../../railpack.json) + env (`SERVICE_API_TOKEN`, `IDENTITY_BASE_URL`, `SPA_BASE_URL`, `DB_BACKEND=supabase`, `CORS_ALLOWED_ORIGINS`). REQ57 adds: `AIBRIDGE_BASE_URL`, `AIBRIDGE_WORKER_SENSE_BRIEF_S2S_TOKEN`, `AIBRIDGE_SENSE_BRIEF_NUDGE_ENABLED` — see [`ENV-CHECKLIST.md`](backlog-stories/req57-issue-sense-brief-poster/ENV-CHECKLIST.md).
 
 ## Mermaid — completion
 
 ```mermaid
 pie title Active work items (MVP)
-    "Done" : 38
+    "Done" : 43
     "Todo" : 5
 ```
 

@@ -1,0 +1,24 @@
+schema_version: 1
+package_sequence: 83
+created_at: '2026-09-01T12:55:39Z'
+label: GW-SSR-26 taxonomy.json pack contract + loader (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-26-taxonomy-json-pack-contract.md
+story_groups:
+- story_key: STORY-GW-SSR-26
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t00-contract-readme/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t01-types-taxonomy-pack/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t02-loader-parse-taxonomy/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t03-requiredness-tests-matrix/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t04-tests-file/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-26-taxonomy-json-pack-contract/task-gw-ssr-26-t05-story-acceptance-gate/README.md
+notes: |
+  P1.3 APPLY 2026-09-01T12:55:39Z. Backlog SSR-26 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  taxonomy.json pack contract + loader; SchemaContext.taxonomy optional.
+  No tallinn seed (SSR-28). No ClusterLens/wire taxonomy. No vocabulary.py replace.
+  Orphan taxonomy.json without taxonomy_schema must not auto-load.
+  Tests test_gw_ssr_26_*. Do not start 27/28/29. Do not mutate pkg-000061…082.

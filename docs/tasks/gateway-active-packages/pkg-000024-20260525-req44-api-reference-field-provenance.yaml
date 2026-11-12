@@ -1,0 +1,13 @@
+schema_version: 1
+package_sequence: 24
+created_at: '2026-05-25T10:00:00Z'
+label: REQ-44 API_REFERENCE field provenance clarity (EPIC-M2-02)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store.md
+decision_ref: doge-complaints-gateway/docs/requirements/44-api-reference-field-provenance-clarity.md
+story_groups:
+- story_key: STORY-M2-02-10
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-10-api-reference-field-provenance-clarity-req44/task-m2-02-10-t01-api-reference-original-text-provenance-docs/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-02-story-intake-and-store/stories/STORY-M2-02-10-api-reference-field-provenance-clarity-req44/task-m2-02-10-t02-api-reference-gpt-signals-provenance-docs/README.md

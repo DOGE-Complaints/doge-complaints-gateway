@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 14
+created_at: '2026-05-15T18:00:00Z'
+label: REQ-35 geo scope node architecture and filtering (STORY-M2-08-05)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module.md
+story_groups:
+- story_key: STORY-M2-08-05
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t01-story-geo-snapshot-admin-levels/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t02-geo-provider-stubs-admin-fields/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t03-persistence-geo-snapshot-jsonb/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t04-config-cluster-geo-scope-and-filter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t05-cluster-engine-geo-filter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t06-intake-geo-scope-rejection/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-08-geo-intelligence-module/stories/STORY-M2-08-05-geo-scope-node-architecture-and-filtering/task-m2-08-05-t07-tests-req35-acceptance/README.md

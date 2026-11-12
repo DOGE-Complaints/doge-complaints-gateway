@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 52
+created_at: '2026-07-13T09:31:11Z'
+label: GW-CAB-01 story activity API (EPIC-M2-22)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/cabinet-api/STORY-GW-CAB-01-story-activity-api.md
+story_groups:
+- story_key: STORY-GW-CAB-01
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t01-decision-lock-status-mapping-and-metrics-spec/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t02-repository-list-stories-by-submitter/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t03-story-activity-query-service-metrics-and-status-map/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t04-get-story-activity-route-handler-openapi/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t05-tests-story-activity-auth-scoping-and-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-22-user-cabinet-api/stories/STORY-GW-CAB-01-story-activity-api/task-gw-cab-01-t06-story-acceptance-gate/README.md

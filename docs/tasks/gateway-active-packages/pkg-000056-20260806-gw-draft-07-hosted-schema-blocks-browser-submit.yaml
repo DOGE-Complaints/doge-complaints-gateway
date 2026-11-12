@@ -1,0 +1,17 @@
+schema_version: 1
+package_sequence: 56
+created_at: '2026-08-06T21:04:29Z'
+label: GW-DRAFT-07 hosted schema blocks browser submit (EPIC-M2-21)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/story-draft-handoff/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit.md
+story_groups:
+- story_key: STORY-GW-DRAFT-07
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t01-hosted-readiness-table-inventory/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t02-apply-story-labels-text-fk-ddl/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t03-redeploy-gateway-clear-deps-cache/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t04-verify-ready-schema-db-ready/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t05-browser-submit-smoke-and-evidence/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-21-story-draft-handoff/stories/STORY-GW-DRAFT-07-hosted-schema-blocks-browser-submit/task-gw-draft-07-t06-story-acceptance-gate/README.md

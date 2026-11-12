@@ -5,15 +5,15 @@
 > **Dashboard (Semantic Schema Runtime — not MVP):** [`gateway-semantic-schema-runtime-dashboard.md`](../gateway-semantic-schema-runtime-dashboard.md)  
 > **Dashboard (REQ7 threads shell — not MVP):** [`gateway-req7-threads-shell-dashboard.md`](../gateway-req7-threads-shell-dashboard.md)  
 > **Audit:** [`backlog-status-audit-2026-07-10.md`](../../analysis/backlog-status-audit-2026-07-10.md)  
-> **Updated:** 2026-10-10T15:30:33Z
+> **Updated:** 2026-10-15T10:42:18Z
 
 ## Summary
 
 | Packages | Product stories (excl. superseded) | Done | Todo / In Progress | Deferred |
 |----------|-----------------------------------|------|--------------------|----------|
-| 14 | see MVP dashboard + non-MVP scopes | MVP active **43/46 (~93%)** after REQ56-01 P3 Done; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ56-01/02 Done pkg-000112 | **3** (CAB-03, L10N-04, TAX-04) |
+| 15 | see MVP dashboard + non-MVP scopes | MVP active see dashboard; non-MVP: SSR + THR shell | MVP: TASK-ES-04 + REQ57-01…04 Todo | **3** (CAB-03, L10N-04, TAX-04) |
 
-*Канон метрик MVP: [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md). `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в MVP %. Пакеты `req9-*`, `req10-*`, `req11-demo-life-sim-fixtures-and-replay`, `req56-issues-server-text-search` **включены** в MVP board (operator lock).*
+*Канон метрик MVP: [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md). `semantic-schema-runtime` и `issue-thread-context-and-node-verification` **не** в MVP %. Пакеты `req9-*`, `req10-*`, `req11-*`, `req56-*`, `req57-issue-sense-brief-poster` **включены** в MVP board (operator lock).*
 
 ## By package
 
@@ -33,6 +33,8 @@
 | [req10-lifecycle-status-normalize](req10-lifecycle-status-normalize/INDEX.md) | 2 Done (REQ10-01 pkg-000098; REQ10-02 pkg-000099) | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ54; parent REQ10; H8 skip this wave |
 | [req11-demo-life-sim-fixtures-and-replay](req11-demo-life-sim-fixtures-and-replay/INDEX.md) | REQ11 package Done on MVP board | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) | REQ55; parent REQ11 |
 | [req56-issues-server-text-search](req56-issues-server-text-search/INDEX.md) | REQ56-01/02 Done pkg-000112 | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) · epic [`EPIC-req56`](../epics/EPIC-req56-issues-server-text-search.md) | REQ56; gateway-local; param `search`; TECH-ARCH linked |
+| [req57-issue-sense-brief-poster](req57-issue-sense-brief-poster/INDEX.md) | REQ57-01…04 Todo (scaffold) | **в MVP board**; [gateway-mvp-dashboard.md](../gateway-mvp-dashboard.md) · env [`ENV-CHECKLIST.md`](req57-issue-sense-brief-poster/ENV-CHECKLIST.md) | REQ57; parent REQ13; peer aibridge handoff; public keys locked |
+| [req59-req15-story-draft-stash-channel-parity-verify](req59-req15-story-draft-stash-channel-parity-verify/INDEX.md) | REQ59-01 🔵 Done (Awaiting Commits) · tip **pkg-000117** | REQ15 verify-first · parity holds · no product | REQ59; parent REQ15; Keep stash · evidence Present |
 
 ## Retired
 
@@ -67,3 +69,4 @@ Pipeline stories live under `docs/tasks/epics/`. Backlog files here are product/
 - REQ-54 REQ10 lifecycle_status normalize: [`req10-lifecycle-status-normalize/INDEX.md`](req10-lifecycle-status-normalize/INDEX.md) · [`54-req10-lifecycle-status-normalize.md`](../../requirements/54-req10-lifecycle-status-normalize.md) · MVP board [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md)
 - REQ-55 REQ11 demo life sim fixtures + replay: [`req11-demo-life-sim-fixtures-and-replay/INDEX.md`](req11-demo-life-sim-fixtures-and-replay/INDEX.md) · [`55-req11-demo-life-sim-fixtures-and-replay.md`](../../requirements/55-req11-demo-life-sim-fixtures-and-replay.md) · MVP board [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md)
 - REQ-56 issues server text search: [`req56-issues-server-text-search/INDEX.md`](req56-issues-server-text-search/INDEX.md) · [`56-issues-server-text-search.md`](../../requirements/56-issues-server-text-search.md) · TECH-ARCH [`TECH-ARCH-issues-server-text-search.md`](../../architecture/TECH-ARCH-issues-server-text-search.md) · MVP board [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md)
+- REQ-57 REQ13 sense brief + civic poster: [`req57-issue-sense-brief-poster/INDEX.md`](req57-issue-sense-brief-poster/INDEX.md) · [`57-req13-issue-sense-brief-poster-projection.md`](../../requirements/57-req13-issue-sense-brief-poster-projection.md) · arch [`issue-sense-brief-poster/`](../../architecture/issue-sense-brief-poster/00-overview.md) · MVP board [`gateway-mvp-dashboard.md`](../gateway-mvp-dashboard.md)

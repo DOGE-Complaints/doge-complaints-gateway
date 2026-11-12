@@ -1,0 +1,25 @@
+schema_version: 1
+package_sequence: 70
+created_at: '2026-08-29T19:08:43Z'
+label: GW-SSR-11 pack-declared Issue projection (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-11-pack-declared-issue-projection.md
+story_groups:
+- story_key: STORY-GW-SSR-11
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t00-pack-card-fields-contract/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t01-loader-card-allowlist/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t02-project-pack-issue-fields/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t03-tests-public-dict-no-dump/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-11-pack-declared-issue-projection/task-gw-ssr-11-t04-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-29T19:08:43Z. Backlog SSR-11 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  Named card fields on GET /node/issues; no structured_payload dump.
+  Do not project forbidden/node_private. Civic Issues no new required keys.
+  SchemaRuntime.project stub stays NotImplementedError. Overlay UI spa-app not this story.
+  Do not expand ClusterLens. Civic factory default True. No HTTP filter. No identity.
+  SSR-06/07/12/14/15 out of this pkg. Do not mutate pkg-000061…pkg-000069.
+  Do not reopen 01–05/08–10/13.

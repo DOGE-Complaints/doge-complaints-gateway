@@ -1,0 +1,21 @@
+schema_version: 1
+package_sequence: 21
+created_at: '2026-05-18T20:00:00Z'
+label: REQ-41 production test coverage (EPIC-M2-18 wave)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing.md
+story_groups:
+- story_key: STORY-M2-18-03
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-03-local-real-http-smoke-req41/task-m2-18-03-t15-gap41-01-local-server-smoke/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-03-local-real-http-smoke-req41/task-m2-18-03-t16-gap41-06-local-server-async-read/README.md
+- story_key: STORY-M2-18-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-04-offline-production-paths-req41/task-m2-18-04-t17-gap41-02-cron-clustering-timing/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-04-offline-production-paths-req41/task-m2-18-04-t18-gap41-03-concurrent-intake/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-04-offline-production-paths-req41/task-m2-18-04-t19-gap41-04-config-env-only/README.md
+- story_key: STORY-M2-18-05
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-05-live-integration-ci-req41/task-m2-18-05-t20-gap41-05-live-integration-ci/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-M2-18-cross-layer-contract-testing/stories/STORY-M2-18-05-live-integration-ci-req41/task-m2-18-05-t21-ac41-8-testing-architecture-doc/README.md

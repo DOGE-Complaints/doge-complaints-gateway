@@ -1,0 +1,21 @@
+schema_version: 1
+package_sequence: 64
+created_at: '2026-08-28T14:30:47Z'
+label: GW-SSR-04 schema-pack exact lens membership (EPIC-semantic-schema-runtime)
+input_kind: epic_story_tree
+tasks_root: doge-complaints-gateway/docs/tasks/
+epic_file: doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime.md
+decision_ref: doge-complaints-gateway/docs/tasks/backlog-stories/semantic-schema-runtime/STORY-GW-SSR-04-schema-driven-cluster-lens.md
+story_groups:
+- story_key: STORY-GW-SSR-04
+  paths:
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t01-pack-engine-exact-membership/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t02-orchestrator-schema-bound-branch/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t03-persist-membership-before-issue/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t04-lifecycle-keep-ready-for-profile/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t05-unit-tests/README.md
+  - doge-complaints-gateway/docs/tasks/epics/EPIC-semantic-schema-runtime/stories/STORY-GW-SSR-04-schema-driven-cluster-lens/task-gw-ssr-04-t06-story-acceptance-gate/README.md
+notes: |
+  P1.3 2026-08-28T14:30:47Z. Backlog SSR-04 materialize. Reuse EPIC-semantic-schema-runtime.
+  Branch semantic-schema-runtime only. Do not rewrite bullrun §Актуальная точка.
+  SSR-05…07 out of this pkg. Do not mutate pkg-000061 / pkg-000062 / pkg-000063.
