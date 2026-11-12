@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient  # pyright: ignore[reportMissingImport
 
 from core.api.asgi_app import _clear_api_dependencies_cache, app
 from core.intake import INTAKE_SCHEMA_VERSION
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.story_draft_intake_helpers import post_intake_via_story_drafts
 
 
@@ -67,6 +68,7 @@ def test_openapi_response_contract_matches_runtime_envelope_shape(
         client,
         json={
             "schema_version": INTAKE_SCHEMA_VERSION,
+            "schema_binding": active_node_schema_binding(),
             "submitter": {
                 "external_user_id": "openapi-runtime-user",
                 "identity_issuer": "https://idp.example.com/eid",

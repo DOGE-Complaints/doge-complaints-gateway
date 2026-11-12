@@ -25,7 +25,12 @@ from core.promotion.repositories import (
     InMemoryIssueCandidateStore,
     InMemoryReviewAuditLogRepository,
 )
-from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.intake_v2_fixtures import (
+    as_unbound_civic,
+    intake_payload_simple,
+    make_story_record,
+    narrative_dict,
+)
 
 
 def test_redact_pii_true_returns_redacted() -> None:
@@ -82,6 +87,7 @@ def test_intake_debug_jsonl_five_stages(tmp_path: Path, monkeypatch: pytest.Monk
     payload["narrative"]["canonical_type"] = "complaint"
     payload["narrative"]["canonical_labels"] = ["roads", "broken_infrastructure"]
     created = intake.create_story(parse_story_intake_request(payload))
+    stories.save_story(as_unbound_civic(created.story))
     story_id = created.story.story_id
 
     stories.save_story(

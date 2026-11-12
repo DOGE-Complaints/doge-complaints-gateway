@@ -6,6 +6,7 @@ from core.geo.repositories import InMemoryGeoCacheRepository
 from core.geo.metrics import InMemoryGeoMetrics
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 
 
 def _geo_service() -> GeoService:
@@ -42,6 +43,7 @@ def _payload(location_query: str | None) -> dict:
         narrative["location_query"] = location_query
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
+        "schema_binding": active_node_schema_binding(),
         "submitter": {
             "external_user_id": "u-geo",
             "identity_issuer": "https://idp.example.com/eid",

@@ -127,14 +127,19 @@ def test_adapter_prefer_v2_and_thin_six_key() -> None:
         schema_binding=binding,
         location_query="ShouldNotWin",
     )
+    signals = rich_out["schema_binding"]["structured_payload"]["signals"]
+    assert signals["service_object"] == "community_space"
+    assert signals["facility_or_service_need"] == "community_space"
+    assert signals["civic_domain"] == "environment_comfort"
     rn = rich_out["narrative"]
-    assert rn["original_text"] == "ET kirjeldus"
+    # body present → original_text uses body; description_i18n fills description map
+    assert rn["original_text"] == "fallback-body"
     assert rn["title"]["et"] == "ET pealkiri"
     assert rn["title"]["en"] == "EN title"
     assert rn["description"]["ru"] == "RU описание"
     assert rn["summary"]["et"] == "ET kokkuvõte"
     assert rn["session_language"] == "et"
-    assert rn["location_query"] == "Uus Veerenni, Tallinn"
+    assert rn["location_query"] == "ShouldNotWin"
     assert rn["canonical_labels"] == ["construction", "uus-veerenni"]
     assert rn["institution"]["en"] == "Tallinn City Government"
     assert rich_out["origin"]["conversation_id"] == "life-sim-story-00002"

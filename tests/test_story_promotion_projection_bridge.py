@@ -5,6 +5,7 @@ from core.application.services import StoryIntakeService
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import I18nText, DOGEIssueStatus, StoryProjectionDraft
 
@@ -39,6 +40,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {"external_user_id": "u-1", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
             "original_text": "Broken street light and unsafe crossing near district center.",
@@ -56,6 +58,7 @@ def test_bridge_builds_projection_input_from_story_records() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {"external_user_id": "u-2", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
             "original_text": "Road infrastructure needs urgent repair.",
@@ -109,6 +112,7 @@ def test_bridge_derivation_rules_are_deterministic_for_type_and_labels() -> None
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {"external_user_id": "u-policy", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
             "original_text": "Danger and unsafe road crossing with broken lights.",
@@ -144,6 +148,7 @@ def test_bridge_supports_pluggable_projection_policy_boundary() -> None:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {"external_user_id": "u-custom", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
             "original_text": "District services need predictable scheduling.",

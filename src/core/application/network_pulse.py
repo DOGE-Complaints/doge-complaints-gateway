@@ -64,15 +64,17 @@ class NetworkPulseService:
         topics: list[dict[str, Any]] = []
         if self.story_label_repository is not None:
             topic_counter: Counter[tuple[str, str]] = Counter()
-            for story in stories:
-                for row in self.story_label_repository.list_by_story(story.story_id):
-                    if not is_public_label_disposition(row.disposition):
-                        continue
-                    label = row.label.strip()
-                    axis = row.axis.strip()
-                    if not label or not axis:
-                        continue
-                    topic_counter[(label, axis)] += 1
+            known_story_ids = {story.story_id for story in stories}
+            for row in self.story_label_repository.list_all():
+                if row.story_id not in known_story_ids:
+                    continue
+                if not is_public_label_disposition(row.disposition):
+                    continue
+                label = row.label.strip()
+                axis = row.axis.strip()
+                if not label or not axis:
+                    continue
+                topic_counter[(label, axis)] += 1
             topics = [
                 {"label": label, "axis": axis, "count": count}
                 for (label, axis), count in sorted(

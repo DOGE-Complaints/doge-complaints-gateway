@@ -7,6 +7,7 @@ from core.infrastructure.db_sqlite import SqliteDatabase, SqliteIssueCandidateSt
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.promotion.types import IssueCandidateRecord, IssueCandidateStatus
 
@@ -49,6 +50,7 @@ def test_geo_snapshot_roundtrip_persists_on_story_record() -> None:
     request = parse_story_intake_request(
         {
             "schema_version": INTAKE_SCHEMA_VERSION,
+            "schema_binding": active_node_schema_binding(),
             "submitter": {"external_user_id": "geo-roundtrip-user", "identity_issuer": "https://idp.example.com/eid"},
             "narrative": {
             "original_text": "Street condition issue near center.",

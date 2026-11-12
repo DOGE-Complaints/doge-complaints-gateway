@@ -138,6 +138,8 @@ def test_bound_tallinn_story_does_not_enter_civic_buckets() -> None:
         schema_pack_engine=SchemaPackClusterEngine(
             LocalSchemaRuntime(packs_root=PACKS_ROOT)
         ),
+        node_schema_id="tallinn_civic",
+        node_schema_version="v1",
     )
     created = orchestrator.process_all_pending()
     assert created

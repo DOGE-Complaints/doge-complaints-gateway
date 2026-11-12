@@ -185,6 +185,10 @@ class StoryLabelRepository(Protocol):
         """Return all labels on a taxonomy axis."""
         ...
 
+    def list_all(self) -> tuple[StoryLabel, ...]:
+        """Return all story labels (batch read for public aggregates)."""
+        ...
+
 
 class SignalDimension(StrEnum):
     """Signal axes for profiles and clustering.

@@ -14,7 +14,12 @@ from core.infrastructure.repositories import (
 )
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
-from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
+from tests.intake_v2_fixtures import (
+    intake_payload_simple,
+    make_story_record,
+    narrative_dict,
+    with_active_schema_binding,
+)
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
 from core.promotion.gates import PromotionGatePolicy
@@ -32,7 +37,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
     )
     story = intake.create_story(
         parse_story_intake_request(
-            {
+            with_active_schema_binding({
                 "schema_version": INTAKE_SCHEMA_VERSION,
                 "submitter": {"external_user_id": f"user-{idx}", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
@@ -44,7 +49,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
             "canonical_type": "complaint",
             "canonical_labels": ["roads", "broken_infrastructure", "safety"],
                 },
-            }
+            })
         )
     )
     return story.story.story_id

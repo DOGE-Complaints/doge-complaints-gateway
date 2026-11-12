@@ -15,6 +15,7 @@ from core.infrastructure.db_sqlite import (
 from core.infrastructure.repositories import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
@@ -31,6 +32,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {"external_user_id": f"user-{idx}", "identity_issuer": "https://idp.example.com/eid"},
                 "narrative": {
             "original_text": f"District road light failure report #{idx}.",

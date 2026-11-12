@@ -41,35 +41,47 @@ class EmergingSignalsService:
     issue_story_link_store: IssueStoryLinkStore | None
     issue_projection_read_store: IssueProjectionReadStore
 
-    def _story_is_published_linked(self, story_id: str) -> bool:
+    def _published_story_ids(self) -> set[str]:
         if self.issue_story_link_store is None:
-            return False
-        issue_id = self.issue_story_link_store.get_issue_id_for_story(story_id)
-        if not issue_id:
-            return False
-        projection = self.issue_projection_read_store.get_projection(issue_id)
-        if projection is None:
-            return False
-        raw_status = str(projection.get("status", ""))
-        cabinet = map_issue_status_to_cabinet(raw_status, issue_id=issue_id)
-        return cabinet == CABINET_STATUS_PUBLISHED
+            return set()
+        story_to_issue = self.issue_story_link_store.list_story_issue_ids()
+        if not story_to_issue:
+            return set()
+        published_issues: set[str] = set()
+        for projection in self.issue_projection_read_store.list_projections():
+            # list_projections public shape uses `id`; get_projection uses `issue_id`.
+            issue_id = str(projection.get("issue_id") or projection.get("id") or "")
+            if not issue_id:
+                continue
+            raw_status = str(projection.get("status", ""))
+            cabinet = map_issue_status_to_cabinet(raw_status, issue_id=issue_id)
+            if cabinet == CABINET_STATUS_PUBLISHED:
+                published_issues.add(issue_id)
+        return {
+            story_id
+            for story_id, issue_id in story_to_issue.items()
+            if issue_id in published_issues
+        }
 
     def build_emerging(self, *, top_n: int = DEFAULT_TOP_N) -> dict[str, Any]:
         applied = clamp_top_n(int(top_n))
         stories = self.story_repository.list_stories()
+        known_story_ids = {story.story_id for story in stories}
+        published_story_ids = self._published_story_ids()
         freq: Counter[tuple[str, str]] = Counter()
 
-        for story in stories:
-            if self._story_is_published_linked(story.story_id):
+        for row in self.story_label_repository.list_all():
+            if row.story_id not in known_story_ids:
                 continue
-            for row in self.story_label_repository.list_by_story(story.story_id):
-                if not is_public_label_disposition(row.disposition):
-                    continue
-                label = row.label.strip()
-                axis = row.axis.strip()
-                if not label or not axis:
-                    continue
-                freq[(label, axis)] += 1
+            if row.story_id in published_story_ids:
+                continue
+            if not is_public_label_disposition(row.disposition):
+                continue
+            label = row.label.strip()
+            axis = row.axis.strip()
+            if not label or not axis:
+                continue
+            freq[(label, axis)] += 1
 
         ranked = sorted(freq.items(), key=lambda item: (-item[1], item[0][0], item[0][1]))
         signals = [

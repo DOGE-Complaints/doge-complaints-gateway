@@ -15,6 +15,7 @@ from core.infrastructure.repositories import (
     InMemoryStoryRepository,
 )
 from core.intake import INTAKE_SCHEMA_VERSION, parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from core.projection import IssueProjectionService
 from core.projection.enums import DOGEIssueStatus
 from core.promotion import IssuePromotionService
@@ -37,6 +38,7 @@ def _create_story(repo: InMemoryStoryRepository, idx: int) -> str:
         parse_story_intake_request(
             {
                 "schema_version": INTAKE_SCHEMA_VERSION,
+                "schema_binding": active_node_schema_binding(),
                 "submitter": {
                     "external_user_id": f"user-{idx}",
                     "identity_issuer": "https://idp.example.com/eid",

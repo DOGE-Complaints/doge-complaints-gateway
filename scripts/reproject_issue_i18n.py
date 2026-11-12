@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-off backfill: re-project existing issues so payload_json carries dominant-story i18n
+"""One-off backfill: re-project existing issues so columnar fields carry dominant-story i18n
 and original_locale metadata (GW-L10N-01 + GW-L10N-02).
 
 Run after deploying GW-L10N-01 (T01/T02) and GW-L10N-02 (T01/T02). Uses DATABASE_URL / Supabase env from the runtime.
@@ -71,12 +71,12 @@ def _resolve_wiring(factory: ServiceFactory) -> _ReprojectWiring:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Re-project doge_issues payload_json from linked stories (GW-L10N-01/02 backfill)."
+        description="Re-project doge_issues columnar fields from linked stories (GW-L10N-01/02 backfill)."
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Print planned updates without writing payload_json.",
+        help="Print planned updates without writing columnar fields.",
     )
     parser.add_argument(
         "--issue-id",

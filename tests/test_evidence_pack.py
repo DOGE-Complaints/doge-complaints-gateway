@@ -11,6 +11,7 @@ from core.evidence import (
 from core.infrastructure import InMemoryIdempotencyRepository, InMemoryStoryRepository
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 
 
@@ -120,6 +121,7 @@ def test_lineage_story_ids_allow_fetching_submitter_identity() -> None:
     req = parse_story_intake_request(
         {
             "schema_version": INTAKE_SCHEMA_VERSION,
+            "schema_binding": active_node_schema_binding(),
             "submitter": {
                 "external_user_id": "author-1",
                 "identity_issuer": "idp://partner",

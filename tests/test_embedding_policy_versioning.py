@@ -14,6 +14,7 @@ from core.infrastructure.repositories import (
 )
 from core.intake import INTAKE_SCHEMA_VERSION
 from core.intake import parse_story_intake_request
+from gw_ssr_16_node_schema import active_node_schema_binding
 from tests.intake_v2_fixtures import intake_payload_simple, make_story_record, narrative_dict
 from core.projection import IssueProjectionService
 from core.promotion import IssuePromotionService
@@ -27,6 +28,7 @@ from core.promotion.repositories import (
 def _intake_payload(*, text: str, title_hint: str, user_id: str) -> dict[str, object]:
     return {
         "schema_version": INTAKE_SCHEMA_VERSION,
+        "schema_binding": active_node_schema_binding(),
         "submitter": {"external_user_id": user_id, "identity_issuer": "https://idp.example.com/eid"},
         "narrative": {
             "original_text": text,
